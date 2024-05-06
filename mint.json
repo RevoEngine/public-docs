@@ -58,28 +58,311 @@
       ]
     },
     {
-      "group": "Essentials",
-      "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
-      ]
-    },
-    {
-      "group": "API Documentation",
+      "group": "Introduction",
       "pages": [
         "api-reference/introduction"
       ]
     },
     {
-      "group": "Endpoint Examples",
+      "group": "Search",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-reference/search/search"
+      ]
+    },
+    {
+      "group": "Me",
+      "pages": [
+        "api-reference/me/retrieve-user-accesses-roles-and-more",
+        "api-reference/me/update-user-profile",
+        "api-reference/me/fetch-notifications",
+        "api-reference/me/add-new-notification-token",
+        "api-reference/me/mark-notifications-as-read",
+        "api-reference/me/mark-notifications-as-deleted",
+        "api-reference/me/show-server-time",
+        "api-reference/me/upload-avatar",
+        "api-reference/me/clear-avatar",
+        "api-reference/me/get-your-api-keys",
+        "api-reference/me/get-an-api-key",
+        "api-reference/me/generate-an-api-key",
+        "api-reference/me/update-an-api-key",
+        "api-reference/me/delete-an-api-key"
+      ]
+    },
+    {
+      "group": "Accounts",
+      "pages": [
+        "api-reference/accounts/get-all-users",
+        "api-reference/accounts/get-stats-of-users",
+        "api-reference/accounts/get-an-account",
+        "api-reference/accounts/update-an-account",
+        "api-reference/accounts/delete-an-account",
+        "api-reference/accounts/create-an-account",
+        "api-reference/accounts/create-internal-account",
+        "api-reference/accounts/create-a-service-account",
+        "api-reference/accounts/activate-an-account",
+        "api-reference/accounts/disable-an-account",
+        "api-reference/accounts/enable-platform-access-for-user",
+        "api-reference/accounts/disable-platform-access-for-user",
+        "api-reference/accounts/restore-an-account",
+        "api-reference/accounts/get-a-api-keys",
+        "api-reference/accounts/create-an-api-key",
+        "api-reference/accounts/get-an-api-key",
+        "api-reference/accounts/update-an-api-key",
+        "api-reference/accounts/delete-an-api-key",
+        "api-reference/accounts/get-versions",
+        "api-reference/accounts/get-version"
+      ]
+    },
+    {
+      "group": "Endpoints",
+      "pages": [
+        "api-reference/endpoints/get-endpoints",
+        "api-reference/endpoints/create-endpoint",
+        "api-reference/endpoints/get-endpoint-stats-cached-in-5-min-intervals",
+        "api-reference/endpoints/get-endpoint",
+        "api-reference/endpoints/update-endpoint",
+        "api-reference/endpoints/delete-template",
+        "api-reference/endpoints/activate-endpoint",
+        "api-reference/endpoints/disable-endpoint",
+        "api-reference/endpoints/restore-deleted-endpoint",
+        "api-reference/endpoints/get-stats-from-api-executions",
+        "api-reference/endpoints/validate-applicable-endpoint-for-given-criteria",
+        "api-reference/endpoints/get-versions",
+        "api-reference/endpoints/get-version"
+      ]
+    },
+    {
+      "group": "Components",
+      "pages": [
+        "api-reference/components/get-components-all-active-and-not",
+        "api-reference/components/create-component",
+        "api-reference/components/get-component-by-id",
+        "api-reference/components/update-component",
+        "api-reference/components/delete-component",
+        "api-reference/components/save-component",
+        "api-reference/components/activate-component",
+        "api-reference/components/disable-component",
+        "api-reference/components/restore-deleted-component",
+        "api-reference/components/get-versions",
+        "api-reference/components/get-version"
+      ]
+    },
+    {
+      "group": "Role Groups",
+      "pages": [
+        "api-reference/role-groups/get-a-role-groups",
+        "api-reference/role-groups/create-a-role-group",
+        "api-reference/role-groups/get-a-role-group",
+        "api-reference/role-groups/update-a-role-group",
+        "api-reference/role-groups/delete-a-role-group",
+        "api-reference/role-groups/add-user-to-a-group",
+        "api-reference/role-groups/remove-user-from-a-group",
+        "api-reference/role-groups/add-role-to-a-group",
+        "api-reference/role-groups/remove-role-from-a-group",
+        "api-reference/role-groups/restore-removed-group",
+        "api-reference/role-groups/get-versions",
+        "api-reference/role-groups/get-version"
+      ]
+    },
+    {
+      "group": "Roles",
+      "pages": [
+        "api-reference/roles/get-roles",
+        "api-reference/roles/get-a-role"
+      ]
+    },
+    {
+      "group": "Groups",
+      "pages": [
+        "api-reference/groups/get-a-groups",
+        "api-reference/groups/create-a-group",
+        "api-reference/groups/get-a-group",
+        "api-reference/groups/update-a-group",
+        "api-reference/groups/delete-a-group",
+        "api-reference/groups/add-user-to-a-group",
+        "api-reference/groups/remove-user-from-a-group",
+        "api-reference/groups/restore-removed-group",
+        "api-reference/groups/get-versions",
+        "api-reference/groups/get-version"
+      ]
+    },
+    {
+      "group": "Resources",
+      "pages": [
+        "api-reference/resources/get-resources",
+        "api-reference/resources/create-resource",
+        "api-reference/resources/get-resource",
+        "api-reference/resources/update-resource",
+        "api-reference/resources/delete-resource",
+        "api-reference/resources/restore-deleted-resource",
+        "api-reference/resources/get-versions",
+        "api-reference/resources/get-version",
+        "api-reference/resources/get-allowed-fields-for-resource",
+        "api-reference/resources/get-resource-items",
+        "api-reference/resources/get-resource-items-1",
+        "api-reference/resources/clone-resource",
+        "api-reference/resources/activate-resource",
+        "api-reference/resources/disable-resource",
+        "api-reference/resources/create-resource-items",
+        "api-reference/resources/update-resource-item",
+        "api-reference/resources/update-resource-items",
+        "api-reference/resources/delete-resource-items",
+        "api-reference/resources/purge-resource-items"
+      ]
+    },
+    {
+      "group": "Preferences",
+      "pages": [
+        "api-reference/preferences/get-a-preferences",
+        "api-reference/preferences/create-a-preference",
+        "api-reference/preferences/get-a-single-preference-with-details",
+        "api-reference/preferences/update-a-preference",
+        "api-reference/preferences/delete-a-preference",
+        "api-reference/preferences/get-versions",
+        "api-reference/preferences/get-version"
+      ]
+    },
+    {
+      "group": "Mail",
+      "pages": [
+        "api-reference/mail/get-resources",
+        "api-reference/mail/create-mail-template",
+        "api-reference/mail/get-resource",
+        "api-reference/mail/update-mail-template",
+        "api-reference/mail/delete-mail-templates",
+        "api-reference/mail/restore-mail-template",
+        "api-reference/mail/get-versions",
+        "api-reference/mail/get-version"
+      ]
+    },
+    {
+      "group": "Secrets",
+      "pages": [
+        "api-reference/secrets/get-secrets",
+        "api-reference/secrets/create-secret",
+        "api-reference/secrets/get-secret",
+        "api-reference/secrets/update-secret",
+        "api-reference/secrets/delete-secret",
+        "api-reference/secrets/get-secret-revisions",
+        "api-reference/secrets/create-a-secret",
+        "api-reference/secrets/get-versions",
+        "api-reference/secrets/get-version",
+        "api-reference/secrets/reveal-secret",
+        "api-reference/secrets/activate-secret",
+        "api-reference/secrets/disable-secret",
+        "api-reference/secrets/destroy-secret"
+      ]
+    },
+    {
+      "group": "Schema",
+      "pages": [
+        "api-reference/schema/get-all-schemas",
+        "api-reference/schema/create-schemas",
+        "api-reference/schema/get-one-schema",
+        "api-reference/schema/update-schemas",
+        "api-reference/schema/remove-schemas",
+        "api-reference/schema/restore-schema",
+        "api-reference/schema/get-versions",
+        "api-reference/schema/get-version",
+        "api-reference/schema/get-fields",
+        "api-reference/schema/add-field",
+        "api-reference/schema/get-single-field",
+        "api-reference/schema/update-field",
+        "api-reference/schema/delete-field",
+        "api-reference/schema/get-versions-1",
+        "api-reference/schema/get-version-1"
+      ]
+    },
+    {
+      "group": "Files",
+      "pages": [
+        "api-reference/files/file-explorer",
+        "api-reference/files/file-explorer-1",
+        "api-reference/files/file-download",
+        "api-reference/files/file-download-1",
+        "api-reference/files/file-delete",
+        "api-reference/files/get-versions",
+        "api-reference/files/get-version"
+      ]
+    },
+    {
+      "group": "Automation",
+      "pages": [
+        "api-reference/automation/get-jobs",
+        "api-reference/automation/get-job",
+        "api-reference/automation/get-job-logs",
+        "api-reference/automation/retry-job",
+        "api-reference/automation/cancel-jobs",
+        "api-reference/automation/delete-job",
+        "api-reference/automation/restore-job",
+        "api-reference/automation/get-templates",
+        "api-reference/automation/create-templates",
+        "api-reference/automation/get-template",
+        "api-reference/automation/update-template",
+        "api-reference/automation/run-template",
+        "api-reference/automation/subscribe-template",
+        "api-reference/automation/unsubscribe-template",
+        "api-reference/automation/subscribe-template-1",
+        "api-reference/automation/unsubscribe-template-1",
+        "api-reference/automation/delete-template",
+        "api-reference/automation/restore-template",
+        "api-reference/automation/get-versions",
+        "api-reference/automation/get-version",
+        "api-reference/automation/schedule-get-all",
+        "api-reference/automation/schedule-create",
+        "api-reference/automation/schedule-get-one",
+        "api-reference/automation/schedule-update",
+        "api-reference/automation/schedule-trigger-now",
+        "api-reference/automation/schedule-resume",
+        "api-reference/automation/schedule-pause",
+        "api-reference/automation/schedule-delete",
+        "api-reference/automation/restore-deleted-schedule",
+        "api-reference/automation/get-versions-1",
+        "api-reference/automation/get-version-1",
+        "api-reference/automation/get-event-history",
+        "api-reference/automation/get-event-history-detailed",
+        "api-reference/automation/delete-event-history",
+        "api-reference/automation/restore-event-history",
+        "api-reference/automation/get-events",
+        "api-reference/automation/create-events",
+        "api-reference/automation/get-event",
+        "api-reference/automation/update-event",
+        "api-reference/automation/trigger-event",
+        "api-reference/automation/activate-event",
+        "api-reference/automation/disable-event",
+        "api-reference/automation/delete-event",
+        "api-reference/automation/restore-event",
+        "api-reference/automation/get-versions-2",
+        "api-reference/automation/get-version-2",
+        "api-reference/automation/get-webhooks",
+        "api-reference/automation/create-webhook",
+        "api-reference/automation/get-webhooks-1",
+        "api-reference/automation/cancel-webhooks",
+        "api-reference/automation/delete-webhook",
+        "api-reference/automation/get-webhooks-2"
+      ]
+    },
+    {
+      "group": "Assistant",
+      "pages": [
+        "api-reference/assistant/get-all-threads",
+        "api-reference/assistant/create-thread",
+        "api-reference/assistant/get-a-thread",
+        "api-reference/assistant/delete-thread",
+        "api-reference/assistant/restore-thread",
+        "api-reference/assistant/get-messages-of-a-thread",
+        "api-reference/assistant/send-message-to-a-thread",
+        "api-reference/assistant/cancel-thread"
+      ]
+    },
+    {
+      "group": "Config",
+      "pages": [
+        "api-reference/config/get-instance-logs",
+        "api-reference/config/retrieve-instance-details-and-config",
+        "api-reference/config/apply-changes-to-instance-config",
+        "api-reference/config/retrieve-instance-details-and-config-1",
+        "api-reference/config/purge-cache"
       ]
     }
   ],
