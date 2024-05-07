@@ -1,0 +1,20 @@
+---
+title: 'HTTP Codes'
+description: 'Platform API does support these HTTP Status codes.'
+---
+
+| Code  | Description                                                                 |
+|-------|-----------------------------------------------------------------------------|
+| `200` | `OK` - The request has succeeded.                                           |
+| `201` | `Created` - The request has succeeded and resource has been created.        |
+| `400` | `Bad Request` - The request cannot be fulfilled due to bad payload.         |
+| `401` | `Unauthorized` - Authentication is required.                                |
+| `401` | `Payment required` - Check status of your subscription.                     |
+| `403` | `Forbidden` - You don't have necessary permissions to access this resource. |
+| `404` | `Not Found`- The requested resource was not found.                          |
+| `409` | `Conflict` - Resource has already been created.                             |
+| `429` | `Too Many Requests` - Your request has been throttled.                      |
+| `500` | `Internal Server Error` - Generic error message.                            |
+| `502` | `Bad Gateway` - Invalid response from server.                               |
+
+<Note>In case of `429`, `500`, `502`, we recommend to retry the request using exponential backoff.</Note>

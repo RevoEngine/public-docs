@@ -1,0 +1,125 @@
+---
+title: 'Introduction'
+description: 'This section will describe **Platform API** known also as Management API,
+this API is typically used for integrations and service to service communication,
+it should not be directly used in your apps for this you should be using  **Run API** which is part of different documentation section.'
+---
+
+Platform API is used mainly for our [Platform App](https://app.revong.com), but it is open to be used by our users to fulfill their custom needs.
+Here are some references:
+
+<Note>
+  This documentation in only used for purpose of Platform API, [Run API](/run-api/introduction) has different section.
+</Note>
+
+## Starters
+
+<CardGroup cols={2}>
+    <Card title="Authentication" icon="shield" href="/platform-api/authentication">
+        Get understanding of how we handle authentication.
+    </Card>
+    <Card title="HTTP Codes" icon="info" href="/platform-api/http-codes">
+        Read all possible HTTP codes and what they mean.
+    </Card>
+</CardGroup>
+
+## API Sections
+
+### General & Security
+
+<CardGroup cols={3}>
+    <Card title="Search" icon="magnifying-glass" href="/platform-api/search/search">
+        Find anything in your instance, use our powerful search.
+    </Card>
+    <Card title="Components" icon="cube" href="/platform-api/components/get-components-all-active-and-not">
+        Manage components and libraries.
+    </Card>
+    <Card title="Secrets" icon="shield" href="/platform-api/secrets/get-secrets">
+        Keep your secrets directly in our secure secret store, that can be used for your components (e.g. external API Keys, Private Keys and more).
+    </Card>
+    <Card title="Audit & Logs" icon="box-archive" href="/platform-api/config/get-instance-logs">
+        Keep hand on audit, logs and setup monitoring of your instance.
+    </Card>
+    <Card title="Settings" icon="wrench" href="/platform-api/config/retrieve-instance-details-and-config">
+        Instance settings (e.g. authentication providers, default groups and more) as well as monitor your quota and usage.
+    </Card>
+    <Card title="AI Assistant" icon="sparkles" href="/platform-api/assistant/get-all-threads">
+        Open threads and get designed solution for your needs or support instantly.
+    </Card>
+
+</CardGroup>
+
+### IAM
+
+<CardGroup cols={3}>
+    <Card title="Accounts" icon="user-shield" href="/platform-api/accounts/get-all-users">
+        Manage user and service accounts as well as service account API Keys.
+    </Card>
+    <Card title="Permissions" icon="user-lock" href="/platform-api/role-groups/get-a-role-groups">
+        Manage groups of permissions and assign roles and accounts.
+    </Card>
+    <Card title="Groups" icon="user-group" href="/platform-api/groups/get-a-groups">
+        Structure your accounts into groups that can be widely used.
+    </Card>
+    <Card title="Me" icon="user" href="/platform-api/me/retrieve-user-accesses-roles-and-more">
+        Manage your account.
+    </Card>
+    <Card title="Roles" icon="lock" href="/platform-api/roles/get-roles">
+        Get all defined permissions and their meaning.
+    </Card>
+</CardGroup>
+
+### Resources
+
+<CardGroup cols={2}>
+    <Card title="Databases" icon="database" href="/platform-api/resources/get-resources">
+        Manage various logical databases designed for specific needs.
+    </Card>
+    <Card title="Structure" icon="bars" href="/platform-api/schema/get-all-schemas">
+        Design and manage reusable database structure for your databases.
+    </Card>
+    <Card title="Files" icon="folder-open" href="/platform-api/files/file-explorer">
+        Manage files with our blob storage.
+    </Card>
+    <Card title="Templates" icon="envelope" href="/platform-api/mail/get-resources">
+        Design and ship HTML templates quickly.
+    </Card>
+</CardGroup>
+
+### Endpoints
+
+<Card title="Endpoints (Run API)" icon="network-wired" href="/platform-api/endpoints/get-endpoints">
+    Manage your customized **Endpoints** also known as **Run API**.
+</Card>
+
+### Jobs 🚀
+
+<CardGroup cols={3}>
+    <Card title="Jobs" icon="rocket" href="/platform-api/automation/get-jobs">
+        Configure templates of Jobs that can be used as destination for your triggers.
+    </Card>
+    <Card title="History" icon="list-timeline" href="/platform-api/automation/get-jobs">
+        Monitor detailed executions of **Jobs**.
+    </Card>
+    <Card title="Triggers" icon="timeline" href="/platform-api/automation/get-event-history">
+        Monitor events triggered by the instance or other components.
+    </Card>
+</CardGroup>
+
+#### Schedule
+
+<Card title="Schedule" icon="repeat" href="/platform-api/automation/schedule-get-all">
+    Configure a trigger to execute **Job** using cron-like schedule.
+</Card>
+
+#### Events
+
+<Card title="Events" icon="chart-network" href="/platform-api/automation/get-event-history">
+    Configure a trigger to lecture your **Job** using realtime events.
+</Card>
+
+### Webhooks
+
+<Card title="Webhooks" icon="webhook" href="/platform-api/automation/get-webhooks">
+    Trigger and manage webhooks triggered by you or your **Components**.
+</Card>
