@@ -1,0 +1,144 @@
+---
+title: 'Run API - Guard'
+description: 'We describe how you can use built-in guard (also known as *schema validator*) to ensure that invalid requests will not execute your [Component](/components).'
+sidebarTitle: Guard
+---
+
+This schema validation template is designed to manage and enforce validation rules for incoming requests at **Run API** (Endpoints). It ensures that requests conform to predefined standards by validating query parameters, headers, and the request body based on specified rules. Below, you will find a detailed explanation of the template, its properties, and examples of how to configure it for different scenarios.
+
+# Supported guards
+
+<Warning>Initial template properties such as `query` and `headers` are static and it's schema type **must be type of `object`**. For property `body` this is only the example to show how to accept all payloads.</Warning>
+
+| Type      | Description                                                                         |
+|-----------|-------------------------------------------------------------------------------------|
+| `query`   | Configure to whitelist request only with valid query parameters (must be `object`). |
+| `headers` | Configure to whitelist request only with valid headers (must be `object`).          |
+| `body`    | Perform payload validation.                                                         |
+
+# Template format
+
+## Properties
+
+
+| Property          | Type                       | Description                                                                                                                                                              |
+|-------------------|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `whitelist`       | Boolean                    | Determines whether properties not explicitly defined in the schema are allowed. If set to `true`, extra properties are permitted; if set to `false`, they are not.       |
+| `whitelistErrors` | Boolean                    | Controls whether errors are thrown for properties not included in the whitelist. The default is `false`, which means errors are not thrown unless this is set to `true`. |
+| `schema`          | Object (ValidatorProperty) | Defines the validation rules for various components of the request such as `query` parameters, `headers`, and the `body`.                                                |
+
+<Accordion title="JSON Template">
+```json
+{
+    "whitelist": true,
+    "whitelistErrors": false,
+    "schema": {
+    "type": "object",
+    "objectSchema": [
+        {
+            "property": "query",
+            "schema": {
+                "type": "object",
+                "objectSchema": []
+            }
+        },
+        {
+            "property": "headers",
+            "schema": {
+                "type": "object",
+                "objectSchema": []
+            }
+        },
+        {
+            "property": "body",
+            "schema": {
+                "type": "any"
+            }
+        }
+    ]
+    }
+}
+```
+</Accordion>
+<Note>We recommend using our [WebUI](/web-ui) to create **Schema Validator Components** but, if you want to use your own JSON editor, we recommend setting up this schema as validator for your file.</Note>
+<Accordion title="JSON Validator (Schema)">
+```json
+{
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+            "whitelist": {
+                "type": "boolean",
+                "description": "Whether to whitelist properties that are not defined in schema."
+            },
+            "whitelistErrors": {
+                "type": "boolean",
+                "description": "Whether to throw errors for non-whitelisted properties.",
+                "default": false
+            },
+            "schema": {
+                "$ref": "#/definitions/ValidatorProperty",
+                "description": "The schema for validation."
+            }
+        },
+        "required": ["schema"],
+        "additionalProperties": false,
+        "definitions": {
+        "ValidatorProperty": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["string", "number", "boolean", "object", "array", "date", "any"],
+                    "description": "The type of the property."
+                },
+                "required": {
+                    "type": "boolean",
+                    "description": "Whether the property is required."
+                },
+                "regex": {
+                    "type": "string",
+                    "description": "The regex pattern the property should match."
+                },
+                "min": {
+                    "type": "number",
+                    "description": "Minimum value/length for the property."
+                },
+                "max": {
+                    "type": "number",
+                    "description": "Maximum value/length for the property."
+                },
+                "objectSchema": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/ValidatorObject" },
+                    "description": "The schema for an object, used if the type is 'object'."
+                },
+                "arraySchema": {
+                    "$ref": "#/definitions/ValidatorProperty",
+                    "description": "The schema for array items, used if the type is 'array'."
+                }
+            },
+            "required": ["type"],
+            "additionalProperties": false
+        },
+        "ValidatorObject": {
+            "type": "object",
+            "properties": {
+                "property": {
+                    "type": "string",
+                    "description": "The name of the property."
+                },
+                "schema": {
+                    "$ref": "#/definitions/ValidatorProperty",
+                    "description": "The schema of the property."
+                }
+        },
+            "required": ["property", "schema"],
+            "additionalProperties": false
+        }
+    }
+}
+```
+</Accordion>
+
+## Example

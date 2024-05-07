@@ -76,19 +76,20 @@
       ]
     },
     {
-      "group": "Run API",
-      "pages": [
-        "run-api/introduction",
-        "run-api/authentication",
-        "run-api/http-codes"
-      ]
-    },
-    {
       "group": "Platform API",
       "pages": [
         "platform-api/introduction",
         "platform-api/authentication",
         "platform-api/http-codes"
+      ]
+    },
+    {
+      "group": "Run API",
+      "pages": [
+        "run-api/introduction",
+        "run-api/authentication",
+        "run-api/http-codes",
+        "run-api/guard"
       ]
     },
     {
