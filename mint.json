@@ -15,7 +15,10 @@
       "to": "#103279"
     }
   },
-  "openapi": ["/platform-api/openapi.json"],
+  "api": {
+    "baseUrl": "https://api.revong.com/"
+  },
+  "openapi": ["platform-api/openapi.json"],
   "topbarLinks": [
     {
       "name": "Status",
@@ -38,6 +41,14 @@
     {
       "name": "Platform API",
       "url": "platform-api"
+    },
+    {
+      "name": "Run API",
+      "url": "run-api"
+    },
+    {
+      "name": "Components",
+      "url": "components"
     }
   ],
   "anchors": [
@@ -65,7 +76,15 @@
       ]
     },
     {
-      "group": "Essentials",
+      "group": "Run API",
+      "pages": [
+        "run-api/introduction",
+        "run-api/authentication",
+        "run-api/http-codes"
+      ]
+    },
+    {
+      "group": "Platform API",
       "pages": [
         "platform-api/introduction",
         "platform-api/authentication",

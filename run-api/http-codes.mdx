@@ -1,0 +1,36 @@
+---
+title: 'Run API - HTTP Codes'
+description: 'Run API does support various HTTP Status codes, but some are reserved for internal reporting e.g. `429` and `502`.'
+sidebarTitle: HTTP Codes
+---
+
+# Default Responses
+
+| Code  | Description                                                                                          |
+|-------|------------------------------------------------------------------------------------------------------|
+| `200` | `OK` - Default response except POST method.                                                          |
+| `201` | `Created` - Default response of POST method.                                                         |
+| `401` | `Unauthorized` - Authentication is required.                                                         |
+| `429` | `Too Many Requests` - Your request has been throttled (check your Run API quota).                    |
+| `502` | `Bad Gateway` - Error during executing Endpoint (most likely misconfiguration or compilation error). |
+
+<Note>In case of `429`, we recommend to retry the request using exponential backoff.</Note>
+
+# Custom Success
+In case of success response, we allow users to configure their success HTTP code in range of 200-299 ([successful responses](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses)).
+<img
+    src="/run-api/images/success-http-codes.png"
+    alt="Success HTTP Codes"
+    title="Success HTTP Codes"
+    style={{ border: "3px solid black", width: "500px" }}
+/>
+
+# Custom Error
+In case of error response, we allow you to throw any response code excluding `502` which we use to address misconfiguration or compilation error or to expose any other internal issues.
+<img
+    src="/run-api/images/error-http-codes.png"
+    alt="Success HTTP Codes"
+    title="Success HTTP Codes"
+    style={{ border: "3px solid black", width: "500px" }}
+/>
+

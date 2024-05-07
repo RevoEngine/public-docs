@@ -8692,19 +8692,27 @@
     }
   },
   "info": {
-    "title": "RevoNG - dev",
-    "description": "\nThis is official API documentation of <i>RevoNG</i> platform.<br>\nAPI can be accessible once you own license which you can purchase via <a href=\"mailto:info@revong.com\" target=\"_blank\">info@revoengine.com</a> or <a href=\"https://www.revong.com\" target=\"_blank\">official website</a>, check our <a href=\"https://www.revong.com/plans\" target=\"_blank\">plans</a>.<br>\nThere are 2 ways of authentication to the API:<br>\n<li>User OAuth</li>\n<p>You can login via the application, OAuth is built in into the platform, for the M2M communication, you must create API key.</p>\n<li>API Key Pair</li>\n<p>You must provide headers in order to be validated by the server <i>X-API-KEY, X-API-SECRET, X-API-INSTANCE</i>.</p>\n<p>You can generate API keys for users and service accounts.</p>\n<p>You can add whitelisting of IP addresses for API client, e.g. only selected network (IP address, or IP with CIDR).</p>\n<p><b>Note:</b> Once API key pair is generated, it cannot be obtained again, you must revoke API pair and generate new one.</p>\n<p><b>Warning:</b> This API spec is no longer updated.</p>\n",
+    "title": "RevoEngine",
+    "description": "",
     "version": "c96eca1b58c9efcfe226045011e06f469bb3a986",
     "contact": {}
   },
   "tags": [],
   "servers": [],
+  "security": [{
+    "Instance": []
+  }],
   "components": {
     "securitySchemes": {
       "bearer": {
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http"
+      },
+      "Instance": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "instance"
       }
     },
     "schemas": {
