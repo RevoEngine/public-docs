@@ -15,6 +15,7 @@
       "to": "#103279"
     }
   },
+  "openapi": "platform-api/openapi.json",
   "topbarLinks": [
     {
       "name": "Status",
