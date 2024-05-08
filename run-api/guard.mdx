@@ -10,24 +10,44 @@ This schema validation template is designed to manage and enforce validation rul
 
 <Warning>Initial template properties such as `query` and `headers` are static and it's schema type **must be type of `object`**. For property `body` this is only the example to show how to accept all payloads.</Warning>
 
-| Type      | Description                                                                         |
-|-----------|-------------------------------------------------------------------------------------|
-| `query`   | Configure to whitelist request only with valid query parameters (must be `object`). |
-| `headers` | Configure to whitelist request only with valid headers (must be `object`).          |
-| `body`    | Perform payload validation.                                                         |
+| Type      | Description                                              |
+|-----------|----------------------------------------------------------|
+| `query`   | Validation on query parameters level (must be `object`). |
+| `headers` | Validation on headers level (must be `object`).          |
+| `body`    | Perform payload validation.                              |
 
 # Template format
+<Note>We recommend using our [WebUI](/web-ui) to create **Schema Validator Components** but, if you want to use your own JSON editor, we recommend setting up schema below as validator for your file.</Note>
 
 ## Properties
 
+| Property          | Type                           | Description                                                                                                                                                              |
+|-------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `whitelist`       | `Boolean`                      | Determines whether properties not explicitly defined in the schema are allowed. If set to `true`, extra properties are permitted; if set to `false`, they are not.       |
+| `whitelistErrors` | `Boolean`                      | Controls whether errors are thrown for properties not included in the whitelist. The default is `false`, which means errors are not thrown unless this is set to `true`. |
+| `schema`          | `Object` (`ValidatorProperty`) | Defines the validation rules for various components of the request such as `query` parameters, `headers`, and the `body`.                                                |
 
-| Property          | Type                       | Description                                                                                                                                                              |
-|-------------------|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `whitelist`       | Boolean                    | Determines whether properties not explicitly defined in the schema are allowed. If set to `true`, extra properties are permitted; if set to `false`, they are not.       |
-| `whitelistErrors` | Boolean                    | Controls whether errors are thrown for properties not included in the whitelist. The default is `false`, which means errors are not thrown unless this is set to `true`. |
-| `schema`          | Object (ValidatorProperty) | Defines the validation rules for various components of the request such as `query` parameters, `headers`, and the `body`.                                                |
+## Definition - `ValidatorProperty`
+| Property       | Type                                | Description                                                                                                                                                                                                                              |
+|----------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `type`         | 	`String`	                          | Specifies the data type of the property (e.g., `string`, `number`, `boolean`, `object`, `array`, `date`, `any`).  <Note>`any` - accepts everything, useful when you would like to whitelist optional properties and remove others</Note> |
+| `required`     | 	`Boolean`                          | 	Indicates whether the property must be present in the request.                                                                                                                                                                          |
+| `regex`        | 	`String`                           | 	A regular expression that the property value must match, if applicable.                                                                                                                                                                 |
+| `min`          | 	`Number`                           | 	Sets the minimum value or length for the property. Applicable to numeric values and lengths of strings or arrays.                                                                                                                       |
+| `max`          | 	`Number`                           | 	Sets the maximum value or length for the property. Applicable to numeric values and lengths of strings or arrays.                                                                                                                       |
+| `objectSchema` | 	`Array` (`ValidatorObject` items)	 | Defines a schema for properties when the type is `object`. Includes an array of `ValidatorObject` items.                                                                                                                                 |
+| `arraySchema`  | 	`Object` (`ValidatorProperty`)     | Describes the schema for array items when the type is `array`.                                                                                                                                                                           |
 
-<Accordion title="JSON Template">
+## Definition - `ValidatorObject`
+| Property   | Type                            | Description                                                                   |
+|------------|---------------------------------|-------------------------------------------------------------------------------|
+| `property` | 	`String`                       | The name of the property in the request.                                      |
+| `schema`   | 	`Object` (`ValidatorProperty`) | The detailed schema definition for the property based on `ValidatorProperty`. |
+
+
+
+## Snippets
+<Accordion title="Default JSON Template">
 ```json
 {
     "whitelist": true,
@@ -60,7 +80,6 @@ This schema validation template is designed to manage and enforce validation rul
 }
 ```
 </Accordion>
-<Note>We recommend using our [WebUI](/web-ui) to create **Schema Validator Components** but, if you want to use your own JSON editor, we recommend setting up this schema as validator for your file.</Note>
 <Accordion title="JSON Validator (Schema)">
 ```json
 {
@@ -141,4 +160,226 @@ This schema validation template is designed to manage and enforce validation rul
 ```
 </Accordion>
 
-## Example
+## Examples
+We provide a few examples on how to configure validator and samples.
+- `Query`
+- `Headers`
+- `Body` (payload)
+
+<Note>It will work the same if you put it in either `query` or `body`, you can mix these inside single `Guard` and validate `Query` `Headers` and `Body` in the same time..</Note>
+
+### Example 1: Validate required property.
+Here we only validate single header input, also we set as required so call's without providing a header will fail.
+
+<CodeGroup>
+```json Configuration
+{
+    "whitelist": true,
+    "whitelistErrors": false,
+    "schema": {
+        "type": "object",
+        "objectSchema": [
+            {
+                "property": "headers",
+                "schema": {
+                    "type": "object",
+                    "objectSchema": [
+                        {
+                            "property": "internalid",
+                            "schema": {
+                                "type": "string",
+                                "required": true,
+                                "regex": "^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+```
+```json Error - Required
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T08:21:52.803Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"headers.internalid\" is required but missing"
+    ]
+}
+```
+```json Error - Pattern Mismatch (UUID RegExpr)
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T08:24:03.218Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"headers.internalid\" doesn't match pattern (^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$)"
+    ]
+}
+
+```
+</CodeGroup>
+
+### Example 2: Validate a different format of payload.
+
+#### `Array of Objects`
+Assuming our endpoint consumes `array` of products, it validates that payload is valid JSON but it is not JSON Object `{}` but array `[]`
+and it has at least two elements, where each must have two properties `productId` and `price`, where `price` must be
+in range of `0-100`.
+```json Configuration
+{
+    "whitelist": true,
+    "whitelistErrors": false,
+    "schema": {
+        "type": "object",
+
+        "objectSchema": [
+            {
+                "property": "body",
+                "schema": {
+                    "type": "array",
+                    "min": 2,
+                    "arraySchema": {
+                        "type": "object",
+                        "objectSchema": [{
+                            "property": "productId",
+                            "schema": {
+                                "required": true,
+                                "type": "string"
+                            }
+                        }, {
+                            "property": "price",
+                            "schema": {
+                                "required": true,
+                                "type": "number",
+                                "min": 0,
+                                "max": 100
+                            }
+                        }]
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+<Accordion title="Error - Bad Format">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:13:54.709Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"body\" is not of type array"
+    ]
+}
+```
+</Accordion>
+<Accordion title="Error - Min elements in array validation">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:13:54.709Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"body\" has less elements than the minimum (2)"
+    ]
+}
+```
+</Accordion>
+<Accordion title="Error - Wrong format of elements">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:17:50.782Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"body[0].productId\" is required but missing",
+        "\"body[0].price\" is required but missing",
+        "\"body[1].productId\" is required but missing",
+        "\"body[1].price\" is required but missing"
+    ]
+}
+```
+</Accordion>
+<Accordion title="Error - Maximum allowed value in element property">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:18:53.674Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"body[1].price\" exceeds the maximum allowed value (100)"
+    ]
+}
+```
+</Accordion>
+<Accordion title="Error - Wrong format of value in element property">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:18:53.674Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"body[1].price\" is not of type number"
+    ]
+}
+```
+</Accordion>
+
+#### `Object`
+Assuming our endpoint consumes single `object` of product, similar to the  example above, however now it validates that payload is valid JSON Object `{}` and not array `[]`
+it has two properties `productId` and `price`, where `price` must be in range of `0-100`.
+```json Configuration
+{
+    "whitelist": true,
+    "whitelistErrors": false,
+    "schema": {
+        "type": "object",
+        "objectSchema": [
+            {
+                "property": "body",
+                "schema": {
+                    "type": "object",
+                    "objectSchema": [
+                        {
+                            "property": "productId",
+                            "schema": {
+                                "required": true,
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "property": "price",
+                            "schema": {
+                                "required": true,
+                                "type": "number",
+                                "min": 0,
+                                "max": 100
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+```
+<Accordion title="Error - Bad Format">
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T09:26:38.131Z",
+    "message": "Bad Request",
+    "errors": [
+        "\"productId\" is required but missing",
+        "\"price\" is required but missing"
+    ]
+}
+```
+</Accordion>
+### Example 3: Validate advanced query parameter.
+
+## Custom Error Response

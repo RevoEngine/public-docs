@@ -8,13 +8,35 @@ it will let you design and ship customized API tailored for your needs.'
     This documentation in only used for purpose of Run API, [Platform API](/platform-api/introduction) has different section.
 </Note>
 
-## Starters
+# Concept
 
-<CardGroup cols={2}>
-    <Card title="Authentication" icon="shield" href="/run-api/authentication">
-        Get understanding of how we handle authentication.
-    </Card>
-    <Card title="HTTP Codes" icon="info" href="/run-api/http-codes">
-        Read all possible HTTP codes and what they mean.
-    </Card>
-</CardGroup>
+<img
+    className="block dark:hidden"
+    src="/run-api/images/introduction.png"
+    alt="RevoEngine - Run API Introduction"
+    title="RevoEngine - Run API Introduction"
+    style={{ border: "2px solid black" }}
+/>
+
+<img
+    className="hidden dark:block"
+    src="/run-api/images/introduction.png"
+    alt="RevoEngine - Run API Introduction"
+    title="RevoEngine - Run API Introduction"
+    style={{ border: "2px solid black", filter: "invert(1)" }}
+/>
+
+<Steps>
+    <Step title="Firstly">
+        A client sends HTTP request to their **Run API Endpoint**.
+    </Step>
+    <Step title="Secondly">
+        Validates `Token` & `Instance` based on [Authentication](/run-api/authentication) mechanisms.
+    </Step>
+    <Step title="Moreover">
+        We are matching requested Method and Path against configured `Active` `Endpoints`, then we validate request against [Guard](/run-api/guard) if configured and execute attached [Component](/components) if configured.
+    </Step>
+    <Step title="Lastly">
+        We return
+    </Step>
+</Steps>
