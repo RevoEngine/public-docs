@@ -29,7 +29,7 @@ sidebarTitle: Introduction
 
 <Steps>
     <Step title="Firstly">
-        A client sends HTTP request to **Run API Endpoint**.
+        A client sends HTTP request to [Run API Endpoint](/endpoints).
     </Step>
     <Step title="Secondly">
         Validates `Token` & `Instance` based on [Authentication](/run-api/authentication) mechanism.
@@ -38,6 +38,6 @@ sidebarTitle: Introduction
         We are matching requested `Method` and `Path` against configured **Active** `Endpoints`, then we validate request against [Guard](/run-api/guard) if configured and execute attached [Component](/components) if configured.
     </Step>
     <Step title="Lastly">
-        We return [Response](/run-api/) together with [HTTP Code](/run-api/http-codes).
+        We return **Response** together based on [Configuration](/run-api/configuration).
     </Step>
 </Steps>

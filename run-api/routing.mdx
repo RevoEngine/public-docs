@@ -1,0 +1,42 @@
+---
+title: 'Run API - Routing'
+description: 'This section will describe **Run API** routing matching mechanism,
+which is designed to support edge cases.'
+sidebarTitle: Routing
+---
+# General
+Unlike most of the controller matching, RevoEngine handles controllers more dynamically.
+The structure is flat, and we use the following pattern to match dynamic values against correct **Endpoint**.
+Paths for **Endpoints** without dynamic property of `@` are straight forward, while the dynamic works like this:
+
+<Tip>We also support partial dynamic attributes, so you are not forced to divide it by `/` e.g.: `/v1/us@` is valid path. If you are not sure how your endpoints will be treated, you can use built-in routing matcher in `Endpoint` view, by clicking at `Check route`.</Tip>
+
+<img
+    src="/run-api/images/routing.png"
+    alt="Run API Routing"
+    title="Run API Routing"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+## Example
+For this example we use endpoint of: `/v1/users/@` where `@` corresponds to dynamic parameter.
+Assuming we have two endpoints:
+- Endpoint 1 - `/v1/users/@` -> bound to `Users Component`.
+- Endpoint 2 - `/v1/users/00000000-@` -> bound to `Admin Component`.
+- Endpoint 3 - `/v1/users/00000000-0000-0000-0000-000000000000` -> bound to [mocked response](/run-api/configuration#response).
+- Endpoint 4 - `/v1/users/00000000-@/update` -> bound to `Update Component`.
+
+### Example 1
+When a client sends request to `/v1/users/00000100-0000-0000-0000-123456789012` they will get `Endpoint 1` as this is the most accurate hit.
+
+### Example 2
+When a client sends request to `/v1/users/00000000-0000-0000-0000-123456789012` they will get `Endpoint 2` as this is the most accurate hit.
+
+### Example 3
+When a client sends request to `/v1/users/00000000-0000-0000-0000-000000000000` they will get `Endpoint 3` as this is the most accurate hit.
+
+### Example 4
+When a client sends request to `/v1/users/00000000-123/update` they will get `Endpoint 4` as this is the most accurate hit.
+
+### Example 5
+When a client sends request to `/v1/users/00000001-123/update` they will get `404` error code, as such an Endpoint doesn't exist.

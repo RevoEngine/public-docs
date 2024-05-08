@@ -76,6 +76,25 @@
       ]
     },
     {
+      "group": "Essentials",
+      "pages": [
+        "search",
+        "components",
+        "iam",
+        "databases",
+        "files",
+        "endpoints",
+        "jobs",
+        "schedule",
+        "events",
+        "webhooks",
+        "secrets",
+        "audit-and-logs",
+        "settings",
+        "ai-assistant"
+      ]
+    },
+    {
       "group": "Platform API",
       "pages": [
         "platform-api/introduction",
@@ -88,6 +107,7 @@
       "pages": [
         "run-api/introduction",
         "run-api/configuration",
+        "run-api/routing",
         "run-api/authentication",
         "run-api/guard",
         "run-api/http-codes"

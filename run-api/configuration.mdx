@@ -4,8 +4,26 @@ description: 'Here you can read about configuration of [Endpoints](/endpoints) (
 sidebarTitle: Configuration
 ---
 
+# Details
+Besides the [common properties](/search) like `name`, `category`, `description`, you can configure these properties.
 
+| Property            | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|---------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Method`            | Yes      | Can be one of following: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `Path`              | Yes      | Configure path of endpoint, must start from `/` accepts: lowercase `a-z`, upper case `A-Z`, numbers `0-9` as well as `/` and `-`, for dynamic parameters use `@`. <Tip>`@` are used to map dynamically values added to your paths that can be accessible in your **Components**, when you want to map dynamically you would use typically `/v1/users/{userId}`, in RevoEngine you would do following `/v1/users/@`. Our [Routing](/run-api/routing) mechanism is quite advance to support multiple edge cases, please read it carefully.</Tip> |
+| `Component`         | No       | You can select [Component](/components) that will be executed upon request.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `Component Version` | No       | You can select specific version of [Component](/components), default: `LATEST`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
+# Options
+
+| Property         | Required | Description                                                                                                                                                                               |
+|------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Schema`         | No       | You can select [Guard](/run-api/guard) that will be used for validating request.                                                                                                          |
+| `Schema Version` | No       | You can select specific version of [Guard](/run-api/guard), default: `LATEST`.                                                                                                            |
+| `Skip Libs`      | No       | Whether the compiler should ignore [Component Libraries](/components/library) during compilation.                                                                                         |
+| `Legacy Results` | No       | Whether the compiler should always return `200` status code together with full details about `trace`, `logs`, `errors`, `warnings` and other properties that are shown for [Jobs](/jobs). |
+| `Hide Request`   | No       | Whether the platform should not log entire request payload, default `false`.                                                                                                              |
+| `Hide Response`  | No       | Whether the platform should not log entire response, default `false`.                                                                                                                     |
 
 # Input
 
@@ -17,11 +35,10 @@ You can specify response body, however, there are some built-in properties that 
 Example configuration:
 <img
     src="/run-api/images/bad-request-http-codes-3.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs custom validate response"
+    title="Run API Inputs custom validate response"
     style={{ border: "2px solid black", width: "500px" }}
 />
-
 
 ```json
 {
@@ -44,8 +61,8 @@ with `api.input().templateInputs.extra` or any other configurable action.
 Example configuration:
 <img
     src="/run-api/images/extra-input.png"
-    alt="Run API Success HTTP Codes"
-    title="Run API Success HTTP Codes"
+    alt="Run API Inputs extra"
+    title="Run API Inputs extera"
     style={{ border: "2px solid black", width: "500px" }}
 />
 
@@ -68,8 +85,8 @@ In case of success response, we allow users to configure their success HTTP code
 Example configuration:
 <img
     src="/run-api/images/success-http-codes.png"
-    alt="Run API Success HTTP Codes"
-    title="Run API Success HTTP Codes"
+    alt="Run API Inputs success http code"
+    title="Run API Inputs success Http code"
     style={{ border: "2px solid black", width: "500px" }}
 />
 
@@ -79,15 +96,15 @@ By default, Endpoints will always return an object, even if you hide all of it, 
 Example configuration:
 <img
     src="/run-api/images/no-response-input.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs no result"
+    title="Run API Inputs no result"
     style={{ border: "2px solid black", width: "500px" }}
 />
 Example response:
 <img
     src="/run-api/images/no-response-input-example.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs no result response"
+    title="Run API Inputs no result response"
     style={{ border: "2px solid black", width: "500px" }}
 />
 
@@ -97,8 +114,8 @@ By default, **Endpoints** are processing all component elements and return their
 Example configuration:
 <img
     src="/run-api/images/popresult-input.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs pop result"
+    title="Run API Inputs pop result"
     style={{ border: "2px solid black", width: "500px" }}
 />
 
@@ -152,8 +169,8 @@ This can be used for mocking endpoints that don't have a full implementation yet
 Example configuration:
 <img
     src="/run-api/images/result-input.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs response mock"
+    title="Run API Inputs response mock"
     style={{ border: "2px solid black", width: "500px" }}
 />
 Response:
@@ -165,8 +182,8 @@ Response:
 When you would like to hide the default `errors` response of [Guard](/run-api/guard) you should set to `false` default `true`.
 <img
     src="/run-api/images/bad-request-http-codes-2.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs validate hide response"
+    title="Run API Inputs validate hide response"
     style={{ border: "2px solid black", width: "500px" }}
 />
 <CodeGroup>
@@ -195,7 +212,7 @@ By default, we always return `400` in case request bounce of [Guard](/run-api/gu
 However, you can customize this behaviour by setting on the following status code between (inclusive) `200-499`.
 <img
     src="/run-api/images/bad-request-http-codes-1.png"
-    alt="Run API Bad Request HTTP Codes"
-    title="Run API Bad Request HTTP Codes"
+    alt="Run API Inputs validate response"
+    title="Run API Inputs validate response"
     style={{ border: "2px solid black", width: "500px" }}
 />
