@@ -17,20 +17,19 @@ sidebarTitle: HTTP Codes
 <Note>In case of `429`, we recommend to retry the request using exponential backoff.</Note>
 
 # Custom Success
-In case of success response, we allow users to configure their success HTTP code in range of 200-299 ([successful responses](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses)).
-<img
-    src="/run-api/images/success-http-codes.png"
-    alt="Success HTTP Codes"
-    title="Success HTTP Codes"
-    style={{ border: "2px solid black", width: "500px" }}
-/>
+You can customize default success HTTP code, read more there: [Input - httpCode](/run-api/response#httpcode)
+
+# Custom Bad Request
+You can customize default Bad Request HTTP code,
+which occurs during [Guard](/run-api/guard) bounce read more there:
+[Input - validateResponse](/run-api/configuration#validateresponse)
 
 # Custom Error
 In case of error response, we allow you to throw any response code excluding `502` which we use to address misconfiguration or compilation error or to expose any other internal issues.
 <img
     src="/run-api/images/error-http-codes.png"
-    alt="Success HTTP Codes"
-    title="Success HTTP Codes"
+    alt="Run API Success HTTP Codes"
+    title="Run API Success HTTP Codes"
     style={{ border: "2px solid black", width: "500px" }}
 />
 

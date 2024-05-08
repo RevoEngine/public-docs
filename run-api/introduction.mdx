@@ -1,7 +1,8 @@
 ---
-title: 'Introduction'
+title: 'Run API - Introduction'
 description: 'This section will describe **Run API** known also as **Endpoints**,
 it will let you design and ship customized API tailored for your needs.'
+sidebarTitle: Introduction
 ---
 
 <Note>
@@ -28,15 +29,15 @@ it will let you design and ship customized API tailored for your needs.'
 
 <Steps>
     <Step title="Firstly">
-        A client sends HTTP request to their **Run API Endpoint**.
+        A client sends HTTP request to **Run API Endpoint**.
     </Step>
     <Step title="Secondly">
-        Validates `Token` & `Instance` based on [Authentication](/run-api/authentication) mechanisms.
+        Validates `Token` & `Instance` based on [Authentication](/run-api/authentication) mechanism.
     </Step>
     <Step title="Moreover">
-        We are matching requested Method and Path against configured `Active` `Endpoints`, then we validate request against [Guard](/run-api/guard) if configured and execute attached [Component](/components) if configured.
+        We are matching requested `Method` and `Path` against configured **Active** `Endpoints`, then we validate request against [Guard](/run-api/guard) if configured and execute attached [Component](/components) if configured.
     </Step>
     <Step title="Lastly">
-        We return
+        We return [Response](/run-api/) together with [HTTP Code](/run-api/http-codes).
     </Step>
 </Steps>

@@ -1,0 +1,201 @@
+---
+title: 'Run API - Configuration'
+description: 'Here you can read about configuration of [Endpoints](/endpoints) (Run API) in details.'
+sidebarTitle: Configuration
+---
+
+
+
+
+# Input
+
+### `customValidateResponse`
+You can specify response body, however, there are some built-in properties that are added to response (but you can override it).
+- `statusCode` is hardcoded based on returned *HTTP Code*.
+- `timestamp` is generated upon sending response (server time).
+
+Example configuration:
+<img
+    src="/run-api/images/bad-request-http-codes-3.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2024-05-08T10:52:32.955Z",
+    "code": "123",
+    "example": [
+        "anything"
+    ],
+    "message": "Something went wrong!"
+}
+```
+
+### `extra`
+Additional parameter that you can pass to your component can be "any" type of data.
+This is useful especially when you want to configure static guards, static params or in case of using the
+same component by multiple `Endpoints` or even `Jobs` and distinguish them that way accessible
+with `api.input().templateInputs.extra` or any other configurable action.
+
+Example configuration:
+<img
+    src="/run-api/images/extra-input.png"
+    alt="Run API Success HTTP Codes"
+    title="Run API Success HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+```javascript
+return api.input().templateInputs.extra;
+
+// Returns
+{
+    "labels": [
+        "1",
+        "2",
+        "3"
+    ]
+}
+
+```
+
+### `httpCode`
+In case of success response, we allow users to configure their success HTTP code in range of 200-299 ([successful responses](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses)).
+Example configuration:
+<img
+    src="/run-api/images/success-http-codes.png"
+    alt="Run API Success HTTP Codes"
+    title="Run API Success HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+### `noResult`
+By default, Endpoints will always return an object, even if you hide all of it, this setting enforces to return no results (empty response) to the client. Accepts only `true` / `false`.
+
+Example configuration:
+<img
+    src="/run-api/images/no-response-input.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+Example response:
+<img
+    src="/run-api/images/no-response-input-example.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+### `popResult`
+By default, **Endpoints** are processing all component elements and return their values, so the response is always as an object. However, you can configure to return a single element only regardless of their configuration like "hide". Useful when you would like to return a different format of data (not object which is default) or only single element out of dozens of others, without a need of hiding others. Accepts only string value and must be identical as a `Component` element name.
+
+Example configuration:
+<img
+    src="/run-api/images/popresult-input.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+Responses:
+<CodeGroup>
+```json With popResult on "data"
+[
+    "Example #0",
+    "Example #1",
+    "Example #2",
+    "Example #3",
+    "Example #4"
+]
+```
+```json Without popResult
+{
+    "data": [
+        "Example #0",
+        "Example #1",
+        "Example #2",
+        "Example #3",
+        "Example #4"
+    ],
+    "nothidden": [
+        "Example #0",
+        "Example #1",
+        "Example #2",
+        "Example #3",
+        "Example #4"
+    ]
+}
+```
+</CodeGroup>
+
+### `response`
+In case the component is not bound to Endpoint, you can specify a response which can be "any" type of data.
+This can be used for mocking endpoints that don't have a full implementation yet or to handle static configurations.
+<Note>
+    When **Component** is set, and `response`is also configured, it will always prioritize **Component** execution.
+</Note>
+<Warning>
+    When **Component** is not set, and `response` is not configured, Endpoint is considered in `Invalid` state!
+```json
+{
+    "statusCode": 502,
+    "timestamp": "2024-05-08T12:29:46.949Z",
+    "message": "Endpoint \"POST /test\" is not configured properly, verify your configuration."
+}
+```
+</Warning>
+Example configuration:
+<img
+    src="/run-api/images/result-input.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+Response:
+```json
+"Test"
+```
+
+### `validateHideResponse`
+When you would like to hide the default `errors` response of [Guard](/run-api/guard) you should set to `false` default `true`.
+<img
+    src="/run-api/images/bad-request-http-codes-2.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+<CodeGroup>
+    ```json false
+    {
+        "statusCode": 400,
+        "timestamp": "2024-05-08T10:23:37.821Z",
+        "message": "Bad Request",
+        "errors": [
+        "\"productId\" is required but missing",
+        "\"price\" is required but missing"
+        ]
+    }
+    ```
+    ```json true
+    {
+        "statusCode": 400,
+        "timestamp": "2024-05-08T10:23:37.821Z",
+        "message": "Bad Request"
+    }
+    ```
+</CodeGroup>
+
+### `validateResponse`
+By default, we always return `400` in case request bounce of [Guard](/run-api/guard) validation.
+However, you can customize this behaviour by setting on the following status code between (inclusive) `200-499`.
+<img
+    src="/run-api/images/bad-request-http-codes-1.png"
+    alt="Run API Bad Request HTTP Codes"
+    title="Run API Bad Request HTTP Codes"
+    style={{ border: "2px solid black", width: "500px" }}
+/>

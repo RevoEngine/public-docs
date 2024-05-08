@@ -87,9 +87,10 @@
       "group": "Run API",
       "pages": [
         "run-api/introduction",
+        "run-api/configuration",
         "run-api/authentication",
-        "run-api/http-codes",
-        "run-api/guard"
+        "run-api/guard",
+        "run-api/http-codes"
       ]
     },
     {
