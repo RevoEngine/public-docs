@@ -78,22 +78,58 @@
       ]
     },
     {
-      "group": "Essentials",
+      "group": "Solutions",
       "pages": [
-        "search",
-        "components",
-        "iam",
+        "accounts",
         "databases",
-        "files",
         "endpoints",
+        "files",
         "jobs",
-        "schedule",
+        "tools",
+        "webhooks"
+      ]
+    },
+    {
+      "group": "Features",
+      "pages": [
+        "ai-assistant",
+        {
+          "group": "Analytics",
+          "pages": [
+            "alerts",
+            "dashboards",
+            "quota-and-limits"
+          ]
+        },
+        {
+          "group": "Audit & Security",
+          "pages": [
+            "audit-and-logs",
+            "secrets",
+            "settings",
+            "version-control"
+          ]
+        },
+        "components",
+        {
+          "group": "Developers",
+          "pages": [
+            "cli",
+            "web-ide"
+          ]
+        },
         "events",
-        "webhooks",
-        "secrets",
-        "audit-and-logs",
-        "settings",
-        "ai-assistant"
+        {
+          "group": "IAM",
+          "pages": [
+            "groups",
+            "permissions",
+            "service-accounts",
+            "users"
+          ]
+        },
+        "schedule",
+        "search"
       ]
     },
     {
