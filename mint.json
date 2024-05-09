@@ -16,7 +16,10 @@
     }
   },
   "api": {
-    "baseUrl": "https://api.revong.com/"
+    "baseUrl": "https://api.revong.com",
+    "auth": {
+      "method": "bearer"
+    }
   },
   "topbarLinks": [
     {
