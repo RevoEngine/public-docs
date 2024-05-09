@@ -15,9 +15,6 @@
       "to": "#103279"
     }
   },
-  "openapi": [
-    "api-reference/openapi.json"
-  ],
   "api": {
     "baseUrl": "https://api.revong.com"
   },
