@@ -6054,12 +6054,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "preview",
-            "required": false,
-            "in": "path",
-            "schema": {}
           }
         ],
         "responses": {
@@ -6096,12 +6090,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "preview",
-            "required": false,
-            "in": "path",
-            "schema": {}
           }
         ],
         "responses": {
@@ -8732,12 +8720,6 @@
         "bearerFormat": "JWT",
         "description": "Bearer token with Platform JWT token or API Key.",
         "type": "http"
-      },
-      "instance": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "instance",
-        "description": "Your short or long instanceId."
       }
     },
     "schemas": {
@@ -11934,10 +11916,5 @@
   "externalDocs": {
     "description": "Documentation",
     "url": "https://docs.revong.com"
-  },
-  "security": [
-    {
-      "instance": []
-    }
-  ]
+  }
 }
