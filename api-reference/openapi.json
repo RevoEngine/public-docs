@@ -1,19 +1,5 @@
 {
   "openapi": "3.0.0",
-  "info": {
-    "title": "RevoEngine Platform API",
-    "description": "Public Open API spec.",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "0.1.0"
-  },
-  "servers": [
-    {
-      "url": "https://api.revong.com",
-      "description": "RevoEngine's Platform API"
-    }
-  ],
   "paths": {
     "/api/v1/search": {
       "get": {
@@ -6068,6 +6054,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "preview",
+            "required": false,
+            "in": "path",
+            "schema": {}
           }
         ],
         "responses": {
@@ -6104,6 +6096,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "preview",
+            "required": false,
+            "in": "path",
+            "schema": {}
           }
         ],
         "responses": {
@@ -8705,21 +8703,41 @@
       }
     }
   },
+  "info": {
+    "title": "RevoEngine Platform API",
+    "description": "Official documentation of RevoEngine Platform API<br>Build: 67df453bb5b0f9b2894535729c66632b73a015a6",
+    "version": "Beta - 0.1.0",
+    "contact": {
+      "name": "Support",
+      "url": "https://help.revong.com",
+      "email": "support@revong.com"
+    },
+    "termsOfService": "https://docs.revong.com/tos"
+  },
   "tags": [],
-  "security": [{
-    "Instance": []
-  }],
+  "servers": [
+    {
+      "url": "https://api.revong.com",
+      "description": "RevoEngine Platform API - Production"
+    },
+    {
+      "url": "https://api.test.revong.com",
+      "description": "RevoEngine Platform API - Test"
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearer": {
         "scheme": "bearer",
         "bearerFormat": "JWT",
+        "description": "Bearer token with Platform JWT token or API Key.",
         "type": "http"
       },
-      "Instance": {
+      "instance": {
         "type": "apiKey",
         "in": "header",
-        "name": "instance"
+        "name": "instance",
+        "description": "Your short or long instanceId."
       }
     },
     "schemas": {
@@ -11912,5 +11930,14 @@
         ]
       }
     }
-  }
+  },
+  "externalDocs": {
+    "description": "Documentation",
+    "url": "https://docs.revong.com"
+  },
+  "security": [
+    {
+      "instance": []
+    }
+  ]
 }
