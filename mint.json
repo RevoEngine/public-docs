@@ -18,7 +18,6 @@
   "api": {
     "baseUrl": "https://api.revong.com/"
   },
-  "openapi": ["platform-api/openapi.json"],
   "topbarLinks": [
     {
       "name": "Status",
