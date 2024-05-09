@@ -1,5 +1,19 @@
 {
   "openapi": "3.0.0",
+  "info": {
+    "title": "RevoEngine Platform API",
+    "description": "Public Open API spec.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.revong.com",
+      "description": "RevoEngine's Platform API"
+    }
+  ],
   "paths": {
     "/api/v1/search": {
       "get": {
@@ -8691,14 +8705,7 @@
       }
     }
   },
-  "info": {
-    "title": "RevoEngine",
-    "description": "",
-    "version": "c96eca1b58c9efcfe226045011e06f469bb3a986",
-    "contact": {}
-  },
   "tags": [],
-  "servers": [],
   "security": [{
     "Instance": []
   }],
