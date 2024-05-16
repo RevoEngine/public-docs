@@ -115,7 +115,7 @@
             "web-ide"
           ]
         },
-        "events",
+        "features/events",
         {
           "group": "IAM",
           "pages": [
@@ -125,8 +125,8 @@
             "users"
           ]
         },
-        "schedule",
-        "search"
+        "features/schedule",
+        "features/search"
       ]
     },
     {

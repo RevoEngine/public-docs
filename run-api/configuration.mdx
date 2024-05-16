@@ -34,7 +34,7 @@ You can specify response body, however, there are some built-in properties that 
 
 Example configuration:
 <img
-    src="/run-api/images/bad-request-http-codes-3.png"
+    src="/images/bad-request-http-codes-3.png"
     alt="Run API Inputs custom validate response"
     title="Run API Inputs custom validate response"
     style={{ border: "2px solid black", width: "500px" }}
@@ -60,7 +60,7 @@ with `api.input().templateInputs.extra` or any other configurable action.
 
 Example configuration:
 <img
-    src="/run-api/images/extra-input.png"
+    src="/images/extra-input.png"
     alt="Run API Inputs extra"
     title="Run API Inputs extera"
     style={{ border: "2px solid black", width: "500px" }}
@@ -84,7 +84,7 @@ return api.input().templateInputs.extra;
 In case of success response, we allow users to configure their success HTTP code in range of 200-299 ([successful responses](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses)).
 Example configuration:
 <img
-    src="/run-api/images/success-http-codes.png"
+    src="/images/success-http-codes.png"
     alt="Run API Inputs success http code"
     title="Run API Inputs success Http code"
     style={{ border: "2px solid black", width: "500px" }}
@@ -95,14 +95,14 @@ By default, Endpoints will always return an object, even if you hide all of it, 
 
 Example configuration:
 <img
-    src="/run-api/images/no-response-input.png"
+    src="/images/no-response-input.png"
     alt="Run API Inputs no result"
     title="Run API Inputs no result"
     style={{ border: "2px solid black", width: "500px" }}
 />
 Example response:
 <img
-    src="/run-api/images/no-response-input-example.png"
+    src="/images/no-response-input-example.png"
     alt="Run API Inputs no result response"
     title="Run API Inputs no result response"
     style={{ border: "2px solid black", width: "500px" }}
@@ -113,7 +113,7 @@ By default, **Endpoints** are processing all component elements and return their
 
 Example configuration:
 <img
-    src="/run-api/images/popresult-input.png"
+    src="/images/popresult-input.png"
     alt="Run API Inputs pop result"
     title="Run API Inputs pop result"
     style={{ border: "2px solid black", width: "500px" }}
@@ -168,7 +168,7 @@ This can be used for mocking endpoints that don't have a full implementation yet
 </Warning>
 Example configuration:
 <img
-    src="/run-api/images/result-input.png"
+    src="/images/result-input.png"
     alt="Run API Inputs response mock"
     title="Run API Inputs response mock"
     style={{ border: "2px solid black", width: "500px" }}
@@ -181,7 +181,7 @@ Response:
 ### `validateHideResponse`
 When you would like to hide the default `errors` response of [Guard](/run-api/guard) you should set to `false` default `true`.
 <img
-    src="/run-api/images/bad-request-http-codes-2.png"
+    src="/images/bad-request-http-codes-2.png"
     alt="Run API Inputs validate hide response"
     title="Run API Inputs validate hide response"
     style={{ border: "2px solid black", width: "500px" }}
@@ -211,7 +211,7 @@ When you would like to hide the default `errors` response of [Guard](/run-api/gu
 By default, we always return `400` in case request bounce of [Guard](/run-api/guard) validation.
 However, you can customize this behaviour by setting on the following status code between (inclusive) `200-499`.
 <img
-    src="/run-api/images/bad-request-http-codes-1.png"
+    src="/images/bad-request-http-codes-1.png"
     alt="Run API Inputs validate response"
     title="Run API Inputs validate response"
     style={{ border: "2px solid black", width: "500px" }}
