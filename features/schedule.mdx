@@ -1,13 +1,43 @@
 ---
 title: Schedule
-description: 'Trigger [Jobs](solutions/jobs) using cron-like scheduler effortlessly.'
+description: 'Trigger [Jobs](/solutions/jobs) using cron-like scheduler effortlessly.'
 ---
 
-# Basics
+# Concept
 
 The Schedule feature on our platform is ingeniously designed to operate like a sophisticated cronjob system.
 It provides the flexibility to trigger Jobs at predetermined intervals, catering to various business needs
 with precision and efficiency.
+
+<img
+    className="block dark:hidden"
+    src="/images/scheduler.png"
+    alt="RevoEngine - Schedule"
+    title="RevoEngine - Schedule"
+    style={{ border: "2px solid black" }}
+/>
+
+<img
+    className="hidden dark:block"
+    src="/images/scheduler.png"
+    alt="RevoEngine - Schedule"
+    title="RevoEngine - Schedule"
+    style={{ border: "2px solid black", filter: "invert(1)" }}
+/>
+
+<Steps>
+    <Step title="Firstly">
+        You deploy your own Schedule with `cron-like` syntax.
+    </Step>
+    <Step title="Secondly">
+        Once the criteria are met for given `cron`, schedule is executed.
+    </Step>
+    <Step title="Lastly">
+        We execute bounded [Job](solutions/jobs) to schedule.
+    </Step>
+</Steps>
+
+# Configuration
 
 - `Cron` - Scheduler expression in [unix-cron](https://man7.org/linux/man-pages/man5/crontab.5.html) format (a minimum interval of `one minute` can be set).
 <Tip>If you are not sure about cron format, use our [AI Assistant](features/ai-assistant) to help you out with it and look under provided cron weather it fits your configuration.</Tip>
@@ -19,14 +49,12 @@ with precision and efficiency.
     in their execution. For jobs necessitating precise timing, selecting a time zone exempt from daylight saving time
     adjustments is advisable. For this purpose, using `UTC` is a preferable option to entirely circumvent these issues. </Note>
 
-- `Job` - Select [Job](solutions/jobs) that should be executed upon trigger.
-
-
+- `Job` - Select [Job](/solutions/jobs) that should be executed upon trigger.
 
 <img
     src="/images/schedule.png"
-    alt="Search"
-    title="Search"
+    alt="Schedule"
+    title="Schedule"
     style={{ border: "2px solid black", width: "500px" }}
 />
 

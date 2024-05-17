@@ -1,13 +1,57 @@
 ---
 title: Events
-description: 'Trigger [Jobs](solutions/jobs) using real time events effortlessly.'
+description: 'Trigger [Jobs](/solutions/jobs) using real time events effortlessly.'
 ---
 
-# Basics
+# Concept
 
-The Events feature on our platform is ingeniously designed to operate in real time upon certain events. It provides the flexibility to trigger Jobs where user can design it to work with various business needs.
+The Events feature on our platform is ingeniously designed to operate in real time upon certain events.
+It provides the flexibility to trigger Jobs where user can design it to work with various business needs.
 
-- `Type` - You need to select the type of Event, that will trigger the [Job](solutions/jobs), in addition to the list, you can create your own Custom Event which can be invoked directly in your [Component](components)
+<img
+    className="block dark:hidden"
+    src="/images/events.png"
+    alt="RevoEngine - Events"
+    title="RevoEngine - Events"
+    style={{ border: "2px solid black" }}
+/>
+
+<img
+    className="hidden dark:block"
+    src="/images/events.png"
+    alt="RevoEngine - Events"
+    title="RevoEngine - Events"
+    style={{ border: "2px solid black", filter: "invert(1)" }}
+/>
+
+<Steps>
+    <Step title="Firstly">
+        Our event listener is listening to all events for your instance.
+    </Step>
+    <Step title="Secondly">
+        When event occur we looking for all configured events for it's type and optionally **filters**.
+    </Step>
+    <Step title="Lastly">
+        We execute bounded [Jobs](/solutions/jobs) to all applicable events.
+    </Step>
+</Steps>
+
+# Configuration
+
+<Note>You can configure as many events for the same type as you want, you can also use **filters** for predefined events to execute only upon certain action.</Note>
+
+- `Type` - You need to select the **type** (from a list below) or create your own **Custom Event** which can be invoked directly in your [Component](/components).
+- `Job` - Select [Job](/solutions/jobs) that will be executed upon trigger.
+
+<img
+    src="/images/event.png"
+    alt="Event"
+    title="Event"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+# Types
+
 <Tip>The Events feature on our platform is designed to respond in real-time to various predefined or custom events. This dynamic functionality enables users to trigger Jobs tailored to specific occurrences within the platform, enhancing operational responsiveness and efficiency. This list is **constantly evolving**.</Tip>
 
 | Event Type                   | Description                                                                                                                                                                                             |
@@ -32,8 +76,6 @@ The Events feature on our platform is ingeniously designed to operate in real ti
 | `SERVICE_ACCOUNT_UPDATE`     | Triggered when a service account's details are updated.                                                                                                                                                 |
 | `CUSTOM_{EVENT_TYPE}`        | Triggered upon custom trigger `EVENT_TYPE`.   <Note>Custom Events always starts from `CUSTOM_` prefix, you must additionally specify the name e.g. `CURRENCY`, which give you `CUSTOM_CURRENCY`.</Note> |
 
-- `Job` - Select [Job](solutions/jobs) that should be executed upon trigger.
-
 # State
 
 - `Active` - Currently operates and will execute the Jobs.
@@ -47,4 +89,4 @@ The Events feature on our platform is ingeniously designed to operate in real ti
 - **Workflow Automation** - Creating Custom Events to automate complex workflows, such as financial transactions, sales, distributions, security audits and more, flagged by **`CUSTOM`** events.
 - **Trigger Webhooks** - Assuming that you already fetched some data and would like to send it to external systems e.g. currency list for an ERP system.
 - **Key Rotations** - You can send API’s keys or update external systems with the new keys upon some automation processes.
-And many more **Unlimited** possibilities….
+And many more **Unlimited** possibilities.

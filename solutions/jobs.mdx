@@ -1,0 +1,130 @@
+---
+title: 'Jobs'
+description: 'Configure your asynchronous Jobs effortlessly.'
+---
+
+# Concept
+
+Jobs on our platform are a critical feature for orchestrating asynchronous tasks, designed to trigger in real-time
+based on various operational events.
+
+They are the cornerstone of automation, capable of responding to a wide range of
+triggers such as [Events](/features/events), [Schedule](/features/schedule), direct [Component](/features/components)
+executions, as well as manual (via a platform) and more, offering a comprehensive solution for diverse business automation needs.
+
+Similar to [Endpoints](/solutions/endpoints) it executes configured [Component](/features/components).
+
+<img
+    className="block dark:hidden"
+    src="/images/jobs.png"
+    alt="RevoEngine - Jobs"
+    title="RevoEngine - Jobs"
+    style={{ border: "2px solid black" }}
+/>
+
+<img
+    className="hidden dark:block"
+    src="/images/jobs.png"
+    alt="RevoEngine - Jobs"
+    title="RevoEngine - Jobs"
+    style={{ border: "2px solid black", filter: "invert(1)" }}
+/>
+
+<Steps>
+    <Step title="Trigger">
+        Received a trigger to execute a **Job**: Manual Trigger (via platform or [API request](/api-reference/automation/run-template)), [Event](/features/events), [Schedule](/features/schedule), [Component](/features/components)
+    </Step>
+    <Step title="Details">
+        Based on given configuration, we are preparing the Job and keep updating it's status upon progress (check statuses).
+    </Step>
+    <Step title="Updates">
+        We constantly monitor and update status of the Job and send [Notifications](/features/notifications).
+    </Step>
+    <Step title="Finish">
+        We track all the details including logs, warnings, errors, results of the Job so you can find it all in a single place.
+    </Step>
+</Steps>
+
+# Features
+
+## Triggers
+
+- `Events` - set up your event to trigger a job using **real-time** [Events](/features/events).
+- `Schedule` - set up your schedule to trigger a job using **cron-like** [Schedule](/features/schedule).
+- `API Trigger` - trigger a job via an [API request](/api-reference/automation/run-template).
+- `Component` - trigger a job via code with [Component](/features/components) including extra payload or <Tooltip tip="Trigger your Job that will be scheduled, up to 30 days in advance.">scheduled delivery</Tooltip>.
+
+<img
+    src="/images/jobs-2.png"
+    alt="Jobs 1"
+    title="Jobs 1"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+- `Manual Trigger` - trigger Job execution via a platform.
+
+<img
+    src="/images/jobs-1.png"
+    alt="Jobs 1"
+    title="Jobs 1"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+## Retry Mechanism
+
+Sometimes your job can fail due to defined (or not) error handling, e.g. you have a task to fetch currencies from API endpoint and save it to the [Database](/solutions/databases), but your currency API endpoint is not reachable.
+You can `Retry` this job **manually** in a platform or configure **automated** retry-mechanism.
+
+<img
+    src="/images/jobs-3.png"
+    alt="Jobs 3"
+    title="Jobs 3"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+## Asynchronous Execution
+
+Jobs are configured to perform tasks asynchronously, they are distributed and ensuring efficient and timely operations.
+Your [Components](/features/components) are executed and running in background.
+
+## Scheduled Delivery
+
+Configure your [Component](/features/components) trigger to execute a job up to 30 days in advance.
+
+## Notifications
+
+Users can subscribe to receive real-time updates on Job status changes, staying informed about their operational progress.
+
+<img
+    src="/images/jobs-4.png"
+    alt="Jobs 4"
+    title="Jobs 4"
+    style={{ border: "2px solid black", width: "500px" }}
+/>
+
+# Configuration
+
+Besides the [common properties](/features/search) like `name`, `category`, `description`, you can configure these properties.
+
+| Property            | Required | Description                                                                                                                         |
+|---------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `Component`         | Yes      | You can select [Component](/components) that will be executed upon request.                                                         |
+| `Component Version` | No       | You can select specific version of [Component](/components), default: `LATEST`.                                                     |
+| `Trigger Account`   | No       | Select account that will be bound to execution context of a job (e.g. accessible with api.currentUser() method), default: `System`. |
+
+# Input
+
+Similar to [Endpoints Inputs](/run-api/configuration#input) you can configure some predefined flags.
+
+| Property            | Required | Description                                                                                                                         |
+|---------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `Skip Libs`         | No       | Whether the compiler should ignore [Component Libraries](/components/library) during compilation.                                   |
+
+### `excludeLibs`
+You can configure the names of specific [Component Libraries](/components/library) that should **not be compiled** into execution.
+This might be useful if you have libraries that are still work in progress or used sometimes, by default RevoEngine compiles all libraries into execution context.
+<Note>If you have some libraries that are `Active` but they cannot compile (e.g. syntax error) you will get `Errors` of compiler (it should not affect execution if this library is not used, but warnings will come to your logs). Ideally they should be excluded with this option.</Note>
+
+### `includeLibs`
+You can configure the names of specific [Component Libraries](/components/library) that should **be compiled** into execution.
+This might be useful if you have hundreds of libraries that won't be used in this execution context to improve the performance of Job execution.

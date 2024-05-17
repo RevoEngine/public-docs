@@ -5,7 +5,7 @@ sidebarTitle: Configuration
 ---
 
 # Details
-Besides the [common properties](/search) like `name`, `category`, `description`, you can configure these properties.
+Besides the [common properties](/features/search) like `name`, `category`, `description`, you can configure these properties.
 
 | Property            | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |---------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -216,3 +216,12 @@ However, you can customize this behaviour by setting on the following status cod
     title="Run API Inputs validate response"
     style={{ border: "2px solid black", width: "500px" }}
 />
+
+### `excludeLibs`
+You can configure the names of specific [Component Libraries](/components/library) that should **not be compiled** into execution.
+This might be useful if you have libraries that are still work in progress or used sometimes, by default RevoEngine compiles all libraries into execution context.
+<Note>If you have some libraries that are `Active` but they cannot compile (e.g. syntax error) you will get `Errors` of compiler (it should not affect execution if this library is not used, but warnings will come to your logs). Ideally they should be excluded with this option.</Note>
+
+### `includeLibs`
+You can configure the names of specific [Component Libraries](/components/library) that should **be compiled** into execution.
+This might be useful if you have hundreds of libraries that won't be used in this execution context to improve the performance of Job execution.
