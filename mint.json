@@ -18,6 +18,11 @@
   "api": {
     "baseUrl": "https://api.revong.com"
   },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-F2FBWXFNTL"
+    }
+  },
   "topbarLinks": [
     {
       "name": "Status",
@@ -25,7 +30,7 @@
     },
     {
       "name": "Support",
-      "url": "https://help.revong.com"
+      "url": "mailto:support@revong.com?subject=Need Help"
     },
     {
       "name": "Feedback",
@@ -64,7 +69,7 @@
     {
       "name": "Support",
       "icon": "life-ring",
-      "url": "https://help.revong.com"
+      "url": "mailto:support@revong.com?subject=Need Help"
     }
   ],
   "navigation": [
