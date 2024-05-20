@@ -7,12 +7,12 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#598ce8",
-    "light": "#598ce8",
-    "dark": "#598ce8",
+    "primary": "#4339ca",
+    "light": "#9cb4fc",
+    "dark": "#4339ca",
     "anchors": {
-      "from": "#598ce8",
-      "to": "#103279"
+      "from": "#bacffe",
+      "to": "#3730a3"
     }
   },
   "api": {
@@ -39,7 +39,8 @@
   ],
   "topbarCtaButton": {
     "name": "Platform",
-    "url": "https://app.revong.com"
+    "url": "https://app.revong.com",
+    "type": "link"
   },
   "tabs": [
     {
