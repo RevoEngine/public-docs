@@ -1,0 +1,71 @@
+---
+title: 'Databases'
+description: 'Manage your databases effortlessly.'
+---
+
+Databases are designed to give developers effortless data management regardless of scale, instead we rely on a data type.
+You can configure a schema and share if for different databases regardless of their purpose.
+
+You can access and manage its data via intuitive interface, API or during [Component](/features/components) execution.
+
+<Steps>
+    <Step title="Schema">
+        Configure a [schema](/features/schema) for a database, or use existing one, where you can specify name of fields and their types, requirements, relations and more.
+        <Note>You can also use our [AI assistant](/features/ai-assistant) to convert your existing SQL or NoSQL schema into our [Schema](/features/schema).</Note>
+    </Step>
+    <Step title="Type">
+        Select a proper type for it's purpose, whether you need a relations, write performance, high read throughput and more.
+    </Step>
+    <Step title="Manage">
+        Create, update and delete data via interface, API or via [Component](/features/components) execution.
+    </Step>
+</Steps>
+
+# Types
+
+| Type        | Description                                                                                                                                                                  |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Table`     | Designed for typical use cases where you want to have relations and response time is mandatory (e.g. CRUD operations, think about it as a RDBMS database) with transactions. |
+| `Warehouse` | Designed for big data (data warehouse) workloads with a latency and throughput trade-off (analytics, transactional data, logs, invoicing, and more) without transactions.    |
+| `Data`      | Designed for low latency and high-throughput workloads (time-series, financial data, gaming, ML, IoT and more) with ACID transactions.                                       |
+
+Besides that you can access your schemaless `Memory` database designed for zero latency queries and caching.
+
+<Tip>You can optionally configure security rules, to restrict only certain users and/or groups to access the database and its
+    content on the database level; unlike the field restriction, this is on database level.</Tip>
+
+# Fields
+
+## Field Type
+
+Select designed field type for it's purpose.
+
+| Type             | Description                                                                                   |
+|------------------|-----------------------------------------------------------------------------------------------|
+| `Key`            | Used as a key or composite key in case of multiple fields.                                    |
+| `Text`           | Simply a string value.                                                                        |
+| `Integer`        | Simply an integer.                                                                            |
+| `Boolean`        | Simply an boolean value.                                                                      |
+| `DateTime`       | Simplified format of ISO 8601.                                                                |
+| `Numeric`        | Decimal value with precision of 15 decimal digits.                                            |
+| `Single`         | Single value from restricted static or dynamic list (e.g. Dropdown).                          |
+| `Multi`          | Multi values from restricted static or dynamic list (e.g. List).                              |
+| `Array`          | `Array` or `Array of Objects` (limited up to 1MB).                                            |
+| `Object`         | `JSON` of some data (limited up to 1MB).                                                      |
+| `Created At`     | Built-in property to display who created given data point.                                    |
+| `Created By`     | Built-in property to display created date and time.                                           |
+| `Last Update At` | Built-in property to display who updated given data row.                                      |
+| `Last Update By` | Built-in property to display last date when the data row was updated.                         |
+| `Version`        | Version of the given data row that increments automatically for each interaction except read. |
+| `TTL`            | Built-in garbage collector to delete the data row once criteria is met (in UTC).              |
+
+## Field Options
+
+You can configure some additional options on the field level, that will help with the data management on the platform level.
+
+| Type       | Description                                                     |
+|------------|-----------------------------------------------------------------|
+| `Active`   | Manage if field is active or not.                               |
+| `Readonly` | Specify if can be modified after creation.                      |
+| `Required` | Mark as mandatory to set during creation.                       |
+| `Security` | Select specific users and/or groups that can access this field. |

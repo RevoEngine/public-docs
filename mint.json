@@ -7,9 +7,9 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#4339ca",
-    "light": "#9cb4fc",
-    "dark": "#4339ca",
+    "primary": "#527cfa",
+    "light": "#527cfa",
+    "dark": "#527cfa",
     "anchors": {
       "from": "#bacffe",
       "to": "#3730a3"
@@ -87,6 +87,7 @@
         "solutions/endpoints",
         "solutions/files",
         "solutions/jobs",
+        "solutions/realtime",
         "solutions/webhooks"
       ]
     },
