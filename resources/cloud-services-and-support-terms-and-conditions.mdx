@@ -1,0 +1,227 @@
+---
+title: 'Terms of Service'
+description: 'Cloud Services and Support Terms and Conditions'
+---
+
+# Definitions
+
+1. Error – A failure, outage, lack of operation, or incorrect operation of the Platform or its individual features, resulting in the Platform not performing as intended. Errors are categorized into critical, high, normal, low priority levels, as detailed in the "RevoNG Service Level Agreement (SLA)" Annex.
+2. Service Level Objective (SLO) – The percentage of uptime the Platform is expected to achieve, dependent on the Plan chosen by the Customer.
+3. Maintenance Time – The period between the proper submission of a Ticket, the Initial Response Time, and the completion of the Maintenance.
+4. Initial Response Time - The time in which the Platform Operator receives a Ticket, verifies its validity, categorizes the Error and its priority, and provides a response with an estimated Maintenance Time.
+5. Downtime - More than a one percent Error Rate.
+6. Business Days – Monday through Friday, excluding public holidays in Poland.
+7. Business Hours – Hours during which Support is available on Business Days, varying based on the Client's chosen Plan:
+- a) 8x5 – 9:00 AM to 5:00 PM (UTC +02:00)
+- b) 12x5 – 7:00 AM to 7:00 PM (UTC +02:00)
+- c) 24x7 – optionally opted service
+8. Monthly Uptime Percentage (Availability) – A metric that defines the actual usability of the Platform by Clients, calculated as the total number of minutes in a month minus the number of minutes of Scheduled Maintenance and Downtime, divided by the total number of minutes in the month.
+9. Support Unit – A division within the Platform Operator's enterprise responsible for providing Support for the Platform and Services. The Support Policy is detailed in the Annex to these Terms and Conditions.
+10. Client – A person or entity using the Platform under a Client Account.
+11. Client Account – Access to the Platform for the Client following Registration. Access to specific functionalities is granted after purchasing a specific Plan.
+12. Platform Credits – Credits entitled to the Client when the Monthly Uptime Percentage falls below the Service Level Objective. The percentage of the monthly bill not meeting the SLO is added to the credits, which can be used for upgrades, increasing limits, or offsetting future monthly invoices. These credits are non-transferable, non-refundable, and can only be utilized within RevoNG and its Services.
+13. Maintenance – The resolution of an Error in a manner that restores the proper functioning of the Platform in the area of the occurring Error or routine maintenance activities for the Platform. Maintenance is categorized into:
+- a) Emergency Maintenance - Critical maintenance necessary to be performed as soon as possible due to a critical issue of the Platform or total unavailability.
+- b) Scheduled Maintenance - Routine maintenance scheduled for the Platform, planned with at least two days' notice, potentially leading to Downtime.
+14. Negotiations – The negotiation process completed by establishing terms of cooperation between the Platform Operator and an entity intending to become a Client using the Plus, Business, or Enterprise Plan.
+15. Downtime Period - A period of one or more consecutive minutes of Downtime. Partial minutes or intermittent Downtime lasting less than one minute will not be counted towards the Downtime Period.
+16. Billing Period – The billing period for the Client Account Agreement. This period spans one calendar month.
+17. Platform Operator – REVONG MAREK POTARGOWICZ spółka komandytowa based in Warsaw, (02-237) ul. Rakowska 16/130, registered in the Entrepreneurs' Register maintained by the District Court for the Capital City of Warsaw in Warsaw, XIV Economic Department of the National Court Register, under KRS number: 0001010291, NIP: 5223245103, also referred to as RevoNG.
+18. Terms and Conditions – These terms and conditions of Cloud Services.
+19. Platform Terms and Conditions – Terms and Conditions defining the general conditions for using services provided through the RevoNG Platform.
+20. Registration – The process of creating a Client Account, which involves providing required information to the Platform, accepting the Terms and Conditions and Privacy Policy, and activating the Client Account as described in the Platform Terms and Conditions.
+21. Plan – The type of access to functionalities within the Client Account, reflecting the level of Services provided by the Service Operator. The following types of Plans for Cloud Services are available:
+- a) Start
+- b) Standard
+- c) Plus
+- d) Business
+- e) Enterprise
+22. Platform – An online technological platform operated by the Platform Operator, accessible at Revong.com, offering cloud services and constituting a contracted instance.
+23. Retry Policy - Implies that in the event of an Error, the Client sending a Valid Unit is responsible for waiting a short period of time before resending the request. There is a minimum period of 1 second for each consecutive Error, and the waiting period must increase exponentially up to 30 seconds.
+24. Valid Unit – Means either synchronous units (API requests) or asynchronous units (tasks triggered by events and schedules available within the Platform) or WebSockets, which comply with the documentation and would normally result in a non-error response or status.
+25. Force Majeure – An external event independent of the Platform Operator, unforeseeable and unavoidable, occurring after the day the Account Management Agreement comes into effect and access to Services is granted to the Client.
+26. Subaccount - A collection of data associated with a specific Sub-user, including information provided by the Client and the Sub-user during their use of the Platform, as well as information about their activities on the Platform. A Subaccount forms part of the Client Account.
+27. Sub-user – A person using the Platform after logging into a Subaccount, especially an Employee of the Client or a person invited by them to use the Cloud Services, on the contracted instance assigned to the Client's Plan.
+28. Services – The services provided or made available by the Platform Operator using the Platform, including Cloud Services and Support Services.
+29. Cloud Services - Access to a tool enabling Clients to store, process, analyze, share data, and design client applications in a cloud environment. The Platform provides infrastructure, including servers, disk space, computational resources, and an execution environment where Clients can create their own applications using components available on the Platform.
+30. Error Rate – The number of Valid Units that could not be processed successfully, e.g., synchronous API requests returning HTTP Status 5XX for API’s (except 502 for Run API) or asynchronous units that were finished with error, subject to a minimum of 100 Valid Units in the measurement period. Synchronous sequential requests do not count towards  the Error Rate when the unit processing duration is greater than 60 seconds, unless they conform to the Retry Policy.
+31. Support – Maintenance and service support provided by the Support Unit.
+32. Tickets - The successful submission of a report by the Client through the online ticketing system.
+
+# 1. Preliminary Provisions
+
+1.1.  These Terms and Conditions define the rules for using Cloud Services by the Client. Each Client is obliged to read the contents of the Terms and Conditions and accept its provisions before using Cloud Services.
+
+1.2. By using the Cloud Service, the Client agrees to be bound by the terms of these Terms and Conditions. If the Client does not agree with the provisions of these Terms and Conditions, the use of the Cloud Service is prohibited.
+
+1.3. The use of the Cloud Service is subject to payment. The payment depends on the choice of the Plan and the current offer placed on the Platform.
+
+# 2. Scope of Services
+
+2.1. The Client may use the Services within the Client Account only after Registration or after conducting Negotiations as described in the Platform Terms and Conditions. Sub-users may use the Services in accordance with the Platform Terms and Conditions.
+
+2.2. As part of using the Cloud Service, the Client gains access to a tool that allows the Client to store, process, and analyze data and Client applications in a secure cloud environment provided by the Platform Operator for processing this data. The Platform provides infrastructure, including servers, disk space, computational resources, and an execution environment on which the Client can run their own code or components, as well as the ability to create their own code based on the Platform and documentation available on the Platform.
+
+2.3. Regardless of the services described in point 2.2, the Client receives maintenance and support services ensuring the availability of cloud service functionalities at a level resulting from the SLA, which is an Annex to these Terms and Conditions, and based on the principles described in the Support Policy, adapted to the Plan chosen by the Client.
+
+2.4. The Client is aware that for the proper functioning of the Platform's functionalities and the provision of Cloud Services, the Client may be required to take appropriate actions. The Client undertakes to promptly take all necessary actions required for the proper provision of services by the Platform Operator, especially upon each request issued by the Platform Operator.
+
+2.5. Specifications of Cloud Services are available at [docs.revong.com](https://docs.revong.com).
+
+# 3. Support Services and Ticket Handling
+
+3.1. As part of Support and Ticket Handling, the Platform Operator will provide the Client with services in the area of:
+
+3.1.1. Maintenance of Platform Errors that occur while the Client is using the Platform's functionalities;
+
+3.1.2. Ensuring the Availability of the Platform;
+
+3.1.3. Providing information and taking actions in the scope indicated in the Ticket.
+
+3.2. The Client submits a Ticket through the online ticketing system or via email. Confirmation of the Ticket submission will be made via email to the email address assigned to the Client Account or from which the Ticket was submitted.
+
+3.3. Tickets are divided into the following categories and optionally priorities:
+
+3.3.1. Errors - related to Errors and their priorities with the division of Errors into: critical, high, normal, low;
+
+3.3.2. Billing;
+
+3.3.3. Consultations;
+
+3.3.4. Other - general inquiries and questions, including feature requests and general product feedback.
+
+3.4. The Ticket should contain at least the following information:
+
+3.4.1. Type of Ticket: Error, Billing, Consultations, Other;
+
+3.4.2. In the case of an Error: a description of the Error and priority category - critical, high, normal, low;
+
+3.4.3. In the case of an Error: device on which the Error occurred e.g., specific model of tablet, desktop computer, Windows laptop, MacOS laptop, browser and its version;
+
+3.4.4. In the case of an Error: date of occurrence: day, hour, minutes, or time range;
+
+3.4.5. In the case of an Error: other relevant circumstances related to the occurrence of the Error, if any;
+
+3.4.6. In the case of Billing, Consultations, and Others – a detailed description of the inquiry and significant circumstances related to it, and in the case of requests for additional features – the deadline by which the Client is interested in obtaining such features.
+
+3.5. The Platform Operator may suspend the Maintenance or provision of information due to lack of information or inaccuracies in the information contained in the Ticket, as mentioned in point 3.4 above, until the Client provides such information fully and correctly. The Platform Operator will inform the Client that the information provided is incomplete or incorrect.
+
+3.6. In the case of the Client's intention to access new features, the Platform Operator and the Client will separately agree on the estimated time of the order after discussing the functionalities. If the Client accepts the estimated time for delivering the functionality and the pricing for accessing such functionality, the Platform Operator will provide the Client with the functionality within the timeframe agreed with the Client.
+
+3.7. The Platform Operator may change the category of the Error if it turns out to be different than in the Client's Ticket. The Platform Operator will inform the Client of such a change, providing justification for the change as part of the Initial Response Time.
+
+3.8. A Ticket for an Error is considered submitted at the moment of its acceptance confirmation in the Initial Response Time.
+
+3.9. Tickets will be accepted on Business Days, during Business Hours, according to the Client's chosen Plan.
+
+3.10. Support will be provided remotely by the Support Unit on Business Days, during Business Hours, according to the Client's chosen Plan.
+
+3.11. Details concerning the definition and priorities of Errors, as well as the Initial Response Time for Error Ticket handling, are found in the Annex: "RevoNG Support Policy" and are dependent on the Client's Plan.
+
+3.12. The Initial Response Time specified in section 3.11 does not apply to the submission of matters other than Errors, as specified in sections 3.3.2. – 3.3.4. In such cases, the Initial Response Time depends on the individual decision of the Platform Operator.
+
+3.13. If, after a Ticket submission, the Platform Operator determines that the Error occurred due to circumstances independent of the Platform Operator or the Platform, or the submission is not an Error, the Platform Operator is not obligated to perform its Maintenance. The Platform Operator will inform the Client about this.
+
+3.14. The Platform Operator ensures a Monthly Uptime Percentage of the Platform at the level specified in the Annex to these Cloud Services Terms: "RevoNG Service Level Agreement (SLA)."
+
+3.15. The Platform Operator is entitled to perform Scheduled Maintenance, informing the Client of this with at least 2 days' notice.
+
+3.16. The Initial Response Time and Scheduled Maintenance are not taken into account when calculating the Monthly Uptime Percentage of the Platform.
+
+3.17. In the event of an Error, the Client sending a Valid Unit is obligated to wait a short period of time before resending the request in a new attempt, in which the Platform was unavailable, according to the Retry Policy.
+
+3.18. Regardless of the definition of Error indicated in the Annex "RevoNG Support Policy," a situation in which the Client has limited access to the Platform or its key functionalities for a period lasting less than 1 minute per hour, i.e., 60 minutes and 100 requests, is not considered an Error.
+
+3.19. All exclusions and limitations regarding the use of Support Services have been specified in the Annex: "Service Level Agreement (SLA)."
+
+# 4. Compensation and Payment Terms
+
+4.1.  For granting access to the functionalities of the Account in the form of the possibility to use Cloud Services, compensation is due under the terms set out in the Platform Terms and Conditions. The compensation also includes, in selected Plans, Support services for each calendar month of the Account Agreement's validity, according to the Plan to which the Support services are assigned (regardless of the actual time spent on providing Support services) for maintaining the Platform. The Client has the option to extend Support services, according to the rules set out in the Annex: "[Privacy policy & cookies](privacy-policy-and-cookies)."
+
+4.2. The Platform Operator is entitled to compensation for the work mentioned in section 3.6, on individual terms agreed with the Client.
+
+4.3. During the duration of the Account Agreement, it is possible to change the amount of compensation referred to in section 4.1. The change will be binding with the beginning of the next Billing Period, provided that the Client is informed of the price change at least 7 days before the start of the next Billing Period via an email sent to the address assigned to the Account.
+
+4.4. The Platform Operator is not responsible for incorrect data provided by the Client, based on which payment was made.
+
+# 5. Liability
+
+5.1. In case of failure to meet the Service Level Objective for Support, the Client is entitled to utilize Platform Credits in subsequent Billing Periods, under the terms described in the Annex: "RevoNG Service Level Agreement (SLA)."
+
+5.2. The Platform Operator is not liable for non-performance or improper performance of the Cloud Service and Support services if their performance or proper performance became impossible or hindered due to the occurrence of Force Majeure circumstances, provided that Force Majeure factors had an impact on the realization of Services.
+
+5.3. The Platform Operator is not responsible for the contents stored by the Client using Cloud Services and does not moderate or modify them.
+
+5.4. The Platform Operator is not liable for any damage caused to third parties resulting from the content of data transmitted to the Platform Operator by the Client.
+
+5.5. The Client remains the sole owner of the code that will be run on the infrastructure provided by the Platform Operator for data processing.
+
+5.6. The Client is obliged to secure their data and their own tools, including the source code for this tool and created API keys and other development tools. The Platform Operator is not responsible for data loss or the security of API keys that have been improperly secured or disclosed by the Client.
+
+5.7. The Client is obliged to provide data in accordance with applicable regulations and security standards.
+
+5.8. The Client is obliged to use the Cloud Service according to its purpose, within the limits of the law and public decency, and with respect for the rights and property of others. In particular, the Client agrees:
+
+5.8.1. Not to undertake actions that could disrupt the proper functioning of the Platform, including not interfering with the content of the Platform and Account, nor with the IT elements of the Platform;
+
+5.8.2. Not to undertake unethical or unlawful actions;
+
+5.8.3. To refrain from: acting in bad faith, abusing the functionalities of Cloud Services and Support services contrary to their purpose and contrary to the Terms and Conditions.
+
+5.9.  The Platform Operator is not liable for the correctness of the functioning of operators providing connectivity to the Platform, both on the side of the Platform Operator and of those using the Platform.
+
+# 6. Personal Data Protection
+
+6.1. The Platform Operator acts in accordance with the applicable personal data protection regulations. Detailed information, scope, principles, and conditions of privacy are available on the page: [Privacy policy & cookies](privacy-policy-and-cookies).
+
+6.2. In case there is a basis for entrusting the Platform Operator with the processing of personal data, the Client, being the data controller, is obliged to entrust or make available for processing to the Platform Operator personal data contained in the content of information and data related to the provided Cloud Services.
+
+6.3. The Client is obliged to fulfill the information obligation regarding the entrustment or making available, as mentioned in section 6.2, on behalf of the Platform Operator towards the persons whose data will be entrusted and to demonstrate the fulfillment of this obligation at each request of the Platform Operator. In case of non-fulfillment of this obligation by the Client, the responsibility for the non-fulfillment of the information obligation by the Platform Operator lies with the Client.
+
+6.4. The Platform Operator, as the recipient of personal data, is obliged to apply all technical and organizational measures to protect personal data, in accordance with the principles defined in Article 32 of GDPR, and also to assist the entrusting Client in fulfilling the obligations set out in Articles 32–36 of GDPR in relation to personal data.
+
+6.5. The Platform Operator, as the recipient, processes personal data only on documented instruction from the entrusting Client, unless such an obligation is imposed on it by applicable national or European Union law. In such a case, before starting the processing, the Platform Operator, as the recipient, informs the entrusting Client of this legal obligation, unless the law prohibits providing such information due to a significant public interest.
+
+6.6. The Platform Operator, as the recipient, ensures that only persons authorized to process personal data will have access to them.
+
+6.7. In the event of a personal data breach, the Platform Operator, as the recipient, will notify the entrusting Client of the detected breach within 48 (forty-eight) hours.
+
+6.8. Upon the completion of providing Cloud Services by the Platform Operator, the Platform Operator will delete or return personal data, unless the absolutely binding legal provisions provide otherwise.
+
+6.9. The Platform Operator, as the recipient, will enable the entrusting Client to conduct audits, including inspections, in the area concerning the entrustment of personal data processing, and will ensure cooperation in this regard. The entrusting Client will notify the recipient Platform Operator of the need to conduct an audit, including an inspection, at least 7 days in advance, and the conduct of such an audit, including an inspection, should not negatively affect the work of the recipient Platform Operator. All costs associated with the audit, including inspection, are borne by the entrusting Client.
+
+6.10.  The Platform Operator, as the recipient, may use the services of another data processor.
+
+6.11. The Platform Operator, as the recipient, is obliged to ensure that each person processing personal data on its behalf processes them solely on the instruction of the entrusting Client.
+
+# 7. Inquiries and Complaints
+
+7.1. Inquiries, requests, complaints, and remarks of the Client regarding Cloud Services and Support services should be directed via the Client Account or to the dedicated email address of the Platform Operator: support@revong.com. A complaint should contain at least the email address assigned to the Client Account and a detailed description of the circumstances and irregularities that are the cause of the complaint. If the data or information provided in the complaint do not allow the Platform Operator to recognize the complaint, the Platform Operator will ask the Client for clarification of doubts or for additional information electronically, if necessary for the Platform Operator to recognize the complaint, specifying exactly such doubts or required information. If, despite this, the Client does not send the required data, the Platform Operator may leave the complaint without consideration.
+
+7.2. A complaint should be submitted within 30 days from the occurrence of the event being complained about. Complaints will not be considered after the expiration of the aforementioned 30-day period.
+
+7.3. Complaints will be considered within 14 days for individuals recognized as consumers within the meaning of Article 22(1) of the Polish Civil Code, from the date of their receipt, and within 30 days for other entities. The response to the complaint is sent electronically to the address provided in the complaint submission.
+
+7.4. By submitting a complaint, the Client agrees to the processing of personal data in the scope of the email address from which the complaint was sent.
+
+# 8. Final Provisions
+
+8.1. The Platform Operator has the right to change the provisions of these Terms and Conditions by posting them on the Platform and delivering such information to the Client at the provided email address. Changes come into effect within the time indicated by the Platform Operator, unless applicable law stipulates otherwise. The Client should familiarize themselves with the changes made by the Platform Operator.
+
+8.2. A Client who does not agree to the changes in the Terms and Conditions cannot use the Services after the expiration of the period referred to in point 8.1. Continued use of the Services by the Client after the changes in the Terms and Conditions come into effect is equivalent to the acceptance of these changes.
+
+8.3. The Platform Operator may at any time change the scope or type of content available in Cloud Services, as well as expand, modify, limit, or discontinue both in relation to some and all functionalities available within the Cloud Services.
+
+8.4. If any provision of these Terms and Conditions is invalid or ineffective, it does not affect the validity of the remaining provisions. Invalid or ineffective provisions will be replaced by provisions that most closely match the business purpose and nature of the relationship between the Platform Operator and the Client.
+
+8.5. In matters not regulated by these Terms and Conditions, the provisions of the Platform Terms and Conditions shall apply.
+
+8.6. In the event of discrepancies between the content of the Platform Terms and Conditions and the content of these Cloud Services Terms and Conditions, the provisions of these Cloud Services Terms and Conditions shall apply.
+
+8.7. Integral parts of these Terms and Conditions are the annexes: "[Service Level Agreement (SLA)](service-level-agreement-sla)" and "[Support Policy](support-policy)."
+
+# Revisions
+
+| Version | Updated Date | Status | Description                      |
+|---------|--------------|--------|----------------------------------|
+| 1       | 20.05.2023   | Active | Initial version of the document. |

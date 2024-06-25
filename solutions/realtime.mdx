@@ -1,0 +1,125 @@
+---
+title: 'Realtime'
+description: 'Build your own WebSocket service effortlessly.'
+---
+
+Realtime on our platform is a WebSocket as a service where you can design and configure your realtime solutions.
+WebSockets enables clients with bidirectional communication between a client and a server and receives updates in real time.
+As of now, we support only single directional communication, however, you can send messages through API or [Components](features/components).
+
+<Note>You must send PING requests as keep-alive policy, so you will not be disconnected from the server, you must send a message with 'PING' request at least once a minute</Note>
+
+## Authentication
+
+To authenticate against our live service, you must have given a role of `REALTIME_CONNECT` so you
+can send custom messages to your clients from Components (subject to change in the future).
+
+You also must connect against `wss` (WebSocket Secure), `ws` by design is not allowed.
+
+```js
+const token = 'Bearer ...';
+const instance = '';
+const wsUrl = `wss://live.revong.com/?authorization=${token}&instance=${instance}`;
+
+const ws = new WebSocket(wsUrl);
+```
+
+<Note>We support presence of authorization and instance tokens in query parameter as well as in headers, similar to our API.
+Due to the limitation of many clients you must pass it in query parameters as in given example, from security standpoint it doesn't matter,
+connection goes trough TLS only, and we don't permit other way around, we also **don't store these tokens in our logging systems**.</Note>
+
+
+## Sending a message
+
+You can send messages directly from the `Sandbox API`, it is limited to 4kB per message as of now.
+```typescript
+async sendRealtimeMessage(channel: string, message: unknown);
+await sendRealtimeMessage('ALL', { hello: 'world!'});
+```
+
+### Channels
+
+Channels are bound to the instance that you are connected to, where you can configure your own channels and/or use defined channels.
+You can send messages to:
+- `ALL` to broadcast a message to all logged clients.
+- `groupId` to broadcast a message to specific a group.
+- `userId` to broadcast a message to specific user only.
+- Configured channels by you with restrictions on user or group level (or any other advanced filters).
+
+### Limits
+
+Payload is limited up to 1kB (1024 bytes), but you can request quota increase.
+
+# Example
+
+Here is a full code sample including PING & PONG keep-alive, message receiver using WebSocket API.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>WebSocket</title>
+            <style>
+                body {
+                font-family: Arial, sans-serif;
+            }
+                #messages {
+                margin-top: 20px;
+                border: 1px solid #ccc;
+                padding: 10px;
+                max-width: 600px;
+                height: 500px;
+                overflow-y: scroll;
+            }
+                .message {
+                border-bottom: 1px solid #eee;
+                padding: 5px 0;
+            }
+            </style>
+</head>
+<body>
+<h1>WebSocket Message Display</h1>
+<div id="messages"></div>
+
+<script>
+    const token = 'Bearer ...';
+    const instance = '';
+    const wsUrl = `wss://live.dev.revong.com/?authorization=${token}&instance=${instance}`;
+
+    const ws = new WebSocket(wsUrl);
+    const messagesDiv = document.getElementById('messages');
+
+    const append = (data) => {
+    const message = document.createElement('div');
+    message.className = 'message';
+    message.textContent = data;
+    messagesDiv.appendChild(message);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+    ws.onopen = function(event) {
+    console.log('WebSocket is open now.');
+    setInterval(() => {
+    const message = JSON.stringify({ type: 'PING'});
+    ws.send(message);
+    append("PUSH ->" + message)
+}, 30000);
+};
+
+    ws.onmessage = function(event) {
+    append("PULL ->" + event.data);
+};
+
+    ws.onerror = function(event) {
+    console.error('WebSocket error observed:', event);
+};
+
+    ws.onclose = function(event) {
+    console.log('WebSocket is closed now.');
+};
+</script>
+</body>
+</html>
+```

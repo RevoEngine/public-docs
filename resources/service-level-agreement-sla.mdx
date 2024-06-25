@@ -1,0 +1,53 @@
+---
+title: 'Service Level Agreement (SLA)'
+description: 'In addition to Term of Service (TOS) hereinafter referred to as Agreement, under which the RevoNG has agreed to provide RevoNG Platform to Customer, the Platform is provided with a Monthly Uptime Percentage to Customer based on contracted Plan of the Service hereinafter referred as Service Level Objective (SLO).'
+---
+
+# Definition
+
+1. Platform means contracted instance within RevoNG.
+2. Plan means tier included as the part of Agreement, which is one of the following: Start, Standard, Plus, Business and Enterprise.
+3. Emergency Maintenance” means critical maintenance which is necessary to be performed as soon as possible due to the critical issue of the Platform or total unavailability.
+4. Scheduled Maintenance” means routine maintenance scheduled for Platform, which is scheduled in a minimum of 2 days’ notice (usually they are planned at least one week ahead).
+5. Downtime” means more than a one percent Error Rate.
+6. Error Rate” means the number of Valid Units that could not be processed successfully e.g. synchronous API requests return HTTP Status 5XX for API’s (except 502 for Run API) or asynchronous units that were finished with ERROR, subject to a minimum of 100 Valid Units in the measurement period. Synchronous sequential requests do not count towards the Error Rate when the unit processing duration is greater than 60 seconds, unless they conform to the Retry Policy.
+7. Downtime Period” means a period of one or more consecutive minutes of Downtime. Partial minutes or intermittent Downtime for period of less than one minute will not be counted towards any Downtime Period.
+8. Retry Policy” means, when an error occurs, the client sending Valid Unit is responsible for waiting for a short period of time before sending the request again, there is a minimum period of 1 second for each consecutive error, and the waiting period must increase exponentially up to 30 seconds.
+9. Platform Credit” means percentage of monthly bill which does not meet SLO will be added to the credits which can be used for upgrades, quota increases or to compensate future monthly invoices, these credits cannot be transferred or withdrawn, and can be used only in RevoNG and its Services.
+10. Valid Unit” means either synchronous units (API requests) or asynchronous units (Taskstriggered by Event and Scheduler) or WebSockets that conform to the Documentation, and that would normally result in a non-error response or status.
+11. Monthly Uptime Percentage” means total number of minutes in a month minus the number of minutes of Scheduled Maintenance, minus the number of minutes of Downtime suffered from all Downtime Periods in a month, divided by the total number of minutes in a month.
+12. Support” means the unit responsible for providing support for RevoNG Platform and Services , Support Policy is described separately in the Support Policy as addition to the TOS.
+
+# 1. Platform Credits
+
+1.1. The following table shows the Monthly Uptime Percentage used to count Platform Credits based on the tier.
+
+| Tier (base SLA)         | Monthly Uptime Percentage                              | Platform Credits |
+|-------------------------|--------------------------------------------------------|------------------|
+| Standard, Plus (99.00%) | 97.50% < 99.00%                                        | 5%               |
+|                         | 95.00% < 97.50%                                        | 10%              |
+|                         | < 95.00%                                               | 15%              |
+| Business (99.95%)       | 99.00% < 99.95%                                        | 5%               |
+|                         | 97.50% < 99.00%                                        | 10%              |
+|                         | < 97.50%                                               | 15%              |
+| Enterprise              | Same as Business or Individual Agreement up to 99.999% |                  |
+
+# 2. Exclusions
+
+This SLA does not apply to any of the following:
+- Customer-contracted Agreement is signed with Start tier.
+- Features and Services that are in the Preview mode (explicitly mentioned in the Documentation).
+- Features and Services that are excluded from the SLA (explicitly mentioned in the Documentation).
+- Errors caused by factors outside our responsible control:
+- a) That resulted from Customer’s software or hardware or third party software of hardware, or both.
+- b) That resulted from abuses or violated the platform terms and conditions or terms of service.
+- c) That resulted from quotas applicable to the Agreement and instance configuration.
+- d) That resulted from inefficient Components delivered by Customer or for Customer.
+- e) That resulted from not following Documentation and its best practices.
+- f) That resulted from one of our infrastructure provider outages: Google Cloud Platform, AWS or Azure.
+
+# Revisions
+
+| Version | Updated Date | Status | Description                      |
+|---------|--------------|--------|----------------------------------|
+| 1       | 20.05.2023   | Active | Initial version of the document. |

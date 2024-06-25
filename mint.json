@@ -39,8 +39,7 @@
   ],
   "topbarCtaButton": {
     "name": "Platform",
-    "url": "https://app.revong.com",
-    "type": "link"
+    "url": "https://app.revong.com"
   },
   "tabs": [
     {
@@ -52,25 +51,12 @@
       "url": "run-api"
     },
     {
-      "name": "Components",
-      "url": "components"
-    }
-  ],
-  "anchors": [
-    {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://docs.revong.com"
+      "name": "Sandbox API",
+      "url": "sandbox"
     },
     {
-      "name": "Community",
-      "icon": "discord",
-      "url": "https://discord.gg/ePV3J697"
-    },
-    {
-      "name": "Support",
-      "icon": "life-ring",
-      "url": "https://help.revong.com"
+      "name": "Resources",
+      "url": "resources"
     }
   ],
   "navigation": [
@@ -151,6 +137,22 @@
         "run-api/authentication",
         "run-api/guard",
         "run-api/http-codes"
+      ]
+    },
+    {
+      "group": "Resources",
+      "pages": [
+        "resources/introduction"
+      ]
+    },
+    {
+      "group": "Documents",
+      "pages": [
+        "resources/platform-terms-and-conditions",
+        "resources/cloud-services-and-support-terms-and-conditions",
+        "resources/privacy-policy-and-cookies",
+        "resources/service-level-agreement-sla",
+        "resources/support-policy"
       ]
     },
     {
