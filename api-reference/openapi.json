@@ -13173,6 +13173,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunJobDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Job scheduled."
@@ -14652,7 +14662,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WebhookRequestDto"
+                "$ref": "#/components/schemas/CreateWebhookRequestDto"
               }
             }
           }
@@ -25204,6 +25214,38 @@
           "files"
         ]
       },
+      "WebhookRequestDetailsDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "POST",
+              "GET",
+              "HEAD",
+              "PUT",
+              "DELETE",
+              "PATCH",
+              "OPTIONS"
+            ]
+          },
+          "body": {
+            "type": "object",
+            "description": "Body."
+          },
+          "headers": {
+            "type": "object",
+            "description": "Headers."
+          }
+        },
+        "required": [
+          "url",
+          "method"
+        ]
+      },
       "JobLogItemDto": {
         "type": "object",
         "properties": {
@@ -25354,6 +25396,7 @@
             "description": "Maximum retry backoff in seconds. Values below 60 seconds are rejected to avoid retry storms.",
             "example": 3600,
             "minimum": 60,
+            "maximum": 2592000,
             "default": 3600
           },
           "maxDoublings": {
@@ -25522,6 +25565,38 @@
           "name",
           "componentId"
         ]
+      },
+      "RunJobDto": {
+        "type": "object",
+        "properties": {
+          "scheduledDate": {
+            "type": "string"
+          },
+          "scheduleFor": {
+            "description": "Absolute execution time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future. Cannot be combined with scheduledDate.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "format": "int64"
+              }
+            ]
+          },
+          "inputs": {
+            "type": "object"
+          },
+          "options": {
+            "description": "Options.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobOptionsDto"
+              }
+            ]
+          }
+        }
       },
       "UpdateJobTemplate": {
         "type": "object",
@@ -25802,7 +25877,21 @@
           "inSeconds": {
             "type": "number",
             "description": "Trigger delay in seconds (maximum 2592000 seconds = 30 days).",
-            "maximum": 2592000
+            "maximum": 2592000,
+            "minimum": 0
+          },
+          "scheduleFor": {
+            "description": "Absolute trigger time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future. Cannot be combined with inSeconds.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "format": "int64"
+              }
+            ]
           },
           "message": {
             "type": "object",
@@ -25901,39 +25990,7 @@
           "version"
         ]
       },
-      "WebhookRequestDetailsDto": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "method": {
-            "type": "string",
-            "enum": [
-              "POST",
-              "GET",
-              "HEAD",
-              "PUT",
-              "DELETE",
-              "PATCH",
-              "OPTIONS"
-            ]
-          },
-          "body": {
-            "type": "object",
-            "description": "Body."
-          },
-          "headers": {
-            "type": "object",
-            "description": "Headers."
-          }
-        },
-        "required": [
-          "url",
-          "method"
-        ]
-      },
-      "WebhookRequestDto": {
+      "CreateWebhookRequestDto": {
         "type": "object",
         "properties": {
           "customId": {
@@ -25982,6 +26039,19 @@
               "category": "billing",
               "source": "assistant"
             }
+          },
+          "scheduleFor": {
+            "description": "Absolute delivery time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "format": "int64"
+              }
+            ]
           }
         }
       },
@@ -29325,7 +29395,7 @@
             "description": "Optional delay before the first tick is scheduled.",
             "example": 30,
             "minimum": 0,
-            "maximum": 86400
+            "maximum": 2592000
           },
           "state": {
             "type": "object",

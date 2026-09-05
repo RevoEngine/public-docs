@@ -34,6 +34,7 @@ See [Limits and quotas](/platform/limits-and-quotas) for the distinction between
 | Maximum memory | Instance quota `jobMemory`, configurable up to `4096` MiB — **4 GiB**. A lower tenant quota takes precedence. Reserve only what the Component needs. |
 | Concurrency limit | Per logical key: `1`–`1000` concurrent executions. Lease TTL: `1`–`86400` seconds. |
 | Retry attempts | The configured total includes the initial attempt; retries apply after terminal `ERROR`, not cancellation or success. |
+| Retry backoff | `maxBackoffSeconds` accepts `60`–`2592000` seconds (up to **30 days**). Jitter never extends the actual delay beyond 30 days. |
 
 The 59-minute limit is intentionally not a substitute for an unbounded worker. Split a longer workflow into idempotent stages, persist the handoff state, and schedule or trigger the next Job. That produces recoverable boundaries and avoids tying one execution to a long-held resource or credential.
 
@@ -67,6 +68,8 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 ```
 
 `componentVersion` pins a known low-code version for a controlled release. Omit it only when the task should intentionally resolve the latest active version. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
+
+The platform rejects retry backoff above 30 days before queueing. If an absolute requested run time becomes due while the request is being processed, the Job is dispatched immediately; the queue is never given a timestamp in the past.
 
 ## What a Job gives you
 

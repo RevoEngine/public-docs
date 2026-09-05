@@ -1091,9 +1091,9 @@ declare class api {
      * Schedules a custom event.
      *
      * Notes:
-     * - The third argument accepts relative seconds, an absolute Date, or an options object.
-     * - Options `scheduleDate` accepts the same relative-seconds or absolute-Date contract.
-     * - The maximum delay is 2,592,000 seconds (30 days).
+     * - The existing Date argument and `scheduleDate` option remain supported.
+     * - New code should use `scheduleFor` with a Date, ISO 8601 date-time, or Unix timestamp in milliseconds.
+     * - The absolute time cannot be in the past or more than 30 days ahead.
      * - No-op in debug mode.
      *
      * Example:
@@ -1101,7 +1101,7 @@ declare class api {
      *   'customer_sync',
      *   { customerId: 'c-1' },
      *   {
-     *     scheduleDate: 300,
+     *     scheduleFor: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
      *     metadata: { correlationId: 'sync-123' },
      *   },
      * );
@@ -1109,7 +1109,7 @@ declare class api {
   static triggerEvent(
       name: string,
       message: any,
-      scheduleDateOrOptions?: AutomationSchedule | TriggerEventOptions,
+      scheduleDateOrOptions?: Date | TriggerEventOptions,
     ): Promise<string>;
 
   /**
@@ -1117,19 +1117,23 @@ declare class api {
      *
      * Notes:
      * - Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
-     * - `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+     * - The existing absolute Date argument remains supported.
+     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - No-op in debug mode.
      *
      * Example:
-     * const jobId = await api.triggerTarget('JOB_TEMPLATE', templateId, {
-     *   customerId: 'c-1',
-     * });
+     * const jobId = await api.triggerTarget(
+     *   'JOB_TEMPLATE',
+     *   templateId,
+     *   { customerId: 'c-1' },
+     *   { scheduleFor: Date.now() + 5 * 60 * 1000 },
+     * );
      */
   static triggerTarget(
       targetType: ExecutionTargetType,
       targetId: string,
       input?: any,
-      schedule?: AutomationSchedule,
+      scheduleDate?: Date | AutomationScheduleOptions,
     ): Promise<string>;
 
   /**
@@ -1138,26 +1142,28 @@ declare class api {
      * Notes:
      * - No-op in debug mode.
      * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateId, ...)`.
-     * - `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+     * - The existing absolute Date argument remains supported.
+     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
      *
      * Example:
      * const jobId = await api.triggerJob(
      *   templateId,
      *   { customerId: 'c-1' },
-     *   new Date(Date.now() + 15 * 60 * 1000),
+     *   { scheduleFor: new Date(Date.now() + 15 * 60 * 1000) },
      * );
      */
   static triggerJob(
       templateId: string,
       input?: any,
-      schedule?: AutomationSchedule,
+      scheduleDate?: Date | AutomationScheduleOptions,
     ): Promise<string>;
 
   /**
      * Schedules a webhook delivery.
      *
      * Notes:
-     * - `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+     * - The existing absolute Date argument remains supported.
+     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - No-op in debug mode.
      *
      * Example:
@@ -1167,11 +1173,13 @@ declare class api {
      *     method: 'POST',
      *     body: { ok: true },
      *   },
+     * }, {
+     *   scheduleFor: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
      * });
      */
   static triggerWebhook(
       webhook: WebhookInput,
-      schedule?: AutomationSchedule,
+      scheduleDate?: Date | AutomationScheduleOptions,
     ): Promise<Webhook>;
 
   /**

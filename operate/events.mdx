@@ -178,13 +178,16 @@ Saved active Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`
 
 1. Open the Event and select **Run**.
 2. Enter a JSON `message` representative of production traffic.
-3. Optionally delay delivery with `inSeconds`; the API accepts up to 2,592,000 seconds (30 days).
+3. Optionally delay delivery with exactly one scheduling field:
+   - `inSeconds` keeps the existing relative-seconds contract;
+   - `scheduleFor` sets an absolute ISO 8601 date-time or Unix timestamp in milliseconds.
+   Both forms accept only a time from now through 30 days ahead.
 4. Submit and retain the returned Event history identifier.
 5. Open **Event History** and confirm which targets were scheduled or skipped.
 
 ```json
 {
-  "inSeconds": 0,
+  "inSeconds": 300,
   "message": {
     "orderId": "ord_8d31",
     "status": "APPROVED",
@@ -196,6 +199,29 @@ Saved active Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`
   }
 }
 ```
+
+Use `scheduleFor` when the caller already owns an absolute business deadline:
+
+```js
+const scheduleFor = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+await fetch(`/api/v1/automation/event/${eventId}/run`, {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    scheduleFor,
+    message: { orderId: 'ord_8d31', status: 'APPROVED', region: 'eu' },
+    metadata: { correlationId: 'checkout_99f1', source: 'acceptance-test' },
+  }),
+});
+```
+
+<Warning>
+  Do not send both `inSeconds` and `scheduleFor`. A past absolute time or a value more than 30 days ahead is rejected before queueing.
+</Warning>
 
 ## Built-in event families
 
