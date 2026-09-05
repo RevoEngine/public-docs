@@ -1,0 +1,1111 @@
+---
+title: agent reference
+description: Durable Agent, inbox, run, plugin, and Assistant-thread methods.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **51 methods**. Search the docs for an exact method name, or use this index:
+
+- [`agent.list()`](#agent-list)
+- [`agent.get()`](#agent-get)
+- [`agent.create()`](#agent-create)
+- [`agent.update()`](#agent-update)
+- [`agent.listInbox()`](#agent-listInbox)
+- [`agent.getInboxItem()`](#agent-getInboxItem)
+- [`agent.pushInbox()`](#agent-pushInbox)
+- [`agent.updateInboxItem()`](#agent-updateInboxItem)
+- [`agent.removeInboxItem()`](#agent-removeInboxItem)
+- [`agent.listPlugins()`](#agent-listPlugins)
+- [`agent.getPlugin()`](#agent-getPlugin)
+- [`agent.listRuns()`](#agent-listRuns)
+- [`agent.getRun()`](#agent-getRun)
+- [`agent.listRunEvents()`](#agent-listRunEvents)
+- [`agent.listRunThreads()`](#agent-listRunThreads)
+- [`agent.startRun()`](#agent-startRun)
+- [`agent.resumeRun()`](#agent-resumeRun)
+- [`agent.retryRun()`](#agent-retryRun)
+- [`agent.tickRun()`](#agent-tickRun)
+- [`agent.cancelRun()`](#agent-cancelRun)
+- [`agent.reconcileRuns()`](#agent-reconcileRuns)
+- [`agent.listThreads()`](#agent-listThreads)
+- [`agent.getThread()`](#agent-getThread)
+- [`agent.getThreadState()`](#agent-getThreadState)
+- [`agent.getThreadGoal()`](#agent-getThreadGoal)
+- [`agent.setThreadGoal()`](#agent-setThreadGoal)
+- [`agent.pauseThreadGoal()`](#agent-pauseThreadGoal)
+- [`agent.resumeThreadGoal()`](#agent-resumeThreadGoal)
+- [`agent.clearThreadGoal()`](#agent-clearThreadGoal)
+- [`agent.getThreadShare()`](#agent-getThreadShare)
+- [`agent.enableThreadShare()`](#agent-enableThreadShare)
+- [`agent.disableThreadShare()`](#agent-disableThreadShare)
+- [`agent.getSharedThread()`](#agent-getSharedThread)
+- [`agent.listSharedThreadMessages()`](#agent-listSharedThreadMessages)
+- [`agent.getSharedThreadMessageExecutionDetails()`](#agent-getSharedThreadMessageExecutionDetails)
+- [`agent.getSharedThreadMessageArtifact()`](#agent-getSharedThreadMessageArtifact)
+- [`agent.forkSharedThreadMessage()`](#agent-forkSharedThreadMessage)
+- [`agent.createThread()`](#agent-createThread)
+- [`agent.deleteThread()`](#agent-deleteThread)
+- [`agent.restoreThread()`](#agent-restoreThread)
+- [`agent.listThreadMessages()`](#agent-listThreadMessages)
+- [`agent.sendMessage()`](#agent-sendMessage)
+- [`agent.retryMessage()`](#agent-retryMessage)
+- [`agent.cancelThread()`](#agent-cancelThread)
+- [`agent.forkMessage()`](#agent-forkMessage)
+- [`agent.renameThread()`](#agent-renameThread)
+- [`agent.resolveAction()`](#agent-resolveAction)
+- [`agent.approveAction()`](#agent-approveAction)
+- [`agent.rejectAction()`](#agent-rejectAction)
+- [`agent.submitAction()`](#agent-submitAction)
+- [`agent.compactThread()`](#agent-compactThread)
+
+<span id="agent-list" aria-hidden="true"></span>
+
+## `agent.list()`
+
+Lists agents visible to the current execution context.
+
+### Signature
+
+```ts
+static list(): Promise<Agent[]>;
+```
+### Example
+
+```ts
+const agents = await agent.list();
+```
+
+<span id="agent-get" aria-hidden="true"></span>
+
+## `agent.get()`
+
+Returns one agent by id.
+
+### Signature
+
+```ts
+static get(agentId: string): Promise<Agent>;
+```
+### Example
+
+```ts
+const one = await agent.get(agentId);
+```
+
+<span id="agent-create" aria-hidden="true"></span>
+
+## `agent.create()`
+
+Creates a new agent. The server creates agentId, status, managed workspace,
+timestamps, and version; supply an existing service-account user id only.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static create(data: AgentCreateInput): Promise<Agent>;
+```
+### Example
+
+```ts
+const created = await agent.create({
+  name: 'Ops copilot',
+  serviceAccountUserId: userId,
+});
+```
+
+<span id="agent-update" aria-hidden="true"></span>
+
+## `agent.update()`
+
+Updates mutable agent fields such as config, policy, or profile.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static update(agentId: string, data: AgentUpdateInput): Promise<Agent>;
+```
+### Example
+
+```ts
+const updated = await agent.update(agentId, {
+  desc: 'Handles operational runbooks.',
+});
+```
+
+<span id="agent-listInbox" aria-hidden="true"></span>
+
+## `agent.listInbox()`
+
+Lists queued and historical inbox items for an agent.
+
+### Signature
+
+```ts
+static listInbox(agentId: string): Promise<AgentInboxItem[]>;
+```
+### Example
+
+```ts
+const inbox = await agent.listInbox(agentId);
+```
+
+<span id="agent-getInboxItem" aria-hidden="true"></span>
+
+## `agent.getInboxItem()`
+
+Returns one inbox item for an agent.
+
+### Signature
+
+```ts
+static getInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.getInboxItem(agentId, agentInboxItemId);
+```
+
+<span id="agent-pushInbox" aria-hidden="true"></span>
+
+## `agent.pushInbox()`
+
+Enqueues a new inbox item for an agent.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static pushInbox(
+      agentId: string,
+      data: AgentInboxItemCreateInput,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.pushInbox(agentId, {
+  instruction: 'Review failed deploy logs.',
+});
+```
+
+<span id="agent-updateInboxItem" aria-hidden="true"></span>
+
+## `agent.updateInboxItem()`
+
+Updates an existing inbox item.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static updateInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+      data: AgentInboxItemUpdateInput,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.updateInboxItem(agentId, agentInboxItemId, {
+  instruction: 'Review the updated deployment evidence.',
+});
+```
+
+<span id="agent-removeInboxItem" aria-hidden="true"></span>
+
+## `agent.removeInboxItem()`
+
+Removes an inbox item.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static removeInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+await agent.removeInboxItem(agentId, agentInboxItemId);
+```
+
+<span id="agent-listPlugins" aria-hidden="true"></span>
+
+## `agent.listPlugins()`
+
+Lists agent plugins configured for an agent.
+
+### Signature
+
+```ts
+static listPlugins(agentId: string): Promise<AgentPlugin[]>;
+```
+### Example
+
+```ts
+const tools = await agent.listPlugins(agentId);
+```
+
+<span id="agent-getPlugin" aria-hidden="true"></span>
+
+## `agent.getPlugin()`
+
+Returns one agent plugin definition for an agent.
+
+### Signature
+
+```ts
+static getPlugin(
+      agentId: string,
+      toolId: string,
+    ): Promise<AgentPlugin>;
+```
+### Example
+
+```ts
+const tool = await agent.getPlugin(agentId, toolId);
+```
+
+<span id="agent-listRuns" aria-hidden="true"></span>
+
+## `agent.listRuns()`
+
+Lists runs for an agent.
+
+### Signature
+
+```ts
+static listRuns(agentId: string): Promise<AgentRun[]>;
+```
+### Example
+
+```ts
+const runs = await agent.listRuns(agentId);
+```
+
+<span id="agent-getRun" aria-hidden="true"></span>
+
+## `agent.getRun()`
+
+Returns one agent run.
+
+### Signature
+
+```ts
+static getRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.getRun(agentRunId);
+```
+
+<span id="agent-listRunEvents" aria-hidden="true"></span>
+
+## `agent.listRunEvents()`
+
+Lists persisted events for a run.
+
+### Signature
+
+```ts
+static listRunEvents(agentRunId: string): Promise<AgentRunEvent[]>;
+```
+### Example
+
+```ts
+const events = await agent.listRunEvents(agentRunId);
+```
+
+<span id="agent-listRunThreads" aria-hidden="true"></span>
+
+## `agent.listRunThreads()`
+
+Lists assistant threads associated with a run.
+
+### Signature
+
+```ts
+static listRunThreads(agentRunId: string): Promise<AgentRunThread[]>;
+```
+### Example
+
+```ts
+const threads = await agent.listRunThreads(agentRunId);
+```
+
+<span id="agent-startRun" aria-hidden="true"></span>
+
+## `agent.startRun()`
+
+Starts a new agent run.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static startRun(agentId: string, data: AgentRunInput): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.startRun(agentId, {
+  instruction: 'Summarize today\\'s alerts.',
+});
+```
+
+<span id="agent-resumeRun" aria-hidden="true"></span>
+
+## `agent.resumeRun()`
+
+Resumes a paused run.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static resumeRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.resumeRun(agentRunId);
+```
+
+<span id="agent-retryRun" aria-hidden="true"></span>
+
+## `agent.retryRun()`
+
+Retries a failed or completed run from its retry policy.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static retryRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.retryRun(agentRunId);
+```
+
+<span id="agent-tickRun" aria-hidden="true"></span>
+
+## `agent.tickRun()`
+
+Forces one autonomous tick for a run.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static tickRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.tickRun(agentRunId);
+```
+
+<span id="agent-cancelRun" aria-hidden="true"></span>
+
+## `agent.cancelRun()`
+
+Cancels a run, optionally recording a reason.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static cancelRun(
+      agentRunId: string,
+      data?: AgentRunCancelInput,
+    ): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.cancelRun(agentRunId, { reason: 'Operator stop' });
+```
+
+<span id="agent-reconcileRuns" aria-hidden="true"></span>
+
+## `agent.reconcileRuns()`
+
+Reconciles stalled runs with the loop scheduler.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static reconcileRuns(): Promise<any>;
+```
+### Example
+
+```ts
+await agent.reconcileRuns();
+```
+
+<span id="agent-listThreads" aria-hidden="true"></span>
+
+## `agent.listThreads()`
+
+Lists assistant threads visible through the agent helper.
+
+### Signature
+
+```ts
+static listThreads(
+      query?: Record<string, any>,
+    ): Promise<CollectionResult<AssistantThread>>;
+```
+### Example
+
+```ts
+const threads = await agent.listThreads({ take: 20 });
+```
+
+<span id="agent-getThread" aria-hidden="true"></span>
+
+## `agent.getThread()`
+
+Returns one assistant thread.
+
+### Signature
+
+```ts
+static getThread(
+      assistantThreadId: string,
+      options?: { hideDeleted?: boolean },
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.getThread(assistantThreadId);
+```
+
+<span id="agent-getThreadState" aria-hidden="true"></span>
+
+## `agent.getThreadState()`
+
+Returns the hidden runtime planning state for a thread.
+
+### Signature
+
+```ts
+static getThreadState(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadState>;
+```
+### Example
+
+```ts
+const state = await agent.getThreadState(assistantThreadId);
+```
+
+<span id="agent-getThreadGoal" aria-hidden="true"></span>
+
+## `agent.getThreadGoal()`
+
+Returns the current durable goal for a thread, if one exists.
+
+### Signature
+
+```ts
+static getThreadGoal(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadGoal | null>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="agent-setThreadGoal" aria-hidden="true"></span>
+
+## `agent.setThreadGoal()`
+
+Sets or replaces the durable thread goal without appending a user message.
+
+### Signature
+
+```ts
+static setThreadGoal(
+      assistantThreadId: string,
+      data: AssistantThreadGoalInput,
+    ): Promise<AssistantThreadGoal>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="agent-pauseThreadGoal" aria-hidden="true"></span>
+
+## `agent.pauseThreadGoal()`
+
+Pauses goal validation while preserving the objective.
+
+### Signature
+
+```ts
+static pauseThreadGoal(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadGoal>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="agent-resumeThreadGoal" aria-hidden="true"></span>
+
+## `agent.resumeThreadGoal()`
+
+Resumes goal validation for the current objective.
+
+### Signature
+
+```ts
+static resumeThreadGoal(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadGoal>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="agent-clearThreadGoal" aria-hidden="true"></span>
+
+## `agent.clearThreadGoal()`
+
+Clears the current durable goal without changing visible messages.
+
+### Signature
+
+```ts
+static clearThreadGoal(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadGoal>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="agent-getThreadShare" aria-hidden="true"></span>
+
+## `agent.getThreadShare()`
+
+Returns the current share state for a thread owned by the current user.
+
+### Signature
+
+```ts
+static getThreadShare(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadShare | null>;
+```
+### Example
+
+```ts
+const share = await agent.getThreadShare(assistantThreadId);
+```
+
+<span id="agent-enableThreadShare" aria-hidden="true"></span>
+
+## `agent.enableThreadShare()`
+
+Creates or re-enables a stable share link for a thread owned by the current user.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static enableThreadShare(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadShare>;
+```
+### Example
+
+```ts
+const share = await agent.enableThreadShare(assistantThreadId);
+```
+
+<span id="agent-disableThreadShare" aria-hidden="true"></span>
+
+## `agent.disableThreadShare()`
+
+Disables the stable share link for a thread owned by the current user.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static disableThreadShare(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadShare>;
+```
+### Example
+
+```ts
+await agent.disableThreadShare(assistantThreadId);
+```
+
+<span id="agent-getSharedThread" aria-hidden="true"></span>
+
+## `agent.getSharedThread()`
+
+Returns a read-only shared thread by share ID.
+
+### Signature
+
+```ts
+static getSharedThread(
+      shareId: string,
+    ): Promise<AssistantSharedThreadResponse>;
+```
+### Example
+
+```ts
+const shared = await agent.getSharedThread(shareId);
+```
+
+<span id="agent-listSharedThreadMessages" aria-hidden="true"></span>
+
+## `agent.listSharedThreadMessages()`
+
+Lists visible messages for a shared thread.
+
+### Signature
+
+```ts
+static listSharedThreadMessages(
+      shareId: string,
+      query?: Record<string, any>,
+    ): Promise<CollectionResult<AssistantMessage>>;
+```
+### Example
+
+```ts
+const messages = await agent.listSharedThreadMessages(shareId, { take: 50 });
+```
+
+<span id="agent-getSharedThreadMessageExecutionDetails" aria-hidden="true"></span>
+
+## `agent.getSharedThreadMessageExecutionDetails()`
+
+Returns sanitized execution details for a visible shared-thread message.
+
+### Signature
+
+```ts
+static getSharedThreadMessageExecutionDetails(
+      shareId: string,
+      assistantMessageId: string,
+    ): Promise<Record<string, any>>;
+```
+### Example
+
+```ts
+const details = await agent.getSharedThreadMessageExecutionDetails(shareId, assistantMessageId);
+```
+
+<span id="agent-getSharedThreadMessageArtifact" aria-hidden="true"></span>
+
+## `agent.getSharedThreadMessageArtifact()`
+
+Returns one sanitized artifact for a visible shared-thread message.
+
+### Signature
+
+```ts
+static getSharedThreadMessageArtifact(
+      shareId: string,
+      assistantMessageId: string,
+      artifactId: string,
+    ): Promise<Record<string, any>>;
+```
+### Example
+
+```ts
+const artifact = await agent.getSharedThreadMessageArtifact(shareId, assistantMessageId, artifactId);
+```
+
+<span id="agent-forkSharedThreadMessage" aria-hidden="true"></span>
+
+## `agent.forkSharedThreadMessage()`
+
+Forks a shared thread from a selected visible message.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static forkSharedThreadMessage(
+      shareId: string,
+      assistantMessageId: string,
+      data?: AssistantForkMessageInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const fork = await agent.forkSharedThreadMessage(shareId, assistantMessageId);
+```
+
+<span id="agent-createThread" aria-hidden="true"></span>
+
+## `agent.createThread()`
+
+Creates a new assistant thread and first message.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static createThread(
+      data: AssistantMessageInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.createThread({ content: 'Draft a release note.' });
+```
+
+<span id="agent-deleteThread" aria-hidden="true"></span>
+
+## `agent.deleteThread()`
+
+Soft-deletes a thread.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static deleteThread(assistantThreadId: string): Promise<void>;
+```
+### Example
+
+```ts
+await agent.deleteThread(assistantThreadId);
+```
+
+<span id="agent-restoreThread" aria-hidden="true"></span>
+
+## `agent.restoreThread()`
+
+Restores a deleted thread.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static restoreThread(assistantThreadId: string): Promise<void>;
+```
+### Example
+
+```ts
+await agent.restoreThread(assistantThreadId);
+```
+
+<span id="agent-listThreadMessages" aria-hidden="true"></span>
+
+## `agent.listThreadMessages()`
+
+Lists visible messages for a thread.
+
+### Signature
+
+```ts
+static listThreadMessages(
+      assistantThreadId: string,
+      query?: Record<string, any>,
+    ): Promise<CollectionResult<AssistantMessage>>;
+```
+### Example
+
+```ts
+const messages = await agent.listThreadMessages(assistantThreadId, { take: 50 });
+```
+
+<span id="agent-sendMessage" aria-hidden="true"></span>
+
+## `agent.sendMessage()`
+
+Sends a new message into an existing thread.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static sendMessage(
+      assistantThreadId: string,
+      data: AssistantMessageInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.sendMessage(assistantThreadId, {
+  content: 'Continue with the rollout checklist.',
+});
+```
+
+<span id="agent-retryMessage" aria-hidden="true"></span>
+
+## `agent.retryMessage()`
+
+Retries one assistant message.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static retryMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.retryMessage(assistantThreadId, assistantMessageId);
+```
+
+<span id="agent-cancelThread" aria-hidden="true"></span>
+
+## `agent.cancelThread()`
+
+Cancels in-flight work on a thread.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static cancelThread(assistantThreadId: string, expectedVersion: number): Promise<void>;
+```
+### Example
+
+```ts
+await agent.cancelThread(assistantThreadId, thread.version);
+```
+
+<span id="agent-forkMessage" aria-hidden="true"></span>
+
+## `agent.forkMessage()`
+
+Forks a thread from a selected message.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static forkMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+      data?: AssistantForkMessageInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const fork = await agent.forkMessage(assistantThreadId, assistantMessageId);
+```
+
+<span id="agent-renameThread" aria-hidden="true"></span>
+
+## `agent.renameThread()`
+
+Renames a thread.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static renameThread(
+      assistantThreadId: string,
+      data: AssistantThreadTitleInput,
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.renameThread(assistantThreadId, {
+  title: 'Postmortem draft',
+});
+```
+
+<span id="agent-resolveAction" aria-hidden="true"></span>
+
+## `agent.resolveAction()`
+
+Resolves an action-required checkpoint with an explicit payload.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static resolveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      data: AssistantActionResolutionInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.resolveAction(assistantThreadId, actionId, {
+  decision: 'approve',
+});
+```
+
+<span id="agent-approveAction" aria-hidden="true"></span>
+
+## `agent.approveAction()`
+
+Approves an action-required checkpoint.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static approveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.approveAction(assistantThreadId, actionId);
+```
+
+<span id="agent-rejectAction" aria-hidden="true"></span>
+
+## `agent.rejectAction()`
+
+Rejects an action-required checkpoint.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static rejectAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.rejectAction(assistantThreadId, actionId, {
+  responseText: 'Need a narrower scope.',
+});
+```
+
+<span id="agent-submitAction" aria-hidden="true"></span>
+
+## `agent.submitAction()`
+
+Submits operator input for an action-required checkpoint.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static submitAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const response = await agent.submitAction(assistantThreadId, actionId, {
+  responsePayload: { selectedPlanId: 'plan-1' },
+});
+```
+
+<span id="agent-compactThread" aria-hidden="true"></span>
+
+## `agent.compactThread()`
+
+Triggers thread compaction.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static compactThread(
+      assistantThreadId: string,
+      options?: AssistantThreadCompactionRequest,
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.compactThread(assistantThreadId, {
+  force: true,
+});
+```

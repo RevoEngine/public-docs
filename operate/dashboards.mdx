@@ -1,0 +1,116 @@
+---
+title: Dashboards
+description: Build role-aware operational workspaces from live platform views and executable widgets.
+icon: chart-line
+---
+
+Dashboards turn the RevoEngine control plane into an operator-specific workspace. A dashboard can combine live resource grids, endpoint performance, identity charts, Trace, Storage, and custom Component-powered widgets on one movable grid.
+
+## Build an operational dashboard
+
+1. Open **Dashboards** and load an existing dashboard or start from **Home**.
+2. Unlock the grid before changing its layout.
+3. Select **Add component** and search the dashboard catalogue.
+4. Move and resize the new panel.
+5. Configure panel-specific settings and filters.
+6. Select **Save** and provide the dashboard name and policy.
+7. Lock the dashboard before handing it to operators.
+
+A saved dashboard has a name, optional description, `global` visibility flag, `default` flag, and optimistic-concurrency version. Names contain 3–60 characters; descriptions can contain up to 1000 characters.
+
+## Available panels
+
+The catalogue includes platform views for Components, Databases and data, Endpoints, Endpoint performance, Events and Event History, Jobs, Schedules, Webhooks, Users, Service Accounts, Groups, Permission groups, Secrets, Files, Storage, Logs, and Trace. Identity activity and distribution charts are also available.
+
+Panel access is evaluated independently. A dashboard may be visible while one panel remains unavailable because the viewer lacks that panel's role or resource ACL.
+
+<Warning>
+  Do not interpret a permission-denied or unloaded panel as a valid zero. Dashboard visibility never bypasses the authorization of the embedded resource.
+</Warning>
+
+## Preserve an operator view
+
+Embedded grids retain meaningful filter and sort state in the saved dashboard definition. Use this to build views such as:
+
+- failed Jobs for one settlement category;
+- Endpoint latency and Trace evidence for a customer-facing API;
+- pending Webhooks for one external integration;
+- a restricted Storage folder for an operations team.
+
+Each panel can have a dynamic label and can hide its local header or buttons. File and Storage panels can start at a configured path; path locking and drag controls can prevent a focused workspace from becoming a general file browser.
+
+## Component-powered custom widgets
+
+A **Custom Widget** executes a RevoEngine Component and renders its result. Configure:
+
+| Setting | Meaning |
+| --- | --- |
+| Component | Executable Component backing the widget. |
+| Version | `Latest` or an explicitly selected Component version. |
+| Element | Optional element within a multi-element Component. |
+| Inputs | JSON object passed to the execution. |
+| Timeout | Interactive execution timeout, validated from 5 to 600 seconds. |
+| Memory | Widget execution memory, validated from 32 to 1024 MiB. |
+| Refresh | Optional automatic refresh from 1 to 600 seconds. |
+| Production | Whether the widget executes in production mode. |
+
+The Component returns rows containing widget elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and an array of data. Table elements require an array of data and a column definition.
+
+```js
+return {
+  operations: [[
+    { type: 'TEXT', value: 'Settlement queue' },
+    {
+      type: 'TABLE',
+      data: pendingSettlements,
+      definition: [
+        { field: 'batchId', type: 'TEXT' },
+        { field: 'amount', type: 'NUMBER' }
+      ]
+    }
+  ]]
+};
+```
+
+<Tip>
+  Pin a Component version for a controlled executive or incident dashboard. Use Latest only when the widget should follow every new active Component version.
+</Tip>
+
+## Refresh and source of truth
+
+A dashboard is presentation, not a separate data store. Embedded grids reload through their owning APIs; custom widgets execute their Component according to widget refresh settings. If a number looks stale, check the owning Table/view, Endpoint, Job, cache, or Component result.
+
+For expensive repeatable aggregation, build a materialized view and refresh it through a [Schedule](/operate/schedules). The dashboard then reads a governed precomputed result instead of repeatedly scanning the same large dataset.
+
+## Real use case: order operations
+
+An order-operations dashboard can combine:
+
+- an Endpoint performance panel filtered to checkout routes;
+- a Database Data panel showing orders stuck in `PROCESSING`;
+- Job History filtered to reconciliation failures;
+- Webhooks filtered by warehouse correlation metadata;
+- a custom widget summarizing balances, orders, and unsettled transactions.
+
+Operators begin with the decision surface and open the underlying row, Job, or Trace only when investigation is required.
+
+## Failure semantics
+
+- **Widget error** means its Component or result contract failed; inspect widget input and execution evidence.
+- **Empty widget** can be an intentional `EMPTY` result; distinguish it from loading and failure.
+- **Stale grid** requires a source/API check; moving or re-saving the panel does not refresh authoritative data.
+- **Reload** discards unsaved layout changes and reloads the saved preference.
+- **Concurrent edit** is protected by dashboard versioning; reload before overwriting a newer preference.
+
+## Production checklist
+
+- Give each dashboard one operational purpose.
+- Expose decisions and exceptions, not raw volume alone.
+- Keep filters, time range, and environment clear.
+- Pin consequential custom widgets to reviewed versions.
+- Set refresh intervals according to source cost and freshness needs.
+- Test with an operator's actual roles and ACLs.
+- Link panels to underlying Job, resource, or Trace evidence.
+- Lock and save the final layout.
+
+See [Observability](/operate/observability) for incident workflows and [Limits and quotas](/platform/limits-and-quotas) for runtime boundaries.

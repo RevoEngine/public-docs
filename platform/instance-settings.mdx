@@ -1,0 +1,152 @@
+---
+title: "Instance settings"
+description: "Understand the instance-wide controls for capacity, retention, identity, Endpoints, automation, Components, and AI Agents."
+icon: "sliders"
+---
+
+Instance settings are the control plane for behavior shared by every application in a RevoEngine instance. They expose the effective plan, usage, runtime limits, retention policy, and security defaults in one place.
+
+<Note>
+  Available values are instance-specific. Treat the values displayed in **Settings** and returned by the Config API as authoritative for the current instance; do not copy limits from another environment.
+</Note>
+
+## Who should use this page
+
+Use instance settings when you are preparing an environment for production, diagnosing a limit or retention issue, defining the default security posture, comparing environments, or collecting governance evidence before a release.
+
+Changing an instance setting affects a wider boundary than editing one Component, Job, or Endpoint. Review dependent workloads and make the change through an authorized administrator account.
+
+## Open the settings surface
+
+1. Open the user menu and select **Settings**.
+2. Select an instance section in the left navigation.
+3. Compare current usage with the configured allowance or policy.
+4. Save editable configuration, then validate one representative workload.
+
+The product separates personal preferences, Assistant preferences, API keys, and trusted devices from instance-wide settings. Personal configuration does not change the execution policy for other users.
+
+## Instance sections
+
+| Section | What it governs | Typical operator question |
+| --- | --- | --- |
+| **General** | Instance identity, organization, plan, expiry, base API address, and SLA | Am I changing the intended tenant and environment? |
+| **IAM & Groups** | Platform users, end users, groups, role groups, and API-key capacity | Can this team onboard another user or service identity? |
+| **Resources** | Databases, audit capacity, Components and revisions, Storage, transfer, per-file size, and Secrets | Is a data or artifact workflow approaching its allowance? |
+| **Jobs** | Job templates and execution time, timeout, Events, Schedules, Realtime, and Webhooks | Can this asynchronous workload complete within policy? |
+| **Endpoints** | Runtime base address, Endpoint count, execution time, request totals, success rate, timeout, and request rate | Is the public workload healthy and within capacity? |
+| **Audit & Logs** | Version history and retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
+| **AI Agents** | Global instructions, default plugins, model output budget, memory, artifact retention, and security rules | What defaults and guardrails apply before an Agent starts? |
+| **Components** | Instance-wide Component and library controls exposed by the current product version | Which reusable-code controls apply across builders and deployments? |
+
+<Tip>
+  The UI may present a legacy label for a data group while this page uses **Resources** only as a capacity grouping. The application model is Databases, Storage, Components, and Secrets—not the retired public “Resources API”.
+</Tip>
+
+## Read limits correctly
+
+<AccordionGroup>
+  <Accordion title="Capacity">
+    A count or byte allowance such as Databases, Storage, Secrets, users, groups, or Endpoint definitions. The UI can pair the allowance with current usage.
+  </Accordion>
+  <Accordion title="Runtime boundary">
+    A per-execution constraint such as a Job or Endpoint timeout. For currently documented execution products, configure up to **3,540 seconds** and **4 GB** where the instance exposes those controls.
+  </Accordion>
+  <Accordion title="Throughput">
+    A rate or accumulated execution allowance, for example Endpoint requests or Job execution time. Confirm the period shown by the current instance instead of assuming a calendar window.
+  </Accordion>
+  <Accordion title="Retention">
+    A duration after which history, logs, artifacts, or other evidence can be removed. Retention is not an execution timeout and does not make a business record durable.
+  </Accordion>
+  <Accordion title="Feature policy">
+    A boolean or configured behavior such as version history, scheduled webhook delivery, Agent memory, or a security rule.
+  </Accordion>
+</AccordionGroup>
+
+## Production configuration workflow
+
+<Steps>
+  <Step title="Record the effective baseline">
+    Capture the instance ID, plan, relevant limits, current usage, retention windows, and security defaults. This establishes which values were in force for the release.
+  </Step>
+  <Step title="Map workloads to controls">
+    Associate each Endpoint, Job, data store, integration, and Agent with the limits it consumes. Include retry behavior and worst-case payload sizes.
+  </Step>
+  <Step title="Set the governance policy">
+    Configure IAM, retention, Agent security, and deployment defaults before increasing capacity. More quota does not compensate for an overly broad principal or missing lifecycle policy.
+  </Step>
+  <Step title="Validate representative paths">
+    Exercise one synchronous Endpoint, one asynchronous Job, one data or Storage operation, and—when enabled—one Agent run. Inspect Traces, Jobs, and Activity for the same operation.
+  </Step>
+  <Step title="Review periodically">
+    Revisit usage and retention after releases or traffic changes. Use alerts and operational reviews instead of waiting for a hard limit to interrupt production work.
+  </Step>
+</Steps>
+
+## Configuration by workload
+
+### Endpoints
+
+Review request rate, execution-time consumption, timeout, total requests, and success rate together. A healthy average can hide a small set of slow or failing routes, so confirm the individual Endpoint in [Traces](/operate/traces) and [Observability](/operate/observability).
+
+### Jobs and automation
+
+Job timeout, accumulated execution time, active Event and Schedule limits, Realtime capacity, and Webhook behavior describe different failure boundaries. Size long-running work as a Job, make side effects idempotent, and plan retries before increasing the timeout. See [Jobs](/operate/jobs) and [Automation](/operate/automation).
+
+### Data and Storage
+
+Database size, database audit capacity, Storage capacity, network transfer, and maximum single-file size are distinct controls. A file that fits the single-object limit can still exceed remaining storage or transfer allowance. Retention and file TTL are lifecycle policies described in [Storage](/operate/storage), not substitutes for capacity monitoring.
+
+### Identity
+
+User, group, role-group, service-identity, and API-key allowances govern different objects. Keep human and machine access separate, use least-privilege roles, and review membership even when capacity remains. See [Identity and access](/operate/identity-and-access).
+
+### AI Agents
+
+Agent settings provide global instructions, default plugins and routing guidance, a managed AI-response output ceiling, memory defaults, export/artifact retention, and instance security rules. Personal Assistant defaults remain account-specific, while each autonomous Agent has its own identity, service account, policy, memory scope, and workspace. See [Assistant configuration and personalization](/ai/assistant-configuration) for the complete layering model and [Agent configuration](/ai/agent-configuration) for one Agent's fields.
+
+## API access
+
+Administrators can retrieve effective instance configuration and usage through the **Config** operations in the [Platform API reference](/api-reference/introduction). Use the API for inventory and governance automation, but keep credentials out of reports and source control.
+
+```bash
+curl --request GET \
+  --url "$REVO_API_URL/api/v1/config/instance" \
+  --header "Authorization: Bearer $REVO_API_KEY"
+```
+
+<Warning>
+  Configuration responses can describe security and capacity posture. Store exported snapshots with the same care as other administrative evidence, and redact tenant-specific identifiers before sharing them externally.
+</Warning>
+
+## Failure and recovery
+
+| Symptom | Likely boundary | What to verify |
+| --- | --- | --- |
+| A new definition cannot be created | Object-capacity limit | Current count, deleted/restorable objects, and the relevant allowance |
+| Execution ends at a repeatable duration | Runtime timeout | Effective Job or Endpoint timeout and downstream timeout behavior |
+| Large file upload is rejected | File or Storage capacity | Single-file limit, remaining Storage, transfer allowance, and upload-session state |
+| History is unavailable | Retention or visibility policy | Audit/log retention, principal permissions, and selected time range |
+| Agent tool is unavailable | Agent security or plugin policy | Default plugins, per-Agent grants, blocked tools, and approvals |
+| Usage appears delayed | Aggregated usage calculation | Time range, metric definition, and whether the view is an aggregate rather than a live counter |
+
+## Release checklist
+
+- Confirm the instance identity and environment before saving.
+- Record the effective limits used by the release.
+- Test just below and above important payload and timeout boundaries.
+- Verify retention against contractual and audit requirements.
+- Separate user, service-account, Endpoint, and Agent permissions.
+- Correlate failures through Activity, Traces, logs, and Job history.
+- Recheck capacity after rollout and after enabling retries or new schedules.
+
+<CardGroup cols={3}>
+  <Card title="Limits and quotas" icon="gauge-high" href="/platform/limits-and-quotas">
+    Understand execution and capacity boundaries.
+  </Card>
+  <Card title="Security and governance" icon="shield-halved" href="/platform/security-and-governance">
+    Apply least privilege and retain evidence.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/operate/observability">
+    Verify the effect of configuration changes.
+  </Card>
+</CardGroup>

@@ -1,0 +1,157 @@
+---
+title: Database Audit
+description: Trace row-level INSERT, UPDATE, and DELETE operations with actor, correlation, keys, field changes, and complete row snapshots.
+icon: clock-rotate-left
+---
+
+Database Audit is the row-change evidence surface under **Databases → Audit**. It is separate from platform Activity and execution Traces: Activity explains control-plane actions, Traces explain one distributed operation, and Database Audit shows what happened to an application row.
+
+<CardGroup cols={3}>
+  <Card title="Who and when" icon="user-clock">
+    Every event records the authenticated actor and creation time.
+  </Card>
+  <Card title="What changed" icon="code-compare">
+    Inspect the operation, row key, changed fields, before/after values, and row snapshot.
+  </Card>
+  <Card title="Why it belongs together" icon="link">
+    Follow `operationId` into Trace to connect a data mutation with the Endpoint, Job, Agent, or operator action that caused it.
+  </Card>
+</CardGroup>
+
+## Enable audit on a Table
+
+1. Open **Databases → Tables** and select the logical Table.
+2. Open its **Audit** section.
+3. Enable audit and save the Table configuration.
+4. Perform a controlled insert, update, and delete.
+5. Open **Databases → Audit**, select the Table, and inspect the three events.
+
+Audit starts with the first supported row mutation after the configuration is saved. It does not reconstruct older history. Disabling audit stops new capture and preserves retained events.
+
+<Warning>
+  Audit requires a primary key so that every event has a stable row identity. Enabling or disabling audit briefly changes the Table trigger configuration. If the Table is busy, the update can return a conflict; retry after the concurrent schema or write operation completes.
+</Warning>
+
+Partition Tables inherit the logical parent Table's audit policy. Configure audit on the parent; an individual partition cannot override it.
+
+## Work with the Audit tab
+
+The Audit workspace mirrors the operator flow in the product:
+
+| Control | What it does |
+| --- | --- |
+| **All tables** selector | Shows all accessible row events or narrows the grid to one Table. The selector also shows whether capture is currently on or off. |
+| Column filters | Filter by Table, time, operation, row key, actor, `operationId`, Table version, or audit ID. |
+| Event row | Opens complete evidence, including row key, previous row key, changed values, and row snapshot. |
+| `operationId` | Opens the correlated Trace when trace evidence is available. |
+| **Delete** | Permanently deletes every accessible event matching the current Table selection and grid filters. With no filters, Resource Admin must explicitly confirm deletion of all accessible history. |
+
+The global grid is ACL-aware. It returns audit rows only for Tables the current principal may access; selecting a Table does not bypass its Resource role or user/group restriction.
+
+## What an audit event stores
+
+| Field | Meaning |
+| --- | --- |
+| `databaseAuditId` | Unique audit-event identifier. |
+| `databaseId` | Logical Table identifier. The cross-Table grid also resolves its current display name. |
+| `databaseVersion` | Table definition version bound to the audit trigger when the mutation was recorded. |
+| `operation` | `INSERT`, `UPDATE`, or `DELETE`. |
+| `createdBy` | Authenticated UUID principal attributed to the write. |
+| `createdAt` | Database timestamp for the event. |
+| `operationId` | Correlation identifier for the surrounding platform operation. |
+| `rowKey` | Complete primary-key object for the affected row, including composite keys. |
+| `previousRowKey` | Previous primary-key object when an update changed a key; otherwise `null`. |
+| `changedFields` | Sorted top-level field names changed by an update. |
+| `changes` | Per-field `type`, `before`, and `after` values for an update. |
+| `snapshot` | The new row after insert/update, or the last row state before delete. |
+
+For `UPDATE`, `changes` classifies a field as `added`, `updated`, or `removed`. Insert and delete events retain their complete row snapshot but do not synthesize an update-style changed-field list.
+
+```json
+{
+  "databaseAuditId": "87f30d4d-60f8-4e5c-b20d-53d364d64334",
+  "databaseId": "8ac19673-9588-4e8b-afd7-1a1b15a7e93c",
+  "databaseVersion": 7,
+  "operation": "UPDATE",
+  "createdBy": "79c963a6-11d8-43bf-a9dd-9d0be75cb2bb",
+  "operationId": "op_checkout_01K4A9FJ7Y",
+  "createdAt": "2026-09-05T10:42:31.405Z",
+  "rowKey": { "orderId": "ord_8d31" },
+  "previousRowKey": null,
+  "changedFields": ["balance", "status"],
+  "changes": {
+    "balance": { "type": "updated", "before": 250.0, "after": 190.0 },
+    "status": { "type": "updated", "before": "AUTHORIZED", "after": "CAPTURED" }
+  },
+  "snapshot": {
+    "orderId": "ord_8d31",
+    "accountId": "acc_201",
+    "balance": 190.0,
+    "status": "CAPTURED"
+  }
+}
+```
+
+## Query Table history through the Platform API
+
+Use the Table-scoped history operation when an application, auditor, or evidence export needs stable cursor pagination. Results are ordered newest first by creation time and audit ID.
+
+```bash
+curl --get "$REVO_API_URL/api/v1/databases/$DATABASE_ID/audit" \
+  --header "Authorization: Bearer $REVO_TOKEN" \
+  --data-urlencode "operation=UPDATE" \
+  --data-urlencode "changed=status,balance" \
+  --data-urlencode "from=2026-09-01T00:00:00Z" \
+  --data-urlencode "fields=snapshot.orderId,snapshot.status,changes.status" \
+  --data-urlencode "take=100"
+```
+
+The response returns `nextCursor` when another page exists. Pass that opaque value as `cursor`; do not parse it or build a replacement from timestamps.
+
+### Filters and payload projection
+
+The Table-scoped operation supports:
+
+- `operation`, `createdBy`, `operationId`, `from`, and `to`;
+- an exact complete `rowKey` object;
+- `changed`, which matches updates whose `changedFields` overlap the requested names;
+- safe filters over `snapshot.*` and `changes.*` values;
+- explicit `fields` paths for a narrow payload projection.
+
+List operations omit `snapshot` and `changes` by default. Request paths such as `snapshot.orderId`, `snapshot.address.country`, or `changes.status`; use `snapshot.*` or `changes.*` only when the complete payload is actually required. A detail operation returns the complete snapshot and changes for one event.
+
+<Tip>
+  Prefer an exact row key and a bounded date range for an investigation. Use the returned cursor for long histories and avoid loading complete snapshots when identifiers and changed-field names are enough.
+</Tip>
+
+## Capture boundaries
+
+Database Audit covers supported row-level `INSERT`, `UPDATE`, and `DELETE` paths. It deliberately does not create one event per row for **Truncate**. If every removal must remain in audit history, use a reviewed, filtered delete rather than truncate.
+
+Audit capture also requires platform attribution. Supported UI, Platform API, Endpoint, Component, Job, and Agent data writes propagate the authenticated principal and operation correlation. If attribution is missing, an audited write fails instead of creating an anonymous event.
+
+Audit evidence is not a replacement for:
+
+- [Activity](/platform/security-and-governance) for configuration and administrative actions;
+- [Event History](/operate/event-history) for event admission and target fan-out;
+- [Job History](/operate/jobs) for attempts, retries, logs, and terminal execution state;
+- [Traces](/operate/traces) for end-to-end latency and service correlation.
+
+## Retention and deletion
+
+Audit data contributes to the Table's displayed audit size and the instance database-audit allocation. Retention and capacity are instance policy, not a guarantee that audit is permanent.
+
+Only Resource Admin can delete audit history. Deletion is permanent and can be narrowed with the current grid filters, an explicit Table selection, or API filter tree. Keep regulated exports in governed Storage before deleting online history when policy requires longer evidence retention.
+
+## Production checklist
+
+- Enable audit before regulated or financially relevant mutations begin.
+- Require a stable primary key and review composite-key semantics.
+- Correlate sensitive writes with `operationId` and Trace.
+- Grant auditors read access without granting Table mutation rights.
+- Use filtered delete only under an approved retention procedure.
+- Do not use truncate when row-by-row deletion evidence is required.
+- Test audit behavior after Table definition and partition changes.
+- Monitor audit size as part of instance capacity planning.
+
+See [Database Tables](/operate/database-definitions) for schema and access configuration, [Databases](/operate/databases) for the complete workspace, and the generated Platform API reference for the current `Databases` operations and schemas.

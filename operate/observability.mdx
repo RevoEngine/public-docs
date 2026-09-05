@@ -1,0 +1,173 @@
+---
+title: Observability
+description: Diagnose RevoEngine changes and executions with activity, logs, traces, statistics, and usage analytics.
+icon: chart-line
+---
+
+RevoEngine provides several evidence surfaces because configuration changes, synchronous calls, background work, and AI activity answer different operational questions.
+
+## Start with the question
+
+| Question | Start here |
+| --- | --- |
+| Who changed this resource? | Activity and version history. |
+| Why did an Endpoint call fail? | Endpoint statistics, then Trace and Logs. |
+| What happened to an asynchronous run? | Job History, job logs, and retry lineage. |
+| Which targets received an event? | Event History detail. |
+| Was a webhook delivered? | Webhook detail and masked request history. |
+| Is a Component revision ready? | Component runtime status and deployment history. |
+| How much capacity are we using? | Instance Usage. |
+| What did an Assistant or Agent do? | Thread/run activity, tool timeline, usage, and report evidence. |
+
+## Correlation identifiers
+
+Collect identifiers before opening a support case:
+
+| Identifier | Scope |
+| --- | --- |
+| Operation ID | One distributed request or background delivery path. |
+| Execution ID | One Endpoint or Component-backed job execution. |
+| Job ID | Durable asynchronous job and its lifecycle. |
+| Event history ID | One triggered event and target fan-out. |
+| Webhook ID | One outbound request attempt record. |
+| Thread / message ID | One Assistant conversation and turn. |
+| Agent / run ID | One durable Agent definition and execution. |
+| Storage entry / upload session ID | One durable file or in-progress upload. |
+
+The structured log field historically named `jobId` may carry an Endpoint Execution ID. In operator-facing workflows, interpret it as **Execution ID** unless you are viewing a durable Job record.
+
+## Activity and version history
+
+Activity is snapshot-backed resource history. It supports:
+
+- resource-type inclusion and exclusion;
+- exact resource and creator filters;
+- term search;
+- absolute or relative time windows;
+- cursor pagination;
+- sanitized top-level diffs;
+- loading one full accessible historical version.
+
+Use broad activity for recent workspace changes and exact resource history when investigating one object. Broad browsing defaults to a recent window; exact resource history can cover its complete retained timeline.
+
+<Note>
+  Activity is resource change evidence. It does not replace execution Trace or business-specific audit history such as Database row audit.
+</Note>
+
+## Logs
+
+Open **Security Admin → Logs** for instance-wide structured logs. Filter early by time and identifiers, then narrow by service, severity, event name, account, or execution context.
+
+Good diagnostic filters are:
+
+1. a tight UTC time range;
+2. Operation ID or Execution ID;
+3. the Endpoint, Component, Job, Agent, or account identifier;
+4. warning and error severity;
+5. one lifecycle or event name.
+
+Job details also provide job-scoped logs. Use these when the question starts with one Job ID; move to instance logs only when you need the surrounding dispatch or integration path.
+
+## Trace
+
+Open **Security Admin → Trace** to follow an operation across service boundaries. Trace is most useful for:
+
+- matching ingress to downstream execution;
+- locating the slow or failing segment;
+- separating an authorization failure from a runtime failure;
+- distinguishing queue acceptance from actual processing;
+- correlating a webhook, event, job, or Agent dispatch.
+
+Trace shows technical execution evidence. Resource Activity shows authored state changes. Use both when a changed definition caused a later runtime failure.
+
+## Endpoint statistics
+
+Endpoint statistics summarize invocation volume and execution outcomes. Use them to locate a regression or traffic change, then open a representative Trace rather than drawing a root-cause conclusion from an aggregate alone.
+
+The statistics surface is cached briefly, so it is optimized for operational trends rather than an exact per-second ledger.
+
+## Job and event evidence
+
+For background work, use this order:
+
+```text
+Job status
+  -> origin and retry lineage
+  -> selected Component version and principal
+  -> job-scoped logs
+  -> distributed Trace when necessary
+```
+
+For event-driven work, Event History shows resolved targets, concrete executions, and filter-skipped targets. Large messages are loaded only in the detail view.
+
+An accepted schedule, event, export, or refresh request means the work has been queued or started. Confirm a terminal state or finalized artifact before reporting success.
+
+## Database audit
+
+Database row audit is a separate domain-specific ledger for Tables with audit enabled. It records insert, update, and delete snapshots from the enablement point onward, together with actor, row, operation, and time.
+
+Use the cross-Table **Databases → Audit** grid for investigation and the Table-specific audit route for one data source. Open one audit event to load complete before/after detail.
+
+## Instance Usage
+
+Instance Usage combines current inventory and consumption signals, including:
+
+- accounts, groups, permissions, and API keys;
+- database, materialized-view, and audit storage;
+- file transfer and size;
+- Components, Endpoints, templates, schedules, events, webhooks, and processing time;
+- Secret counts;
+- Assistant token usage by period, model, account, and day.
+
+Assistant analytics use one normalized UTC period. The lower bound is inclusive and the upper bound is exclusive. When no range is provided, the current UTC month through now is selected.
+
+## Sensitive data
+
+Operational evidence is sanitized at platform boundaries, but application-authored logs can still expose data if you log it yourself.
+
+<Warning>
+  Never record raw authorization headers, API keys, passwords, Secret values, signed Storage URLs, cookies, session credentials, or private runtime tokens.
+</Warning>
+
+When reporting a problem, share IDs, timestamps, sanitized status/error text, and reproduction steps. Replace tokens with variable names such as `$REVO_API_KEY`.
+
+## A practical investigation
+
+When an asynchronous integration appears stuck:
+
+1. Capture UTC time, Job ID, and the initiating Event or Schedule ID.
+2. Check whether the Job is pending, processing, terminal, or part of a retry chain.
+3. Confirm the execution principal is active and still has required roles and ACL access.
+4. Inspect job logs for the first application error.
+5. Follow the Operation ID in Trace if dispatch or an external call is unclear.
+6. Inspect Event History to distinguish a filtered target from a failed execution.
+7. Verify any expected Storage artifact is finalized.
+8. Retry only after deciding whether previous external side effects may have completed.
+
+## Production checklist
+
+- Emit compact structured application logs.
+- Pass stable business correlation IDs through integrations.
+- Capture Operation ID, Execution ID, and durable object IDs.
+- Separate accepted, processing, and terminal states in your UI.
+- Set retention appropriate to your compliance needs.
+- Alert on terminal failures and retry exhaustion, not transient queue states alone.
+- Review Usage trends by UTC period and by execution principal.
+- Redact evidence before sharing it outside the instance.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Endpoints" icon="route" href="/operate/endpoints">
+    Operate synchronous application APIs.
+  </Card>
+  <Card title="Automation" icon="gears" href="/operate/automation">
+    Understand Job, Event, Schedule, and Webhook evidence.
+  </Card>
+  <Card title="Databases" icon="database" href="/operate/databases">
+    Enable and investigate row-level audit history.
+  </Card>
+  <Card title="AI and Agents" icon="sparkles" href="/ai/overview">
+    Inspect Assistant threads, Agent runs, approvals, and tool activity.
+  </Card>
+</CardGroup>

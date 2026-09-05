@@ -1,0 +1,125 @@
+---
+title: Files (legacy)
+description: Maintain existing fileId integrations and migrate them safely to governed Storage.
+icon: file
+---
+
+Files is the legacy integration object model. It is retained so existing applications can browse paths, create folders or file records, upload through signed URLs, preview, download, and soft-delete historical objects.
+
+<Warning>
+  Do not use legacy Files for a new integration. The current public surface does not provide Storage-equivalent ACLs, retention, resumable sessions, move, archive/restore lifecycle, workspaces, or optimistic replacement semantics.
+</Warning>
+
+## Current public contract
+
+| Operation | Behavior | Role |
+| --- | --- | --- |
+| Explore | Queries legacy records from the instance's `integration` resource. | `FILE_READ` or `FILE_ADMIN` |
+| Create folder | Creates a directory record from `fileName`, `path`, `type: FOLDER`, and size. | `FILE_ADMIN` |
+| Start file upload | Creates a file record and returns a managed upload URL plus required headers. | `FILE_ADMIN` |
+| Preview / download | Returns a short-lived managed URL after authorization. | `FILE_READ` or `FILE_ADMIN` |
+| Delete | Soft-deletes selected `fileId` values. | `FILE_ADMIN` |
+
+The current backend Files controller does not expose a public move, archive, restore, ACL, retention, or multipart-session endpoint. Do not build a recovery promise around frontend compatibility controls that are not backed by the current public API.
+
+## Path-oriented identity
+
+Files stores `fileName` separately from `path`:
+
+- `fileName` cannot contain `/`;
+- a non-empty `path` cannot begin or end with `/`;
+- the target path must already exist;
+- root objects use `path: null`;
+- the stable API reference is still `fileId`, not the reconstructed display path.
+
+```json
+{
+  "fileName": "settlement.csv",
+  "path": "exports/2026/09",
+  "type": "FILE",
+  "contentType": "text/csv",
+  "size": 204800,
+  "force": false
+}
+```
+
+`force: true` lets the legacy service replace a conflicting path/name record. This is not the same as Storage replacement: it does not use the caller-observed entry version as an optimistic concurrency guard.
+
+## Legacy direct upload
+
+The browser flow is:
+
+```text
+POST file record
+  -> receive uploadUrl and required headers
+  -> transfer bytes through the managed URL
+  -> upload lifecycle updates the legacy record
+```
+
+The single-file size is checked against the instance's `filesSingle` quota when the record is created. The returned upload constraints, file identifier, and actor metadata bind the managed upload to that record.
+
+A successful byte transfer is not a reason to invent a new durable contract around Files. Re-query the `fileId` before downstream work and use the legacy `FILE_FINALIZED` event only while maintaining an existing event integration.
+
+## Legacy event topics
+
+Legacy upload lifecycle events are normalized as:
+
+- `FILE_FINALIZED`;
+- `FILE_DELETED`;
+- `FILE_ARCHIVED`;
+- `FILE_UPDATED` for supported metadata updates.
+
+These topics carry the legacy File upload envelope, not a Storage entry. New pipelines should upload into Storage and use `STORAGE_CREATED`, or `STORAGE_SYNCHRONIZED` when asynchronous text statistics must be ready before work starts.
+
+## What Storage adds
+
+| Concern | Files | Storage |
+| --- | --- | --- |
+| Business identity | `fileId` plus path strings | `storageEntryId`, hierarchy, breadcrumbs, and version |
+| Access | Global file roles | File roles plus entry, ancestor, workspace, User, and Group policy |
+| Upload state | Signed URL attached to a legacy record | Durable direct/chunked/incremental session with expiry and finalization |
+| Collision handling | Path/name check and optional `force` | Reservation plus explicit replace target and expected version |
+| Retention | No public per-file retention contract | Relative TTL or absolute expiry, archive, restore, and purge |
+| Large text | Legacy helper metadata | Cached encoding, separator, line count, byte-offset map, and `batchNumber` reads |
+| Automation | Legacy upload event family | Entry lifecycle plus `STORAGE_SYNCHRONIZED` |
+| Product separation | One integration resource | Files, Private, Agents, Attachments, Media, and Reports workspaces |
+
+## Migrate an existing fileId workflow
+
+<Steps>
+  <Step title="Inventory references">
+    Find application rows, Component inputs, Events, dashboard definitions, and external systems that persist `fileId` or a Files path.
+  </Step>
+  <Step title="Create the governed destination">
+    Create or ensure a Storage folder. Configure the effective User/Group ACL and retention before moving production traffic.
+  </Step>
+  <Step title="Copy and finalize">
+    Read the legacy object through its temporary download URL, stream it into a Storage target, and wait for a finalized `storageEntryId`.
+  </Step>
+  <Step title="Update consumers">
+    Persist the new `storageEntryId`; change Components to the current `storage.*` API and Events to Storage lifecycle topics.
+  </Step>
+  <Step title="Verify the execution principal">
+    Preview, download, batch-read, and process the object as the real user or Job service account—not only as an administrator.
+  </Step>
+  <Step title="Retire the legacy object">
+    Stop new writes, observe the migrated workflow, and soft-delete the legacy record only after every consumer uses Storage.
+  </Step>
+</Steps>
+
+<Note>
+  Copying bytes is only half of migration. Identity, ACL, retention, events, and every persisted reference must move before the old `fileId` can be retired.
+</Note>
+
+## New code uses Storage
+
+Legacy low-code file helpers and signed Files URL helpers remain compatibility-only. This guide intentionally does not publish their signatures or examples. New implementations use:
+
+- `storage.getFile()` and `storage.getText()`;
+- `storage.getFileStats()` and `storage.getFileData()`;
+- `storage.putObject()`;
+- `storage.createUploadSession()` with `uploadPart()` and `finalizeUploadSession()`;
+- `storage.archiveEntry()`, `restoreEntry()`, and `deleteEntry()`;
+- Storage `source` and `target` objects in `api.httpCall()`.
+
+See [Storage](/operate/storage) for the complete lifecycle, [HTTP and Storage](/low-code/http-and-storage) for streamed migration, and the generated [Storage method reference](/low-code/reference/storage) for current signatures only.

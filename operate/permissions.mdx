@@ -1,0 +1,93 @@
+---
+title: Permissions
+description: Compose reusable platform role sets and assign them to users and Service Accounts.
+icon: shield-keyhole
+---
+
+The **Permissions** workspace manages Permission groups—reusable collections of platform roles. A Permission group answers **which kinds of operations may this principal perform**. Resource Groups separately answer **which restricted objects may it access**.
+
+## Create a Permission group
+
+Open **Permissions**, select **Add**, and configure:
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| Name | Yes | Job-function or workload-capability name. |
+| Category | No | Groups related policies in the UI. |
+| Description | No | Intended principals, scope, owner, and exclusions. |
+| Metadata | No | Searchable governance and review attributes. |
+
+After saving, two sections become available:
+
+- **Members** assigns users and Service Accounts.
+- **Roles** adds or removes platform roles from the policy.
+
+Changes affect current authorization. Test a representative principal after modifying a widely used Permission group.
+
+## Build roles by capability
+
+Most product families expose read, write/run, and administrative levels.
+
+| Need | Prefer |
+| --- | --- |
+| Inspect definitions and history | The family `*_READ` role. |
+| Execute existing automation | `AUTOMATION_RUNNER` without configuration administration. |
+| Author Components | Component write capability without broad instance administration. |
+| Manage one product family | That family's admin role. |
+| Govern the entire instance | `INSTANCE_ADMIN`, reserved for a small break-glass group. |
+
+Do not use `INSTANCE_ADMIN` to solve an isolated access error. Determine whether the missing boundary is a platform role, Group membership, inactive identity, or disabled platform access.
+
+## Example policies
+
+### Automation operator
+
+Can read automation definitions, run approved Jobs and Events, and inspect history, but cannot change templates or delete evidence.
+
+### Component author
+
+Can read and edit Components and use Playground. Production activation can remain in a separate release-manager Permission group.
+
+### Finance workload
+
+A Service Account receives only the execution roles it needs. A resource Group separately admits it to finance Tables and the settlement Storage folder.
+
+## Evaluate effective access
+
+```text
+active principal
+  + enabled platform access
+  + direct or Permission-group platform role
+  + required resource Group/ACL
+  = admitted operation
+```
+
+The Platform API and governed execution boundaries evaluate current state at request or execution time. UI visibility is only a convenience layer.
+
+## Change and deletion safety
+
+Before removing a role:
+
+1. List the Permission group's members.
+2. Identify Jobs, Service Accounts, and operational teams that depend on it.
+3. Test the replacement policy with a non-production principal.
+4. Apply the change in a controlled window.
+5. Watch authorization failures, Job state, and Realtime disconnects.
+
+Permission-group deletion is recoverable, but active principals can lose capability immediately. Restore does not guarantee that every external process automatically retries its failed operation.
+
+## Required administration roles
+
+The Permissions route is available to user administrators and writers according to the current user-management policy. Creating, editing, membership changes, role assignment, deletion, and restore are enforced again by the API.
+
+## Production checklist
+
+- Name policies after a job function or workload capability.
+- Prefer several small policies over one universal role bundle.
+- Keep `INSTANCE_ADMIN` rare and reviewed.
+- Separate execution from configuration administration.
+- Pair roles with Groups for restricted resources.
+- Test a real principal after policy changes.
+- Record owner and review cadence in description or metadata.
+
+See [Users](/operate/users), [Service Accounts](/operate/service-accounts), and [Groups](/operate/groups).

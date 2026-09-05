@@ -1,0 +1,251 @@
+---
+title: HTTP and Storage
+description: Stream requests and responses between governed Storage and external systems without buffering whole files in a Component.
+icon: cloud-arrow-up
+---
+
+`api.httpCall()` is the egress boundary for outbound HTTP. `storage.*` owns durable files, folders, ACLs, retention, upload sessions, text statistics, and lifecycle. Together they let a Component move large payloads without turning them into JSON or holding the complete object in the low-code isolate.
+
+<CardGroup cols={2}>
+  <Card title="HTTP response → Storage" icon="download">
+    Import reports, statements, archives, or media from an authenticated upstream API.
+  </Card>
+  <Card title="Storage → HTTP request" icon="upload">
+    Deliver an existing governed object to a scanning, signing, conversion, or partner API.
+  </Card>
+</CardGroup>
+
+## JSON request
+
+Resolve credentials from Secrets and keep them out of logs, inputs, and source code.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://ledger.example.com/v1/customers',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${await api.getSecret('LEDGER_API_KEY')}`,
+    },
+    data: { customerId: api.input('customerId') },
+  },
+  { requestType: 'json', responseType: 'json', timeout: 15000 },
+);
+
+if (response.status >= 400) api.throw(response.status, response.data);
+return response.data;
+```
+
+Never log the request headers or the resolved secret. An HTTP success code confirms the remote response, not the business effect; keep and reconcile the remote operation identifier when the provider exposes one.
+
+## Import an HTTP response into Storage
+
+Create the destination folder first, then make it the parent of the streamed target. The runtime writes the response through managed Storage streaming and finalizes the entry automatically.
+
+```js
+const folder = await storage.ensureFolderPath('finance/statements', {
+  restricted: true,
+  groups: [api.input('financeGroupId')],
+});
+
+const response = await api.httpCall(
+  {
+    url: `https://bank.example.com/v2/statements/${api.input('statementId')}`,
+    method: 'GET',
+    headers: {
+      'X-API-Key': await api.getSecret('BANK_STATEMENTS_API_KEY'),
+    },
+  },
+  {
+    responseType: 'stream',
+    target: {
+      parentStorageEntryId: folder.storageEntryId,
+      name: `${api.input('statementId')}.csv`,
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+      retention: { ttlSeconds: 90 * 24 * 60 * 60 },
+      restricted: true,
+      groups: [api.input('financeGroupId')],
+      metadata: {
+        source: 'bank-statements',
+        statementId: api.input('statementId'),
+      },
+    },
+  },
+);
+
+if (response.status >= 400) api.throw(response.status, 'Statement download failed');
+
+return {
+  operationId: api.getOperationId(),
+  storageEntryId: response.storage.entry.storageEntryId,
+  lineCount: response.storage.entry.metadata?.textStats?.lineCount,
+};
+```
+
+When a response is stored, `response.data` is `undefined`. The durable result is `response.storage.entry`, available only after successful finalization. `computeStats: 'sync'` keeps the call open until text statistics are ready; choose `async` when latency matters and trigger dependent work from `STORAGE_SYNCHRONIZED`.
+
+## Send Storage as the HTTP body
+
+`source` streams bytes from an existing Explorer Storage file. The caller must be allowed to read the entry through its effective ACL, including every restricted ancestor folder.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://signature.example.com/v1/documents',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${await api.getSecret('SIGNATURE_API_TOKEN')}`,
+      'Content-Type': 'application/pdf',
+    },
+  },
+  {
+    requestType: 'stream',
+    responseType: 'json',
+    source: { storageEntryId: api.input('documentStorageEntryId') },
+    timeout: 60000,
+  },
+);
+
+if (response.status >= 400) api.throw(response.status, response.data);
+return { operationId: api.getOperationId(), providerRequestId: response.data.requestId };
+```
+
+## Convert one Storage object into another
+
+Use `source` and `target` together when an external service transforms the payload. The source stays unchanged and the complete response becomes a new governed entry.
+
+```js
+const outputFolder = await storage.ensureFolderPath('contracts/rendered');
+
+const response = await api.httpCall(
+  {
+    url: 'https://convert.example.com/v1/pdf',
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await api.getSecret('CONVERTER_TOKEN')}` },
+  },
+  {
+    requestType: 'stream',
+    source: { storageEntryId: api.input('sourceStorageEntryId') },
+    responseType: 'stream',
+    target: {
+      parentStorageEntryId: outputFolder.storageEntryId,
+      name: `${api.input('contractNumber')}.pdf`,
+      contentTypeHint: 'application/pdf',
+      retention: null,
+      metadata: { contractNumber: api.input('contractNumber') },
+    },
+  },
+);
+
+return response.storage.entry;
+```
+
+## Replace an existing Storage entry
+
+Replacement is explicit. Passing only `storageEntryId` is intentionally insufficient.
+
+```js
+const response = await api.httpCall(
+  { url: 'https://reports.example.com/latest.csv', method: 'GET' },
+  {
+    responseType: 'stream',
+    target: {
+      storageEntryId: api.input('existingStorageEntryId'),
+      replace: true,
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+      metadata: { refreshedByOperationId: api.getOperationId() },
+    },
+  },
+);
+
+return response.storage.entry;
+```
+
+The target entry must be replaceable by the execution principal. The runtime finalizes the managed write before returning it as the new version.
+
+## Multipart with one Storage file
+
+Put `formData` on the request object. With one Storage-backed binary part, leave its value empty and provide `source` in options.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://kyc.example.com/v1/review',
+    method: 'POST',
+    formData: [
+      { key: 'customerId', value: api.input('customerId') },
+      { key: 'document' },
+    ],
+  },
+  {
+    requestType: 'form-data',
+    responseType: 'json',
+    source: { storageEntryId: api.input('identityDocumentId') },
+  },
+);
+
+return response.data;
+```
+
+## Multipart with multiple Storage files
+
+For several binary parts, put `storageEntryId` directly on each part.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://archive.example.com/v1/packages',
+    method: 'POST',
+    formData: [
+      { key: 'caseId', value: api.input('caseId') },
+      { key: 'contract', storageEntryId: api.input('contractId') },
+      { key: 'attachment', storageEntryId: api.input('attachmentId') },
+    ],
+  },
+  { requestType: 'form-data', responseType: 'json' },
+);
+
+return response.data;
+```
+
+## Small generated objects
+
+When the complete content comfortably fits a runtime call, `storage.putObject()` is simpler than a session.
+
+```js
+const folder = await storage.ensureFolderPath('reconciliations/results');
+
+const entry = await storage.putObject({
+  parentStorageEntryId: folder.storageEntryId,
+  name: `result-${api.getOperationId()}.json`,
+  mimeType: 'application/json',
+  data: JSON.stringify({
+    completedAt: new Date().toISOString(),
+    operationId: api.getOperationId(),
+    status: 'RECONCILED',
+  }),
+  computeStats: 'sync',
+  metadata: { kind: 'reconciliation-result' },
+});
+
+return { storageEntryId: entry.storageEntryId };
+```
+
+Use upload sessions for large, resumable, or incrementally generated objects. See [Storage](/operate/storage) for direct, chunked, and incremental session semantics.
+
+## Contract rules
+
+- `requestType` and `responseType` describe HTTP encoding. `storage` is not a valid value; use `source` and `target`.
+- HTTP Storage targets use one managed direct stream and are finalized automatically. For explicit part manifests and repair, use `storage.createUploadSession()`, `uploadPart()`, and `finalizeUploadSession()`.
+- A failed Storage write is aborted by the runtime and is not returned as a finalized entry.
+- Upload and download URLs are temporary capabilities. Do not log or persist them.
+- Storage streaming is not available together with proxy mode or legacy `fileId` mode.
+- Use `storage.getFileStats()` and `storage.getFileData({ batchNumber })` for bounded text processing after import.
+
+<Note>
+  Legacy `api.*File*` helpers are compatibility APIs. All new examples and implementations should use `storage.*`, Storage `source`, or Storage `target`.
+</Note>
+
+See the generated [api.httpCall reference](/low-code/reference/api#api-httpcall), the [Storage method reference](/low-code/reference/storage), and [SDK storage and batching](/developers/sdk-storage-and-batching).

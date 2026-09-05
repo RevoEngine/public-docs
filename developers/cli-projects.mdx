@@ -1,0 +1,117 @@
+---
+title: CLI projects
+description: Configure local editor types and synchronize RevoEngine components with conflict-aware plans.
+icon: folder-tree
+---
+
+A CLI project maps RevoEngine component definitions to a local workspace while keeping generated editor types and synchronization state separate from authored files.
+
+## Initialize a workspace
+
+```bash
+revo project init ./app \
+  --identity-mode stableKey \
+  --stable-key-name stableKey \
+  --resources component
+```
+
+Run `revo project` as the short interactive form, or refresh an existing project with:
+
+```bash
+revo project update ./app
+```
+
+Initialization writes or refreshes:
+
+```text
+.revoengine/
+  revo.json
+  types/
+    revo.editor.d.ts
+    revo.editor.definitions.json
+```
+
+The command also patches the workspace `tsconfig.json` or `jsconfig.json` and updates root `.gitignore` so generated editor bundles remain local by default. When the RevoEngine code lives in a nested directory, the root `.revoengine/` directory remains the single state location and `revo.json` stores the workspace path.
+
+Component pull/push creates and updates `.revoengine/revo.lock.json` as synchronization state.
+
+## Identity strategy
+
+New projects should use `stableKey`. The configured metadata value identifies the same logical component across instances even though component and element UUIDs differ.
+
+```json
+{
+  "componentIdentity": {
+    "mode": "stableKey",
+    "metadataProperty": "stableKey"
+  }
+}
+```
+
+Stable-key mode manages only components that contain the configured metadata property. Missing or duplicate keys block unsafe plan/pull/push operations. Use `componentId` mode only for a workspace intentionally bound to one instance.
+
+Plan and apply missing metadata explicitly:
+
+```bash
+revo metadata plan --env default
+revo metadata apply --env default --yes
+```
+
+## Pull, plan, and push
+
+```bash
+# Pull one component or all active components
+revo component pull "$COMPONENT_ID"
+revo component pull --all --yes
+
+# Review local/remote state without writing
+revo component plan --all
+revo component plan --all --json
+revo component plan --all --strict
+
+# Push selected or all local components
+revo component push "$COMPONENT_ID"
+revo component push --all --yes
+```
+
+Pulled components use a stable tree:
+
+```text
+Components/
+  Forms/
+    Customer_Card-<component-id>/
+      component.json
+      elements/
+        1_template.ts
+        2_logic.ts
+```
+
+Each component manifest is stored beside one source file per element. Components without a category are placed under `Components/__no_category__/` while the manifest preserves `category: null`.
+
+## Conflict model
+
+`.revoengine/revo.lock.json` records the last successfully pulled or pushed remote baseline. The CLI compares three states before overwriting anything:
+
+1. current local component files;
+2. the lock baseline;
+3. current remote state.
+
+A clean local copy can fast-forward when only the remote changed. If both sides changed, pull or push reports a conflict instead of choosing a winner. `--force` bypasses lock-content safety for an explicitly selected bulk operation, but it does not bypass missing or duplicate stable identity.
+
+<Warning>
+  The lock file is synchronization evidence, not deployed source of truth. RevoEngine remains authoritative for deployed state; local component files are the desired source you are proposing.
+</Warning>
+
+## Debug local source
+
+```bash
+revo component debug "$COMPONENT_ID" \
+  --body '{"customerId":"customer-1"}' \
+  --timeout 30 \
+  --memory 256 \
+  --stream
+```
+
+Debug sends the local manifest and element files to Sandbox without first saving them as the remote component. In stream mode, live `api.log()` frames go to stderr and the terminal result goes to stdout. A copy of the result is stored under `.revoengine/output/`.
+
+Local JavaScript/TypeScript library components are included as transient overrides by default. Use `--no-extra-libs` when you intentionally want only server-saved active libraries.

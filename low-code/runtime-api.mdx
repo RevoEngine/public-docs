@@ -1,0 +1,58 @@
+---
+title: Runtime API
+description: Work with execution context, control flow, utilities, libraries, and Agents.
+icon: brackets-curly
+---
+
+Use the smallest namespace that fits the operation. Platform state and external I/O belong to `api` or `storage`; pure transformation belongs to `util`; reusable domain behavior is addressed through `lib.Category.Name.ElementKey.X`.
+
+<Tip>
+Use the generated [Low-code runtime reference](/low-code/reference/index) when you need an exact signature or editor-provided example. It is organized by `api`, `storage`, `agent`, and `util`, and is synchronized from the declaration source that feeds Monaco.
+</Tip>
+
+## Context and control
+
+```js
+const input = api.input();
+const executionId = api.getExecutionId();
+const operationId = api.getOperationId();
+
+if (!input?.customerId) {
+  api.throw(400, { message: 'customerId is required' });
+}
+
+api.log({ message: 'Started', args: { executionId, operationId } });
+```
+
+Use `api.getExecutionId()` to correlate the current execution with traces, logs, and operations history.
+
+## Nested execution
+
+```js
+const result = await api.executeComponent({
+  componentId: api.input('componentId'),
+  input: { customerId: api.input('customerId') },
+});
+
+return result;
+```
+
+Nested calls are bounded and inherit the caller's execution deadline. Use a library rather than a nested component when you only need shared in-process business logic.
+
+## Utilities
+
+```js
+const id = util.randomUUID();
+const encoded = util.encodeBase64(JSON.stringify(api.input()));
+const signature = util.hmac(encoded, await api.getSecret('SIGNING_SECRET'));
+
+return { id, encoded, signature };
+```
+
+## Agents
+
+The `agent` namespace exposes Agent, run, inbox, plugin, and Assistant-thread operations to approved runtime code. Exact operations and authorization are shown in the generated editor declarations and Platform API reference.
+
+<Warning>
+  A runtime method appearing in editor types does not bypass role, instance, approval, or policy enforcement. Treat generated types as a callable contract, not a permission grant.
+</Warning>

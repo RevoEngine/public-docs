@@ -1,0 +1,225 @@
+---
+title: Schedules
+description: Run Jobs, Agents, or materialized-view refreshes on a governed cadence.
+icon: calendar-clock
+---
+
+Schedules connect a five-field cron expression and an IANA timezone to one execution target. They are durable control-plane definitions: operators can pause, run, edit, delete, restore, and audit them independently of any one execution.
+
+## Operate configured Schedules
+
+Open **Jobs → Schedules** to see the current schedule estate. The grid exposes name, category, description, active state, a human-readable **Execute** value derived from cron, timezone, target type, target ID, metadata, ownership, version, and deletion state.
+
+Use grid filters to answer operational questions before opening a definition:
+
+- which production schedules are inactive;
+- which definitions target a retiring Job template or Agent;
+- which workload owns a timezone-sensitive cadence;
+- which schedules were changed or deleted during an incident;
+- which rows are RevoEngine-managed internal schedules.
+
+Selecting a row opens its effective configuration. RevoEngine-managed schedules are labelled `INTERNAL`, hide customer target details, and are read-only; their owning platform resource controls them.
+
+## Choose a schedule target
+
+| Target type | Use it for |
+| --- | --- |
+| Job | Repeat a configured Component execution with a stable principal, limits, retries, and input. |
+| Agent | Create recurring Agent work or wake work already waiting in its inbox. |
+| Materialized view | Refresh a saved materialized view without a custom Component wrapper. |
+
+Use an Event instead when the trigger is a business or platform state change. Use an Endpoint when a caller needs a synchronous response.
+
+## Configure in the UI
+
+Open **Jobs → Schedule**, select **Add**, then provide:
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| Name | Yes | Operator-facing schedule name. |
+| Category | No | Presentation grouping. |
+| Description | No | Cadence intent, owner, and expected outcome. |
+| Cron | Yes | Standard five-field expression: minute, hour, day of month, month, day of week. |
+| Timezone | Yes | Canonical IANA name such as `UTC` or `Europe/Warsaw`. |
+| Target type | Yes | Job, Agent, or Materialized view. |
+| Target | Yes | Existing target selected from the relevant catalogue. |
+| Activate upon creation | New definitions | Whether scheduling begins immediately. |
+| Metadata | No | Searchable ownership, environment, or cost labels. |
+
+The editor displays a human-readable cron description after validation.
+
+```text
+30 9 * * MON-FRI
+Europe/Warsaw
+```
+
+This fires at 09:30 on weekdays in Warsaw time and follows daylight-saving changes. Abbreviations such as `CET` and `EST` are rejected because they do not provide stable DST rules.
+
+### Cron field reference
+
+```text
+┌──────────── minute (0–59)
+│ ┌────────── hour (0–23)
+│ │ ┌──────── day of month (1–31)
+│ │ │ ┌────── month (1–12 or names)
+│ │ │ │ ┌──── day of week (0–7 or names; Sunday is 0 or 7)
+│ │ │ │ │
+* * * * *
+```
+
+| Intent | Cron | Timezone |
+| --- | --- | --- |
+| Every 15 minutes | `*/15 * * * *` | `UTC` |
+| Every hour at minute 5 | `5 * * * *` | `UTC` |
+| Weekdays at 09:30 local time | `30 9 * * MON-FRI` | `Europe/Warsaw` |
+| First day of each month at 02:00 | `0 2 1 * *` | `Europe/Warsaw` |
+
+The expression describes cadence; the timezone decides how wall-clock times map to real instants. For DST-sensitive business jobs, test the spring and autumn transitions and decide whether a skipped or repeated local hour is acceptable.
+
+## Public configuration shape
+
+The Platform API stores the same effective model shown in the UI:
+
+```json
+{
+  "name": "Business-day settlement",
+  "category": "Finance operations",
+  "desc": "Settles authorized transactions after the business cutoff.",
+  "active": true,
+  "cron": "15 18 * * MON-FRI",
+  "timezone": "Europe/Warsaw",
+  "targetType": "JOB_TEMPLATE",
+  "targetId": "e8250fe1-f0e1-4d2b-b8c4-10494cb23f15",
+  "metadata": {
+    "owner": "payments-platform",
+    "runbook": "settlement-v3"
+  }
+}
+```
+
+Updates include the current `version`. If another operator saved first, the stale update is rejected and the editor must reload before retrying. Instance settings govern total and active customer Schedule quotas. RevoEngine-managed system schedules are excluded from those customer counters.
+
+## Agent schedule modes
+
+Agent targets expose two distinct modes:
+
+- **Run task** creates concrete recurring work with an instruction and trigger lineage. Choose `INBOX` for durable queued delivery or `DIRECT_RUN` for an immediate run.
+- **Wake inbox** asks the Agent to claim work already queued. If the inbox is empty, the tick is a no-op; it does not invent a fallback run.
+
+Write an Agent instruction as an executable outcome, including scope and completion evidence. Do not put secrets in the instruction.
+
+The public Agent target configuration is explicit:
+
+```json
+{
+  "targetType": "AGENT",
+  "targetId": "38f2ad85-3f40-4be1-a404-72fe2c0f26ce",
+  "targetConfig": {
+    "scheduleMode": "RUN_TASK",
+    "deliveryMode": "INBOX",
+    "instruction": "Reconcile yesterday's unsettled transactions and write a summary to the workspace."
+  }
+}
+```
+
+`WAKE_INBOX` stores only the wake mode; it does not use a delivery mode or instruction. Agent schedules always execute the current Agent definition rather than pinning an older Agent version.
+
+## Materialized View refresh schedules
+
+Selecting **Materialized view** in the UI persists a governed platform-operation target:
+
+```json
+{
+  "targetType": "PLATFORM_OPERATION",
+  "targetId": "32f6eaa2-152e-4753-9987-f58ac2fbde55",
+  "targetConfig": { "kind": "refresh_materialized_view" }
+}
+```
+
+Create and manage this schedule from the Materialized View workflow or the Schedule editor. Other platform-operation kinds are system-owned and cannot be created as arbitrary customer schedules.
+
+## Run now, pause, and resume
+
+- **Run** triggers the current target immediately without changing its future cadence.
+- **Disable** pauses future scheduled delivery.
+- **Activate** resumes it.
+- **Delete** is recoverable and removes the definition from normal operation.
+- **Restore** returns a deleted definition for review.
+
+`AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` can run a schedule. Configuration and lifecycle changes require `AUTOMATION_ADMIN`; reading requires `AUTOMATION_READ` or `AUTOMATION_ADMIN`.
+
+Manual **Run** requires an active schedule and asks the scheduler to execute it now; it does not create a second cadence or move the next cron occurrence. An inactive schedule returns a non-success result until it is activated.
+
+Customer configuration actions are rate-limited to 10 scheduler operations per instance per 60 seconds. Bulk deletion accepts at most 10 Schedules at once. A `429` response includes a retry interval; wait for that interval instead of immediately retrying every selected row.
+
+<Note>
+  RevoEngine-managed schedules are visible for operational transparency but are read-only. They cannot be edited, run, disabled, restored, or deleted manually.
+</Note>
+
+## Delivery semantics
+
+```text
+cron tick
+  -> scheduleId delivered
+  -> current durable definition loaded
+  -> active state and target revalidated
+  -> target scheduled
+  -> target execution owns final result
+```
+
+A successful schedule tick means the target was admitted for dispatch, not that its business work finished. Inspect Job history, Agent runs, or the materialized-view state for the outcome.
+
+Scheduling infrastructure may retry delivery. Use target-level idempotency for consequential side effects and design recurring work so a delayed tick can be distinguished from a duplicate.
+
+The scheduler delivers `scheduleId`, then the platform reloads the current durable definition. This keeps pause, target, and Agent-current-version decisions authoritative at execution time rather than trusting a stale copy embedded in the delivery request.
+
+## Real production patterns
+
+### Business-day settlement
+
+Run a Job template at `15 18 * * MON-FRI` in `Europe/Warsaw`. The Component reads unsettled rows using a transaction, writes a settlement batch, and sends the batch ID to an external provider with an idempotency key.
+
+### Hourly integration reconciliation
+
+Run at `0 * * * *` in `UTC`. Store the source cursor in a Table, not in the Schedule metadata, and make each page checkpoint durable before advancing.
+
+### Reporting view refresh
+
+Target the materialized view directly. Dashboard widgets read the refreshed view while the schedule remains independently pausable during maintenance.
+
+### File-ingestion safety sweep
+
+Use an Event for the normal `STORAGE_CREATED` path, then run a Schedule every hour to query durable Storage entries that have no completed processing record. The sweep repairs missed post-commit event delivery without turning the clock into the primary ingestion trigger.
+
+## Failure and recovery
+
+<AccordionGroup>
+  <Accordion title="Schedule is active but no execution appears">
+    Confirm the target still exists and remains enabled, then inspect scheduler admission and service-account authorization. The schedule grid proves configuration, not target completion.
+  </Accordion>
+  <Accordion title="Manual Run succeeds but cron delivery does not">
+    Compare scheduled-delivery evidence with the manual invocation, including admission status and execution-principal authorization. Do not assume the Job or Agent target is faulty merely because manual invocation uses a different admission path.
+  </Accordion>
+  <Accordion title="Update says the scheduler must be deployed again or removed">
+    The active definition no longer has a valid managed scheduling identity. Pause/delete and recreate it through the supported lifecycle instead of editing internal identifiers directly.
+  </Accordion>
+  <Accordion title="A recurring side effect happened twice">
+    Treat scheduler delivery as at-least-once. Use the schedule ID plus intended business period as a durable idempotency key and reconcile provider state before retrying.
+  </Accordion>
+  <Accordion title="Activation reaches an instance quota">
+    Disable or retire unused customer Schedules, or have the instance administrator review the configured total and active quotas. System-managed schedules are separate and cannot be removed to free customer capacity.
+  </Accordion>
+</AccordionGroup>
+
+## Production checklist
+
+- Use an IANA timezone and test DST boundaries.
+- Document the schedule owner and recovery procedure.
+- Configure the target principal with least privilege.
+- Make duplicate and late delivery safe.
+- Monitor target terminal state, not only schedule admission.
+- Pause before changing a consequential target.
+- Keep system-managed schedules read-only.
+- Review inactive, deleted, and orphaned target definitions as part of automation hygiene.
+
+See [Jobs](/operate/jobs) for execution policy, [Events](/operate/events) for state-driven automation, [Materialized Views](/operate/materialized-views) for refresh evidence, and the generated Platform API reference for every current `Automation` Schedule operation.

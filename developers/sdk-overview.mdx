@@ -1,0 +1,76 @@
+---
+title: Node.js SDK overview
+description: Use one typed RevoEngine runtime across hosted Custom Node.js and standalone Node.js applications.
+icon: node-js
+---
+
+`@revoengine/sdk` exposes the modern RevoEngine runtime to Node.js 22 or newer. It provides:
+
+- `api` for platform-backed runtime operations;
+- `storage` for folders, objects, upload sessions, and retrieval;
+- `agents` for Agent and related AI operations permitted by the caller;
+- `utils` for local encoding, hashing, identifiers, and other pure helpers;
+- `execute(code, options)` for transient low-code execution with active `lib.Category.Name.ElementKey.X` exports;
+- `batch` for configuring automatic runtime-call batching.
+
+```bash
+npm install @revoengine/sdk
+```
+
+## Choose a runtime mode
+
+<CardGroup cols={2}>
+  <Card title="Revo-hosted" icon="cloud" href="/developers/sdk-hosted">
+    Custom Node.js receives an execution-bound `runtime` from RevoEngine. No customer API key is exposed to component code.
+  </Card>
+  <Card title="Standalone" icon="server" href="/developers/sdk-standalone">
+    A backend Node.js process constructs `RevoClient` with an instance-bound API key.
+  </Card>
+</CardGroup>
+
+Both modes expose the same top-level namespaces, but context methods reflect where code runs:
+
+| Call kind | Hosted component | Standalone Node.js |
+| --- | --- | --- |
+| Execution snapshot, cache, debug, and logging | Synchronous | Unavailable; throws synchronously |
+| Current user and instance | Synchronous injected snapshot | Asynchronous lazy discovery |
+| Platform-backed `api`, `storage`, `agents`, and `execute()` | Asynchronous | Asynchronous |
+| Local `utils` and `batch.configure()` | Synchronous unless the utility is inherently async | Same |
+
+The exported `RevoApi` and `RevoStandaloneApi` types preserve this distinction.
+
+## Shared function pattern
+
+Write reusable functions against the smallest runtime subset they need:
+
+```ts
+import type { RevoRuntime } from '@revoengine/sdk';
+
+type CustomerRuntime = Pick<RevoRuntime, 'api' | 'storage'>;
+
+export async function exportCustomer(
+  runtime: CustomerRuntime,
+  customerId: string,
+) {
+  const page = await runtime.api.getDatabaseData('Customers', {
+    filter: { field: 'customerId', op: 'eq', value: customerId },
+    take: 1,
+  });
+
+  return runtime.storage.putObject({
+    name: `customer-${customerId}.json`,
+    data: JSON.stringify(page.data[0] ?? null),
+    mimeType: 'application/json',
+  });
+}
+```
+
+Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
+
+## Contract behavior
+
+Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
+
+<Note>
+  Runtime method availability does not grant permission. Authentication, roles, instance boundaries, execution context, and platform policy are still enforced by RevoEngine.
+</Note>

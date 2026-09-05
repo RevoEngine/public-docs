@@ -1,0 +1,1789 @@
+---
+title: api reference
+description: Execution, platform, Database, HTTP, automation, and compatibility methods.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **70 methods**. Search the docs for an exact method name, or use this index:
+
+- [`api.createDatabase()`](#api-createDatabase)
+- [`api.cloneDatabase()`](#api-cloneDatabase)
+- [`api.exportDatabase()`](#api-exportDatabase)
+- [`api.exportDatabaseView()`](#api-exportDatabaseView)
+- [`api.updateDatabase()`](#api-updateDatabase)
+- [`api.deleteDatabase()`](#api-deleteDatabase)
+- [`api.restoreDatabase()`](#api-restoreDatabase)
+- [`api.truncateDatabase()`](#api-truncateDatabase)
+- [`api.transactionDatabase()`](#api-transactionDatabase)
+- [`api.getDatabaseData()`](#api-getDatabaseData)
+- [`api.getDatabaseViewData()`](#api-getDatabaseViewData)
+- [`api.getDatabaseAudit()`](#api-getDatabaseAudit)
+- [`api.insertDatabaseData()`](#api-insertDatabaseData)
+- [`api.upsertDatabaseData()`](#api-upsertDatabaseData)
+- [`api.updateDatabaseData()`](#api-updateDatabaseData)
+- [`api.deleteDatabaseData()`](#api-deleteDatabaseData)
+- [`api.updateDatabaseDataRequest()`](#api-updateDatabaseDataRequest)
+- [`api.deleteDatabaseDataRequest()`](#api-deleteDatabaseDataRequest)
+- [`api.queryDatabase()`](#api-queryDatabase)
+- [`api.currentUser()`](#api-currentUser)
+- [`api.isDebug()`](#api-isDebug)
+- [`api.disableDebug()`](#api-disableDebug)
+- [`api.enableDebug()`](#api-enableDebug)
+- [`api.getCache()`](#api-getCache)
+- [`api.setCache()`](#api-setCache)
+- [`api.getContext()`](#api-getContext)
+- [`api.getErrors()`](#api-getErrors)
+- [`api.getWarnings()`](#api-getWarnings)
+- [`api.getExecutionId()`](#api-getExecutionId)
+- [`api.getLogs()`](#api-getLogs)
+- [`api.getOperationId()`](#api-getOperationId)
+- [`api.executeComponent()`](#api-executeComponent)
+- [`api.input()`](#api-input)
+- [`api.log()`](#api-log)
+- [`api.exit()`](#api-exit)
+- [`api.throw()`](#api-throw)
+- [`api.getCurrentInstance()`](#api-getCurrentInstance)
+- [`api.getInstanceData()`](#api-getInstanceData)
+- [`api.getInstanceDetails()`](#api-getInstanceDetails)
+- [`api.getSecret()`](#api-getSecret)
+- [`api.getSecrets()`](#api-getSecrets)
+- [`api.publishMessage()`](#api-publishMessage)
+- [`api.getInstanceCache()`](#api-getInstanceCache)
+- [`api.setInstanceCache()`](#api-setInstanceCache)
+- [`api.setInstanceCacheIfNotExists()`](#api-setInstanceCacheIfNotExists)
+- [`api.getOrSetInstanceCache()`](#api-getOrSetInstanceCache)
+- [`api.removeInstanceCache()`](#api-removeInstanceCache)
+- [`api.existsInstanceCache()`](#api-existsInstanceCache)
+- [`api.persistInstanceCache()`](#api-persistInstanceCache)
+- [`api.expireInstanceCache()`](#api-expireInstanceCache)
+- [`api.getExpireInstanceCache()`](#api-getExpireInstanceCache)
+- [`api.listInstanceCache()`](#api-listInstanceCache)
+- [`api.incrementInstanceCache()`](#api-incrementInstanceCache)
+- [`api.decrementInstanceCache()`](#api-decrementInstanceCache)
+- [`api.compareAndSetInstanceCache()`](#api-compareAndSetInstanceCache)
+- [`api.acquireIdempotencyKey()`](#api-acquireIdempotencyKey)
+- [`api.getIdempotencyKey()`](#api-getIdempotencyKey)
+- [`api.releaseIdempotencyKey()`](#api-releaseIdempotencyKey)
+- [`api.concurrencyLimit()`](#api-concurrencyLimit)
+- [`api.rateLimit()`](#api-rateLimit)
+- [`api.releaseRateLimit()`](#api-releaseRateLimit)
+- [`api.releaseConcurrencyLimit()`](#api-releaseConcurrencyLimit)
+- [`api.triggerEvent()`](#api-triggerEvent)
+- [`api.triggerTarget()`](#api-triggerTarget)
+- [`api.triggerJob()`](#api-triggerJob)
+- [`api.triggerWebhook()`](#api-triggerWebhook)
+- [`api.httpCall()`](#api-httpCall)
+- [`api.sftpExec()`](#api-sftpExec)
+- [`api.sftpPut()`](#api-sftpPut)
+- [`api.sftpGet()`](#api-sftpGet)
+
+<span id="api-createDatabase" aria-hidden="true"></span>
+
+## `api.createDatabase()`
+
+Creates a logical database. The server assigns databaseId, version, and timestamps;
+never generate or send those values. A normal database needs at least one definition.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static createDatabase(data: DatabaseCreateInput): Promise<Database>;
+```
+### Example
+
+```ts
+await api.createDatabase({
+  name: 'audit_log',
+  category: 'Ops',
+  desc: 'Audit',
+  restricted: false,
+  groups: [],
+  users: [],
+  definition: [{
+    name: 'auditId', type: 'UUID',
+    isPrimaryKey: true, isArray: false, isUnique: true,
+    isNullable: false, isIndex: true, foreignReferences: [],
+  }],
+});
+```
+
+<span id="api-cloneDatabase" aria-hidden="true"></span>
+
+## `api.cloneDatabase()`
+
+Clones a logical database by name or database id.
+
+Notes:
+- No-op in debug mode.
+- By default waits for the clone and returns cloned database metadata.
+- Set `&#123; async: true &#125;` to start a backend clone task and return immediately with an accepted response.
+- Omit `name` to use the backend default source-name plus `_Clone`.
+
+### Signature
+
+```ts
+static cloneDatabase<TAsync extends boolean = false>(
+      databaseIdOrName: string,
+      options?: DatabaseCloneInput & { async?: TAsync },
+    ): Promise<
+      TAsync extends true
+        ? CloneDatabaseAcceptedResponse
+        : TAsync extends false
+          ? CloneDatabaseCompletedResponse
+          : CloneDatabaseResponse
+    >;
+```
+### Example
+
+```ts
+const result = await api.cloneDatabase('customers', {
+  includeItems: false,
+  includePartitions: true,
+});
+
+return result.databases;
+```
+
+<span id="api-exportDatabase" aria-hidden="true"></span>
+
+## `api.exportDatabase()`
+
+Exports logical database rows directly into Storage as CSV.
+
+Notes:
+- No-op in debug mode.
+- By default waits for the export, final compose, and storage entry persistence.
+- Set `&#123; async: true &#125;` to return immediately with an accepted response.
+- Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
+  or provide an accessible Explorer folder storageEntryId.
+
+### Signature
+
+```ts
+static exportDatabase<TAsync extends boolean = false>(
+      databaseIdOrName: string,
+      options?: ExportDatabaseOptions & { async?: TAsync },
+    ): Promise<
+      TAsync extends true
+        ? ExportDatabaseAcceptedResponse
+        : TAsync extends false
+          ? ExportDatabaseCompletedResponse
+          : ExportDatabaseResponse
+    >;
+```
+### Example
+
+```ts
+const result = await api.exportDatabase('contracts', {
+  storageDestination: 'ROOT',
+  fileName: 'contracts-full.csv',
+  restricted: false,
+  fields: ['contractId', 'customerId'],
+  sort: { contractId: 'ASC' },
+});
+
+return result.storageEntryId;
+```
+
+<span id="api-exportDatabaseView" aria-hidden="true"></span>
+
+## `api.exportDatabaseView()`
+
+Exports a saved database view or materialized view directly into Storage as CSV.
+The saved view owns its joins and CTEs; callers may add projection, filters,
+grouping, sorting, and paging over the resulting view definition.
+Defaults to waiting for the completed Storage entry. Set `async: true` for kickoff semantics.
+
+### Signature
+
+```ts
+static exportDatabaseView<TAsync extends boolean = false>(
+      databaseViewIdOrName: string,
+      options?: ExportDatabaseOptions & { async?: TAsync },
+    ): Promise<
+      TAsync extends true
+        ? ExportDatabaseAcceptedResponse
+        : TAsync extends false
+          ? ExportDatabaseCompletedResponse
+          : ExportDatabaseResponse
+    >;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="api-updateDatabase" aria-hidden="true"></span>
+
+## `api.updateDatabase()`
+
+Updates selected logical-database fields. The public contract requires the current
+version for optimistic locking; send only the fields that should change. Do not
+copy server-owned databaseId, timestamps, or size into this payload.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static updateDatabase(databaseId: string, data: DatabaseUpdateInput): Promise<Database>;
+```
+### Example
+
+```ts
+await api.updateDatabase(databaseId, {
+  version: current.version,
+  audit: true,
+});
+```
+
+<span id="api-deleteDatabase" aria-hidden="true"></span>
+
+## `api.deleteDatabase()`
+
+Soft-deletes a logical database.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static deleteDatabase(databaseId: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.deleteDatabase(databaseId);
+```
+
+<span id="api-restoreDatabase" aria-hidden="true"></span>
+
+## `api.restoreDatabase()`
+
+Restores a deleted logical database.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static restoreDatabase(databaseId: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.restoreDatabase(databaseId);
+```
+
+<span id="api-truncateDatabase" aria-hidden="true"></span>
+
+## `api.truncateDatabase()`
+
+Removes all rows from a logical database.
+
+Notes:
+- No-op in debug mode.
+- TRUNCATE does not create row audit events, even when database audit is enabled.
+- Use an ordinary filtered delete, such as primary key IS NOT NULL, to preserve row audit events.
+- Identity counters are preserved by default.
+- Set restartIdentity only when generated key reuse is explicitly intended.
+
+### Signature
+
+```ts
+static truncateDatabase(
+      databaseId: string,
+      options?: TruncateDatabaseOptions,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await api.truncateDatabase(databaseId, { restartIdentity: false });
+```
+
+<span id="api-transactionDatabase" aria-hidden="true"></span>
+
+## `api.transactionDatabase()`
+
+Runs database-data operations inside a short-lived transaction.
+
+Notes:
+- Commits automatically when the callback resolves.
+- Rolls back automatically when the callback throws.
+- The default timeout is 15,000 ms.
+- Use `&#123; flexTimeout: true &#125;` when the transaction intentionally needs
+  the enclosing execution's remaining timeout budget.
+- Long transactions reserve a database connection and may retain locks;
+  keep waits and remote side effects outside the callback when possible.
+- SERIALIZABLE is the default isolation level.
+- Parallel tx.* operations are rejected; await each tx.* call sequentially.
+
+### Signature
+
+```ts
+static transactionDatabase<T>(
+      callback: (tx: DatabaseTransactionApi) => Promise<T> | T,
+      options?: DatabaseTransactionStartOptions,
+    ): Promise<T>;
+```
+### Example
+
+```ts
+await api.transactionDatabase(async (tx) => {
+  const existing = await tx.getDatabaseData(
+    'contracts',
+    { filter: { field: 'contractId', op: 'eq', value: api.input('contractId') }, take: 1 },
+    { lock: 'update' },
+  );
+  if (existing.results === 0) {
+    await tx.insertDatabaseData('contracts', [
+      { contractId: api.input('contractId') },
+    ]);
+  }
+});
+```
+
+<span id="api-getDatabaseData" aria-hidden="true"></span>
+
+## `api.getDatabaseData()`
+
+Reads database rows using the structured query shape.
+
+Notes:
+- This is the canonical read API.
+
+### Signature
+
+```ts
+static getDatabaseData<T = any>(
+      name: string,
+      request?: SelectInput,
+    ): Promise<GetDatabaseDataResponse<T>>;
+```
+### Example
+
+```ts
+const rows = await api.getDatabaseData('customers', {
+  fields: ['customerId', 'name'],
+  filter: { field: 'status', op: 'eq', value: 'ACTIVE' },
+  sort: { name: 'ASC' },
+  take: 100,
+});
+```
+
+<span id="api-getDatabaseViewData" aria-hidden="true"></span>
+
+## `api.getDatabaseViewData()`
+
+Reads a saved database view by its logical name. The saved view owns its
+joins and CTEs; callers may add projection, filters, casts, grouping,
+sorting, count, and pagination over the resulting definition.
+
+### Signature
+
+```ts
+static getDatabaseViewData<T = any>(
+      name: string,
+      request?: SelectInput,
+    ): Promise<GetDatabaseDataResponse<T>>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="api-getDatabaseAudit" aria-hidden="true"></span>
+
+## `api.getDatabaseAudit()`
+
+Reads newest-first audit events. Prefer narrow fields and changed/filter over a
+full snapshot.* or changes.* payload. Missing requested paths return null.
+
+### Signature
+
+```ts
+static getDatabaseAudit(
+      name: string,
+      query?: DatabaseAuditQuery,
+    ): Promise<DatabaseAuditResponse>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="api-insertDatabaseData" aria-hidden="true"></span>
+
+## `api.insertDatabaseData()`
+
+Inserts rows.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static insertDatabaseData(
+      name: string,
+      data: LooseObject<any>[],
+    ): Promise<DatabaseDataActionResponse>;
+```
+### Example
+
+```ts
+await api.insertDatabaseData('customers', [
+  { customerId: 'c-1', name: 'Acme' },
+]);
+```
+
+<span id="api-upsertDatabaseData" aria-hidden="true"></span>
+
+## `api.upsertDatabaseData()`
+
+Upserts rows.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static upsertDatabaseData(
+      name: string,
+      data: LooseObject<any>[],
+    ): Promise<DatabaseDataActionResponse>;
+```
+### Example
+
+```ts
+await api.upsertDatabaseData('customers', [
+  { customerId: 'c-1', status: 'ACTIVE' },
+]);
+```
+
+<span id="api-updateDatabaseData" aria-hidden="true"></span>
+
+## `api.updateDatabaseData()`
+
+Updates rows matched by oldObject.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static updateDatabaseData(
+      name: string,
+      oldObject: LooseObject<any>,
+      newObject: LooseObject<any>,
+    ): Promise<ResourceItem>;
+```
+### Example
+
+```ts
+await api.updateDatabaseData(
+  'customers',
+  { customerId: 'c-1' },
+  { status: 'ACTIVE' },
+);
+```
+
+<span id="api-deleteDatabaseData" aria-hidden="true"></span>
+
+## `api.deleteDatabaseData()`
+
+Deletes rows.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static deleteDatabaseData(name: string, data: ResourceItem[]): Promise<any>;
+```
+### Example
+
+```ts
+await api.deleteDatabaseData('customers', [
+  { customerId: 'c-1' },
+]);
+```
+
+<span id="api-updateDatabaseDataRequest" aria-hidden="true"></span>
+
+## `api.updateDatabaseDataRequest()`
+
+Bulk-updates rows matched by an advanced structured filter.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static updateDatabaseDataRequest(
+      name: string,
+      request: DatabaseMutationRequest,
+      payload: Record<string, any>,
+      options?: { return?: boolean; onlyKeys?: boolean },
+    ): Promise<{ success: number; elapsed: number; data?: any }>;
+```
+### Example
+
+```ts
+await api.updateDatabaseDataRequest(
+  'customers',
+  { filter: { field: 'status', op: 'eq', value: 'NEW' } },
+  { status: 'PROCESSED' },
+);
+```
+
+<span id="api-deleteDatabaseDataRequest" aria-hidden="true"></span>
+
+## `api.deleteDatabaseDataRequest()`
+
+Bulk-deletes rows matched by an advanced structured filter.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static deleteDatabaseDataRequest(
+      name: string,
+      request: DatabaseMutationRequest,
+      options?: { return?: boolean; onlyKeys?: boolean },
+    ): Promise<{ success: number; elapsed: number; data?: any }>;
+```
+### Example
+
+```ts
+await api.deleteDatabaseDataRequest('customers', {
+  filter: { field: 'archivedAt', op: 'isNotNull' },
+});
+```
+
+<span id="api-queryDatabase" aria-hidden="true"></span>
+
+## `api.queryDatabase()`
+
+Executes raw SELECT/WITH SQL when the structured helpers are not enough.
+Do not use this for writes; use insert/upsert/update/delete helpers or
+transactionDatabase for write flows.
+
+### Signature
+
+```ts
+static queryDatabase(query: string, params?: any[]): Promise<any>;
+```
+### Example
+
+```ts
+const rows = await api.queryDatabase('SELECT NOW() AS now');
+```
+
+<span id="api-currentUser" aria-hidden="true"></span>
+
+## `api.currentUser()`
+
+Returns the current logged user or service account.
+
+### Signature
+
+```ts
+static currentUser(): LoggedUser;
+```
+### Example
+
+```ts
+const user = api.currentUser();
+```
+
+<span id="api-isDebug" aria-hidden="true"></span>
+
+## `api.isDebug()`
+
+Returns true when debug mode is enabled.
+
+### Signature
+
+```ts
+static isDebug(): boolean;
+```
+### Example
+
+```ts
+if (api.isDebug()) {
+  api.log('Debug mode', 'WARN');
+}
+```
+
+<span id="api-disableDebug" aria-hidden="true"></span>
+
+## `api.disableDebug()`
+
+Disables debug mode for the current execution.
+
+### Signature
+
+```ts
+static disableDebug(): void;
+```
+### Example
+
+```ts
+api.disableDebug();
+```
+
+<span id="api-enableDebug" aria-hidden="true"></span>
+
+## `api.enableDebug()`
+
+Enables debug mode for the current execution.
+
+### Signature
+
+```ts
+static enableDebug(): void;
+```
+### Example
+
+```ts
+api.enableDebug();
+```
+
+<span id="api-getCache" aria-hidden="true"></span>
+
+## `api.getCache()`
+
+Reads request-scoped in-memory cache.
+
+### Signature
+
+```ts
+static getCache(key: string): any;
+```
+### Example
+
+```ts
+const token = api.getCache('token');
+```
+
+<span id="api-setCache" aria-hidden="true"></span>
+
+## `api.setCache()`
+
+Writes request-scoped in-memory cache.
+
+### Signature
+
+```ts
+static setCache(key: string, value: any): void;
+```
+### Example
+
+```ts
+api.setCache('token', 'abc');
+```
+
+<span id="api-getContext" aria-hidden="true"></span>
+
+## `api.getContext()`
+
+Returns the current execution context.
+
+### Signature
+
+```ts
+static getContext(): Context;
+```
+### Example
+
+```ts
+const ctx = api.getContext();
+```
+
+<span id="api-getErrors" aria-hidden="true"></span>
+
+## `api.getErrors()`
+
+Returns collected error logs.
+
+### Signature
+
+```ts
+static getErrors(): ProcessLog[];
+```
+### Example
+
+```ts
+const errors = api.getErrors();
+```
+
+<span id="api-getWarnings" aria-hidden="true"></span>
+
+## `api.getWarnings()`
+
+Returns collected warning logs.
+
+### Signature
+
+```ts
+static getWarnings(): ProcessLog[];
+```
+### Example
+
+```ts
+const warnings = api.getWarnings();
+```
+
+<span id="api-getExecutionId" aria-hidden="true"></span>
+
+## `api.getExecutionId()`
+
+Returns the UUID that identifies the current low-code execution.
+For durable jobs this is the job id. Endpoint and Sandbox executions
+receive an independent execution UUID while retaining their operation id
+for distributed request tracing.
+
+### Signature
+
+```ts
+static getExecutionId(): string;
+```
+### Example
+
+```ts
+const executionId = api.getExecutionId();
+```
+
+<span id="api-getLogs" aria-hidden="true"></span>
+
+## `api.getLogs()`
+
+Returns collected info logs.
+
+### Signature
+
+```ts
+static getLogs(): LooseObject<any>[];
+```
+### Example
+
+```ts
+const logs = api.getLogs();
+```
+
+<span id="api-getOperationId" aria-hidden="true"></span>
+
+## `api.getOperationId()`
+
+Returns the current operation id.
+
+### Signature
+
+```ts
+static getOperationId(): string;
+```
+### Example
+
+```ts
+const op = api.getOperationId();
+```
+
+<span id="api-executeComponent" aria-hidden="true"></span>
+
+## `api.executeComponent()`
+
+Executes another active component in the managed RevoEngine runtime and returns its execution result.
+
+Notes:
+- Supports CODE_JS, CODE_TS, and CUSTOM_NODEJS components.
+- CODE_JS and CODE_TS run in a fresh, isolated RevoEngine V8 environment.
+- CUSTOM_NODEJS runs in its governed RevoEngine component environment.
+- If timeoutMs is omitted, the child receives the parent execution's remaining timeout budget.
+- A larger timeoutMs is clamped to that remaining budget.
+- At least 1 second of parent budget is required for nested component execution.
+- Promise.all() starts independent child component executions.
+
+### Signature
+
+```ts
+static executeComponent<T = LooseObject<any>>(
+      request: ComponentExecuteRequest,
+    ): Promise<ComponentExecuteResult<T>>;
+```
+### Example
+
+```ts
+const [pricing, taxes] = await Promise.all([
+  api.executeComponent({ componentId: pricingComponentId, inputs: { customerId }, timeoutMs: 9000 }),
+  api.executeComponent({ componentId: taxComponentId, inputs: { customerId }, timeoutMs: 9000 }),
+]);
+```
+
+<span id="api-input" aria-hidden="true"></span>
+
+## `api.input()`
+
+Returns the current execution payload.
+
+Notes:
+- In endpoint context this usually includes body, query, headers, params, path, and method.
+- In event or job context it commonly includes type and message.
+- Passing a name returns a single top-level property.
+
+### Signature
+
+```ts
+static input(name?: string): Input;
+```
+### Example
+
+```ts
+const customerId = api.input()?.body?.customerId;
+```
+
+<span id="api-log" aria-hidden="true"></span>
+
+## `api.log()`
+
+Adds a log entry.
+
+### Signature
+
+```ts
+static log(
+      log: string | LogInterface,
+      type?: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG',
+      duration?: number,
+      time?: string,
+    ): void;
+```
+### Example
+
+```ts
+api.log(
+  { message: 'Call finished', args: { status: 200 } },
+  'INFO',
+  120,
+);
+```
+
+<span id="api-exit" aria-hidden="true"></span>
+
+## `api.exit()`
+
+Stops execution early without marking it as a sandbox failure.
+
+### Signature
+
+```ts
+static exit(): void;
+```
+### Example
+
+```ts
+if (!enabled) {
+  api.exit();
+}
+```
+
+<span id="api-throw" aria-hidden="true"></span>
+
+## `api.throw()`
+
+Stores an HTTP-style response and aborts execution.
+
+Notes:
+- Reserved 502 and 503 codes are not allowed from Endpoint user code.
+
+### Signature
+
+```ts
+static throw(code: number, body?: any): void;
+```
+### Example
+
+```ts
+api.throw(400, { message: 'customerId is required' });
+```
+
+<span id="api-getCurrentInstance" aria-hidden="true"></span>
+
+## `api.getCurrentInstance()`
+
+Returns the current instance id.
+
+### Signature
+
+```ts
+static getCurrentInstance(): string;
+```
+### Example
+
+```ts
+const instanceId = api.getCurrentInstance();
+```
+
+<span id="api-getInstanceData" aria-hidden="true"></span>
+
+## `api.getInstanceData()`
+
+Reads data from platform-managed sources.
+
+### Signature
+
+```ts
+static getInstanceData(
+      dataSource:
+        | 'Users'
+        | 'Groups'
+        | 'RoleGroups'
+        | 'Keys'
+        | 'Secrets'
+        | 'SecretsData'
+        | 'Templates'
+        | 'Events'
+        | 'Schedule'
+        | 'Jobs'
+        | 'Webhooks'
+        | 'Components'
+        | 'Logs'
+        | 'Files'
+        | 'EventsHistory'
+        | 'Endpoints'
+        | 'Databases'
+        | 'DatabaseData',
+      request?: InstanceData,
+    ): Promise<any>;
+```
+### Example
+
+```ts
+const files = await api.getInstanceData('Files', {
+  take: 20,
+  sort: ['-createdAt'],
+});
+```
+
+<span id="api-getInstanceDetails" aria-hidden="true"></span>
+
+## `api.getInstanceDetails()`
+
+Returns public instance metadata.
+
+### Signature
+
+```ts
+static getInstanceDetails(): InstanceDetails;
+```
+### Example
+
+```ts
+const details = api.getInstanceDetails();
+```
+
+<span id="api-getSecret" aria-hidden="true"></span>
+
+## `api.getSecret()`
+
+Resolves a single secret value by name.
+
+### Signature
+
+```ts
+static getSecret(name: string): Promise<string>;
+```
+### Example
+
+```ts
+const apiKey = await api.getSecret('CRM_API_KEY');
+```
+
+<span id="api-getSecrets" aria-hidden="true"></span>
+
+## `api.getSecrets()`
+
+Resolves multiple secret values by name.
+
+### Signature
+
+```ts
+static getSecrets(name: string[]): Promise<{ [key: string]: string }>;
+```
+### Example
+
+```ts
+const secrets = await api.getSecrets([
+  'CRM_API_KEY',
+  'CRM_API_URL',
+]);
+```
+
+<span id="api-publishMessage" aria-hidden="true"></span>
+
+## `api.publishMessage()`
+
+Publishes a realtime message.
+
+Notes:
+- No-op in debug mode.
+- Currently only the 'ALL' channel is supported.
+
+### Signature
+
+```ts
+static publishMessage(channel: string, message: any): Promise<void>;
+```
+### Example
+
+```ts
+await api.publishMessage('ALL', { state: 'started' });
+```
+
+<span id="api-getInstanceCache" aria-hidden="true"></span>
+
+## `api.getInstanceCache()`
+
+Reads instance-scoped cache.
+
+### Signature
+
+```ts
+static getInstanceCache(key: string): Promise<any>;
+```
+### Example
+
+```ts
+const state = await api.getInstanceCache('sync:state');
+```
+
+<span id="api-setInstanceCache" aria-hidden="true"></span>
+
+## `api.setInstanceCache()`
+
+Writes instance-scoped cache.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static setInstanceCache(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await api.setInstanceCache('sync:state', { step: 'loading' }, 300);
+```
+
+<span id="api-setInstanceCacheIfNotExists" aria-hidden="true"></span>
+
+## `api.setInstanceCacheIfNotExists()`
+
+Writes instance-scoped cache only when the key does not exist.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static setInstanceCacheIfNotExists(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const created = await api.setInstanceCacheIfNotExists('sync:state', { step: 'queued' }, 300);
+```
+
+<span id="api-getOrSetInstanceCache" aria-hidden="true"></span>
+
+## `api.getOrSetInstanceCache()`
+
+Reads a cache key or stores the fallback value atomically if it is missing.
+
+### Signature
+
+```ts
+static getOrSetInstanceCache(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<any>;
+```
+### Example
+
+```ts
+const state = await api.getOrSetInstanceCache('sync:state', { step: 'queued' }, 300);
+```
+
+<span id="api-removeInstanceCache" aria-hidden="true"></span>
+
+## `api.removeInstanceCache()`
+
+Removes cache keys.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static removeInstanceCache(key: string, wildcard?: boolean): Promise<void>;
+```
+### Example
+
+```ts
+await api.removeInstanceCache('sync:*', true);
+```
+
+<span id="api-existsInstanceCache" aria-hidden="true"></span>
+
+## `api.existsInstanceCache()`
+
+Checks whether an instance cache key exists.
+
+### Signature
+
+```ts
+static existsInstanceCache(key: string): Promise<boolean>;
+```
+### Example
+
+```ts
+const exists = await api.existsInstanceCache('sync:state');
+```
+
+<span id="api-persistInstanceCache" aria-hidden="true"></span>
+
+## `api.persistInstanceCache()`
+
+Makes a cache key persistent.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static persistInstanceCache(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.persistInstanceCache('sync:state');
+```
+
+<span id="api-expireInstanceCache" aria-hidden="true"></span>
+
+## `api.expireInstanceCache()`
+
+Sets cache TTL in seconds.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static expireInstanceCache(key: string, ttl: number): Promise<void>;
+```
+### Example
+
+```ts
+await api.expireInstanceCache('sync:state', 600);
+```
+
+<span id="api-getExpireInstanceCache" aria-hidden="true"></span>
+
+## `api.getExpireInstanceCache()`
+
+Returns cache TTL in seconds, 0 for no expiry, or null when the key does not exist.
+
+### Signature
+
+```ts
+static getExpireInstanceCache(key: string): Promise<number | null>;
+```
+### Example
+
+```ts
+const ttl = await api.getExpireInstanceCache('sync:state');
+```
+
+<span id="api-listInstanceCache" aria-hidden="true"></span>
+
+## `api.listInstanceCache()`
+
+Lists instance cache keys by prefix or pattern.
+
+### Signature
+
+```ts
+static listInstanceCache(key: string): Promise<string[]>;
+```
+### Example
+
+```ts
+const keys = await api.listInstanceCache('sync:*');
+```
+
+<span id="api-incrementInstanceCache" aria-hidden="true"></span>
+
+## `api.incrementInstanceCache()`
+
+Atomically increments an integer cache key.
+
+Notes:
+- No-op in debug mode.
+- 'by' must be an integer.
+
+### Signature
+
+```ts
+static incrementInstanceCache(
+      key: string,
+      by?: number,
+      seconds?: number,
+    ): Promise<number>;
+```
+### Example
+
+```ts
+const count = await api.incrementInstanceCache('sync:counter', 1, 300);
+```
+
+<span id="api-decrementInstanceCache" aria-hidden="true"></span>
+
+## `api.decrementInstanceCache()`
+
+Atomically decrements an integer cache key.
+
+Notes:
+- No-op in debug mode.
+- 'by' must be an integer.
+
+### Signature
+
+```ts
+static decrementInstanceCache(
+      key: string,
+      by?: number,
+      seconds?: number,
+    ): Promise<number>;
+```
+### Example
+
+```ts
+const count = await api.decrementInstanceCache('sync:counter');
+```
+
+<span id="api-compareAndSetInstanceCache" aria-hidden="true"></span>
+
+## `api.compareAndSetInstanceCache()`
+
+Atomically updates a cache key only when the current value matches 'expected'.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static compareAndSetInstanceCache(
+      key: string,
+      expected: any,
+      value: any,
+      seconds?: number,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const swapped = await api.compareAndSetInstanceCache('sync:state', { step: 'queued' }, { step: 'running' }, 300);
+```
+
+<span id="api-acquireIdempotencyKey" aria-hidden="true"></span>
+
+## `api.acquireIdempotencyKey()`
+
+Acquires an idempotency key in the instance-scoped managed cache.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static acquireIdempotencyKey(
+      key: string,
+      ttl: number,
+      value?: any,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const first = await api.acquireIdempotencyKey('orders:123', 600, { state: 'running' });
+```
+
+<span id="api-getIdempotencyKey" aria-hidden="true"></span>
+
+## `api.getIdempotencyKey()`
+
+Reads stored idempotency metadata.
+
+### Signature
+
+```ts
+static getIdempotencyKey(key: string): Promise<any>;
+```
+### Example
+
+```ts
+const current = await api.getIdempotencyKey('orders:123');
+```
+
+<span id="api-releaseIdempotencyKey" aria-hidden="true"></span>
+
+## `api.releaseIdempotencyKey()`
+
+Releases an idempotency key.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static releaseIdempotencyKey(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.releaseIdempotencyKey('orders:123');
+```
+
+<span id="api-concurrencyLimit" aria-hidden="true"></span>
+
+## `api.concurrencyLimit()`
+
+Acquires an instance-scoped concurrency token.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static concurrencyLimit(
+      key: string,
+      limit: number,
+      ttl: number,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const locked = await api.concurrencyLimit('sync:customers', 1, 300);
+```
+
+<span id="api-rateLimit" aria-hidden="true"></span>
+
+## `api.rateLimit()`
+
+Acquires an instance-scoped rate-limit token.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static rateLimit(key: string, limit: number, ttl: number): Promise<boolean>;
+```
+### Example
+
+```ts
+const allowed = await api.rateLimit('outbound:crm', 10, 60);
+```
+
+<span id="api-releaseRateLimit" aria-hidden="true"></span>
+
+## `api.releaseRateLimit()`
+
+Releases a rate-limit key.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static releaseRateLimit(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.releaseRateLimit('outbound:crm');
+```
+
+<span id="api-releaseConcurrencyLimit" aria-hidden="true"></span>
+
+## `api.releaseConcurrencyLimit()`
+
+Releases a concurrency-limit key.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static releaseConcurrencyLimit(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.releaseConcurrencyLimit('sync:customers');
+```
+
+<span id="api-triggerEvent" aria-hidden="true"></span>
+
+## `api.triggerEvent()`
+
+Schedules a custom event.
+
+Notes:
+- The third argument accepts relative seconds, an absolute Date, or an options object.
+- Options `scheduleDate` accepts the same relative-seconds or absolute-Date contract.
+- The maximum delay is 2,592,000 seconds (30 days).
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static triggerEvent(
+      name: string,
+      message: any,
+      scheduleDateOrOptions?: AutomationSchedule | TriggerEventOptions,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const eventId = await api.triggerEvent(
+  'customer_sync',
+  { customerId: 'c-1' },
+  {
+    scheduleDate: 300,
+    metadata: { correlationId: 'sync-123' },
+  },
+);
+```
+
+<span id="api-triggerTarget" aria-hidden="true"></span>
+
+## `api.triggerTarget()`
+
+Schedules generic execution against a normalized target.
+
+Notes:
+- Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
+- `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static triggerTarget(
+      targetType: ExecutionTargetType,
+      targetId: string,
+      input?: any,
+      schedule?: AutomationSchedule,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const jobId = await api.triggerTarget('JOB_TEMPLATE', templateId, {
+  customerId: 'c-1',
+});
+```
+
+<span id="api-triggerJob" aria-hidden="true"></span>
+
+## `api.triggerJob()`
+
+Schedules a job template.
+
+Notes:
+- No-op in debug mode.
+- Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateId, ...)`.
+- `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+
+### Signature
+
+```ts
+static triggerJob(
+      templateId: string,
+      input?: any,
+      schedule?: AutomationSchedule,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const jobId = await api.triggerJob(
+  templateId,
+  { customerId: 'c-1' },
+  new Date(Date.now() + 15 * 60 * 1000),
+);
+```
+
+<span id="api-triggerWebhook" aria-hidden="true"></span>
+
+## `api.triggerWebhook()`
+
+Schedules a webhook delivery.
+
+Notes:
+- `schedule` accepts relative seconds or an absolute Date, up to 30 days.
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static triggerWebhook(
+      webhook: WebhookInput,
+      schedule?: AutomationSchedule,
+    ): Promise<Webhook>;
+```
+### Example
+
+```ts
+const webhook = await api.triggerWebhook({
+  request: {
+    url: 'https://example.com/hook',
+    method: 'POST',
+    body: { ok: true },
+  },
+});
+```
+
+<span id="api-httpCall" aria-hidden="true"></span>
+
+## `api.httpCall()`
+
+Performs an outbound HTTP request.
+
+Notes:
+- Supports proxy mode, form-data, Storage streaming, and optional current credentials.
+- Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
+- Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
+- `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
+- For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
+- HTTP Storage targets use one provider-streamed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
+- `requestType: 'storage'` and `responseType: 'storage'` are not valid; Storage is selected by `source`/`target` while `requestType`/`responseType` describe HTTP encoding.
+- `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
+- For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
+- JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
+
+### Signature
+
+```ts
+static httpCall(
+      config: HttpRequestInterface,
+      options?: HttpRequestOptionsInterface & {
+        timeout?: number;
+        proxy?: boolean;
+      },
+    ): Promise<{
+      status: number;
+      statusText: string;
+      time: number;
+      headers: LooseObject<string>;
+      data: any;
+      storage?: { session: StorageUploadSession; entry: StorageEntryView };
+      request: {
+        config: HttpRequestInterface & { timeout?: number };
+        options: HttpRequestOptionsInterface & {
+          timeout?: number;
+          proxy?: boolean;
+        };
+      };
+    }>;
+```
+### Example
+
+```ts
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/customers',
+    method: 'POST',
+    data: { customerId: 'customer-1' },
+  },
+  {
+    requestType: 'json',
+    responseType: 'json',
+    timeout: 15000,
+  },
+);
+
+Multipart request with one Storage file:
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/upload',
+    method: 'POST',
+    formData: [
+      { key: 'description', value: 'Contract' },
+      { key: 'file' },
+    ],
+  },
+  {
+    requestType: 'form-data',
+    source: { storageEntryId },
+  },
+);
+
+Multipart request with multiple Storage files:
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/merge',
+    method: 'POST',
+    formData: [
+      { key: 'contract', storageEntryId: contractEntryId },
+      { key: 'attachments', storageEntryId: attachmentsEntryId },
+    ],
+  },
+  { requestType: 'form-data' },
+);
+
+Storage response stream:
+const response = await api.httpCall(
+  { url: 'https://example.com/report.csv', method: 'GET' },
+  {
+    responseType: 'stream',
+    target: {
+      name: 'report.csv',
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+    },
+  },
+);
+
+Storage request stream:
+await api.httpCall(
+  { url: 'https://example.com/import', method: 'POST' },
+  { requestType: 'stream', source: { storageEntryId } },
+);
+
+Storage conversion:
+await api.httpCall(
+  { url: 'https://example.com/convert', method: 'POST' },
+  {
+    requestType: 'stream',
+    source: { storageEntryId: sourceEntryId },
+    responseType: 'stream',
+    target: { name: 'converted.pdf', contentTypeHint: 'application/pdf' },
+  },
+);
+```
+
+<span id="api-sftpExec" aria-hidden="true"></span>
+
+## `api.sftpExec()`
+
+Executes multiple SFTP commands in order.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static sftpExec(commands: any[], config: SFTPClient): Promise<any>;
+```
+### Example
+
+```ts
+await api.sftpExec([['mkdir', '/archive']], connection);
+```
+
+<span id="api-sftpPut" aria-hidden="true"></span>
+
+## `api.sftpPut()`
+
+Streams an Explorer Storage entry directly to SFTP without loading file bytes into low-code memory.
+
+Notes:
+- No-op in debug mode.
+- Prefer &#123; storageEntryId &#125; for Explorer Storage files. String inputs are legacy fileIds.
+- SFTP references use Explorer Storage; namespace is not part of this API.
+
+### Signature
+
+```ts
+static sftpPut(
+      source: SFTPFileSourceRef,
+      path: string,
+      config: SFTPClient,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);
+```
+
+<span id="api-sftpGet" aria-hidden="true"></span>
+
+## `api.sftpGet()`
+
+Streams an SFTP file directly into Explorer Storage and returns the finalized Storage entry.
+
+Notes:
+- No-op in debug mode.
+- Use &#123; storage: ... &#125; to create an entry or &#123; storageEntryId, replace: true &#125; to replace one.
+- Repeated finalization signals are idempotent.
+- For text files, computeStats: 'sync' makes line statistics available immediately.
+
+### Signature
+
+```ts
+static sftpGet(
+      target: SFTPFileTargetRef,
+      path: string,
+      config: SFTPClient,
+    ): Promise<void | { session: StorageUploadSession; entry: StorageEntryView }>;
+```
+### Example
+
+```ts
+const result = await api.sftpGet({
+  storage: {
+    name: 'daily.csv',
+    parentStorageEntryId: folderId,
+    contentTypeHint: 'text/csv',
+    computeStats: 'sync',
+    retention: { ttlSeconds: 604800 },
+  },
+}, '/incoming/report.csv', connection);
+```

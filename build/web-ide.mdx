@@ -1,0 +1,145 @@
+---
+title: Web IDE
+description: Author, validate, debug, compare, and deploy Components in a runtime-aware browser workspace.
+icon: laptop-code
+---
+
+The Web IDE is the primary browser authoring surface for RevoEngine Components. It combines a Component tree, element-level files, Monaco language tooling, multiple tabs, split editing, code search, a debugger, change review, and controlled deployment.
+
+## Understand the workspace
+
+| Area | What it does |
+| --- | --- |
+| Navigation tree | Groups Components by category and exposes their elements. Changed items are separated so pending work remains visible. |
+| Tabs | Keeps several elements open, supports pinning, reordering, closing, and a second split pane. |
+| Monaco editor | Provides completion, diagnostics, references, rename, formatting, and runtime-aware definitions. |
+| Debugger | Runs the selected Component with JSON input and shows stream, result, history, and performance. |
+| Deploy review | Lists changed Components/elements and shows a diff before selected changes are deployed. |
+
+Opening `/editor/:id` focuses a specific Component while keeping the complete workspace available.
+
+## Runtime-aware types
+
+The editor loads declarations for the current runtime and active library manifest. Completion covers:
+
+- low-code globals: `api`, `util`, `storage`, and `agent`, plus active libraries under `lib.Category.Name.ElementKey.X`;
+- current `@revoengine/sdk` contracts used by custom Node.js;
+- active instance library namespaces;
+- definitions and references across loaded Component workspaces.
+
+Library calls use the generated namespace:
+
+```js
+const customer = await lib.CRM.Customers.Queries.getById(customerId);
+```
+
+Declaration hashes let the editor replace stale models after a runtime or library change. If completion disagrees with deployed behavior, reload the Component and verify its active version and current declarations before changing source.
+
+## Create or edit a Component
+
+1. Expand a category in the navigation tree.
+2. Use **Add component** or open an existing Component.
+3. Add, rename, reorder, hide, delete, or restore elements from their action menus.
+4. Edit code in one or more tabs; pin important tabs or move one to the split pane.
+5. Resolve Monaco diagnostics and inspect definitions for every library call.
+6. Run the selected Component in the integrated debugger.
+7. Select **Deploy**, review diffs, choose the intended elements, and confirm.
+
+Changes remain local to the Web IDE workspace until deployed. Production builds warn before leaving the page with unsaved changes.
+
+## Search code
+
+The editor search is separate from workspace discovery. It searches executable Component content and can narrow by Component type, case sensitivity, and whole-word matching. Open a result to load the exact Component element in the editor.
+
+Use global workspace search to find a named resource; use editor search to find source references or implementation text.
+
+## Debug before deploy
+
+The debugger accepts JSON input and exposes timeout, memory, production mode, streaming, and dirty-library override settings. By default, it streams structured logs and a terminal result while preserving a local debug history.
+
+```json
+{
+  "orderId": "ord_8d31",
+  "operationId": "op_018f",
+  "dryRun": true
+}
+```
+
+Enable dirty-library overrides when the Component should execute against unsaved library changes already present in the Web IDE. Disable them to reproduce the currently deployed dependency set.
+
+<Warning>
+  Debug is not automatically side-effect free. Use test identities, test data, and idempotency keys. Production mode changes runtime behavior and should be enabled only for a deliberate production-context test.
+</Warning>
+
+The debugger's timeout and memory are interactive test limits, not a change to a Job or Endpoint configuration. See [Limits and quotas](/platform/limits-and-quotas).
+
+## Review and deploy
+
+Selecting **Deploy** opens a change review rather than saving every open tab blindly. The review groups changes by category and Component, lets you select visible items, and renders the original/modified diff for one element at a time.
+
+Before confirming:
+
+- verify every selected Component and element;
+- remove accidental whitespace or generated changes;
+- confirm renamed or deleted elements have no active consumers;
+- check library namespace and version implications;
+- run representative input through the debugger;
+- note the resulting Component version for rollout evidence.
+
+Deployment requires Component administrative capability. Authoring and viewing are governed by the Component role family; runtime calls additionally use the execution principal and resource ACLs.
+
+## Concurrent changes
+
+The Web IDE listens for Component lifecycle updates. When another operator creates, edits, deploys, deletes, or restores a Component, the workspace reconciles the incoming version. If the same item has local changes, the UI presents a merge or conflict decision rather than silently replacing the draft.
+
+Reloading without review can discard local work. When a conflict appears, compare the incoming deployed version with the local element, keep only intentional changes, and re-debug before deployment.
+
+## Assistant context actions
+
+From Monaco or a diff, send the selected text, symbol, file, or workspace reference to the Assistant. Context includes the resource identity and file location so the Assistant can load the correct Component rather than infer it from pasted text.
+
+Always review Assistant-proposed edits in the same diff and debugger flow as human-authored changes.
+
+## Recommended release workflow
+
+```text
+load current component
+  -> edit focused elements
+  -> resolve diagnostics
+  -> debug representative inputs
+  -> review dependency references
+  -> inspect deploy diff
+  -> deploy selected changes
+  -> verify endpoint/job behavior and trace
+```
+
+The Component deployment is only one boundary. If an Endpoint or Job pins an older version, activating a new Component version does not necessarily move that consumer.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Completion cannot find a library">
+    Confirm the library is active for the instance and use `lib.Category.Name.ElementKey.X`. Reload declarations after activation or version changes.
+  </Accordion>
+  <Accordion title="Debug passes but production fails">
+    Compare production mode, execution principal, dirty-library overrides, input, timeout, memory, and the Component version selected by the Endpoint or Job.
+  </Accordion>
+  <Accordion title="An incoming update conflicts with local changes">
+    Use the merge/diff flow. Do not overwrite until you identify which deployed elements changed and replay your test against the merged source.
+  </Accordion>
+  <Accordion title="Deploy is disabled">
+    Confirm that the workspace has deployable changes and that your account has the required Component administrative role.
+  </Accordion>
+</AccordionGroup>
+
+## Production checklist
+
+- Keep changes focused and review each selected element.
+- Use diagnostics and definition navigation before runtime testing.
+- Debug with realistic but safe input.
+- Verify dirty and deployed library behavior separately when relevant.
+- Record the deployed Component version.
+- Test the real Endpoint or Job with its actual principal and limits.
+- Inspect Trace after consequential releases.
+
+Prefer local authoring? The [VS Code extension](/developers/vscode-extension) and [CLI](/developers/cli) use the same platform contracts.

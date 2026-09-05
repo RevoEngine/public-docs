@@ -1,0 +1,266 @@
+---
+title: Agent configuration
+description: Configure a durable Agent's identity, runtime, permissions, tools, plugins, memory, workspace, inbox, delegation, and operating limits.
+icon: sliders
+---
+
+An Agent definition combines a stable operational identity with an execution principal, runtime defaults, capabilities, and safety policy. This page documents the configuration accepted by the current Platform API and explains how it maps to the **General**, **Identity**, **Runtime**, and **Tools** sections in the Agents workspace.
+
+## Configuration model
+
+Agent settings are intentionally split into three layers:
+
+| Layer | Purpose | Typical fields |
+| --- | --- | --- |
+| Agent record | Identity, ownership, availability, and audit metadata | `name`, `desc`, `status`, owner, service account, metadata |
+| `config` | Normal runtime behavior and Agent-owned capability attachments | model, reasoning, definition, instructions, automation, memory preferences, plugins, limits |
+| `policy` | Operator-enforced permissions and ceilings | default and per-tool access, policy plugins, concurrency and delegation limits |
+
+The effective runtime behavior is derived from platform policy, the Agent policy, the Agent configuration, and the current trigger. A configuration value cannot broaden a permission denied by the service account, tenant policy, or a more restrictive Agent policy.
+
+The current Agents UI covers the common operating settings. Top-level `metadata`, the structured `definition`, and advanced automation policy are API-managed fields.
+
+<Info>
+  Updating `config` or `policy` replaces that complete nested object. Read the current Agent, preserve unchanged sibling fields, and submit its current `version` to prevent overwriting a newer edit.
+</Info>
+
+## Identity, ownership, and profile
+
+### Agent record
+
+| Field | Required | Behavior |
+| --- | --- | --- |
+| `name` | Yes | Stable operator-facing name. The UI limits it to 160 characters. |
+| `desc` | No | Short responsibility and outcome summary. The UI limits it to 500 characters. |
+| `serviceAccountUserId` | Yes | Active service-account user used as the execution principal. Runs do not inherit the owner's permissions. |
+| `ownerId` | No | User or group that owns visibility and management. Defaults to the current user when omitted. |
+| `ownerType` | No | Normally `USER` or `GROUP`. |
+| `metadata` | No | Customer metadata, up to 16 KiB and 64 top-level keys. Keys beginning with `__` are reserved. |
+| `status` | Update only | `ACTIVE`, `PAUSED`, or `DISABLED`. New Agents are active. |
+| `version` | Update only | Optimistic-lock value returned by the latest read. |
+
+The Agent avatar is managed separately from the Agent update payload. Upload or clear it from the Agent detail rather than embedding image data in metadata.
+
+### Structured definition
+
+Use `config.definition` for the stable, operator-owned role contract that is applied to autonomous work:
+
+| Field | Limit | Use |
+| --- | --- | --- |
+| `identity` | 500 characters | What the Agent is and the boundary of its role |
+| `mission` | 2,000 characters | The durable outcome it owns |
+| `responsibilities` | 24 items, 500 characters each | Work the Agent is expected to perform |
+| `operatingPrinciples` | 24 items, 500 characters each | Rules for evidence, escalation, quality, and communication |
+| `successCriteria` | 24 items, 500 characters each | Observable conditions for a successful outcome |
+
+Keep the definition focused on durable identity and policy. Put detailed procedures, examples, and large reference material in the governed Agent workspace so operators can review and maintain them independently.
+
+`config.systemInstructions` adds Agent-specific operating guidance. It is subordinate to platform safety policy and does not bypass approvals or access control.
+
+### Work mode and persona
+
+The Agents UI also stores two profile presets:
+
+- `workMode`: `balanced`, `coding`, `business`, `analyst`, `operator`, or `creative`;
+- `persona`: `friendly`, `pragmatic`, `professional`, `concise`, `calm`, `mentor`, or `assertive`.
+
+Use them to describe the intended working style and operator-facing tone. Put requirements that must consistently govern autonomous execution in `definition` and `systemInstructions`; profile presets are not security or completion policy.
+
+<Warning>
+  Do not send the removed `profile` or `meta` objects. Use `config.definition`, `workMode`, `persona`, and top-level `metadata` instead.
+</Warning>
+
+## Model, reasoning, and planning
+
+### Supported values
+
+| Setting | Accepted values | Notes |
+| --- | --- | --- |
+| `config.model` | A model enabled for the current RevoEngine release and instance | Availability can differ by instance configuration. |
+| `config.reasoningEffort` | `low`, `medium`, `high`, `xhigh` | Higher effort is useful for ambiguous, multi-system, or high-risk work. |
+| `config.executionMode` | `interactive`, `execute`, `background`, `automation` | The UI offers interactive, background, and automation. Durable unattended work normally uses background or automation. |
+| `config.planningPolicy` | `standard`, `review_required` | `review_required` creates a review gate before executing the plan. |
+
+Choose the model and reasoning effort from task risk, ambiguity, latency, and cost requirements. Validate the selected combination with a representative bounded run before enabling recurring work.
+
+### Choose explicit operating defaults
+
+For production Agents, set the intended model, reasoning effort, execution mode, planning policy, and limits explicitly. This makes reviews and environment promotion predictable without relying on release-specific UI defaults.
+
+## Permissions and tools
+
+`policy.defaultToolPermission` controls calls without a specific override:
+
+| Value | UI label | Behavior |
+| --- | --- | --- |
+| `default` | Restricted | Read-only work can proceed; changes and external actions follow approval policy. |
+| `auto_review` | Auto review | Safe operations continue while risky changes pause for review. |
+| `full` | Full access | Removes normal per-call approval gates for the Agent; service-account, tenant, plugin, and operation-level restrictions still apply. |
+
+Use `policy.toolPermissions` for capability-specific overrides. Select capabilities in the **Tools** tab, or use the current names returned by the Platform API instead of hard-coding undocumented identifiers.
+
+`config.toolNames` and `policy.toolNames` associate registered capabilities with the Agent. They are not a substitute for permission policy: execution still depends on the service account, instance policy, target access, and approval classification.
+
+See [Approvals and plans](/ai/approvals-and-plans) for the decision model and [Tools and skills](/ai/tools-and-skills) for capability discovery.
+
+## Plugins
+
+There are two attachment layers:
+
+- `config.pluginIds` contains the Agent-owned default plugin attachments;
+- `policy.pluginIds` contains governance-managed attachments applied to Agent work.
+
+Both accept up to 64 plugin UUIDs. A direct run can add up to 32 registry plugins for that run without changing the Agent definition. Normal product configuration should reference active, reviewed registry plugins rather than embedding private integration configuration in the Agent payload.
+
+Plugin safety metadata, approval mode, side-effect classification, and operating limits remain enforceable after attachment. See [Plugins](/ai/plugins).
+
+## Inbox and trigger delivery
+
+`config.automation.defaultDeliveryMode` decides how Events, Schedules, and Agent handoffs enter the Agent when the trigger does not override it:
+
+| Mode | Behavior | Best for |
+| --- | --- | --- |
+| `INBOX` | Persists queued work before a run claims it | Auditable workloads, prioritization, delays, and de-duplication |
+| `DIRECT_RUN` | Creates a run immediately | Bounded, latency-sensitive work with controlled concurrency |
+
+The create form defaults to `INBOX`.
+
+### Inbox item fields
+
+| Field | Required | Contract |
+| --- | --- | --- |
+| `instruction` | Yes | Non-empty task instruction passed to the run when claimed |
+| `type` | No | Logical type, up to 128 characters |
+| `payload` | No | JSON object copied into run state |
+| `priority` | No | Integer from 0 to 1,000; higher values are claimed first |
+| `availableAt` | No | ISO timestamp after which the item can be claimed |
+| `dedupeKey` | No | Up to 255 characters; unique per Agent among non-terminal items |
+
+Use a deterministic de-duplication key for retried webhooks and recurring producers, for example `invoice:2026-09:customer-42`.
+
+### Direct run fields
+
+A direct run requires `instruction` and can include:
+
+- `triggerType`, `triggerRefType`, and `triggerRefId` for correlation;
+- `delaySeconds` from 0 to 86,400;
+- a JSON `state` object for run-scoped context;
+- up to 32 additional `pluginIds`.
+
+Do not use run state for secrets or durable files. Keep secrets in Secrets and persistent output in the Agent workspace.
+
+## Delegation and limits
+
+| Setting | Accepted range | Effective behavior |
+| --- | --- | --- |
+| `maxActiveRootRuns` | 1–32 | Concurrent admitted root runs; excess work waits for capacity |
+| `maxChildRuns` | 1–128 | Total delegated child runs available to one parent plan |
+| `maxConcurrentChildRuns` | 1–32 | Children started in parallel, never greater than the effective child-run total |
+| `maxTicks` | 1–1,000 | Explicit execution-tick ceiling; omit it when the Agent should not have a fixed tick budget |
+| `childFailureMode` | `fail_parent`, `merge_partial` | Stop the parent on child failure or merge verified partial results |
+
+Limits can be present in both `config` and `policy`. For concurrency and child limits, the lower configured or policy value wins. `policy.maxTicks` overrides `config.maxTicks`. `merge_partial` is effective when selected in either layer; otherwise failure mode is `fail_parent`.
+
+Start with one root run and two concurrent children. Increase concurrency only after the service account, downstream rate limits, idempotency, and output-merge behavior have been tested.
+
+## Memory configuration
+
+`config.memoryPolicy` accepts:
+
+| Field | Accepted value | Purpose |
+| --- | --- | --- |
+| `enabled` | Boolean | Stored Agent preference for durable cross-run memory |
+| `maxRecallEntries` | 1–64 | Preferred maximum number of recalled entries |
+| `maxRecallChars` | 128–64,000 | Preferred aggregate character budget for recalled summaries |
+
+The create form enables memory and starts with four entries and 1,200 characters. These are recall preferences, not permission grants. Current memory tools and tenant policy enforce their own bounds and ownership checks, and the runtime does not turn every successful answer into memory automatically.
+
+Use Agent memory for durable operating knowledge, session checkpoints for in-progress continuity, and workspace files for large or exact content. See [Memory and workspaces](/ai/memory-and-workspaces).
+
+## Workspace configuration
+
+Every successfully created Agent receives a managed workspace. Workspace assignment is changed through its dedicated operation rather than generic Agent configuration:
+
+| Mode | Required values | Behavior |
+| --- | --- | --- |
+| `MANAGED` | Current `version` | Creates and links a new managed Agent workspace |
+| `EXISTING` | `storageEntryId`, current `version` | Links an authorized regular Storage folder |
+
+Workspace replacement is blocked while the Agent has active runs. An existing folder must be accessible under the applicable Agent and operator authorization; another Agent's managed workspace cannot be attached as a shared folder.
+
+## Managed automation settings
+
+Automation policy can define how approval-required work is escalated and how managed notifications are delivered. These settings record operator intent; they do not bypass runtime approval policy, identity, or target access.
+
+Treat advanced automation fields as managed configuration and validate the current OpenAPI schema before generating them programmatically.
+
+## Complete example
+
+The following creation payload uses registry plugins and keeps policy separate from Agent-owned defaults:
+
+```json
+{
+  "name": "Release evidence coordinator",
+  "desc": "Collects release evidence, verifies required checks, and prepares an operator-ready summary.",
+  "serviceAccountUserId": "11111111-1111-4111-8111-111111111111",
+  "ownerType": "GROUP",
+  "ownerId": "22222222-2222-4222-8222-222222222222",
+  "metadata": {
+    "costCenter": "platform-operations"
+  },
+  "config": {
+    "reasoningEffort": "high",
+    "executionMode": "automation",
+    "planningPolicy": "standard",
+    "workMode": "operator",
+    "persona": "professional",
+    "systemInstructions": "Report only verified release evidence and identify missing checks explicitly.",
+    "definition": {
+      "identity": "Release evidence coordinator for production services.",
+      "mission": "Produce a complete, verifiable release readiness record.",
+      "responsibilities": [
+        "Collect build, test, migration, and release evidence.",
+        "Escalate missing or contradictory evidence."
+      ],
+      "operatingPrinciples": [
+        "Distinguish verified facts from recommendations.",
+        "Never expose secret values in reports."
+      ],
+      "successCriteria": [
+        "Every required check has a result or a named blocker.",
+        "The final summary links to durable workspace artifacts."
+      ]
+    },
+    "memoryPolicy": {
+      "enabled": true,
+      "maxRecallEntries": 4,
+      "maxRecallChars": 1200
+    },
+    "automation": {
+      "defaultDeliveryMode": "INBOX"
+    },
+    "pluginIds": ["33333333-3333-4333-8333-333333333333"],
+    "maxActiveRootRuns": 1,
+    "maxChildRuns": 4,
+    "maxConcurrentChildRuns": 2,
+    "maxTicks": 48,
+    "childFailureMode": "fail_parent"
+  },
+  "policy": {
+    "defaultToolPermission": "auto_review",
+    "maxActiveRootRuns": 1,
+    "maxChildRuns": 4,
+    "maxConcurrentChildRuns": 2,
+    "maxTicks": 48
+  }
+}
+```
+
+<CardGroup cols={2}>
+  <Card title="Operate Agents" href="/ai/agent-operations" icon="chart-line">
+    Run, inspect, recover, and scale durable Agent work.
+  </Card>
+  <Card title="Autonomous Agents" href="/ai/agents" icon="robot">
+    Return to the Agent product overview.
+  </Card>
+</CardGroup>

@@ -1,0 +1,107 @@
+---
+title: Limits and quotas
+description: Understand instance quotas, configuration validation, and runtime enforcement.
+icon: gauge-high
+---
+
+RevoEngine applies limits at several layers. The number accepted by a form is not automatically the capacity assigned to an execution: the effective limit is the lowest applicable value after instance policy, field validation, and runtime enforcement are evaluated.
+
+## The enforcement model
+
+```text
+published platform ceiling
+  -> instance quota
+  -> field and payload validation
+  -> runtime capacity and enforcement
+  = effective limit for this operation
+```
+
+| Layer | What it controls | Typical result |
+| --- | --- | --- |
+| Platform ceiling | The highest supported public value for a product capability. | A tenant cannot configure a value above it. |
+| Instance quota | Capacity and policy selected for one RevoEngine instance. | Enterprise instances can differ by environment or contract. |
+| Field validation | Whether one submitted configuration is structurally and numerically valid. | Invalid values fail before dispatch. |
+| Runtime enforcement | Deadline, memory, payload, concurrency, and resource admission during execution. | Work is stopped or rejected when the effective boundary is reached. |
+
+<Warning>
+  Do not infer production capacity from a default value shown in a new form. Defaults optimize authoring; instance quotas define entitlement, and runtime enforcement remains authoritative.
+</Warning>
+
+## Job execution contract
+
+The public Job contract supports the following platform ceilings:
+
+| Setting | Default | Public maximum | Notes |
+| --- | ---: | ---: | --- |
+| Timeout | 300 seconds | 3540 seconds (59 minutes) | A lower `jobTimeout` instance quota takes precedence. |
+| Memory | 128 MiB | 4096 MiB (4 GiB) | A lower `jobMemory` instance quota takes precedence. |
+| Concurrency group limit | — | 1000 active executions | Minimum is 1; applies per logical concurrency key. |
+| Concurrency lease TTL | — | 86,400 seconds | Bounds slot recovery; it is not the Job execution timeout. |
+
+The 59-minute ceiling is deliberate. Work that can exceed it should be split into checkpointed, idempotent Jobs rather than relying on a continuously held worker.
+
+```json
+{
+  "timeout": 1800,
+  "options": {
+    "memory": 512,
+    "concurrency": {
+      "key": "settlement-eu",
+      "limit": 1,
+      "ttl": 2100
+    }
+  }
+}
+```
+
+## Endpoint and Sandbox limits
+
+Endpoint limits are optimized for synchronous caller deadlines and may be lower than Job ceilings. The effective timeout and memory depend on the instance quota and Endpoint configuration. Set an Endpoint timeout below the upstream load balancer or client deadline so the caller receives a controlled platform error.
+
+Sandbox and Playground executions have separate validation intended for interactive development. They do not raise the ceiling of the Endpoint or Job that will run in production. Always test the final deployed surface with its real configuration and principal.
+
+## Other governed limits
+
+Capacity is not limited to CPU time and memory. Instance settings also govern product areas such as:
+
+- numbers of accounts, Permission groups, Components, Endpoints, and automation definitions;
+- API and automation rate or concurrency policy;
+- Storage and legacy File capacity;
+- audit, log, and history retention;
+- webhook scheduling and feature availability;
+- Agent, Assistant, and integration entitlements.
+
+Some payloads have structural limits independent of instance capacity. For example, user metadata is bounded to 16 KiB and 64 top-level keys, and top-level keys beginning with `__` are reserved by the platform.
+
+## What happens at a boundary
+
+| Boundary | Expected behavior |
+| --- | --- |
+| Invalid configuration | The create or update request is rejected; no execution is scheduled. |
+| Instance quota exceeded | Admission fails with a quota or validation error. Increasing a form value does not bypass it. |
+| Runtime timeout | The attempt reaches a terminal failure or expiry boundary; external side effects may already have occurred. |
+| Runtime memory exhausted | The attempt fails; inspect logs and Trace before retrying with a larger budget. |
+| Concurrency unavailable | Work waits, is retried according to its delivery contract, or fails when its lease/admission policy cannot be satisfied. |
+
+Timeout and infrastructure failure are ambiguous around remote systems. Before retrying, verify whether the external call committed and use a durable idempotency key.
+
+## Operator workflow
+
+1. Check the instance setting for the capability and environment.
+2. Configure the smallest timeout, memory, and concurrency budget that safely handles the workload.
+3. Validate the definition and execute a representative test.
+4. Observe peak duration, heap, payload, and downstream latency.
+5. Increase capacity only after confirming the actual constrained boundary.
+6. Re-test the deployed Endpoint, Job, Schedule, or dashboard widget—not only Playground.
+
+## Production guidance
+
+- Treat quotas as policy and capacity controls, not targets to consume.
+- Keep production and non-production instances independently configured.
+- Alert before sustained capacity exhaustion.
+- Split workflows that approach 59 minutes into recoverable stages.
+- Bound concurrency around the protected dependency.
+- Keep payloads and metadata small; place large artifacts in Storage.
+- Record any quota increase with an owner, reason, and rollback threshold.
+
+See [Jobs](/operate/jobs) for durable execution and [Endpoint configuration](/operate/endpoint-configuration) for synchronous runtime settings.

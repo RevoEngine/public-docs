@@ -1,0 +1,44 @@
+---
+title: Production patterns
+description: Practical patterns for reliable RevoEngine low-code components.
+icon: list-check
+---
+
+## Validate early
+
+Reject missing or invalid input before external calls. Keep endpoint validation and component checks aligned so background and direct executions behave consistently.
+
+```js
+const orderId = api.input('orderId');
+if (typeof orderId !== 'string' || orderId.length === 0) {
+  api.throw(400, { code: 'INVALID_ORDER_ID' });
+}
+```
+
+## Make retries explicit
+
+RevoEngine does not blindly retry synchronous endpoint or SDK mutations. Use idempotency keys supported by the destination and record the correlation identifier with the execution result.
+
+## Bound every read
+
+Select only required database fields, use filters and `take`, and paginate. Use Storage streaming for large files and database export APIs for full datasets.
+
+## Keep side effects observable
+
+Log stable identifiers and decisions, not entire payloads. Return resource or execution IDs that an operator can use in Activity, Trace, or Job history.
+
+## Separate reusable logic
+
+- Libraries: shared in-process business rules.
+- Components: reusable execution units with their own inputs and results.
+- Endpoints: synchronous HTTP contracts.
+- Job templates: durable background work.
+- Events: decoupled typed routing.
+
+## Handle uncertainty
+
+If an HTTP request, upload, or custom runtime call is interrupted after dispatch, the outcome can be indeterminate. Check the destination or durable RevoEngine record before repeating the operation.
+
+## Protect secrets
+
+Resolve secrets at the latest possible moment, use them only in the target call, and redact error context. Never return a secret value from a component.

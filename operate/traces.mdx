@@ -1,0 +1,58 @@
+---
+title: Traces and correlation
+description: Follow a request across RevoEngine services without exposing application secrets.
+icon: timeline
+---
+
+Trace answers a different question from Activity, database audit, and logs: it follows the technical path of one operation across service boundaries. Use it when you need to know where a request spent time, where it failed, or whether asynchronous work was accepted versus completed.
+
+## Start with the right identifier
+
+| Identifier | Best starting question |
+| --- | --- |
+| Operation ID | Which distributed path did this request, dispatch, or delivery take? |
+| Execution ID | Why did this Endpoint or Component execution fail or run slowly? |
+| Job ID | What happened to this durable background task and its retry lineage? |
+| Event history ID | Which Event targets were resolved, skipped, or executed? |
+| Thread/message or Agent/run ID | What did the Assistant or Agent turn do? |
+
+For HTTP endpoint support, capture the UTC timestamp, method/path, response status, and `x-revo-oid` response header. Do not collect the bearer credential or any signed URL.
+
+## Investigation sequence
+
+```text
+caller timestamp and outcome
+  -> Operation ID trace
+  -> Execution or Job record
+  -> scoped logs and selected component/version
+  -> durable result or finalized Storage artifact
+```
+
+An accepted asynchronous request only establishes that work was queued or started. Confirm a terminal Job/run state, delivery result, or finalized Storage artifact before concluding that work succeeded.
+
+## What to look for
+
+- **Ingress and authorization**: did the request reach the intended active Endpoint under an authorized principal?
+- **Route and validation**: was a definition selected and did its guard reject the structured input before execution?
+- **Resolution**: which Component version, custom runtime revision, schema Component, library set, and execution policy were selected?
+- **Execution**: which segment is slow or failed; did the configured timeout or cancellation boundary apply?
+- **Async handoff**: is a queue acceptance followed by a durable processor/Agent/automation result?
+- **External work**: did application code record a safe provider correlation ID that lets you verify an ambiguous timeout without replaying it?
+
+## Trace, logs, and history together
+
+| Surface | Use it for | Do not infer |
+| --- | --- | --- |
+| Trace | Cross-service path, timing, correlation | Business data history or unmasked request bodies. |
+| Logs | Structured details emitted by services or application code | Complete distributed ordering without correlation IDs. |
+| Activity | Versioned resource changes and author identity | Runtime execution outcome. |
+| Database audit | Row changes recorded after audit is enabled | Endpoint route or queue behavior. |
+| Job/Event history | Durable automation state and retries | Every cross-service timing segment. |
+
+## Safe support bundle
+
+Provide a narrow time range, IDs, sanitized status/error text, resource name/ID, selected version, and reproducible non-secret input shape. Redact headers, cookies, API keys, Secret values, private prompts, Storage download URLs, and customer payloads unless an approved secure support channel specifically requires them.
+
+<Tip>
+Use the [Observability guide](/operate/observability) for the complete operator workflow, then return here when the investigation needs a trace-first view.
+</Tip>

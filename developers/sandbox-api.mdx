@@ -1,0 +1,89 @@
+---
+title: Sandbox API
+description: Debug transient source, execute saved components, validate code, and consume request-scoped SSE logs.
+icon: flask
+---
+
+Sandbox is the authenticated authoring and ad-hoc execution surface. Its contract is separate from both the Platform API and customer-facing Endpoint invocation.
+
+Read `instance.endpoints.sandbox` from `GET /api/v1/me` or use the URL exposed by the platform. The Node.js SDK and CLI discover it automatically.
+
+## HTTP surface
+
+| Method and path | Purpose |
+| --- | --- |
+| `POST /v1/debug` | Execute transient component source and return one result envelope |
+| `POST /v1/debug/stream` | Execute transient source with request-scoped SSE logs |
+| `POST /v1/execute` | Execute a stored component, optionally at a version |
+| `POST /v1/execute/stream` | Execute a stored component with request-scoped SSE logs |
+| `POST /v1/validate` | Validate submitted component elements |
+| `POST /v1/compile` | Compatibility alias for validation; it does not build executable output |
+| `GET /v1/editor/types` | Return effective low-code, library, and hosted SDK declarations |
+| `GET /v1/editor/types/meta` | Return editor declaration versions and hashes |
+| `POST /v1/runtime/call` | Versioned batch transport used by `@revoengine/sdk` |
+
+The exact roles are operation-specific. Component authoring routes require component access; stored execution and SDK dispatch also accept the relevant automation or endpoint execution roles.
+
+## Debug transient TypeScript
+
+```bash
+curl "$REVO_SANDBOX_URL/v1/debug" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "type": "CODE_TS",
+    "timeout": 10,
+    "memory": 128,
+    "inputs": { "customerId": "customer-123" },
+    "elements": [
+      {
+        "key": "Main",
+        "order": 0,
+        "hidden": false,
+        "details": "api.log({ message: '\''Starting'\'' }); return { customerId: api.input('\''customerId'\'') };"
+      }
+    ]
+  }'
+```
+
+Transient payloads accept 1–1,000 elements. The default timeout is 10 seconds and the accepted maximum is 600 seconds. Memory defaults to 128 MB and is bounded at 2,048 MB; instance policy can impose a lower effective limit.
+
+## Execute saved code
+
+```bash
+curl "$REVO_SANDBOX_URL/v1/execute" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "componentId": "11111111-1111-4111-8111-111111111111",
+    "production": false,
+    "inputs": { "customerId": "customer-123" },
+    "timeout": 30,
+    "memory": 256
+  }'
+```
+
+Omit `componentVersion` to use the normal resolved version for that execution mode, or provide it when a workflow intentionally verifies an exact low-code revision.
+
+## Streaming contract
+
+Streaming debug and execute use `text/event-stream`. Consumers must parse named events rather than assuming every frame is a message:
+
+- `log` — structured `api.log(...)` output;
+- `result` — the single successful terminal payload;
+- `error` — the single failed terminal payload;
+- `done` — completion marker sent before close.
+
+A failed execution emits `error`, then `done` with `error: true`, and does not emit a normal result. Comment frames are heartbeats and can be ignored.
+
+<Note>
+  The stream is not durable history. Persist the returned Execution ID and use platform execution/history views for later diagnosis.
+</Note>
+
+Disconnect normally requests cooperative cancellation. A remote write accepted before disconnect may still complete. `backgroundProcessing` is an explicit debug-stream option for workflows that should continue after the client leaves.
+
+## Prefer supported clients
+
+Use [`revo component debug --stream`](/developers/cli-projects) for local component work and [`@revoengine/sdk`](/developers/sdk-overview) for runtime calls. Direct `/v1/runtime/call` integration requires contract-revision negotiation, call correlation, batch limits, and binary/date wire encoding; it is not a general-purpose JSON endpoint.

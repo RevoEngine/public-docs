@@ -1,0 +1,111 @@
+---
+title: Standalone Node.js SDK
+description: Connect a backend Node.js process to RevoEngine with lazy instance and Sandbox discovery.
+icon: server
+---
+
+Standalone applications construct `RevoClient`. Construction is synchronous and performs no network request; the first platform-backed call validates the API key through `/api/v1/me`, resolves its instance, and discovers the instance's Sandbox runtime.
+
+## Create a client
+
+```ts
+import { RevoClient } from '@revoengine/sdk';
+
+const apiKey = process.env.REVO_API_KEY;
+if (!apiKey) throw new Error('REVO_API_KEY is required.');
+
+const revo = new RevoClient({ apiKey });
+
+type Order = {
+  orderId: string;
+  status: string;
+  total: number;
+};
+
+const result = await revo.api.getDatabaseData<Order>('Orders', {
+  filter: { field: 'status', op: 'eq', value: 'OPEN' },
+  sort: ['-createdAt'],
+  take: 100,
+});
+
+console.log(result.data);
+```
+
+There is no separate `init()` or connect method.
+
+## Configuration
+
+Explicit constructor options take precedence over environment variables:
+
+```ts
+const revo = new RevoClient({
+  baseUrl: 'https://api.revoengine.com',
+  apiKey: process.env.REVO_API_KEY,
+  requestTimeoutMs: 30_000,
+  executionDefaults: {
+    language: 'typescript',
+    timeoutMs: 60_000,
+    memory: 256,
+  },
+  batch: {
+    failureMode: 'independent',
+    maxCalls: 16,
+    maxRequestBytes: 128 * 1024,
+    maxInFlight: 2,
+    maxQueuedCalls: 256,
+  },
+});
+```
+
+Supported aliases, in precedence order within each group:
+
+- URL: `REVO_URL`, `REVO_BASE_URL`, `REVOENGINE_URL`, `REVOENGINE_BASE_URL`
+- API key: `REVO_TOKEN`, `REVO_API_KEY`, `REVOENGINE_TOKEN`, `REVOENGINE_API_KEY`
+
+The default API origin is `https://api.revoengine.com`. The key identifies its instance, so `RevoClient` has no instance option.
+
+<Warning>
+  The standalone SDK is for trusted server-side Node.js processes. Never bundle an API key into browser code. The SDK does not read or write CLI credential files.
+</Warning>
+
+## Identity methods
+
+The three identity methods are asynchronous in standalone mode because they depend on lazy profile discovery:
+
+```ts
+const [user, instanceId, instance] = await Promise.all([
+  revo.api.currentUser(),
+  revo.api.getCurrentInstance(),
+  revo.api.getInstanceDetails(),
+]);
+```
+
+Execution-only context methods such as `api.input()`, `api.getContext()`, `api.getExecutionId()`, and runtime logging require a hosted execution and throw `RevoRuntimeContextUnavailableError` when called standalone.
+
+## Execute low-code with active libraries
+
+```ts
+type CustomerSummary = {
+  customerId: string;
+  balance: number;
+};
+
+const execution = await revo.execute<CustomerSummary>(
+  `
+    const customerId = api.input('customerId');
+    return lib.CRM.Customers.Queries.summary(customerId);
+  `,
+  {
+    inputs: { customerId: 'customer-123' },
+    timeoutMs: 10_000,
+  },
+);
+
+console.log(execution.results);
+```
+
+TypeScript is the default; set `language: 'javascript'` when required. One `execute()` call creates one bounded execution. Source and library functions remain inside RevoEngine; only the request and serializable result cross the transport.
+
+## Discovery failures
+
+`401` indicates an invalid key, while `403` means the authenticated identity lacks runtime permission. A profile that does not contain the bound instance or Sandbox endpoint is reported as a protocol error rather than guessed from the API hostname.

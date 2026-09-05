@@ -1,0 +1,28 @@
+---
+title: Glossary
+description: Current RevoEngine terminology.
+icon: book
+---
+
+| Term | Meaning |
+| --- | --- |
+| Instance | An isolated RevoEngine tenant with its own definitions, users, data, and runtime configuration. |
+| Component | A versioned unit of executable logic or a reusable library. |
+| Element | An ordered unit inside a low-code component, such as JavaScript, TypeScript, or a declarative step. |
+| Endpoint | An HTTP method and path definition that returns a static response or executes a component. |
+| Endpoint runtime | The managed execution boundary that matches and executes configured Endpoints. |
+| Sandbox | The authoring and ad-hoc execution boundary for debugging, validation, editor types, SDK calls, and plugin tests. |
+| Database | A governed table-like data definition with query, mutation, audit, export, and version-aware management. |
+| View | A saved database query; a materialized view persists refreshable results. |
+| Storage entry | A file or folder in RevoEngine Storage. |
+| Job template | A reusable background-execution definition. |
+| Job | One durable execution attempt with status, logs, and retry history. |
+| Event | A typed message route that can target jobs or Agents. |
+| Assistant | Interactive, thread-based AI for platform work, coding, and analysis. |
+| Agent | A configured durable AI worker with runs, sessions, memory, inbox, tools, and a workspace. |
+| Tool | An executable capability admitted by runtime policy. |
+| Skill | Guidance that teaches an Assistant or Agent how to use tools and platform contracts; it does not grant permissions. |
+| Plugin | A governed extension that exposes additional capabilities to an Assistant or Agent. |
+| Artifact | A durable result or attachment associated with a message or execution, such as a plan, tool result, or generated file. |
+| Execution ID | The identifier for one endpoint, Sandbox, or component execution. |
+| Operation ID | A distributed request trace identifier that can span service boundaries. |

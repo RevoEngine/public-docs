@@ -1,0 +1,65 @@
+---
+title: Database API
+description: Query and mutate RevoEngine databases safely from low-code.
+icon: database
+---
+
+Use the structured query API for most reads and writes. It provides explicit fields, filters, grouping, sorting, pagination, and JSON-path behavior without assembling SQL strings.
+
+## Read rows
+
+```js
+const response = await api.getDatabaseData('orders', {
+  fields: ['orderId', 'customerId', 'amount', 'createdAt'],
+  filter: {
+    and: [
+      { field: 'status', op: 'eq', value: 'CONFIRMED' },
+      { field: 'amount', op: 'gte', value: 100, filterType: 'number' },
+    ],
+  },
+  sort: { createdAt: 'DESC' },
+  take: 100,
+});
+
+return { rows: response.data, next: response.next };
+```
+
+Prefer a narrow field projection and bounded `take`. Follow the returned cursor or next-page contract instead of loading an unbounded table.
+
+## Mutate rows
+
+Use the dedicated insert, upsert, update, and delete methods. Bulk update and delete accept the canonical structured filter tree.
+
+```js
+await api.updateDatabaseDataRequest(
+  'orders',
+  { filter: { field: 'status', op: 'eq', value: 'NEW' }, take: 1000 },
+  { status: 'QUEUED' },
+);
+```
+
+## Transactions
+
+Use `api.transactionDatabase()` for check-then-write workflows that must commit together.
+
+```js
+const created = await api.transactionDatabase(async (tx) => {
+  const customerId = api.input('customerId');
+  const existing = await tx.getDatabaseData(
+    'customers',
+    { filter: { field: 'customerId', op: 'eq', value: customerId }, take: 1 },
+    { lock: 'update' },
+  );
+
+  if (existing.results === 0) {
+    await tx.insertDatabaseData('customers', [{ customerId, status: 'ACTIVE' }]);
+  }
+  return existing.results === 0;
+});
+```
+
+Await transaction calls sequentially. Keep sleeps and remote HTTP/SFTP side effects outside the callback because a transaction reserves a connection and may hold row locks.
+
+## Raw SQL
+
+`api.queryDatabase()` is for parameterized `SELECT` or `WITH` reads when the structured builder cannot express the query. Use the mutation helpers for writes.

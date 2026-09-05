@@ -1,0 +1,104 @@
+---
+title: Plugins
+description: Extend RevoEngine AI with governed tools, MCP servers, skills, and capability packages.
+icon: plug
+---
+
+Plugins extend the Assistant and autonomous Agents without changing the built-in runtime. A plugin can expose a RevoEngine component as a tool, connect an MCP server, add specialized guidance, or group related capabilities into one product package.
+
+Every plugin remains subject to tenant access, attachment rules, capability policy, safety classification, and approval policy.
+
+## Plugin types
+
+| Type | Provides | Good fit |
+| --- | --- | --- |
+| Component tools | One or more governed tools backed by a RevoEngine component | Tenant business actions, calculations, and internal integrations |
+| MCP server | Tools discovered from a Streamable HTTP or supported SSE MCP server | External systems and standardized tool providers |
+| Skill | Markdown guidance with optional capability dependencies | Repeatable workflows, standards, and domain playbooks |
+| Package | A product-level bundle of skills, tools, and MCP dependencies | A cohesive integration or team capability set |
+
+Skills and packages guide the runtime; they are not executable tools. A component or MCP-backed tool performs the actual operation.
+
+## Lifecycle
+
+<Steps>
+  <Step title="Create the definition">
+    Provide a clear name, description, capability summary, type-specific configuration, and availability settings.
+  </Step>
+  <Step title="Define safety metadata">
+    Classify mutation intent, target scope, reversibility, side effects, approval mode, timeout, and output limits. These declarations must match real behavior.
+  </Step>
+  <Step title="Test connectivity">
+    Test provider configuration without enabling the plugin for normal runtime use. For MCP, testing authenticates and initializes the server but does not replace the synchronized tool catalog.
+  </Step>
+  <Step title="Synchronize capabilities">
+    Sync component or MCP metadata. RevoEngine stores the discovered capability state so operators can inspect drift and keep the last known good MCP manifest when a refresh fails.
+  </Step>
+  <Step title="Attach and validate">
+    Attach the plugin to an Assistant thread, Agent configuration, Agent policy, or individual run. Start with a read-only validation before enabling writes.
+  </Step>
+  <Step title="Operate the lifecycle">
+    Update, re-sync, disable, restore, or delete the plugin as its provider changes. Soft-deleted definitions preserve historical metadata.
+  </Step>
+</Steps>
+
+## Availability and attachment
+
+Plugins can be attached to instance defaults, an Assistant thread, an Agent definition or policy, or an individual run. Discovery settings can make an active plugin available for appropriate work, but discovery is not an authorization grant. Disabled, deleted, or policy-blocked plugins cannot execute.
+
+Keep plugin availability narrow. Attach only the capabilities needed for the responsibility and validate read and write behavior separately.
+
+## Component tools
+
+A component tool maps a stable plugin operation to a versioned RevoEngine component. Define a concise input schema and output schema, keep execution bounded, and expose only the component operations the AI should call.
+
+Use component tools when business behavior already lives in RevoEngine or should share the platform's normal versioning, execution, and observability.
+
+## MCP servers
+
+MCP plugins keep authentication in RevoEngine Secrets and synchronize the remote capability contract for operator review. Each admitted operation retains its own safety and approval policy, so read and write capabilities from the same server can be governed differently.
+
+<Warning>
+  Never put bearer tokens, passwords, or private header values in plugin descriptions, prompts, or plain configuration fields. Bind authentication to RevoEngine Secrets.
+</Warning>
+
+When an MCP refresh fails, inspect the plugin status and last synchronization error. Re-test authentication and review the remote contract before enabling or trusting changed operations.
+
+## Skills and packages
+
+A plugin skill should describe one focused workflow, its success conditions, preferred tools, and safety boundaries. It can depend on exact plugin capabilities without duplicating their credentials or schemas.
+
+A package is the top-level aggregation boundary for a coherent offering. Keep dependencies acyclic and shallow, and avoid nesting packages inside packages. This makes review and lifecycle management predictable.
+
+## Safety model
+
+Each executable plugin operation can declare:
+
+- read, write, destructive, or external mutation intent;
+- reversible, operator-reversible, irreversible, or unknown reversibility;
+- Assistant-thread, Agent, tenant, or external target scope;
+- no, conditional, or always-required approval;
+- a safety tier and human-readable side-effect summary;
+- timeout, result size, and enablement limits.
+
+RevoEngine evaluates the installed definition, current policy, identity, target, and requested operation. Approval previews should show what will run and which target is affected—not credentials or private integration data.
+
+## Operational checklist
+
+- Use the narrowest input and output schemas.
+- Test and sync before attachment.
+- Verify that mutation intent and reversibility match the provider.
+- Require approval for external writes and destructive actions.
+- Set bounded timeouts and output sizes.
+- Treat a changed MCP manifest as a contract change.
+- Disable a plugin that no longer has a trustworthy current capability state.
+- Re-run a read-only Assistant or Agent validation after each material update.
+
+<CardGroup cols={2}>
+  <Card title="Tools and skills" href="/ai/tools-and-skills" icon="screwdriver-wrench">
+    See how plugin capabilities join the normal runtime.
+  </Card>
+  <Card title="Security and governance" href="/platform/security-and-governance" icon="shield-halved">
+    Review identity, roles, secrets, and audit boundaries.
+  </Card>
+</CardGroup>

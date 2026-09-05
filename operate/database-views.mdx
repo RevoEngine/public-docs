@@ -1,0 +1,160 @@
+---
+title: Database Views
+description: Build governed, reusable read models with structured queries or restricted read-only SQL, then query, export, and safely act on their output.
+icon: binoculars
+---
+
+A Database View is a named read model over one or more accessible Tables. It gives dashboards, Endpoints, Components, exports, and operators one stable output contract without copying the source data. The saved definition is read-only: querying a View never mutates its sources.
+
+Use a regular View when results should reflect current source rows on every read. Use a [Materialized View](/operate/materialized-views) when the query is expensive and a controlled freshness boundary is acceptable.
+
+## Create a View in the workspace
+
+1. Open **Databases → Views** and choose **Add**.
+2. Enter a stable name, optional category and description.
+3. Keep **Structured** unless the instance explicitly enables raw SQL and the use case requires it.
+4. Choose the root Table and an alias.
+5. Open **Builder** and configure output columns, joins, filters, grouping, and sorting.
+6. Preview the result. Inspect both the rows and the derived output definition.
+7. Decide whether the View is restricted and assign users or Groups.
+8. Save, then open **View** to query the saved output.
+
+The editor exposes separate builder sections so the query stays reviewable:
+
+| Section | Purpose |
+| --- | --- |
+| Output | Direct fields, aliases, casts, supported functions, and distinct output. Every output name must be unique. |
+| Joins | Accessible source Tables, unique aliases, `LEFT` or `INNER` joins, and explicit `AND`/`OR`/`NOT` conditions. |
+| Filter | Nested `and`, `or`, and `not` groups with type-aware field predicates. |
+| Group | Fields required by aggregate projections. |
+| Sort | Stable ascending or descending output order. |
+
+<Tip>
+  Preview after changing projections, joins, casts, or grouping. The preview returns the derived field definition and lineage that RevoEngine will save with the View.
+</Tip>
+
+## Structured definitions
+
+Structured mode is the default because it resolves logical Table names, checks access to every source, validates fields and expressions, and records direct field lineage. A representative create request looks like this:
+
+```json
+{
+  "name": "ready_order_totals",
+  "type": "VIEW",
+  "definitionMode": "STRUCTURED",
+  "restricted": true,
+  "groups": ["11111111-1111-4111-8111-111111111111"],
+  "request": {
+    "from": { "table": "orders", "alias": "o" },
+    "fields": [
+      { "field": "o.customerId", "as": "customerId" },
+      { "fn": "SUM", "args": [{ "field": "o.total", "castAs": "NUMERIC" }], "as": "readyTotal" }
+    ],
+    "filter": { "field": "o.status", "op": "eq", "value": "READY" },
+    "groupBy": ["o.customerId"],
+    "sort": { "customerId": "ASC" }
+  }
+}
+```
+
+Use the generated [Create a Database View](/api-reference/database-views/create-a-database-view) operation for the exact current request schema and enum values. Preview the same definition with [Preview a Database View definition](/api-reference/database-views/preview-a-database-view-definition) before saving it.
+
+## Raw SQL mode
+
+Raw SQL is an opt-in administrative capability, not a general bypass around the query model. It is shown only when the caller has Resource Admin and the instance enables raw Database Views.
+
+The public boundary accepts exactly one read-only `SELECT`, `WITH`, or `UNION` statement in the supported SQL dialect. Mutation, DDL, `SELECT INTO`, locking clauses, other schemas, and inaccessible relations are rejected. Output columns must be unique valid identifiers. The raw preview runs in a read-only transaction with a 15-second statement timeout; the query text is limited to 5 MiB.
+
+Raw definitions do not retain direct source-field lineage and cannot drive source update or delete actions. Prefer Structured mode when a governed builder can express the query.
+
+See [Preview a raw Database View query](/api-reference/database-views/preview-a-raw-database-view-query) for the generated request contract.
+
+## Query the saved output
+
+Open **View** in the UI, or call [Query Database View data](/api-reference/database-views/query-database-view-data). The request body addresses output fields; callers do not replace the saved source relation.
+
+```json
+{
+  "fields": ["customerId", "readyTotal"],
+  "filter": {
+    "field": "readyTotal",
+    "op": "gte",
+    "value": 1000,
+    "castAs": "NUMERIC"
+  },
+  "sort": { "readyTotal": "DESC" },
+  "take": 100,
+  "skip": 0,
+  "count": true
+}
+```
+
+The response envelope contains `data`, the returned `results` count, `next`, and `total` when `count` is requested. Use `take` and `skip` for deterministic paging; a positive `take` also enables the next-page probe.
+
+### Filters and casts
+
+- Combine conditions with nested `and`, `or`, and `not` groups.
+- Use scalar comparisons such as `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`, null checks, and text matching.
+- Use the array and JSON-array operators only with the corresponding output type.
+- Use `path` for nested JSON values. A typed JSON-path comparison requires `filterType` or `castAs`.
+- Use `castAs` when stored and comparison types differ, for example a text identifier that must sort numerically as `BIGINT`.
+- Project only required fields, and use explicit aliases for expressions and aggregates.
+
+Preview requests are clamped to at most 1000 rows. Query-string list endpoints accept `take` up to 10,000. The body-based View data operation does not publish a larger guaranteed page ceiling, so production clients should use small bounded pages instead of relying on an unbounded read.
+
+## Governed source actions
+
+A View is read-only, but a Structured View with direct primary-key lineage can define a separate, explicit update or delete workset against one of its source Tables.
+
+1. Open the saved View and choose the source action.
+2. Select a source whose complete primary key is projected directly.
+3. Preview the workset and review the affected count plus sample keys.
+4. Apply the update or explicitly confirm permanent deletion.
+
+The preview returns a short-lived mutation token bound to the caller, instance, View version, action, target Table, and key mapping. The token expires after 600 seconds. Changing the View invalidates it; a materialized refresh also invalidates a token created from an earlier materialization.
+
+Raw SQL Views cannot use actions. Source mutations run through the Database mutation path, so Table validation, ACL, batching, cache invalidation, and enabled row-audit capture still apply.
+
+Use the generated [Preview a Database View action](/api-reference/database-views/preview-a-database-view-action), [Apply an update](/api-reference/database-views/apply-an-update-through-a-database-view), and [Apply a delete](/api-reference/database-views/apply-a-delete-through-a-database-view) operations rather than constructing an action from a normal read response.
+
+## Access, audit, and cache boundaries
+
+| Boundary | Behavior |
+| --- | --- |
+| Platform role | Resource Read can read and preview accessible Views. Resource Write can create, update, refresh materialized Views, and use governed actions. Resource Admin also controls deletion, restore, and raw SQL. |
+| Restricted View | Instance/Support/Resource administrators, the creator, assigned users, and members or owners of assigned Groups can access it. Other callers receive the same not-found boundary as a missing View. |
+| Source access | Creation, preview, and actions re-check access to every referenced source Table. A View ACL does not grant access to create a new View over an inaccessible Table. |
+| Row audit | Reading a View does not create Table audit events. A governed source action is a real Table mutation and is captured when audit is enabled on that Table. |
+| View history | `version` protects updates from lost writes. Definition changes are not the same data stream as source-row audit. |
+| Database Cache | The **Databases → Cache** namespace is a separate application cache. A View or materialization is not a cache key and should not be managed through Cache operations. |
+
+## Lifecycle and failures
+
+- Creation counts against the instance's shared Database resource quota, together with Tables and other Views.
+- Names must be unique and use a stable identifier of at most 60 characters; category is limited to 30 characters and description to 1000.
+- A restricted request accepts at most 1000 user IDs and 1000 Group IDs; every referenced principal must exist.
+- Updates require the current `version`. A stale version fails rather than overwriting a newer definition.
+- Create and update build the database relation transactionally. Validation or database errors fail the request instead of saving a partial definition.
+- Delete is recoverable: the relation is tombstoned and can be restored if its logical name is available.
+- Export returns 202 and continues as an asynchronous CSV export to an authorized Storage destination. Export output queries cannot redefine joins, CTEs, or raw where clauses.
+
+## Database Views API
+
+The `Database Views` OpenAPI tag is generated from the current Platform API contract. Start with:
+
+- [List Database Views](/api-reference/database-views/list-database-views)
+- [Get a Database View](/api-reference/database-views/get-a-database-view)
+- [Update a Database View](/api-reference/database-views/update-a-database-view)
+- [Export Database View data](/api-reference/database-views/export-database-view-data)
+- [Delete Database Views](/api-reference/database-views/delete-database-views)
+- [Restore a Database View](/api-reference/database-views/restore-a-database-view)
+
+The generated reference owns exact fields, validation metadata, response codes, and schemas. This guide explains how the operations compose.
+
+## Related guides
+
+- [Materialized Views](/operate/materialized-views)
+- [Database definitions](/operate/database-definitions)
+- [Low-code Database API](/low-code/database)
+- [Schedules](/operate/schedules)
+- [Identity and access](/operate/identity-and-access)

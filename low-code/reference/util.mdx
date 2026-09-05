@@ -1,0 +1,730 @@
+---
+title: util reference
+description: Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **33 methods**. Search the docs for an exact method name, or use this index:
+
+- [`util.sleep()`](#util-sleep)
+- [`util.aesDecrypt()`](#util-aesDecrypt)
+- [`util.aesEncrypt()`](#util-aesEncrypt)
+- [`util.compareHash()`](#util-compareHash)
+- [`util.isBase64()`](#util-isBase64)
+- [`util.decodeBase64()`](#util-decodeBase64)
+- [`util.encodeBase64()`](#util-encodeBase64)
+- [`util.generateHash()`](#util-generateHash)
+- [`util.isUUID()`](#util-isUUID)
+- [`util.randomUUID()`](#util-randomUUID)
+- [`util.getUUID()`](#util-getUUID)
+- [`util.hashObject()`](#util-hashObject)
+- [`util.sha1()`](#util-sha1)
+- [`util.sha256()`](#util-sha256)
+- [`util.md5()`](#util-md5)
+- [`util.timingSafeEqual()`](#util-timingSafeEqual)
+- [`util.hmac()`](#util-hmac)
+- [`util.verifyHmacSignature()`](#util-verifyHmacSignature)
+- [`util.base64UrlEncode()`](#util-base64UrlEncode)
+- [`util.base64UrlDecode()`](#util-base64UrlDecode)
+- [`util.randomBytes()`](#util-randomBytes)
+- [`util.randomInt()`](#util-randomInt)
+- [`util.randomString()`](#util-randomString)
+- [`util.otp()`](#util-otp)
+- [`util.validate()`](#util-validate)
+- [`util.jwtDecode()`](#util-jwtDecode)
+- [`util.jwtSign()`](#util-jwtSign)
+- [`util.jwtVerify()`](#util-jwtVerify)
+- [`util.rsaDecrypt()`](#util-rsaDecrypt)
+- [`util.rsaEncrypt()`](#util-rsaEncrypt)
+- [`util.rsaGeneratePair()`](#util-rsaGeneratePair)
+- [`util.rsaSign()`](#util-rsaSign)
+- [`util.rsaVerify()`](#util-rsaVerify)
+
+<span id="util-sleep" aria-hidden="true"></span>
+
+## `util.sleep()`
+
+Waits asynchronously, capped at 60 seconds per call.
+
+### Signature
+
+```ts
+static sleep(ms: number): Promise<void>;
+```
+### Example
+
+```ts
+await util.sleep(250);
+```
+
+<span id="util-aesDecrypt" aria-hidden="true"></span>
+
+## `util.aesDecrypt()`
+
+AES decrypt helper.
+
+### Signature
+
+```ts
+static aesDecrypt(encrypted: string, passphrase: string): string;
+```
+### Example
+
+```ts
+const plain = util.aesDecrypt(encrypted, passphrase);
+```
+
+<span id="util-aesEncrypt" aria-hidden="true"></span>
+
+## `util.aesEncrypt()`
+
+AES encrypt helper.
+
+### Signature
+
+```ts
+static aesEncrypt(payload: string, passphrase: string): string;
+```
+### Example
+
+```ts
+const encrypted = util.aesEncrypt('secret', passphrase);
+```
+
+<span id="util-compareHash" aria-hidden="true"></span>
+
+## `util.compareHash()`
+
+Compares a value against a password hash.
+
+### Signature
+
+```ts
+static compareHash(
+      password: string | undefined,
+      hash: string | undefined,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const valid = await util.compareHash(password, hash);
+```
+
+<span id="util-isBase64" aria-hidden="true"></span>
+
+## `util.isBase64()`
+
+Checks whether a value is base64.
+
+### Signature
+
+```ts
+static isBase64(input: any): boolean;
+```
+### Example
+
+```ts
+const ok = util.isBase64(value);
+```
+
+<span id="util-decodeBase64" aria-hidden="true"></span>
+
+## `util.decodeBase64()`
+
+Decodes a base64 string.
+
+### Signature
+
+```ts
+static decodeBase64(base64String: string): string;
+```
+### Example
+
+```ts
+const text = util.decodeBase64(base64String);
+```
+
+<span id="util-encodeBase64" aria-hidden="true"></span>
+
+## `util.encodeBase64()`
+
+Encodes a string to base64.
+
+### Signature
+
+```ts
+static encodeBase64(plainString: string): string;
+```
+### Example
+
+```ts
+const encoded = util.encodeBase64('hello');
+```
+
+<span id="util-generateHash" aria-hidden="true"></span>
+
+## `util.generateHash()`
+
+Generates a password hash.
+
+### Signature
+
+```ts
+static generateHash(
+      password: string | undefined,
+      rounds?: number,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const hash = await util.generateHash(password, 10);
+```
+
+<span id="util-isUUID" aria-hidden="true"></span>
+
+## `util.isUUID()`
+
+Validates UUID shape.
+
+### Signature
+
+```ts
+static isUUID(input: any): boolean;
+```
+### Example
+
+```ts
+const ok = util.isUUID(value);
+```
+
+<span id="util-randomUUID" aria-hidden="true"></span>
+
+## `util.randomUUID()`
+
+Generates a random UUIDv7.
+
+### Signature
+
+```ts
+static randomUUID(): string;
+```
+### Example
+
+```ts
+const id = util.randomUUID();
+```
+
+<span id="util-getUUID" aria-hidden="true"></span>
+
+## `util.getUUID()`
+
+Returns a random UUIDv7 with no arguments, or a deterministic UUIDv5 only when
+both value and namespace are supplied. Do not generate IDs for server-created
+platform resources; use this only for caller-owned data values.
+
+### Signature
+
+```ts
+static getUUID(...args: [] | [value: string, namespace: string]): string;
+```
+### Example
+
+```ts
+const id = util.getUUID('customer-1', 'customers');
+```
+
+<span id="util-hashObject" aria-hidden="true"></span>
+
+## `util.hashObject()`
+
+Creates a stable hash from an object.
+
+### Signature
+
+```ts
+static hashObject(object: any): string;
+```
+### Example
+
+```ts
+const hash = util.hashObject({ customerId: 'c-1' });
+```
+
+<span id="util-sha1" aria-hidden="true"></span>
+
+## `util.sha1()`
+
+SHA-1 hash helper.
+
+### Signature
+
+```ts
+static sha1(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.sha1('payload');
+```
+
+<span id="util-sha256" aria-hidden="true"></span>
+
+## `util.sha256()`
+
+SHA-256 hash helper.
+
+### Signature
+
+```ts
+static sha256(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.sha256('payload');
+```
+
+<span id="util-md5" aria-hidden="true"></span>
+
+## `util.md5()`
+
+MD5 hash helper.
+
+### Signature
+
+```ts
+static md5(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.md5('payload');
+```
+
+<span id="util-timingSafeEqual" aria-hidden="true"></span>
+
+## `util.timingSafeEqual()`
+
+Performs a timing-safe comparison.
+
+### Signature
+
+```ts
+static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
+```
+### Example
+
+```ts
+const match = util.timingSafeEqual(a, b);
+```
+
+<span id="util-hmac" aria-hidden="true"></span>
+
+## `util.hmac()`
+
+Creates an HMAC signature.
+
+### Signature
+
+```ts
+static hmac(
+      payload: Uint8Array | string,
+      secret: string,
+      algorithm?: 'sha1' | 'sha256' | 'sha512',
+      encoding?: 'hex' | 'base64',
+    ): string;
+```
+### Example
+
+```ts
+const signature = util.hmac('payload', secret, 'sha256', 'hex');
+```
+
+<span id="util-verifyHmacSignature" aria-hidden="true"></span>
+
+## `util.verifyHmacSignature()`
+
+Verifies an HMAC signature.
+
+### Signature
+
+```ts
+static verifyHmacSignature(
+      payload: Uint8Array | string,
+      signature: string,
+      secret: string,
+      algorithm?: 'sha1' | 'sha256' | 'sha512',
+      encoding?: 'hex' | 'base64',
+    ): boolean;
+```
+### Example
+
+```ts
+const ok = util.verifyHmacSignature('payload', signature, secret);
+```
+
+<span id="util-base64UrlEncode" aria-hidden="true"></span>
+
+## `util.base64UrlEncode()`
+
+Encodes base64url.
+
+### Signature
+
+```ts
+static base64UrlEncode(input: Uint8Array | string): string;
+```
+### Example
+
+```ts
+const encoded = util.base64UrlEncode('payload');
+```
+
+<span id="util-base64UrlDecode" aria-hidden="true"></span>
+
+## `util.base64UrlDecode()`
+
+Decodes base64url.
+
+### Signature
+
+```ts
+static base64UrlDecode(input: string): Uint8Array;
+```
+### Example
+
+```ts
+const decoded = util.base64UrlDecode(tokenPart);
+```
+
+<span id="util-randomBytes" aria-hidden="true"></span>
+
+## `util.randomBytes()`
+
+Generates random bytes as a string.
+
+### Signature
+
+```ts
+static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
+```
+### Example
+
+```ts
+const bytes = util.randomBytes(16, 'hex');
+```
+
+<span id="util-randomInt" aria-hidden="true"></span>
+
+## `util.randomInt()`
+
+Generates a random integer.
+
+### Signature
+
+```ts
+static randomInt(min?: number, max?: number): number;
+```
+### Example
+
+```ts
+const n = util.randomInt(1000, 9999);
+```
+
+<span id="util-randomString" aria-hidden="true"></span>
+
+## `util.randomString()`
+
+Generates a random string.
+
+### Signature
+
+```ts
+static randomString(length?: number, alphabet?: string): string;
+```
+### Example
+
+```ts
+const token = util.randomString(24);
+```
+
+<span id="util-otp" aria-hidden="true"></span>
+
+## `util.otp()`
+
+Generates a numeric one-time code.
+
+### Signature
+
+```ts
+static otp(length?: number): string;
+```
+### Example
+
+```ts
+const code = util.otp(6);
+```
+
+<span id="util-validate" aria-hidden="true"></span>
+
+## `util.validate()`
+
+Validates a payload with the platform schema validator used by Endpoints.
+
+Notes:
+- When 'whitelist' is false and 'whitelistErrors' is false, unknown properties are removed from the returned value.
+
+### Signature
+
+```ts
+static validate(
+      payload: any,
+      schema: ValidatorSchemaInput,
+    ): ValidationResult<any>;
+```
+### Example
+
+```ts
+const result = util.validate(
+  api.input()?.body,
+  {
+    whitelist: false,
+    whitelistErrors: false,
+    schema: {
+      type: 'object',
+      required: true,
+      objectSchema: [
+        { property: 'email', schema: { type: 'string', required: true } },
+      ],
+    },
+  },
+);
+```
+
+<span id="util-jwtDecode" aria-hidden="true"></span>
+
+## `util.jwtDecode()`
+
+Decodes a JWT without verifying it.
+
+### Signature
+
+```ts
+static jwtDecode(
+      token: string,
+      options?: { complete?: boolean; json?: boolean },
+    ): any;
+```
+### Example
+
+```ts
+const payload = util.jwtDecode(token);
+```
+
+<span id="util-jwtSign" aria-hidden="true"></span>
+
+## `util.jwtSign()`
+
+Signs a JWT.
+
+### Signature
+
+```ts
+static jwtSign(
+      payload: string | object,
+      secret: string | { key: string; passphrase: string },
+      options?: {
+        algorithm?:
+          | 'HS256'
+          | 'HS384'
+          | 'HS512'
+          | 'RS256'
+          | 'RS384'
+          | 'RS512'
+          | 'ES256'
+          | 'ES384'
+          | 'ES512'
+          | 'PS256'
+          | 'PS384'
+          | 'PS512'
+          | 'none';
+        keyid?: string;
+        expiresIn?: string | number;
+        notBefore?: string | number;
+        audience?: string | string[];
+        subject?: string;
+        issuer?: string;
+        jwtid?: string;
+        mutatePayload?: boolean;
+        noTimestamp?: boolean;
+        header?: JWTHeader;
+        encoding?: string;
+        allowInsecureKeySizes?: boolean;
+        allowInvalidAsymmetricKeyTypes?: boolean;
+      },
+    ): string;
+```
+### Example
+
+```ts
+const token = util.jwtSign(
+  { sub: 'c-1' },
+  secret,
+  { expiresIn: '1h' },
+);
+```
+
+<span id="util-jwtVerify" aria-hidden="true"></span>
+
+## `util.jwtVerify()`
+
+Verifies a JWT.
+
+### Signature
+
+```ts
+static jwtVerify(
+      token: string,
+      secret: string | { key: string; passphrase: string },
+      options?: {
+        algorithms?: (
+          | 'HS256'
+          | 'HS384'
+          | 'HS512'
+          | 'RS256'
+          | 'RS384'
+          | 'RS512'
+          | 'ES256'
+          | 'ES384'
+          | 'ES512'
+          | 'PS256'
+          | 'PS384'
+          | 'PS512'
+          | 'none'
+        )[];
+        audience?: string | RegExp | Array<string | RegExp>;
+        clockTimestamp?: number;
+        clockTolerance?: number;
+        complete?: boolean;
+        issuer?: string | string[];
+        ignoreExpiration?: boolean;
+        ignoreNotBefore?: boolean;
+        jwtid?: string;
+        nonce?: string;
+        subject?: string;
+        maxAge?: string | number;
+        allowInvalidAsymmetricKeyTypes?: boolean;
+      },
+    ): any;
+```
+### Example
+
+```ts
+const payload = util.jwtVerify(token, secret);
+```
+
+<span id="util-rsaDecrypt" aria-hidden="true"></span>
+
+## `util.rsaDecrypt()`
+
+Decrypts with RSA.
+
+### Signature
+
+```ts
+static rsaDecrypt(
+      privateKey: string,
+      payload: string,
+      passphrase?: string,
+    ): string;
+```
+### Example
+
+```ts
+const plain = util.rsaDecrypt(privateKey, encrypted, passphrase);
+```
+
+<span id="util-rsaEncrypt" aria-hidden="true"></span>
+
+## `util.rsaEncrypt()`
+
+Encrypts with RSA.
+
+### Signature
+
+```ts
+static rsaEncrypt(publicKey: string, payload: string): string;
+```
+### Example
+
+```ts
+const encrypted = util.rsaEncrypt(publicKey, 'hello');
+```
+
+<span id="util-rsaGeneratePair" aria-hidden="true"></span>
+
+## `util.rsaGeneratePair()`
+
+Generates an RSA key pair.
+
+### Signature
+
+```ts
+static rsaGeneratePair(config?: {
+      modulusLength?: number;
+      passphrase?: string;
+    }): { publicKey: string; privateKey: string };
+```
+### Example
+
+```ts
+const pair = util.rsaGeneratePair({ modulusLength: 2048 });
+```
+
+<span id="util-rsaSign" aria-hidden="true"></span>
+
+## `util.rsaSign()`
+
+Signs data with RSA.
+
+### Signature
+
+```ts
+static rsaSign(
+      privateKey: string,
+      payload: string,
+      passphrase?: string,
+    ): string;
+```
+### Example
+
+```ts
+const signature = util.rsaSign(privateKey, 'hello', passphrase);
+```
+
+<span id="util-rsaVerify" aria-hidden="true"></span>
+
+## `util.rsaVerify()`
+
+Verifies an RSA signature.
+
+### Signature
+
+```ts
+static rsaVerify(
+      publicKey: string,
+      payload: string,
+      signature: string,
+    ): boolean;
+```
+### Example
+
+```ts
+const ok = util.rsaVerify(publicKey, 'hello', signature);
+```

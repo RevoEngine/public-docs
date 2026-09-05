@@ -1,0 +1,195 @@
+---
+title: Identity and access
+description: Give people and workloads the smallest practical access, then verify the same identity and ACL boundary in every execution surface.
+icon: users-gear
+---
+
+RevoEngine combines identity, platform roles, and resource-level access control. Authorization is evaluated for the current instance and current principal at each request or execution boundary.
+
+## Follow the UI in the order an operator does
+
+The workspace exposes **Users**, **Service Accounts**, **Groups**, and **Permissions** as distinct sidebar areas. That separation mirrors the model: first establish who or what executes, then give it platform roles, then grant access to a restricted Table, Storage folder, or other governed resource.
+
+<CardGroup cols={3}>
+  <Card title="Person" icon="user">
+    Use Users for interactive operators and their instance access lifecycle.
+  </Card>
+  <Card title="Workload" icon="server">
+    Use Service Accounts for Jobs, CI, server integrations, and Agents.
+  </Card>
+  <Card title="Boundary" icon="shield-halved">
+    Use Groups and Permissions to express resource membership and reusable platform roles separately.
+  </Card>
+</CardGroup>
+
+## Access model
+
+```text
+identity is valid
+  + instance access is enabled
+  + required platform role is present
+  + resource ACL allows the principal when restricted
+  = operation admitted
+```
+
+Passing one layer does not bypass the others. For example, `RESOURCE_WRITE` permits data changes only for a Table the principal can access, unless the principal has the corresponding administrative authority.
+
+## Identity types
+
+| Identity | Best for |
+| --- | --- |
+| User | Interactive work in the RevoEngine application and user-attributed API calls. |
+| Service account | Endpoints, jobs, Agents, CI, servers, and other unattended integrations. |
+| Support access | Explicit, time-limited RevoEngine support access under the dedicated support security mode. |
+
+Use separate service accounts for systems with different blast radius or ownership. Do not run production automation under a developer's personal identity.
+
+## Users
+
+Open **Users** to invite, inspect, update, activate, disable, restore, or delete human accounts. User administration and platform access are separate lifecycle decisions.
+
+- **Disable account** blocks the user for the current tenant lifecycle while preserving recoverable account state.
+- **Disable platform access** removes access to the RevoEngine workspace without treating the account record as deleted.
+- **Delete** is the permanent account lifecycle boundary.
+- **Restore / activate** re-enables an eligible account after an administrator reviews roles and group membership.
+
+Disabling an account or removing platform access invalidates existing instance sessions and disconnects active Realtime sockets as the security change propagates.
+
+Existing API-key records are retained while an account is disabled, but admission rejects keys whose owner is inactive. Deleting the account is the permanent API-key cleanup boundary.
+
+## Service accounts
+
+Open **Service Accounts** to create a non-human principal, assign ownership metadata, attach permissions, and manage its API keys.
+
+A good service account has:
+
+- one clear workload or system owner;
+- least-privilege role groups;
+- explicit access to restricted resources it needs;
+- short or reviewed API-key lifetime;
+- a documented rotation and incident-revocation procedure.
+
+Automation reloads the configured execution principal when work runs. A disabled or deleted service account causes the execution to fail safely instead of inheriting the person who created the template.
+
+## Groups and permissions
+
+RevoEngine distinguishes two group concepts:
+
+| Concept | Purpose |
+| --- | --- |
+| Group | Collect users for resource-level access, such as a restricted Table or Storage folder. |
+| Permission group | Collect platform roles and assign that role set to users. Shown as **Permissions** in the application. |
+
+Open **Groups** to manage membership used by resource ACLs. Open **Permissions** to compose reusable role sets and attach users.
+
+This separation lets a finance team receive access to finance resources through a Group while only selected operators receive `RESOURCE_WRITE` through a Permission group.
+
+## Role families
+
+Most platform capabilities use read, write/runner, and admin or invoke roles:
+
+| Family | Examples |
+| --- | --- |
+| Instance | Full instance administration and security settings. |
+| Users | Read, write, and administrative account lifecycle. |
+| Resources | Tables, Views, row data, ACLs, and Database audit. |
+| Files | Storage read/download and Storage administration. |
+| Components | Read, author, activate, and administer executable logic. |
+| Endpoints | Read, write, administer, and separately invoke. |
+| Automation | Read, run, and administer templates, jobs, events, schedules, and webhooks. |
+| Secrets | Read metadata, manage accessible Secrets, and administer all Secrets. |
+| Realtime | Connect and capability-specific Realtime access. |
+
+`INSTANCE_ADMIN` is intentionally broad. Prefer scoped role families for routine users and workloads.
+
+## Resource ACLs
+
+Tables, Views, Storage entries, and other supported resources can be restricted to explicit users and Groups. Authorization uses current membership at request time.
+
+For hierarchical Storage, a restricted ancestor continues to constrain descendants. For automation, remember that the execution principal—not the person viewing the template—must pass the resource ACL.
+
+## API keys
+
+API keys belong to a user or service account and inherit that principal's current access. A key is not an independent superuser.
+
+When creating a key:
+
+1. Choose a descriptive workload name.
+2. Prefer a service account owner.
+3. Add an expiration date where practical.
+4. Restrict source IP, network, or range when the workload has stable egress.
+5. Store the value once in a secret manager.
+6. Test with the exact roles and resource ACLs used in production.
+
+```bash
+curl "$REVO_PLATFORM_URL/api/v1/endpoints" \
+  -H "Authorization: Bearer $REVO_API_KEY"
+```
+
+Never commit a key or paste it into an Assistant thread. Key metadata can be listed later; the secret value should be handled as a one-time credential.
+
+## Human login and instance sessions
+
+Human authentication begins with the configured identity provider. Enterprise instances can operate in **SSO** or **HYBRID** mode with approved SAML and OIDC/JWK providers. The instance policy determines which providers are accepted and whether eligible identities are automatically provisioned or require an administrator workflow.
+
+SSO is an identity boundary, not an authorization shortcut. A successfully authenticated person still needs enabled instance access, assigned roles/Permission groups, and any resource ACL membership required by the operation.
+
+Organization workspaces require multi-factor authentication and a registered browser before an instance-bound session is issued.
+
+The browser session is short-lived and bound to the account, selected instance, trusted device, and current security revision. The application refreshes it while the device and account remain eligible.
+
+Users can inspect and revoke trusted browsers. Revoking a device prevents future session refresh for that registration. Resetting multi-factor authentication invalidates prior device trust.
+
+## Support access
+
+Support is a distinct security mode, not a role that a normal session can self-select. It requires an eligible internal support identity, explicit assignment to the instance, multi-factor verification, and a time-limited grant.
+
+Support access never turns an API key or normal user session into a support session. Instance-bound HTTP and Realtime services validate that the session mode and request mode match.
+
+## High-level backend mechanism
+
+Global identity establishes who the caller is and which instances they may select. The instance control plane stores current account state, roles, permission groups, Groups, resource ACLs, and API-key records. Every governed execution establishes instance context before loading authorization and fails closed when identity state is incomplete.
+
+Authorization-relevant changes invalidate shared security state. Short session lifetimes and revision binding provide a hard backstop for already issued credentials.
+
+## Access review checklist
+
+- Separate human and workload identities.
+- Use one service account per system or trust boundary.
+- Assign roles through Permission groups where possible.
+- Use Groups for restricted-resource membership.
+- Review `INSTANCE_ADMIN` assignments frequently.
+- Expire and source-restrict API keys where practical.
+- Disable an identity immediately during an incident; delete only at the intended lifecycle boundary.
+- Revoke unrecognized trusted devices.
+- Test automation with its real execution principal.
+- Verify Realtime disconnect and HTTP denial after critical access changes.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Users" icon="user" href="/operate/users">
+    Provision people and manage their lifecycle and memberships.
+  </Card>
+  <Card title="Service Accounts" icon="server" href="/operate/service-accounts">
+    Create workload identities and rotate their API keys.
+  </Card>
+  <Card title="Groups" icon="users" href="/operate/groups">
+    Govern access to restricted resources.
+  </Card>
+  <Card title="Permissions" icon="shield-keyhole" href="/operate/permissions">
+    Compose reusable platform role sets.
+  </Card>
+  <Card title="Authentication" icon="key" href="/developers/authentication">
+    Authenticate Platform API and runtime requests.
+  </Card>
+  <Card title="Security and governance" icon="shield-halved" href="/platform/security-and-governance">
+    Review the platform-wide security model.
+  </Card>
+  <Card title="Secrets" icon="vault" href="/operate/secrets">
+    Store workload credentials outside source and configuration payloads.
+  </Card>
+  <Card title="API reference" icon="brackets-curly" href="/api-reference/introduction">
+    Manage accounts, Groups, Permission groups, roles, and keys programmatically.
+  </Card>
+</CardGroup>

@@ -1,0 +1,252 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "luma",
+  "name": "RevoEngine",
+  "description": "Build, automate, and operate production software with RevoEngine.",
+  "colors": {
+    "primary": "#202124",
+    "light": "#F5F5F5",
+    "dark": "#6B6B6B"
+  },
+  "logo": {
+    "light": "/logo/logo-light.png",
+    "dark": "/logo/logo-dark.png"
+  },
+  "favicon": "/favicon.svg",
+  "navbar": {
+    "links": [
+      { "label": "Status", "href": "https://revoengine.statuspage.io/" }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Open RevoEngine",
+      "href": "https://app.revoengine.com"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Platform",
+        "icon": "layer-group",
+        "groups": [
+          {
+            "group": "Get started",
+            "icon": "rocket",
+            "pages": ["introduction", "quickstart", "platform/ui-tour", "platform/search"]
+          },
+          {
+            "group": "Guides",
+            "icon": "compass",
+            "pages": ["platform/first-production-workflow"]
+          },
+          {
+            "group": "Architecture and concepts",
+            "icon": "cubes",
+            "pages": [
+              "platform/overview",
+              "platform/enterprise-execution",
+              "platform/architecture",
+              "platform/environments-and-versions",
+              "platform/instance-settings",
+              "platform/security-and-governance",
+              "platform/limits-and-quotas",
+              "platform/glossary"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Build",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "Components",
+            "pages": ["build/components", "build/component-configuration", "build/libraries", "build/custom-nodejs", "build/web-ide", "build/playground", "build/debugging"]
+          },
+          {
+            "group": "Low-code runtime",
+            "pages": [
+              "low-code/overview",
+              "low-code/runtime-api",
+              "low-code/json-validator",
+              "low-code/database",
+              "low-code/http-and-storage",
+              "low-code/patterns",
+              "low-code/reference/index",
+              "low-code/reference/api",
+              "low-code/reference/storage",
+              "low-code/reference/agent",
+              "low-code/reference/util"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Operate",
+        "icon": "diagram-project",
+        "groups": [
+          {
+            "group": "Application delivery",
+            "pages": [
+              "operate/endpoints",
+              "operate/endpoint-configuration",
+              "operate/databases",
+              "operate/database-definitions",
+              "operate/database-audit",
+              "operate/database-views",
+              "operate/materialized-views",
+              "operate/database-cache",
+              "operate/storage",
+              "operate/files",
+              "operate/automation",
+              "operate/jobs",
+              "operate/schedules",
+              "operate/events",
+              "operate/webhooks",
+              "operate/event-history"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operate/dashboards",
+              "operate/chat",
+              "operate/realtime",
+              "operate/observability",
+              "operate/traces",
+              "operate/identity-and-access",
+              "operate/users",
+              "operate/service-accounts",
+              "operate/groups",
+              "operate/permissions",
+              "operate/secrets"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "AI & Agents",
+        "icon": "sparkles",
+        "groups": [
+          {
+            "group": "Assistant",
+            "pages": ["ai/overview", "ai/assistant", "ai/assistant-configuration", "ai/agentic-coding", "ai/approvals-and-plans"]
+          },
+          {
+            "group": "Autonomous agents",
+            "pages": [
+              "ai/agents",
+              "ai/agent-configuration",
+              "ai/agent-operations",
+              "ai/tools-and-skills",
+              "ai/plugins",
+              "ai/memory-and-workspaces"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developers",
+        "icon": "terminal",
+        "groups": [
+          {
+            "group": "Integrate",
+            "pages": [
+              "developers/overview",
+              "developers/platform-api",
+              "developers/endpoint-runtime",
+              "developers/sandbox-api",
+              "developers/authentication",
+              "developers/errors"
+            ]
+          },
+          {
+            "group": "Node.js SDK",
+            "pages": [
+              "developers/sdk-overview",
+              "developers/sdk-hosted",
+              "developers/sdk-standalone",
+              "developers/sdk-storage-and-batching"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": ["developers/cli", "developers/cli-projects", "developers/cli-environments"]
+          },
+          {
+            "group": "VS Code",
+            "pages": ["developers/vscode-extension"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "brackets-curly",
+        "groups": [
+          {
+            "group": "Before you start",
+            "pages": ["api-reference/introduction", "api-reference/authentication", "api-reference/http-codes"]
+          },
+          {
+            "group": "Platform API",
+            "openapi": "api-reference/openapi.json"
+          }
+        ]
+      },
+      {
+        "tab": "Legal",
+        "icon": "scale-balanced",
+        "groups": [
+          {
+            "group": "Policies and terms",
+            "pages": [
+              "resources/introduction",
+              "resources/platform-terms-and-conditions",
+              "resources/cloud-services-and-support-terms-and-conditions",
+              "resources/privacy-policy-and-cookies",
+              "resources/service-level-agreement-sla",
+              "resources/support-policy"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "api": {
+    "openapi": "api-reference/openapi.json",
+    "playground": { "display": "interactive", "proxy": true, "credentials": false },
+    "params": { "expanded": "closed" },
+    "examples": {
+      "languages": ["curl", "javascript", "python"],
+      "defaults": "required",
+      "autogenerate": true
+    }
+  },
+  "search": {
+    "prompt": "Search RevoEngine concepts, guides, SDK examples, and API operations"
+  },
+  "contextual": {
+    "options": ["copy", "view"],
+    "display": "toc"
+  },
+  "metadata": { "timestamp": true },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:title": "RevoEngine Documentation",
+      "og:description": "Build and operate secure low-code applications, APIs, automation, and AI agents."
+    }
+  },
+  "redirects": [
+    { "source": "/run-api/:slug*", "destination": "/developers/endpoint-runtime" },
+    { "source": "/solutions/endpoints", "destination": "/operate/endpoints" },
+    { "source": "/solutions/databases", "destination": "/operate/databases" },
+    { "source": "/solutions/files", "destination": "/operate/storage" },
+    { "source": "/solutions/jobs", "destination": "/operate/automation" },
+    { "source": "/solutions/realtime", "destination": "/operate/realtime" },
+    { "source": "/features/ai-assistant", "destination": "/ai/assistant" },
+    { "source": "/features/events", "destination": "/operate/automation" },
+    { "source": "/features/schedule", "destination": "/operate/automation" },
+    { "source": "/resources", "destination": "/platform/overview" }
+  ]
+}

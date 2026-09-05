@@ -1,0 +1,148 @@
+---
+title: Realtime
+description: Keep operator interfaces current with authenticated WebSocket events and transient presence.
+icon: bolt
+---
+
+Realtime keeps RevoEngine clients responsive without making WebSockets the source of truth. It delivers resource changes, execution activity, editor presence, and chat presence to authenticated clients.
+
+## What Realtime delivers
+
+| Signal | Typical use |
+| --- | --- |
+| Resource event | Patch a list after an Endpoint, Component, Storage entry, Agent, or other managed object changes. |
+| Activity | Show recent execution or collaboration activity. |
+| Web IDE presence | Coordinate active editor clients. |
+| Chat typing and activity | Display short-lived collaboration state. |
+| Agent and Assistant updates | Refresh threads, messages, runs, and deployment state. |
+
+Realtime notifications are hints that something changed. Durable state remains available through the Platform API.
+
+## Connection flow
+
+```text
+authenticate
+  -> establish instance-bound WebSocket connection
+  -> join the allowed application channel when needed
+  -> receive events and activity
+  -> reload authoritative state
+  -> reconnect and resubscribe after interruption
+```
+
+The RevoEngine web application manages this flow automatically. A custom client should use the Realtime URL and authentication mode configured for its environment.
+
+## Authentication
+
+Realtime accepts the supported instance-bound user session or RevoEngine API-key identity. Human sessions follow the same instance and organization security rules as HTTP requests. Service and API-key identities are checked against their current owner, restrictions, and platform access.
+
+The connection is authorized before tenant data is loaded. Current user roles and group membership determine which resource notifications can be delivered.
+
+For organization workspaces, the short-lived instance session also applies to Realtime. A socket cannot outlive the applicable authorization lifetime. Account disable, deletion, or platform-access removal disconnects matching live clients when the security change propagates.
+
+<Warning>
+  Do not place bearer tokens or API keys in application logs. Use the supported client authentication flow and redact the WebSocket URL before sharing diagnostics.
+</Warning>
+
+## Client messages
+
+The protocol has a small set of client commands:
+
+| Type | Purpose |
+| --- | --- |
+| `PING` / `PONG` | Maintain liveness. |
+| `JOIN` / `LEAVE` | Enter or leave a supported application channel. |
+| `STATS` | Request user-visible channel statistics. |
+| `CHAT_TYPING` | Publish transient typing state after chat authorization. |
+| `CHAT_ACTIVITY` | Publish transient active/inactive chat state. |
+
+Clients cannot subscribe to arbitrary server channels. Channel admission is constrained by the product capability and the caller's access.
+
+## Server messages
+
+Outbound messages are grouped into:
+
+- `REALTIME` for application-defined live messages;
+- `EVENT` for managed resource lifecycle changes;
+- `ACTIVITY` for operational and collaboration activity.
+
+Use the message's context and stable resource identity to decide what to refresh. Do not assume that every event includes the complete resource payload.
+
+## Reconnect correctly
+
+Networks, browser sleep, authorization refresh, and service maintenance can all interrupt a socket. A production client should:
+
+1. Detect close and error states.
+2. Refresh expired authentication through the normal auth flow.
+3. Reconnect with bounded exponential backoff and jitter.
+4. Rejoin required supported channels.
+5. Reload active views from the Platform API.
+6. Resume transient presence only after membership is restored.
+
+The web application exposes connection state and performs a refetch after reconnect for views where a missed event could matter.
+
+<Tip>
+  Build the page so its initial API load is complete without Realtime. Then use events to reduce refresh latency.
+</Tip>
+
+## Ordering and duplicates
+
+Realtime is not a durable ordered event log. A client can observe duplicates, coalesced updates, or a gap during reconnect. Apply these rules:
+
+- identify resources by stable ID;
+- compare the resource version when available;
+- make event application idempotent;
+- ignore an older update after a newer version is already visible;
+- refetch after reconnect instead of replaying assumptions locally.
+
+For durable business triggers and replay, use [Automation Events](/operate/automation), not Realtime.
+
+## Publish from low-code
+
+Components can publish an application message to the supported Realtime channel:
+
+```js
+await api.publishMessage('ALL', {
+  type: 'order.progress',
+  orderId: api.input('orderId'),
+  state: 'PACKED',
+});
+```
+
+Publishing is a user-experience side effect. Store important business state first, then publish a compact notification that lets clients reload it.
+
+Realtime publishing is disabled in transient debug execution, so debugging a Component does not notify production-facing clients.
+
+## High-level backend mechanism
+
+Each connected client belongs to one Realtime process. Cross-process publication distributes a resource or activity signal to every process that may own matching sockets. The final dispatcher applies instance, user, group, role, channel, and thread ownership filters before sending.
+
+Connection membership and short duplicate-suppression windows are transient. Durable resource and event history remains in the control plane and should be queried after reconnect.
+
+## Production checklist
+
+- Use Realtime as invalidation and presence, not durable storage.
+- Authenticate with the same instance identity used for HTTP access.
+- Reconnect with bounded backoff and refresh credentials when required.
+- Rejoin supported channels after reconnect.
+- Refetch authoritative state after a connection gap.
+- Make handlers version-aware and idempotent.
+- Keep messages compact and free of secrets.
+- Persist business state before publishing its notification.
+- Use Automation Events when replay and durable fan-out are required.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Automation Events" icon="gears" href="/operate/automation">
+    Trigger durable, replayable workflows from business events.
+  </Card>
+  <Card title="Authentication" icon="key" href="/developers/authentication">
+    Establish an instance-bound user or service identity.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/operate/observability">
+    Correlate execution and lifecycle evidence after an update.
+  </Card>
+  <Card title="Runtime API" icon="code" href="/low-code/runtime-api">
+    Publish compact application messages from Components.
+  </Card>
+</CardGroup>

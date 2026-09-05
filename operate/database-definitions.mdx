@@ -1,0 +1,157 @@
+---
+title: Database Tables
+description: "Create and operate durable Tables with explicit definitions, constraints, partitions, indexes, ACLs, audit, and data lifecycle."
+icon: table
+---
+
+A Database Table is both a governed schema and the durable record store behind it. Its name, field definition, partition strategy, access policy, and audit setting form the contract used by UI, low-code Components, Endpoints, Jobs, Agents, and the Platform API.
+
+## Tables workspace
+
+Open **Databases → Tables** to search the currently configured Tables by name, category, or description. Select a Table to keep the data grid visible while its side panel exposes:
+
+- **Details** — stable name, category, description, and lifecycle;
+- **Metadata** — bounded customer-owned JSON labels;
+- **Partitions** — logical parent and LIST, RANGE, HASH, or default partition boundaries;
+- **Size** — total, row data, indexes, and audit allocation;
+- **Definition** — ordered column definitions;
+- **Audit** — future row-change capture;
+- **Restricted** — named users and Groups permitted to access the Table.
+
+The Table grid is the operator data surface: inspect, filter, sort, add, edit, and delete records according to your Resource role and the Table ACL. Use the Platform API, SDK, or low-code Database API for application traffic rather than automating the browser.
+
+## A practical `orders` definition
+
+For a typical order workflow, start with an immutable `UUID` primary key, a queryable status, and an explicitly time-zoned business timestamp. Add a provider reference only when it is the idempotency proof for an external side effect. The goal is not to represent every possible field; it is to make the few invariants the rest of the platform can trust.
+
+```json
+[
+  { "name": "orderId", "type": "UUID", "isPrimaryKey": true, "isNullable": false, "isUnique": true, "isIndex": true },
+  { "name": "status", "type": "TEXT", "isPrimaryKey": false, "isNullable": false, "isIndex": true },
+  { "name": "confirmedAt", "type": "TIMESTAMPTZ", "isPrimaryKey": false, "isNullable": true },
+  { "name": "providerReference", "type": "TEXT", "isPrimaryKey": false, "isNullable": true, "isUnique": true }
+]
+```
+
+In the UI, **Definition** presents columns as Name, Type, Default, and Details. Select one to edit its specific constraints rather than changing the complete Table blindly.
+
+## Table fields
+
+| Field | Rules |
+| --- | --- |
+| `name` | 1–60 characters; starts with a letter or `_`; later characters are letters, numbers, or `_`. Treat it as a durable identifier. |
+| `category` | Optional operator-facing grouping, up to 30 characters. |
+| `desc` | Optional description, up to 1000 characters. |
+| `restricted`, `groups`, `users` | Resource access policy. Specify principals deliberately when `restricted` is enabled. |
+| `audit` | Captures insert, update, and delete events after audit is enabled. It does not recreate earlier history. |
+| `metadata` | Optional JSON object, limited to 16 KiB / 64 top-level keys. Keys starting `__` are reserved. |
+| `definition` | One to 1000 field definitions for a normal Table. |
+| `parent`, `partition` | Partitioned-table configuration where the relevant table model supports it. |
+
+## Field types
+
+| Family | Supported types | Use for |
+| --- | --- | --- |
+| Integer | `SMALLINT`, `INTEGER`, `BIGINT` | Whole-number counters and IDs. Choose the smallest range that remains safe. |
+| Decimal / floating point | `REAL`, `DOUBLE PRECISION`, `NUMERIC` | Approximate values (`REAL`, `DOUBLE PRECISION`) or exact decimal values (`NUMERIC`). Use `NUMERIC` for money-like calculations where rounding must be controlled. |
+| Structured | `JSON`, `JSONB` | Semi-structured payloads. Prefer explicit fields for values that are filtered, joined, or constrained frequently. |
+| Text / identity | `TEXT`, `UUID` | Textual values and globally unique identifiers. |
+| Date and time | `DATE`, `TIME`, `TIMETZ`, `TIMESTAMP`, `TIMESTAMPTZ` | Calendar, clock, and temporal values. Prefer `TIMESTAMPTZ` for an event that represents one instant across time zones. |
+| Logical | `BOOLEAN` | Explicit true/false state. |
+
+## Field definition
+
+Every field supplies the following shape:
+
+```json
+{
+  "name": "orderId",
+  "desc": "External order identifier",
+  "type": "UUID",
+  "isPrimaryKey": true,
+  "isArray": false,
+  "isUnique": true,
+  "isNullable": false,
+  "isIndex": true,
+  "default": null,
+  "foreignReferences": []
+}
+```
+
+| Field property | Meaning |
+| --- | --- |
+| `name` | 1–63 characters; valid identifier syntax: starts with letter or `_`, then letters, numbers, `_`. |
+| `desc` | Optional description, up to 200 characters. |
+| `type` | One supported type in the table above. |
+| `isPrimaryKey` | Marks the primary key. A primary key cannot be an array. |
+| `isArray` | Stores an array of the selected type. |
+| `isUnique` | Requires uniqueness across the Table. |
+| `isNullable` | Allows `NULL`. Do not rely on this as a substitute for input validation at public boundaries. |
+| `isIndex` | Requests an index for a frequently filtered, joined, or sorted field. Indexes have write/storage cost. |
+| `default` | Optional string, number, or boolean default. Make defaults explicit in the application contract. |
+| `foreignReferences` | Optional target mappings and referential actions. |
+
+Select a row in **Definition** to open the column panel. The UI keeps primary-key rules explicit: an array cannot be a primary key, and nullable, unique, index, and collection controls apply only where the field is not the primary key. Column metadata is edited independently from the Table's own metadata.
+
+## Foreign references
+
+One reference group contains one or more mappings plus actions for updates and deletes:
+
+```json
+{
+  "reference": [
+    { "column": "customerId", "targetDatabase": "customers", "targetColumn": "customerId" }
+  ],
+  "onUpdate": "cascade",
+  "onDelete": "restrict"
+}
+```
+
+`onUpdate` accepts `none`, `cascade`, or `restrict`. `onDelete` accepts `none`, `cascade`, `restrict`, `default`, or `null`. Select `cascade` only when deleting or changing a parent must intentionally change every dependent record.
+
+## Query and index design
+
+Start with one primary key and indexes justified by observed filters, joins, sorting, or materialized-view refreshes. Do not index every field. Composite and predicate index definitions, where supported by the specific data surface, use structured fields rather than raw SQL: supported access methods are `btree`, `hash`, `gist`, `spgist`, `gin`, and `brin`; predicates use typed operators such as `eq`, `gte`, `in`, and `isnull`.
+
+Use a View or Materialized View for a reusable multi-table read model. A View's output fields are derived from its saved query; changing source field names can therefore be an application breaking change.
+
+## Partition large Tables deliberately
+
+Partitioning is a physical scale and lifecycle decision, not a replacement for normal indexes. Create a logical parent, choose a supported partition key, then add child partitions:
+
+| Strategy | Configuration | Typical use |
+| --- | --- | --- |
+| `LIST` | One or more exact values | Region, tenant class, business unit |
+| `RANGE` | Inclusive lower and exclusive upper boundary; unbounded edges may use `MINVALUE`/`MAXVALUE` | Month, day, numeric band |
+| `HASH` | `modulus` and one `remainder` from `0` to `modulus - 1` | Even distribution without business ranges |
+| Default partition | `isDefault: true` | Explicit catch-all for values outside configured children |
+
+The partition key and audit policy are inherited from the logical parent. A child partition cannot redefine them independently. Plan non-overlapping ranges/list values and create the next time partition before traffic reaches its boundary.
+
+## Operate records
+
+The data surface supports bounded reads, field projection, typed filters, sorting, inserts, updates, deletes, and bulk mutations. Schema validation runs before a supported write reaches the Table. Primary keys, uniqueness, nullability, references, and types can still reject a request even when the caller is authorized.
+
+Use **Export** for a governed CSV artifact in Storage, **Clone** for an asynchronous copy of the definition with optional data and partitions, and **Truncate** only for administrative bulk removal. Truncate preserves identity counters unless explicitly told to restart them and never emits row-level audit events.
+
+<Warning>
+  A Table definition update is an application contract change. Review Components, Endpoints, Views, exports, and external consumers before renaming or removing a field.
+</Warning>
+
+## Production review
+
+- Choose `UUID` or a consciously sized integer key before data is inserted.
+- Keep timestamps in a documented time-zone convention.
+- Enable audit before regulated changes begin.
+- Validate data at Endpoint boundaries; constraints are the last line of defense, not client feedback.
+- Review foreign-reference delete behavior with a real dependency graph.
+- Use query traces and actual filters before adding indexes.
+
+## Related guides
+
+- [Low-code Database API](/low-code/database)
+- [Database operations](/operate/databases)
+- [Database Audit](/operate/database-audit)
+- [Database Views](/operate/database-views)
+- [Materialized Views](/operate/materialized-views)
+- [Traces and correlation](/operate/traces)

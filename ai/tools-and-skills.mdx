@@ -1,0 +1,126 @@
+---
+title: Tools and skills
+description: Understand how RevoEngine AI discovers context, follows guidance, and executes governed operations.
+icon: screwdriver-wrench
+---
+
+Tools and skills solve different parts of an AI task:
+
+- A **tool** performs an operation: search, read, compare, validate, execute, write, or call an attached plugin.
+- A **skill** is focused guidance for how to solve a class of problems with the available tools.
+- A **plugin** adds tenant-specific tools, skills, MCP servers, or a package of related capabilities.
+
+A skill never grants permission by itself. Identity, policy, target access, and approval requirements still determine whether an operation can execute.
+
+## Platform-aware capability families
+
+Exact availability depends on the current identity, target, Agent or thread configuration, and instance policy.
+
+| Capability | What it does | Typical safety |
+| --- | --- | --- |
+| Reference search | Finds authorized components, endpoints, databases, storage entries, Agents, jobs, and other platform objects | Read-only |
+| Describe | Loads the current contract and allowed next operations for an exact target | Read-only |
+| Snapshot history, get, and diff | Reads historical versions and compares changes | Read-only |
+| Code search and describe | Finds implementation references and loads exact runtime or library declarations | Read-only |
+| Dependency graph | Shows relationships and likely blast radius | Read-only |
+| Operations investigation | Reads job history, logs, webhooks, events, and correlated failures | Read-only |
+| Safe code execution | Runs bounded validation, calculation, or debug probes | Execute, restricted |
+| Platform apply | Performs an admitted Platform API read or mutation against an exact contract | Approval depends on operation |
+| Storage | Reads or writes managed files within an authorized scope | Reads are safe; writes depend on scope and policy |
+| Public web research | Searches and loads current public information when enabled | External read |
+| Plugins and integrations | Invokes an attached, governed business or external capability | Determined by the operation and plugin policy |
+| Collaboration | Requests clarification, delivers an approved message, or hands work to an eligible Agent | Identity, target, and action policy apply |
+| Durable knowledge | Saves concise reusable context within an allowed memory scope | Memory ownership and policy apply |
+
+These families describe product capabilities, not unconditional permissions or a guarantee that every capability is available in every thread.
+
+## Breadth without overclaiming
+
+RevoEngine can combine model reasoning with live, authorized application context, execution evidence, generated runtime types, persistent workspace artifacts, controlled web research, and instance-specific plugins. This makes it broad for the lifecycle of a RevoEngine application: design, build, debug, operate, and improve.
+
+It is not positioned as a universal, unrestricted computer operator. It deliberately does not bypass tenant roles, Secret masking, target ACLs, deployment state, or review controls. The right measure of its strength is the quality of a verified outcome in the permitted scope—not the size of a capability catalog.
+
+## Reference tokens
+
+The Assistant uses stable references to keep a name tied to the correct platform object and, where needed, a specific version. In the UI these appear as readable pills rather than raw identifiers.
+
+References support safer follow-ups:
+
+```text
+Compare this component with its previous version and list affected endpoints.
+```
+
+```text
+Use the endpoint we discussed above, but inspect the currently active component version before proposing a fix.
+```
+
+Versioned references are especially useful for audit, rollback analysis, and changes made while a thread is still open.
+
+## Skill libraries
+
+Skills provide reviewed guidance for recurring work without changing the underlying permission model. Organizations can use built-in and approved plugin skills to standardize how work is scoped, validated, documented, and handed off.
+
+Skill areas can include:
+
+<CardGroup cols={2}>
+  <Card title="Application architecture" icon="diagram-project">
+    Components, dependencies, low-code review, shared libraries, and schema evolution.
+  </Card>
+  <Card title="Data" icon="database">
+    Database configuration, row reads, controlled mutations, and query patterns.
+  </Card>
+  <Card title="Endpoints and runtime" icon="route">
+    Endpoint contracts, validation, execution, and managed runtime behavior.
+  </Card>
+  <Card title="Automation and operations" icon="gears">
+    Jobs, schedules, events, webhooks, execution history, and incident investigation.
+  </Card>
+  <Card title="Storage and identity" icon="folder-tree">
+    Files, upload flows, secrets, users, groups, roles, and preferences.
+  </Card>
+  <Card title="Agent capabilities" icon="robot">
+    Plugin creation, tool composition, handoffs, memory, and workspace-aware execution.
+  </Card>
+</CardGroup>
+
+## Authorization and approval
+
+Before an operation executes, RevoEngine evaluates:
+
+1. Is the capability enabled for this runtime and instance?
+2. Is it permitted for the current thread or Agent?
+3. Can the current identity access the target?
+4. Is the call read-only, write-capable, destructive, executable, or external?
+5. Does the capability or plugin policy require approval?
+6. Are the arguments valid for the current operation contract?
+
+Read-only work can normally proceed without approval. A capability category alone does not determine safety: a bounded validation may be allowed while code that attempts a side effect is blocked or requires review.
+
+## Activity and artifacts
+
+The execution timeline can show relevant operations, approval requests, results, and retained artifacts. RevoEngine applies masking, access control, and retention policy to this evidence. Secrets and private platform implementation are not included in normal shared-thread output.
+
+## Ask for capability-aware work
+
+You usually do not need to name an implementation-specific operation. State the outcome and evidence requirement:
+
+```text
+Find the exact endpoint, inspect its active component, and show the dependency impact. Do not make changes.
+```
+
+```text
+Validate the proposed query with a bounded read. Do not export the database.
+```
+
+```text
+Use the attached CRM plugin to read the account. Ask for approval before any external update.
+```
+
+<CardGroup cols={2}>
+  <Card title="Plugins" href="/ai/plugins" icon="plug">
+    Add governed tenant-specific and external capabilities.
+  </Card>
+  <Card title="Approvals and plans" href="/ai/approvals-and-plans" icon="shield-check">
+    Control when tools pause before side effects.
+  </Card>
+</CardGroup>

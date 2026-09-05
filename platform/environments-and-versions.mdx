@@ -1,0 +1,106 @@
+---
+title: Environments and versions
+description: Promote RevoEngine definitions safely across development, test, and production.
+icon: code-branch
+---
+
+RevoEngine versions application definitions independently from the environments in which they run. A definition can have historical versions while each environment retains its own instance-local identifiers and activation state.
+
+## Environment model
+
+Use a separate RevoEngine instance for each trust and release boundary. A typical
+enterprise setup uses development, test or staging, and production instances with
+independent identities, quotas, Secrets, providers, ACLs, and runtime activation.
+
+| Keep portable | Keep environment-specific |
+| --- | --- |
+| Component source and stable metadata key | Resource UUIDs and element IDs |
+| Library namespace and public contract | API keys, sessions, and Secret values |
+| Reviewed Endpoint, Job, or data-definition intent | Runtime hostnames and provider configuration |
+| Test fixtures without sensitive data | Production records, retention, quotas, and access membership |
+
+Do not copy credentials or production data as part of source promotion. Recreate or
+bind environment-owned configuration under the target instance's governance policy.
+
+## Source of truth
+
+The active environment remains authoritative for deployed state. Local files created by the CLI are the desired source for review and delivery workflows; the CLI lock file records the last synchronized baseline.
+
+## Portable identity
+
+Use a stable metadata key to match components across environments. UUIDs and element IDs are instance-local and should not be used as durable cross-environment identity.
+
+```json
+{
+  "componentIdentity": {
+    "mode": "stableKey",
+    "metadataProperty": "stableKey"
+  }
+}
+```
+
+## Promotion workflow
+
+<Steps>
+  <Step title="Plan">
+    Compare the source and target environments. Resolve missing keys and collisions before applying anything.
+  </Step>
+  <Step title="Review">
+    Inspect creates, updates, conflicts, and target-only resources. Use a strict CI check when drift should block delivery.
+  </Step>
+  <Step title="Apply">
+    Create and update first. Deletion requires explicit prune intent and stronger confirmation.
+  </Step>
+  <Step title="Verify">
+    Re-fetch the target and compare portable content after every change. Then run the affected component, endpoint, or automation flow.
+  </Step>
+</Steps>
+
+The current CLI environment synchronization workflow is Component-focused. Do not
+assume that Endpoints, Databases, Storage folders, IAM, Secrets, or Automation are
+implicitly mirrored by a Component push. Review and apply those product domains
+through their supported Platform API or operator workflow until a CLI command
+explicitly includes them.
+
+## Drift and conflicts
+
+Treat three states separately:
+
+- **local desired state** is the reviewed project content;
+- **last synchronized baseline** records what the CLI last observed;
+- **remote current state** is the authoritative definition in the selected instance.
+
+If both local and remote content changed from the baseline, stop and review the
+conflict. Do not select a winner by timestamp alone. Re-fetch remote state, compare
+the business change, and produce a new reviewed desired version.
+
+## Activation and rollback
+
+Promotion and activation are different decisions. Creating or updating a definition
+does not prove that its dependencies, ACLs, or runtime revision are ready for traffic.
+
+1. Apply portable source to the target instance.
+2. Resolve target-owned dependencies and configuration.
+3. Run a representative Sandbox or non-production execution.
+4. Activate the intended Component, Endpoint, Job, Event, or runtime revision.
+5. Observe Logs, Trace, history, and business state.
+
+For rollback, select or restore a previously verified version where the product
+surface supports it. A source rollback does not undo database writes, provider calls,
+sent webhooks, or Storage objects produced by the newer version; reconcile those side
+effects separately.
+
+## Security and release controls
+
+- Use a dedicated service account per CI environment and grant only the required roles.
+- Keep profile credentials in the CI secret store and never in project metadata.
+- Require stricter review for production apply, prune, Secret, IAM, and activation actions.
+- Run drift detection before applying a plan generated earlier.
+- Record the target instance, stable key, author, version, and verification evidence.
+- Keep production and non-production quotas, egress policy, and data retention independent.
+
+<Warning>
+  Version history is not a substitute for environment promotion. An activated version in one instance does not automatically select the same runtime revision in another instance.
+</Warning>
+
+See [CLI environments](/developers/cli-environments) for concrete commands.

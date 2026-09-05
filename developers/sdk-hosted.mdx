@@ -1,0 +1,107 @@
+---
+title: Hosted Node.js SDK
+description: Use the execution-bound SDK runtime injected into a Revo-hosted Custom Node.js component.
+icon: cloud
+---
+
+RevoEngine injects a `RevoRuntime` into the named `init` export of every Custom Node.js component. Component code does not construct `RevoClient`, discover an instance, or receive an API key.
+
+## Entrypoint
+
+```js
+/** @param {import('@revoengine/sdk').RevoRuntime} runtime */
+export async function init(runtime) {
+  const { api, storage, utils } = runtime;
+  const input = api.input();
+  const currentUser = api.currentUser();
+
+  api.log({
+    message: 'Preparing export',
+    args: {
+      userId: currentUser.userId,
+      hasInput: input != null,
+    },
+  });
+
+  const { data: rows } = await api.getDatabaseData('Orders', {
+    fields: ['orderId', 'status', 'total'],
+    take: 100,
+  });
+
+  const file = await storage.putObject({
+    name: `orders-${utils.randomUUID()}.json`,
+    data: JSON.stringify(rows),
+    mimeType: 'application/json',
+  });
+
+  return { rows: rows.length, storageEntryId: file.storageEntryId };
+}
+```
+
+Existing JavaScript functions that declare no parameter remain callable, but accepting and typing `runtime` is the canonical form.
+
+## Execution context
+
+Hosted snapshot methods are synchronous:
+
+```js
+export async function init(runtime) {
+  const input = runtime.api.input();
+  const context = runtime.api.getContext();
+  const executionId = runtime.api.getExecutionId();
+  const operationId = runtime.api.getOperationId();
+  const instance = runtime.api.getInstanceDetails();
+
+  const secret = await runtime.api.getSecret('WEBHOOK_SIGNING_SECRET');
+  return {
+    executionId,
+    operationId,
+    hasSecret: Boolean(secret),
+    instanceId: instance.id,
+    input,
+    context,
+  };
+}
+```
+
+Only platform-backed work returns a promise. Never return or log a secret value.
+
+## Use active low-code libraries
+
+`execute()` runs transient JavaScript or TypeScript inside RevoEngine with the active tenant `lib.Category.Name.ElementKey.X` surface:
+
+```js
+export async function init(runtime) {
+  const customerId = runtime.api.input('customerId');
+  const execution = await runtime.execute(
+    `
+      const customerId = api.input('customerId');
+      const customer = await lib.CRM.Customers.Queries.get(customerId);
+      const balance = await lib.Finance.Billing.Balances.currentBalance(customerId);
+      return { customer, balance };
+    `,
+    {
+      inputs: { customerId },
+      timeoutMs: 10_000,
+    },
+  );
+
+  return execution.results;
+}
+```
+
+Put related library operations in one `execute()` call when they form one workflow. Separate calls run in separate isolates.
+
+## Package contract
+
+New components receive a generated `package.json` with the exact SDK version supported by the platform and editor declarations with the matching `RevoRuntime` type. Keep that exact version; do not replace it with a range.
+
+The `@revoengine/sdk/hosted` entrypoint is platform-internal. Customer component code imports types and public exports only from `@revoengine/sdk`.
+
+<Warning>
+  Hosted credential forwarding is owned by the generated parent runtime. Do not attempt to read, replace, or forward its internal transport headers from component code.
+</Warning>
+
+## Deadlines and cancellation
+
+Remote runtime calls inherit the signed execution deadline. When execution is cancelled or the parent bridge closes, unresolved calls fail. Cancellation is cooperative: verify consequential external writes before retrying.

@@ -1,0 +1,92 @@
+---
+title: CLI environments
+description: Compare and promote components between RevoEngine environments with stable identities and explicit plans.
+icon: arrow-right-arrow-left
+---
+
+Named environment profiles let the CLI compare and mirror component definitions between instances without treating instance-local UUIDs as portable identity.
+
+## Save profiles
+
+```bash
+revo env add develop --url https://api.dev.example.com
+revo env add test --url https://api.test.example.com
+revo env list
+```
+
+`env add` prompts for an API key, validates it through `/api/v1/me`, and saves the inferred instance beside the profile. Use `--offline` only when validation is intentionally unavailable.
+
+The special profile name `default` means the normal login or `REVO_URL`/`REVO_TOKEN` configuration.
+
+## Prepare stable identity
+
+Cross-environment matching uses a stable component key stored in metadata. Component and element UUIDs are instance-local and are not portable identifiers.
+
+```bash
+revo project init --identity-mode stableKey --stable-key-name stableKey
+
+revo metadata plan --env develop
+revo metadata plan --env test
+
+revo metadata apply --env develop --yes
+revo metadata apply --env test --yes
+```
+
+If the same logical component already exists in both environments, make both copies use the exact same stable-key value before promotion. Similar readable prefixes with different generated suffixes are different identities.
+
+## Review drift
+
+```bash
+revo env diff --from develop --to test
+revo env diff --from develop --to test --json
+revo env diff --from develop --to test --strict
+```
+
+The plan classifies components as create, update, unchanged, orphaned, delete, or collision. Portable content comparison ignores instance-local IDs, versions, and timestamps. A duplicate stable key is a collision and blocks apply.
+
+Use `--key` or `--category` to narrow a review:
+
+```bash
+revo env diff \
+  --from develop \
+  --to test \
+  --key Forms/CustomerCard \
+  --category Shared
+```
+
+`--strict` exits non-zero whenever the environments differ, making it suitable for a CI drift gate.
+
+## Apply a plan
+
+Start with a dry run:
+
+```bash
+revo env apply --from develop --to test --dry-run
+revo env apply --from develop --to test --yes
+```
+
+Apply creates first, then updates, then deletes. Each successful create/update is fetched again and verified against the source content hash. Failures are reported per component and do not hide earlier results.
+
+By default, target-only components are `orphan` and remain untouched. Deletion requires all three choices:
+
+```bash
+revo env diff --from develop --to test --prune
+revo env apply --from develop --to test --prune --dry-run
+revo env apply --from develop --to test --prune --yes --force
+```
+
+<Warning>
+  `--prune --force` deletes target components that are absent from the selected source scope. Review the exact plan and stable-key ownership before using it in CI.
+</Warning>
+
+## CI pattern
+
+```bash
+export REVO_URL="https://api.test.example.com"
+export REVO_TOKEN="$REVO_TEST_TOKEN"
+
+revo metadata plan --env default --json
+revo env diff --from develop --to default --strict --json
+```
+
+Keep profile keys and default credentials in the CI secret store. Current environment synchronization is component-focused; do not assume other Platform API families are mirrored unless a future CLI version explicitly adds them.

@@ -1,0 +1,138 @@
+---
+title: Materialized Views
+description: Persist expensive Database View output, refresh it concurrently, schedule governed refreshes, and monitor freshness without blocking readers.
+icon: layer-group
+---
+
+A Materialized View stores the result of a Database View query. Reads use the stored rows until the next completed refresh, making this surface suitable for expensive aggregations, reporting joins, and read-heavy dashboards that do not require source-row freshness on every request.
+
+<Warning>
+  A Materialized View is a read model, not a durable replacement for its source Tables. Design an explicit freshness objective and keep business writes on the source data path.
+</Warning>
+
+## Choose materialization deliberately
+
+Good candidates include:
+
+- a dashboard aggregate read many times between source changes;
+- a reporting join whose source query is expensive;
+- a stable export or automation input that can tolerate bounded staleness;
+- a governed source-action workset that benefits from a refreshed snapshot.
+
+Use a regular [Database View](/operate/database-views) when current source rows must be visible immediately or the query is already inexpensive.
+
+## Create and configure
+
+1. Open **Databases → Materialized Views** and choose **Add**.
+2. Build a Structured definition or, when explicitly enabled for Resource Admin, a read-only raw SQL definition.
+3. Preview the output and verify unique aliases, casts, grouping, and result types.
+4. In **Materialization**, select at least one output column as the concurrent refresh key.
+5. Add optional output indexes for frequent filters and sorting.
+6. Configure the View ACL and save.
+7. Query the saved data, then create a Schedule when recurring freshness is required.
+
+The initial save creates and populates the materialized relation. `lastRefreshAt` records explicit later refreshes; a newly created materialization can therefore contain initial rows before that field has a value.
+
+### Concurrent refresh key
+
+`uniqueKey` is required and must reference output columns. RevoEngine ensures there is a unique index covering that key because the managed concurrent-refresh contract requires one. Choose columns that are truly unique in the complete result; a refresh fails when the query produces duplicate key values.
+
+Optional indexes are structured `btree` indexes over materialized output:
+
+- at most 64 index definitions;
+- 1–32 distinct output columns per index;
+- optional identifier-safe name up to 63 characters;
+- optional uniqueness.
+
+Do not index every output. Each index consumes storage and adds refresh work.
+
+## Read and filter materialized output
+
+Materialized and regular Views use the same [Query Database View data](/api-reference/database-views/query-database-view-data) operation and the same output query model: projection, filters, sorting, grouping, casts, `take`, `skip`, and optional count.
+
+Readers see the last completed materialization while a concurrent refresh builds the replacement. A failed refresh does not publish partial new rows. Use `lastRefreshAt` as the successful freshness timestamp and `lastRefreshRunId` as the identifier of that refresh operation.
+
+The list UI exposes **Last refreshed** only for Materialized Views. For a stronger application SLA, store the source watermark in the View output and compare it with business time; `lastRefreshAt` shows execution time, not how recent every source record is.
+
+## Manual refresh
+
+Use **Refresh** in the workspace or call [Refresh a materialized Database View](/api-reference/database-views/refresh-a-materialized-database-view).
+
+The endpoint responds with HTTP 202, but the current contract is not a queued background request: the HTTP request completes after the concurrent refresh succeeds and `lastRefreshAt` plus `lastRefreshRunId` are stored. A successful response therefore means the new materialization is available.
+
+There is no separate manual-refresh polling resource. If the connection ends without a success response, read the View again and compare its refresh metadata before retrying.
+
+## Scheduled refresh
+
+For recurring refresh:
+
+1. Save the Materialized View.
+2. Open **Schedule** from the Materialization builder or navigate to **Automation → Schedules**.
+3. Choose target type **Materialized view** and select the saved View.
+4. Set the five-field cron expression and an IANA timezone.
+5. Save and activate the Schedule.
+
+Scheduled execution is tracked as a Platform-operation Job. It records processing, finished, or error state and uses the Job identifier as the View's successful `lastRefreshRunId`. Monitor the Schedule for deployment state and Jobs for individual execution outcomes.
+
+An active Schedule is a lifecycle dependency: delete the Schedule before deleting the Materialized View or converting it to a regular View.
+
+See [Schedules](/operate/schedules) for cron, timezone, activation, and operational history. API clients should use the generated Schedule contract because the UI's **Materialized view** choice is normalized to the current Platform-operation target fields.
+
+## Governed source actions and asynchronous preview
+
+Structured Materialized Views can drive the same explicit source update/delete workflow as regular Views, but their preview has an additional freshness boundary:
+
+1. [Preview the action](/api-reference/database-views/preview-a-database-view-action).
+2. The API returns HTTP 202 with `operationId` and `PENDING`.
+3. Poll [Get a Database View action preview](/api-reference/database-views/get-a-database-view-action-preview).
+4. The operation moves through `PENDING` or `RUNNING` to `COMPLETED` or `FAILED`.
+5. On completion, review the affected count and sample keys, then use the returned mutation token.
+
+The background preview refreshes the materialization before calculating the workset. The operation expires after 10 minutes. The mutation token also expires after 600 seconds and becomes invalid if the View version or `lastRefreshRunId` changes.
+
+This is the asynchronous refresh-related flow in the Database Views API. Do not confuse its status with manual refresh, which has no polling operation.
+
+## Lifecycle semantics
+
+| Change | Behavior |
+| --- | --- |
+| Update definition | Requires the current `version`, revalidates sources and output, then transactionally rebuilds the relation and indexes. |
+| Change unique key or indexes | Rebuilds the materialization; validate uniqueness and query cost before production use. |
+| Convert to regular View | Rejected while an active Schedule depends on the materialization. |
+| Delete | Recoverable tombstone operation; also rejected while a Schedule depends on it. |
+| Restore | Restores the relation when the original logical name is available. |
+| Source schema change | Can invalidate the saved query or change its inferred output. Review dependent Views before changing source fields. |
+
+## Limits and failure behavior
+
+- Materialized Views share the instance Database resource quota with Tables and regular Views.
+- Structured and raw previews return at most 1000 rows; raw preview also has a 15-second statement timeout.
+- A refresh fails if the View is not materialized, the unique constraint cannot be satisfied, a source/query is invalid, or the database cannot complete concurrent refresh.
+- Refresh metadata changes only after success. Keep the prior successful timestamp as the recovery signal.
+- A scheduled failure is recorded as an error Job and does not mark the View freshly completed.
+- Update failures roll back the relation rebuild rather than saving only part of the new definition.
+- Materialization does not use the application **Database Cache** namespace. Size contributes to database usage, while Cache TTL/persist/delete operations apply only to cache keys.
+- Reading a materialization does not emit source Table row-audit entries. A governed action does, when audit is enabled on the mutated source Table.
+
+## Production checklist
+
+- Define a measurable freshness objective.
+- Use a genuinely unique, stable refresh key.
+- Index only observed filter and sort paths.
+- Keep pages bounded and project only required output fields.
+- Schedule expensive refreshes outside workload peaks.
+- Monitor Job errors and `lastRefreshAt`, not only Schedule activation.
+- Remove dependent Schedules before conversion or deletion.
+- Re-preview after any source schema or cast change.
+- Require a fresh action preview before source mutation.
+
+## Related API operations
+
+- [Create a Database View](/api-reference/database-views/create-a-database-view)
+- [Get a Database View](/api-reference/database-views/get-a-database-view)
+- [Update a Database View](/api-reference/database-views/update-a-database-view)
+- [Query Database View data](/api-reference/database-views/query-database-view-data)
+- [Refresh a materialized Database View](/api-reference/database-views/refresh-a-materialized-database-view)
+- [Export Database View data](/api-reference/database-views/export-database-view-data)
+
+Exact schemas and response metadata remain generated from the current Platform API OpenAPI document.

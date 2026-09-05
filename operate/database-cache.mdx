@@ -1,0 +1,167 @@
+---
+title: Database Cache
+description: Use the instance-scoped application cache for fast reads, TTL-based state, idempotency, counters, and coordination.
+icon: bolt
+---
+
+Database Cache is the tenant application-cache namespace exposed in
+**Databases → Cache**. Use it for derived or short-lived state that can be rebuilt
+from a durable source. It is not a replacement for a Table, Storage object, Job
+history, or external system of record.
+
+## Choose the correct cache boundary
+
+| Boundary | Lifetime and visibility | Use it for |
+| --- | --- | --- |
+| `api.getCache()` / `api.setCache()` | One low-code execution | Reusing a computed value between elements in the current run |
+| Database Cache / `api.*InstanceCache()` | Instance-scoped and available across executions until expiry or deletion | Short-lived lookup results, idempotency records, counters, leases, and coordination |
+| Table or Storage | Durable, governed application state | Business records, audit evidence, large payloads, and recoverable artifacts |
+
+The platform enforces the application cache root server-side. Customers work with
+logical keys such as `pricing:eur:2026-09-05`; they cannot use this surface to browse
+unrelated operational cache namespaces.
+
+## Key design
+
+Use stable prefixes and include every scope that affects the value:
+
+```text
+customer-summary:<customerId>
+exchange-rate:<base>:<quote>:<day>
+order-reservation:<requestKey>
+provider-limit:<provider>:<accountId>
+```
+
+- Keep keys free of credentials and personal data.
+- Use a finite TTL unless the value has an explicit invalidation owner.
+- Version the prefix when the serialized value or meaning changes.
+- Avoid broad wildcard actions in request-time code.
+- Store large documents and files in Storage, then cache a compact identifier.
+
+## Work in the UI
+
+The Database Cache workspace can list logical keys, load values, inspect type and
+size, read expiration, create or replace a key, change TTL, make a key persistent,
+and delete one or more keys. Resource Read can inspect cache state; Resource Write
+and Resource Admin can mutate it.
+
+Use the UI for investigation and deliberate administration. Application code should
+use the atomic low-code operations rather than implementing a read-then-write race
+through separate HTTP requests.
+
+## Read-through caching
+
+`api.getOrSetInstanceCache()` atomically returns the existing value or writes the
+fallback when the key is absent:
+
+```js
+const cacheKey = `exchange-rate:EUR:USD:${new Date().toISOString().slice(0, 10)}`;
+
+const cached = await api.getInstanceCache(cacheKey);
+if (cached) return { source: 'cache', rate: cached.rate };
+
+const response = await api.httpCall({
+  url: 'https://rates.example.com/v1/latest?base=EUR&quote=USD',
+  method: 'GET',
+});
+
+const value = { rate: response.data.rate, observedAt: new Date().toISOString() };
+const effective = await api.getOrSetInstanceCache(cacheKey, value, 3600);
+
+return { rate: effective.rate, observedAt: effective.observedAt };
+```
+
+The fallback is not a transaction with the preceding provider call. Multiple callers
+can still contact the provider before one value wins. Use a concurrency or idempotency
+primitive when duplicate upstream work is expensive.
+
+## Idempotency and atomic coordination
+
+Use the dedicated helpers instead of encoding a lock with normal get/set calls:
+
+```js
+const requestKey = api.input('requestKey');
+const key = `order-reservation:${requestKey}`;
+
+const acquired = await api.acquireIdempotencyKey(key, 900, {
+  operationId: api.getOperationId(),
+  state: 'PROCESSING',
+});
+
+if (!acquired) {
+  return { duplicate: true, current: await api.getIdempotencyKey(key) };
+}
+
+try {
+  // Perform one bounded, retry-safe workflow.
+  return { duplicate: false, operationId: api.getOperationId() };
+} catch (error) {
+  // Release only when retrying the entire workflow is known to be safe.
+  await api.releaseIdempotencyKey(key);
+  throw error;
+}
+```
+
+`incrementInstanceCache()` and `decrementInstanceCache()` update integer counters
+atomically. `compareAndSetInstanceCache()` changes a value only when the current
+serialized value matches the expected value. `concurrencyLimit()` admits a bounded
+number of callers for a key within its TTL window. Choose that TTL as part of the
+admission policy; there is no separate concurrency-token release method on this
+surface.
+
+## TTL and persistence
+
+`setInstanceCache(key, value, seconds)` and the atomic helpers accept an optional TTL
+in seconds. The remaining TTL is returned by `getExpireInstanceCache()`:
+
+- a positive number means seconds remain;
+- `0` means the key exists without expiration;
+- `null` means the key does not exist.
+
+Use `expireInstanceCache(key, ttl)` to set a new TTL and
+`persistInstanceCache(key)` to remove expiration. A persistent cache entry still is
+not a durable business record: administrators, maintenance, or capacity policy can
+invalidate cache state.
+
+## Batch administration limits
+
+The Platform API exposes bounded administration operations:
+
+| Operation | Published bound |
+| --- | ---: |
+| Read values | 1–100 keys and at most 30 MiB total returned value size |
+| Read type/TTL/size statistics | 1–1,000 keys |
+| Delete | 1–100 key or wildcard requests |
+| Set or remove expiration | 1–1,000 key or wildcard requests |
+
+For expiration batches, `-1` removes expiry, `0` deletes matching keys, and a
+positive integer sets seconds-to-live. Wildcard operations can touch many keys;
+scope the prefix narrowly and run them as an explicit operator action.
+
+## Failure and recovery
+
+| Failure | Response |
+| --- | --- |
+| Key expired or was deleted | Treat the cache miss as normal and rebuild from the durable source. |
+| Cached shape is from an older release | Ignore it, write under a versioned prefix, and expire the old namespace. |
+| A write was suppressed in debug mode | Do not infer production cache state from the debug result. |
+| Wildcard invalidation was too broad | Rebuild affected entries from Tables or providers; cache deletion is not recoverable by itself. |
+| Cache is unavailable | Fail safely or use the durable fallback required by the business workflow. |
+
+Do not make authorization, financial truth, or irreversible side effects depend only
+on the continued existence of a cache key. For idempotency around an external write,
+pair the cache guard with a durable business record or provider idempotency key.
+
+## Production checklist
+
+- Define a durable source of truth and a cache-miss path.
+- Use namespaced, versioned logical keys.
+- Set a TTL and record the invalidation owner.
+- Prefer atomic helpers for idempotency, counters, compare-and-set, and concurrency.
+- Keep values compact and free of Secrets or raw authorization data.
+- Test expiry, duplicate callers, stale shapes, and cache unavailability.
+- Observe hit rate and rebuild cost before increasing lifetime.
+- Use the generated [api reference](/low-code/reference/api) for every current method signature.
+
+See [Databases](/operate/databases) for durable records and
+[Production patterns](/low-code/patterns) for retry and idempotency design.

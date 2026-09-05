@@ -1,0 +1,114 @@
+---
+title: Outbound webhooks
+description: Deliver governed asynchronous HTTP requests and inspect every attempt.
+icon: webhook
+---
+
+RevoEngine Webhooks are durable **outbound HTTP attempts**. Use them when RevoEngine should notify an external system asynchronously without holding an Endpoint response open.
+
+<Warning>
+  This workspace does not create inbound subscriptions. To receive a partner callback, publish an authenticated [Endpoint](/operate/endpoints), validate the request, and then create a Job or Event.
+</Warning>
+
+## Create a webhook in the UI
+
+Open **Webhooks** and select **Trigger webhook**. The form exposes:
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| Custom ID | No | Caller-provided UUID for correlation and duplicate control. |
+| Maximum attempts | No | Delivery-attempt ceiling. Choose according to receiver idempotency. |
+| Save details | No | Retain request details for later inspection. |
+| URL | Yes | Absolute `http` or `https` destination. Use HTTPS in production. |
+| Method | Yes | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`. |
+| Body | For body methods | JSON object or array for `POST`, `PUT`, and `PATCH`. |
+| Headers | No | Static request headers represented as key/value pairs. |
+
+The Platform API also supports searchable `metadata`, static-egress `proxy`, `maskDetails`, and controlled creator/system attribution.
+
+```json
+{
+  "customId": "f395a713-0948-4d60-926e-25d3cd09ec88",
+  "saveDetails": true,
+  "maxAttempts": 5,
+  "proxy": true,
+  "metadata": {
+    "integration": "warehouse",
+    "operationId": "op_018f"
+  },
+  "maskDetails": ["headers.authorization"],
+  "request": {
+    "url": "https://partner.example.com/v1/orders",
+    "method": "POST",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": {
+      "orderId": "ord_8d31",
+      "status": "READY"
+    }
+  }
+}
+```
+
+## Credentials and sensitive details
+
+Static headers are persisted configuration. Do not place a long-lived API key in a screenshot, example, searchable metadata, or unmasked history.
+
+For stronger credential control, call the external API from a Component with `api.httpCall()` and resolve the credential from [Secrets](/operate/secrets). This also lets you compute signatures, rotate versions, validate responses, and write a business transaction around the call.
+
+If a Webhook must contain a sensitive header, disable unnecessary detail retention and configure `maskDetails` for the persisted projection.
+
+## Attempt lifecycle
+
+The Webhooks grid is operational history. A row records status, attempt count, scheduled time, elapsed time, payload size, creator, metadata, and—when retained—the request and attempt responses.
+
+```text
+request accepted
+  -> durable webhook row
+  -> attempt scheduled
+  -> HTTP delivery
+  -> response or transport failure recorded
+  -> retry until success, cancellation, or max attempts
+```
+
+Cancellation stops eligible future processing; it cannot recall a request already accepted by the remote server. Delete and restore change platform visibility, not remote state.
+
+## Roles
+
+| Action | Required role |
+| --- | --- |
+| List and inspect | `AUTOMATION_READ` or `AUTOMATION_ADMIN` |
+| Create | `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` |
+| Cancel | `AUTOMATION_ADMIN` |
+| Delete or restore | `AUTOMATION_ADMIN` |
+
+## Design for reliable delivery
+
+The receiver should treat the custom ID or another stable business key as idempotent. A transport timeout is ambiguous: the receiver may have committed the request even though RevoEngine did not receive its response.
+
+Use metadata to correlate the webhook with the originating Job, Event history, or business object. Alert on terminal failure and exhausted attempts rather than every transient retry.
+
+<AccordionGroup>
+  <Accordion title="The partner reports a duplicate">
+    Verify that the same idempotency key was used on every attempt and that the receiver stores the first accepted result. Do not reduce retries as the primary duplicate-control mechanism.
+  </Accordion>
+  <Accordion title="A request is stuck in a non-terminal state">
+    Check scheduled time, current attempt, cancellation state, and platform delivery logs. Confirm the destination DNS, TLS, timeout, and static-egress allowlist.
+  </Accordion>
+  <Accordion title="The history does not show the request body">
+    Check `saveDetails` and masking policy. Absence from history can be intentional and does not mean an empty body was sent.
+  </Accordion>
+</AccordionGroup>
+
+## Production checklist
+
+- Require HTTPS.
+- Use an idempotency key understood by the receiver.
+- Set an explicit maximum attempt policy.
+- Mask or avoid credentials in retained request details.
+- Use static egress only when the receiver needs allowlisting.
+- Correlate the row with an operation or business ID.
+- Monitor terminal failure and cancellation.
+
+See [HTTP and Storage](/low-code/http-and-storage) when the integration needs response handling or streamed files.

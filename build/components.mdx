@@ -1,0 +1,97 @@
+---
+title: Components
+description: Turn one reviewed piece of business logic into a versioned building block for APIs, Jobs, events, and Agents.
+icon: puzzle-piece
+---
+
+Components are the primary unit of executable and reusable logic in RevoEngine. A component has metadata, ordered elements or files, versions, activation state, access rules, and optional deployment state.
+
+## Start with the job to be done
+
+Do not begin by choosing a runtime. Begin by deciding what must be true when the work ends.
+
+<CardGroup cols={3}>
+  <Card title="Validate and return" icon="arrow-right-arrow-left">
+    A bounded request handler: validate customer input, read or write data, and return an HTTP result.
+  </Card>
+  <Card title="Transform and persist" icon="database">
+    A reusable unit that imports a file, normalizes records, and returns a durable Storage or Table reference.
+  </Card>
+  <Card title="Share a rule" icon="books">
+    A library element that exposes calculation or policy logic through `lib.Category.Name.ElementKey.X`.
+  </Card>
+</CardGroup>
+
+The **Components** workspace is list-first: its grid shows name, category, description, activation, type, metadata, actor timestamps, and version. Selecting a row opens a side panel with the definition. The panel exposes component identity and metadata first, then the ordered Elements editor; **Editor** opens the full authoring environment.
+
+## Component types
+
+| Type | Best for | Runtime |
+| --- | --- | --- |
+| `CODE_JS` | Standard application and integration logic | Isolated JavaScript |
+| `CODE_TS` | TypeScript-authored application logic | Transpiled, then isolated JavaScript |
+| `CODE_JS_LIB` | Shared JavaScript business libraries | Exposed through `lib.Category.Name.ElementKey.X` |
+| `CODE_TS_LIB` | Shared typed business libraries | Exposed through `lib.Category.Name.ElementKey.X` |
+| `JSON_VALIDATOR` | Reusable JSON input validation | Validation pipeline |
+| `CUSTOM_NODEJS` | Trusted code that needs npm packages or Node.js semantics | Managed custom runtime |
+
+<Tip>
+  Start with `CODE_JS` or `CODE_TS`. Choose `CUSTOM_NODEJS` only when Node.js packages, multi-file source, or Node-specific APIs materially simplify the solution.
+</Tip>
+
+## Execution model
+
+Low-code elements run in ascending order. Each element can return a value, and a later element can read it with `inject(elementKey)`. Runtime inputs, platform calls, storage, utilities, and active libraries are available through injected globals.
+
+```js
+const customer = await api.getDatabaseData('customers', {
+  filter: { field: 'customerId', op: 'eq', value: api.input('customerId') },
+  take: 1,
+});
+
+return customer.data[0] ?? null;
+```
+
+## Lifecycle
+
+1. Create or edit the component.
+2. Validate source and configuration.
+3. Debug transient changes in the Sandbox.
+4. Save a new version.
+5. Activate the intended version or runtime revision.
+6. Observe executions through logs, traces, job history, or endpoint statistics.
+
+For custom Node.js, saving source and making it executable are separate states. The deployment must become ready before it can be activated; a failed deployment does not silently execute unverified source.
+
+For field-level metadata, element-key rules, type-specific configuration, and version behavior, see [Component configuration](/build/component-configuration).
+
+## A useful first Component
+
+For an order-confirmation API, keep the public handler small: load a record, apply the business rule, and enqueue durable work. The background provider call belongs in a Job Component, where retry and concurrency are explicit.
+
+```ts
+const { orderId } = api.input().body;
+const order = (await api.getDatabaseData('orders', {
+  filter: { field: 'orderId', op: 'eq', value: orderId },
+  take: 1,
+})).data[0];
+
+if (!order) api.throw(404, { message: 'Order not found' });
+if (order.status !== 'READY') api.throw(409, { message: 'Order cannot be confirmed' });
+
+return { orderId, accepted: true };
+```
+
+That Component can later be reused by an Endpoint, a Job template, an Event target, or an Agent tool without copying the state-transition rule.
+
+## Composition
+
+- Call another active component with `api.executeComponent()`.
+- Move shared business logic into a library component.
+- Expose a component through an Endpoint for synchronous HTTP.
+- Attach it to a job template for background execution.
+- Publish selected components as governed Agent plugins.
+
+<Warning>
+  Do not place API keys or passwords in source or component metadata. Store them in Secrets and resolve them only when needed at runtime.
+</Warning>

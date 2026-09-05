@@ -1,0 +1,97 @@
+---
+title: Platform API
+description: Integrate with the RevoEngine control plane and its current product lifecycles.
+icon: server
+---
+
+The Platform API is the authenticated control plane for a RevoEngine instance. It manages application definitions and operational state; it does not serve your configured customer-facing Endpoint paths.
+
+## Request shape
+
+Production examples use the `/api/v1` prefix:
+
+```bash
+curl "https://api.revoengine.com/api/v1/me" \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Accept: application/json"
+```
+
+Use `Content-Type: application/json` for JSON bodies. An instance-bound API key resolves its tenant from the credential. Interactive platform sessions additionally carry the selected instance context.
+
+## API families
+
+| Area | What the API manages |
+| --- | --- |
+| Build | Components, elements, versions, runtime revisions, and deployments |
+| Delivery | Endpoints and generated OpenAPI documents |
+| Data | Databases, views, cache, audit, and data operations |
+| Storage | Workspaces, folders, objects, upload sessions, previews, and downloads |
+| Automation | Jobs, templates, schedules, events, webhooks, history, retries, and cancellation |
+| Collaboration | Chat threads, messages, attachments, and search |
+| AI | Assistant threads and responses, goals, reports, sharing, Agents, memory, and plugins |
+| Administration | Users, service accounts, groups, role groups, keys, secrets, preferences, and instance settings |
+
+Use the generated [API reference](/api-reference/introduction) for the complete operation inventory and exact request schema.
+
+## Read before write
+
+Most list endpoints accept the platform query contract for filtering, sorting, field selection, and pagination. Prefer a narrow query and follow the returned pagination metadata instead of loading an entire collection.
+
+For mutable definitions, preserve the current identifier and version fields returned by the API. Re-read state after a conflict rather than forcing an update from a stale local copy.
+
+## Lifecycle operations
+
+RevoEngine keeps definition writes separate from lifecycle transitions. Depending on the resource, the API exposes explicit operations such as:
+
+- activate or disable;
+- archive/delete and restore;
+- run, retry, replay, or cancel;
+- deploy, select an active runtime revision, or roll back;
+- create, finalize, abort, or inspect an upload session.
+
+This separation lets CI and operators validate a definition before making it active.
+
+### Endpoint example
+
+Create an inactive static Endpoint definition through the control plane:
+
+```bash
+curl "https://api.revoengine.com/api/v1/endpoints" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "name": "Health response",
+    "active": false,
+    "method": "GET",
+    "path": "/health",
+    "timeout": 10,
+    "options": {
+      "httpCode": 200,
+      "response": { "status": "ok" }
+    }
+  }'
+```
+
+After review, activate the returned `endpointId`:
+
+```bash
+curl "https://api.revoengine.com/api/v1/endpoints/$ENDPOINT_ID/activate" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY"
+```
+
+Invocation then goes to the instance's [Endpoint runtime](/developers/endpoint-runtime), not the Platform API origin.
+
+## Asynchronous work
+
+Some operations schedule work and return before execution finishes. Keep the returned job, deployment, operation, run, thread, or upload-session identifier and use the related history/status surface. Do not infer completion from the HTTP request being accepted.
+
+## Compatibility
+
+Treat documented fields as the contract and optional fields as optional. Avoid coupling to response properties that are not represented by the OpenAPI operation or its guide. When generating a client, regenerate it when the published API contract changes and review the diff before deployment.
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/developers/authentication" />
+  <Card title="Errors and retries" icon="circle-exclamation" href="/developers/errors" />
+</CardGroup>

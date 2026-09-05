@@ -1,0 +1,105 @@
+---
+title: Low-code overview
+description: The RevoEngine managed JavaScript and TypeScript programming model.
+icon: wand-magic-sparkles
+---
+
+RevoEngine low-code components run in a fresh, managed V8 runtime with an intentionally compact capability surface. TypeScript source is transpiled before the same runtime executes it. The environment is intentionally smaller than Node.js or a browser.
+
+## When to use low-code
+
+Low-code is the default authoring model for request validation, business rules,
+Database work, HTTP integration, Storage processing, automation, and composition of
+active libraries. It keeps platform identity, deadlines, tracing, and generated editor
+types inside one governed execution.
+
+Choose [Custom Node.js](/build/custom-nodejs) when the workload genuinely needs npm
+dependencies, a multi-file module, or Node-specific behavior. Choose a Job rather
+than an Endpoint when the work needs durable history, retry controls, or a longer
+execution budget.
+
+## Available globals
+
+| Global | Purpose |
+| --- | --- |
+| `api` | Execution context, platform data, side effects, HTTP, SFTP, events, jobs, and control flow |
+| `util` | Local encoding, hashing, cryptography, IDs, comparisons, and sleep helpers |
+| `storage` | Files, folders, uploads, reads, downloads, retention, and metadata |
+| `agent` | Agent, run, inbox, plugin, and Assistant thread operations |
+| `lib.Category.Name.ElementKey.X` | Active reusable low-code libraries and their exported symbols |
+| `inject(name)` | Result of an earlier element in the same component execution |
+
+## Runtime boundary
+
+Standard ECMAScript features are available, but Node.js and browser APIs are not implied. Do not assume `require`, `process`, `fetch`, DOM objects, timers, Web Crypto, or Node core modules. Use the injected platform APIs instead.
+
+```js
+const response = await api.httpCall({
+  url: 'https://example.com/status',
+  method: 'GET',
+});
+
+await util.sleep(100);
+return response.data;
+```
+
+## Input, results, and composition
+
+`api.input()` exposes the execution input prepared by the invoking Endpoint, Job,
+Sandbox run, nested Component, or other supported trigger. Ordered elements can read
+an earlier element through `inject(elementKey)`. A Component result is the map of
+completed element outputs; the calling surface decides whether to return the complete
+map, one selected value, no body, or a durable history record.
+
+```js
+const request = api.input();
+const validated = inject('validateRequest');
+const normalized = lib.Orders.Validation.Normalizers.normalize(validated);
+
+return {
+  operationId: api.getOperationId(),
+  requestId: request.requestId,
+  normalized,
+};
+```
+
+Library paths are case-sensitive and always include category, library name, element
+key, and exported symbol.
+
+## Execution rules
+
+- Elements execute in ascending order.
+- Await asynchronous platform calls.
+- `api.throw(status, body)` stops with an HTTP-style response.
+- `api.exit()` stops successfully without a result.
+- Execution time and memory are bounded.
+- A child component receives a new bounded execution and inherits the remaining deadline.
+
+## Identity, errors, and side effects
+
+Every platform call runs as the current execution principal. A method present in
+Monaco can still fail because an instance feature is disabled, a role is missing, or
+a Database, View, Storage folder, Secret, Agent, or other resource ACL denies access.
+
+Use `api.throw(status, body)` for an intentional application response. Unexpected
+exceptions fail the execution and are recorded by the calling surface. Timeouts and
+disconnects are ambiguous around external systems: a remote API may have accepted a
+write even when the caller did not receive a response. Use idempotency keys, keep
+remote I/O outside Database transactions, and verify consequential state before retry.
+
+## Move to production
+
+1. Validate inputs and reject unknown or untrusted fields.
+2. Bound reads, payload sizes, memory, time, and concurrency.
+3. Resolve Secrets only at the call site and redact diagnostic context.
+4. Test success, permission denial, timeout, duplicate delivery, and downstream failure.
+5. Activate the intended Component version and verify the real Endpoint or Job principal.
+6. Capture Execution ID and operation ID in safe logs and business records.
+
+<Info>
+  The generated editor declarations for your instance are the exact API contract. These guides explain how to choose and combine the surface; they do not duplicate every generated type.
+</Info>
+
+Continue with [Runtime API](/low-code/runtime-api), [Database API](/low-code/database),
+[HTTP and Storage](/low-code/http-and-storage), or the generated
+[Low-code runtime reference](/low-code/reference/index).

@@ -1,0 +1,125 @@
+---
+title: Autonomous Agents
+description: Turn a narrow operational responsibility into a durable, policy-bound worker with a real identity, workspace, trigger, and review trail.
+icon: robot
+---
+
+RevoEngine Agents turn the platform-aware AI runtime into a durable worker. An Agent has a stable identity, an execution principal, operating instructions, governed capabilities, a private workspace boundary, and persisted run history.
+
+Use an Agent when the work should survive a browser session, arrive from automation, wait in a queue, recur on a schedule, or be operated independently from an Assistant conversation.
+
+<Info>
+  Agent execution always follows the service account, tenant policy, and operator roles. Configuring a capability never grants access that the execution principal does not already have.
+</Info>
+
+## What the Agents workspace makes visible
+
+The workspace separates the conversational **Threads** surface from the managed **Agents**, **Plugins**, and **Memory** surfaces. An Agent detail then brings together its run history, inbox, configuration, workspace files, and activity evidence. Treat those as different operational questions: a thread is a collaboration context; an Agent is a durable definition with an execution principal and trigger policy.
+
+## Agent definition
+
+An Agent definition has three practical layers:
+
+| Layer | What it controls |
+| --- | --- |
+| Identity and ownership | Name, description, owner, status, and service-account execution principal |
+| Configuration | Model, reasoning, execution mode, instructions, default plugins, automation behavior, workspace, and normal run limits |
+| Policy | Approval behavior, per-tool permissions, plugin constraints, and safety ceilings |
+
+The service account is the runtime identity. The Agent can only read or change what that principal and the current platform policy permit. The owner controls visibility and management; ownership does not silently add runtime privileges.
+
+### Status
+
+- **Active** accepts and executes new work.
+- **Paused** temporarily stops new work while preserving the definition and history.
+- **Disabled** retires or hard-stops the Agent until an operator changes its status.
+
+## Create an Agent
+
+<Steps>
+  <Step title="Define the responsibility">
+    Give the Agent a narrow mission, clear success criteria, and explicit exclusions. Prefer one durable responsibility over a broad “do everything” description.
+  </Step>
+  <Step title="Choose the principal and owner">
+    Select a service-account user with least privilege. Assign the Agent to the appropriate user or group owner.
+  </Step>
+  <Step title="Configure runtime behavior">
+    Choose the model, reasoning effort, execution mode, planning policy, and persistent Agent instructions. Set concurrency and run limits for the expected workload.
+  </Step>
+  <Step title="Select capabilities">
+    Enable the platform tools and attach only the plugins required by the mission. Define default and per-tool permission policies.
+  </Step>
+  <Step title="Review the workspace">
+    Use the managed workspace created with the Agent or link an existing authorized folder. The workspace root becomes the durable file boundary for runs.
+  </Step>
+  <Step title="Start with a bounded run">
+    Submit one direct instruction, inspect the trace and outputs, then add inbox, schedule, or event delivery after the behavior is proven.
+  </Step>
+</Steps>
+
+## How work reaches an Agent
+
+| Entry | Best for | Behavior |
+| --- | --- | --- |
+| Direct run | Operator-started, one-off work | Creates a durable run and schedules execution |
+| Inbox | Queued work, prioritization, delay, and de-duplication | Stores an instruction and optional payload until it can be claimed |
+| Schedule | Periodic wake-up or recurring task creation | Either wakes existing inbox work or creates a concrete scheduled task, depending on configuration |
+| Event | Work driven by a platform or external event payload | Preserves event and correlation context in the trigger envelope |
+| Agent handoff | Work delegated by another governed Agent flow | Links the receiving work to its parent run lineage |
+
+Inbox items support a priority, an optional future availability time, an opaque task payload, and a per-Agent de-duplication key for non-terminal work.
+
+## Runs and sessions
+
+An Agent run moves through durable states:
+
+`CREATED` → `PENDING` → `PROCESSING` → `FINISHED`
+
+A run can instead become `ACTION_REQUIRED`, `ERROR`, or `CANCELLED`. Capacity-limited or delayed work remains pending with an observable reason rather than disappearing.
+
+A **session** links follow-up root runs into one durable continuation. Continuing a terminal run creates a successor; it does not rewrite the original run. This preserves history while allowing instructions such as “compare the result with last month.”
+
+Operators can resume, retry, continue, or cancel a run. Ordered run events provide evidence across root, child, and handoff work.
+
+## Delegation
+
+For suitable background or automation work, an Agent can split a plan into bounded child runs and merge their results. Configuration limits both the total number of child runs and the number that can run concurrently. A failure policy decides whether one child failure stops the parent or whether partial results may still be merged.
+
+Delegation is intentionally bounded. It is not an unrestricted process graph, and it does not expand a child Agent's identity or permissions.
+
+## Operate from the Agents workspace
+
+The Agent detail view provides:
+
+- **Overview** — status, responsibility, current activity, task outcomes, model usage, and token trends;
+- **Runs** — durable runs and operator controls;
+- **Inbox** — queued instructions and claim state;
+- **Storage** — files and folders inside the Agent workspace;
+- **Config** — general, identity, runtime, and tool settings;
+- **Activity history and trace** — definition history and ordered execution evidence.
+
+## Production checklist
+
+- Use a least-privilege service account.
+- Keep the responsibility and success criteria measurable.
+- Start with `default` permissions and explicit approval routing.
+- Bound active root runs, child runs, concurrent children, and the execution budget.
+- Add de-duplication keys for recurring or externally retried inbox deliveries.
+- Require durable files only when the task genuinely needs a file deliverable.
+- Inspect failed and blocked runs before enabling a wider trigger surface.
+- Pause an Agent before changing behavior that could affect in-flight work.
+
+<CardGroup cols={2}>
+  <Card title="Agent configuration" href="/ai/agent-configuration" icon="sliders">
+    Configure identity, runtime, permissions, plugins, memory, workspace, and limits.
+  </Card>
+  <Card title="Operate Agents" href="/ai/agent-operations" icon="chart-line">
+    Connect triggers, inspect runs, recover failures, and scale proven workloads.
+  </Card>
+  <Card title="Tools and skills" href="/ai/tools-and-skills" icon="screwdriver-wrench">
+    Understand the capabilities available to Assistant and Agent execution.
+  </Card>
+  <Card title="Memory and workspaces" href="/ai/memory-and-workspaces" icon="folder-tree">
+    Place durable knowledge and files in the correct store.
+  </Card>
+</CardGroup>

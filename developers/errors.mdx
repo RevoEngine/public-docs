@@ -1,0 +1,86 @@
+---
+title: Errors and retries
+description: Handle Platform API, Endpoint runtime, Sandbox SSE, and SDK failures without duplicating side effects.
+icon: circle-exclamation
+---
+
+Error handling depends on the surface. Do not assume every RevoEngine response uses the same envelope.
+
+## Platform API errors
+
+Most control-plane failures include an HTTP status, timestamp, and message. Validation and lifecycle operations may add a stable `code`, field details, or operation-specific metadata.
+
+```json
+{
+  "statusCode": 400,
+  "timestamp": "2026-09-04T12:00:00.000Z",
+  "message": "Validation failed"
+}
+```
+
+## Endpoint runtime errors
+
+Endpoint authors control part of the public contract. A component can deliberately return a status and body with `api.throw(...)`, so an application should follow that Endpoint's generated OpenAPI document.
+
+Platform-level runtime failures commonly use:
+
+| Status | Meaning | Retry guidance |
+| --- | --- | --- |
+| `400` | Invalid request or validation failure | Correct the request |
+| `401` | Invalid authentication/context | Replace or refresh credentials |
+| `403` | Missing role or resource access | Change authorization, not timing |
+| `404` | No active route or resource match | Verify method, path, and lifecycle state |
+| `409` | Version or state conflict | Re-read state and reconcile |
+| `413` | Payload too large | Reduce or stream the payload |
+| `429` | Rate or concurrency limit | Back off only if retry is safe |
+| `502` | Execution provider/upstream failure | Check for side effects before retrying |
+| `503` | Required runtime is not ready | Retry safe calls with bounded backoff |
+| `504` | Execution deadline exceeded | Treat started mutations as indeterminate |
+
+## Sandbox streams
+
+For `/v1/debug/stream` and `/v1/execute/stream`, transport success does not imply execution success. A runtime failure is an `error` event followed by `done` with `error: true`. A successful stream has one `result` event followed by `done`.
+
+If a stream or connection ends before a terminal event, treat the outcome as unknown when code could have mutated external state.
+
+## SDK errors
+
+All SDK-specific errors extend `RevoError` and expose `code`, `retryable`, `indeterminate`, and optional `statusCode`/`details`.
+
+| Error | Meaning |
+| --- | --- |
+| `RevoConfigurationError` | Missing or invalid local client configuration |
+| `RevoAuthenticationError` | API key validation failed |
+| `RevoPermissionDeniedError` | The identity lacks runtime permission |
+| `RevoRuntimeContextUnavailableError` | A hosted-only context method was called standalone |
+| `RevoBatchConfigurationError` | Batch options are invalid or changed too late |
+| `RevoBatchLimitError` | A local/server batch ceiling was exceeded |
+| `RevoProtocolError` | Runtime response or contract revision is incompatible |
+| `RevoRemoteError` | One dispatched runtime call was rejected |
+| `RevoTransportError` | Discovery or runtime transport did not complete reliably |
+
+```ts
+import { RevoError, RevoTransportError } from '@revoengine/sdk';
+
+try {
+  await revo.api.getDatabaseData('Orders', { take: 100 });
+} catch (error) {
+  if (error instanceof RevoTransportError && error.indeterminate) {
+    // Inspect durable state before deciding whether the operation can be repeated.
+  }
+  if (error instanceof RevoError) {
+    console.error(error.code, error.statusCode, error.message);
+  }
+  throw error;
+}
+```
+
+## Safe retry checklist
+
+1. Classify the operation as read-only, idempotent, or non-idempotent.
+2. Check durable state when dispatch may have reached the server.
+3. Reuse a business idempotency key where the target supports one.
+4. Retry only failures documented as retryable, with bounded exponential backoff and jitter.
+5. Stop on validation, authentication, authorization, and version conflicts until corrected.
+
+For support, record the UTC timestamp, method/path, status, resource or execution identifier, and the `x-revo-oid` and `x-revo-ver` response headers. Redact tokens, secrets, signed URLs, and sensitive payload values.

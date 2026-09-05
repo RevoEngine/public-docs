@@ -1,0 +1,231 @@
+---
+title: Automation
+description: Run durable work from templates, schedules, events, and outbound webhooks.
+icon: gears
+---
+
+Automation moves work out of interactive requests and gives it a durable operational history. RevoEngine separates reusable definitions from individual executions.
+
+<Tip>
+Read [Jobs and durable execution](/operate/jobs) for concrete patterns, instance-controlled quotas up to 59 minutes and 4 GiB, and guidance on when a Job is the wrong primitive.
+</Tip>
+
+<CardGroup cols={3}>
+  <Card title="Job templates" icon="copy">
+    Define reusable Component execution, inputs, limits, concurrency, and retry policy.
+  </Card>
+  <Card title="Schedules and events" icon="calendar-check">
+    Trigger templates, Agents, or supported platform operations over time or from messages.
+  </Card>
+  <Card title="History" icon="clock-rotate-left">
+    Inspect jobs, event fan-out, logs, retries, cancellation, and replay.
+  </Card>
+</CardGroup>
+
+## Choose the right primitive
+
+| Primitive | Use it when |
+| --- | --- |
+| Job template | The same Component should run repeatedly with consistent policy. |
+| Job | You need one durable execution and its status, result, logs, and lineage. |
+| Schedule | Work should run from a five-field cron expression in an IANA timezone. |
+| Event | Work should react to a platform or custom message, optionally filtered by payload. |
+| Event history | You need the durable record of one event and its target fan-out. |
+| Webhook | RevoEngine should deliver an outbound HTTP request asynchronously. |
+
+## Create a Job template
+
+1. Build and activate the target Component.
+2. Open **Jobs → Templates**.
+3. Select the Component and optionally pin a version.
+4. Choose the execution principal.
+5. Add template input under `options.input`.
+6. Set timeout and memory limits.
+7. Configure sensitive-history, concurrency, and retry options.
+8. Save the template and run a controlled test.
+
+The execution principal is evaluated when the job runs. Use a service account for unattended work and grant it only the platform and resource access the Component needs.
+
+<Warning>
+  A template owned by an administrator does not cause its jobs to inherit unlimited access. The configured execution principal must remain active and authorized at runtime.
+</Warning>
+
+## Inputs and history
+
+Template input is a JSON object. Each run may supply its own structured job input, while the Component can also read stable template values. New integrations should not send JSON encoded as a string.
+
+Use `hideRequest` or `hideResponse` when an execution payload should not be retained in job history. These options reduce persisted visibility; they are not a substitute for avoiding secrets in application payloads.
+
+## Concurrency
+
+Concurrency groups related jobs under a logical key:
+
+```json
+{
+  "key": "nightly_sync",
+  "limit": 3,
+  "ttl": 120
+}
+```
+
+- `key` identifies the shared bucket.
+- `limit` bounds simultaneous executions in that bucket.
+- `ttl` bounds the slot lease if an execution stops reporting progress.
+
+Choose a key based on the resource being protected, not only the template name. For example, all writers to one external account can share a bucket across several templates.
+
+## Retry policy
+
+Automatic job retry applies only after a job reaches terminal `ERROR`. The failed job remains in history and a new child job carries retry lineage.
+
+Policy fields include:
+
+- `enabled`;
+- total `maxAttempts`, including the original attempt;
+- minimum and maximum backoff;
+- exponential doublings before linear growth;
+- optional concurrency bypass for automatic retry children.
+
+Cancellation, success, expiration, and handled operator stops do not create automatic retry children. Infrastructure delivery retries are separate from application-level job retry.
+
+<Tip>
+  Retry only Components whose external effects are idempotent. Store an idempotency key before calling a payment, messaging, or provisioning API.
+</Tip>
+
+## Job lifecycle
+
+```text
+CREATED -> PENDING -> PROCESSING -> FINISHED
+                         |          ERROR -> retry child
+                         +--------> CANCELLED
+                         +--------> EXPIRED
+```
+
+Open **Jobs → Job History** to inspect status, origin, input/output visibility, Component version, processing time, logs, and retry lineage.
+
+Operator actions have deliberately different meaning:
+
+- **Retry** creates another attempt from a failed job.
+- **Run now** asks a still-pending job to dispatch immediately.
+- **Cancel** requests cancellation for active selections.
+- **Delete / restore** changes history visibility without pretending the execution did not happen.
+
+## Schedules
+
+A Schedule combines a five-field cron expression, an IANA timezone, activation state, and one execution target.
+
+```text
+30 9 * * MON-FRI
+Europe/Warsaw
+```
+
+Use a canonical timezone such as `Europe/Warsaw` or `UTC`. Avoid abbreviations such as `CET` or `EST`, which do not express daylight-saving rules reliably.
+
+A Schedule can target a Job template, an Agent, or a supported platform operation. You can pause, resume, edit, delete, restore, or trigger it immediately. The durable Schedule definition is authoritative; the scheduling layer is responsible for delivery.
+
+## Events
+
+An Event definition subscribes one target to a platform event type or a `CUSTOM_*` type. Optional filters are evaluated against the normalized event envelope before work is scheduled.
+
+In the visual builder, enter only message-relative property paths. The UI converts them to stored `message.*` query fields:
+
+```json
+{
+  "and": [
+    { "field": "message.mimeType", "op": "eq", "value": "text/csv" },
+    { "field": "message.metadata.pipeline", "op": "eq", "value": "settlements" }
+  ]
+}
+```
+
+The equivalent UI property values are `mimeType` and `metadata.pipeline`, without the `message.` prefix.
+
+Built-in event families cover Storage and legacy file lifecycle, users, service accounts, and account API keys. Custom events let an application publish its own business signal.
+
+Event metadata is searchable and bounded. Use it for routing and correlation, not as an alternate large-payload channel.
+
+For file-driven automation, prefer the Storage event family. `STORAGE_CREATED` starts work after a new file has finalized; `STORAGE_SYNCHRONIZED` is the stronger boundary when asynchronous text statistics must be available to the first Job. The target receives `{ type, metadata, message }`, and the Component should reload `message.storageEntryId` under its own service-account permissions before reading content.
+
+<Tip>
+  A production ingestion chain is Storage upload → lifecycle Event → filtered Job template → bounded processing → Storage output. Keep Event History ID, Job operation ID, input entry/version, and output entry ID together for replay-safe evidence.
+</Tip>
+
+## Event history and replay
+
+One triggered message creates an Event history entry. It records:
+
+- normalized type and metadata;
+- resolved targets;
+- scheduled executions;
+- targets skipped because a filter did not match;
+- replay and lifecycle evidence.
+
+Large messages are omitted from list projections to keep the grid responsive. Open the detail view to load the complete message when authorized.
+
+Replay resumes the selected historical event through its current target definitions. It is not a time machine for external systems: Components must still be safe under repeated delivery.
+
+## Outbound webhooks
+
+Webhooks send an asynchronous HTTP request with a method, URL, optional headers, and optional body. You can configure retry attempts, request-detail retention, masked fields, metadata, and a static outbound network path when your integration requires allowlisting.
+
+Use `maskDetails` for fields that should not be persisted in readable webhook history. Prefer resolving credentials from Secrets inside a Component when you need stronger control than a stored static header.
+
+The Webhooks workspace shows delivery state and supports cancellation, deletion, and restore. A webhook row is an outbound attempt record, not a subscription for inbound traffic.
+
+## High-level execution flow
+
+```text
+template / schedule / event / webhook definition
+  -> durable request or history record
+  -> authenticated background dispatch
+  -> current definition and principal revalidated
+  -> execution claimed once per attempt
+  -> result, logs, and lifecycle persisted
+  -> realtime update sent to connected operators
+```
+
+Delivery systems may repeat a request. Durable identifiers, state transitions, and target-specific idempotency prevent a repeated delivery from becoming an uncontrolled duplicate. Your Component remains responsible for idempotency at external side-effect boundaries.
+
+## Production checklist
+
+- Use a dedicated service account as the execution principal.
+- Pin a Component version for controlled releases.
+- Put stable values in template input and per-run values in job input.
+- Set explicit timeout, memory, concurrency, and retry policies.
+- Use IANA timezones and test daylight-saving transitions.
+- Filter events before scheduling expensive work.
+- Make replay and retry safe with idempotency keys.
+- Mask or suppress sensitive request and response history.
+- Monitor terminal state and retry lineage, not only dispatch acceptance.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="bolt" href="/operate/events">
+    Configure event types, filters, targets, and safe test messages.
+  </Card>
+  <Card title="Storage" icon="hard-drive" href="/operate/storage">
+    Build governed file ingestion with ACL, retention, finalization, events, and bounded reads.
+  </Card>
+  <Card title="Event History" icon="clock-rotate-left" href="/operate/event-history">
+    Follow fan-out evidence and replay selected messages safely.
+  </Card>
+  <Card title="Schedules" icon="calendar-clock" href="/operate/schedules">
+    Configure cron, timezone, target modes, and operator lifecycle.
+  </Card>
+  <Card title="Outbound webhooks" icon="webhook" href="/operate/webhooks">
+    Deliver asynchronous HTTP requests with retries and masked history.
+  </Card>
+  <Card title="Components" icon="puzzle-piece" href="/build/components">
+    Build the logic executed by Job templates.
+  </Card>
+  <Card title="Agents" icon="robot" href="/ai/agents">
+    Use schedules and events as autonomous Agent triggers.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/operate/observability">
+    Diagnose jobs, event fan-out, and webhook delivery.
+  </Card>
+  <Card title="Secrets" icon="vault" href="/operate/secrets">
+    Keep integration credentials out of template and webhook payloads.
+  </Card>
+</CardGroup>

@@ -1,0 +1,122 @@
+---
+title: JSON Validator
+description: Define reusable request contracts and validate payloads before application code runs.
+icon: shield-check
+---
+
+`JSON_VALIDATOR` is a Component type for declarative validation. It contains exactly one element whose source is a JSON validator schema. Use it directly in Sandbox validation, attach it to an Endpoint as a reusable guard, or use an inline copy under an Endpoint's `options.guard` when reuse is unnecessary.
+
+## Where validation runs
+
+For an Endpoint, validation happens after method/path matching and before the target Component is resolved. The value being validated has this shape:
+
+```json
+{
+  "query": { "notify": "true" },
+  "headers": { "content-type": "application/json" },
+  "parameters": { "orderId": "order-123" },
+  "body": { "channel": "email" }
+}
+```
+
+Do not validate the raw transport request in application code when a boundary rule is known in advance. A guard produces a controlled client error before business logic, Storage access, database writes, or integration calls begin.
+
+## Schema shape
+
+The root is always a `ValidatorSchema` object. Its `schema` must be an object with `objectSchema` entries.
+
+```json
+{
+  "whitelist": false,
+  "whitelistErrors": true,
+  "schema": {
+    "type": "object",
+    "objectSchema": [
+      {
+        "property": "body",
+        "schema": {
+          "type": "object",
+          "objectSchema": [
+            { "property": "currency", "schema": { "type": "string", "required": true, "regex": "^[A-Z]{3}$" } },
+            { "property": "amount", "schema": { "type": "number", "required": true, "min": 0.01, "max": 100000 } },
+            { "property": "labels", "schema": { "type": "array", "arraySchema": { "type": "string", "max": 32 } } }
+          ]
+        }
+      },
+      {
+        "property": "parameters",
+        "schema": {
+          "type": "object",
+          "objectSchema": [
+            { "property": "orderId", "schema": { "type": "string", "required": true, "regex": "^order-[A-Za-z0-9_-]+$" } }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+At the Endpoint boundary, root properties are `body`, `query`, `headers`, and `parameters`. `query`, `headers`, and `parameters` must be an `object` (or `any`); `body` may use any supported type. A route without dynamic segments normally receives an empty `parameters` object.
+
+## Property rules
+
+| Field | Applies to | Meaning |
+| --- | --- | --- |
+| `type` | every property | One of `string`, `number`, `boolean`, `object`, `array`, `date`, or `any`. |
+| `required` | every property | Rejects a missing value. It does not reject an explicitly supplied value solely because it is falsey. |
+| `regex` | string | JavaScript regular-expression source. Validate it before activation. |
+| `min`, `max` | string, number, array | String length, numeric range, or number of array items. |
+| `objectSchema` | object | Array of named child-property schemas. |
+| `arraySchema` | array | Schema applied to each item. |
+
+`date` accepts a valid JavaScript date value or a value parsable as a date. `any` accepts an already-present value without type checks. An object field missing from the request only fails when that field is `required`.
+
+## Unknown fields
+
+The current runtime treats the two root flags as follows:
+
+| Setting | Runtime behavior for an undeclared field |
+| --- | --- |
+| `whitelist: true` | Leaves the field in the value and does not emit an unknown-field error. |
+| `whitelist: false`, `whitelistErrors: false` | Removes the field from the value passed onward. |
+| `whitelist: false`, `whitelistErrors: true` | Adds an `unexpected property found` validation error. |
+
+This behavior is relevant when a validated object is reused later in the same execution. Choose the explicit error mode for public contracts that must reject unknown input; do not rely on stripping alone as a security control.
+
+## Attach a reusable validator to an Endpoint
+
+Configure the schema Component under the Endpoint's `options`. Pin `componentSchemaVersion` for a stable contract; omit it only when the Endpoint should deliberately follow the latest active validator version.
+
+```json
+{
+  "componentSchemaId": "1f24e4ca-2dd0-4ce0-9fd9-4c0cd76e3ab1",
+  "componentSchemaElement": "requestSchema",
+  "componentSchemaVersion": 7,
+  "validateResponse": 422,
+  "validateHideResponse": false,
+  "customValidateResponse": { "message": "Payload is not valid" }
+}
+```
+
+Use either `guard` or `componentSchemaId` as the source of a contract. A reusable schema Component improves consistency across Endpoints; an inline `guard` keeps a one-off contract next to its Endpoint.
+
+## `util.validate()` in low-code
+
+For validation inside a Component, use [`util.validate()`](/low-code/reference/util#util-validate). It uses the same schema model but does not replace Endpoint boundary validation: the target Component has already started when it runs.
+
+## Test matrix
+
+Before activation, test at least:
+
+- a valid complete request;
+- every required field missing;
+- a wrong primitive type;
+- minimum, maximum, and regex boundaries;
+- an invalid array item;
+- an unexpected property in the selected unknown-field mode;
+- missing, empty, and dynamic route parameter cases.
+
+<Warning>
+Validation errors can reflect caller input. Do not return raw errors when field names, policy details, or submitted values would disclose sensitive information. Prefer a concise `customValidateResponse` for public APIs.
+</Warning>

@@ -1,0 +1,565 @@
+---
+title: storage reference
+description: Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **22 methods**. Search the docs for an exact method name, or use this index:
+
+- [`storage.explore()`](#storage-explore)
+- [`storage.resolveFolderPath()`](#storage-resolveFolderPath)
+- [`storage.ensureFolderPath()`](#storage-ensureFolderPath)
+- [`storage.getFile()`](#storage-getFile)
+- [`storage.getFileData()`](#storage-getFileData)
+- [`storage.getFileStats()`](#storage-getFileStats)
+- [`storage.getEntry()`](#storage-getEntry)
+- [`storage.createFolder()`](#storage-createFolder)
+- [`storage.putObject()`](#storage-putObject)
+- [`storage.createUploadSession()`](#storage-createUploadSession)
+- [`storage.extendUploadSession()`](#storage-extendUploadSession)
+- [`storage.getUploadSession()`](#storage-getUploadSession)
+- [`storage.uploadPart()`](#storage-uploadPart)
+- [`storage.finalizeUploadSession()`](#storage-finalizeUploadSession)
+- [`storage.abortUploadSession()`](#storage-abortUploadSession)
+- [`storage.updateEntry()`](#storage-updateEntry)
+- [`storage.moveEntry()`](#storage-moveEntry)
+- [`storage.archiveEntry()`](#storage-archiveEntry)
+- [`storage.restoreEntry()`](#storage-restoreEntry)
+- [`storage.deleteEntry()`](#storage-deleteEntry)
+- [`storage.getDownload()`](#storage-getDownload)
+- [`storage.getText()`](#storage-getText)
+
+<span id="storage-explore" aria-hidden="true"></span>
+
+## `storage.explore()`
+
+Lists files and folders from the default `explorer` namespace.
+
+### Signature
+
+```ts
+static explore(query?: StorageExploreRequest): Promise<StorageExploreResult>;
+```
+### Example
+
+```ts
+const listing = await storage.explore({ parentStorageEntryId: folderId });
+```
+
+<span id="storage-resolveFolderPath" aria-hidden="true"></span>
+
+## `storage.resolveFolderPath()`
+
+Resolves an exact active folder path relative to the default `explorer` root.
+
+Notes:
+- Matching is case-insensitive and follows each parent/name segment; this is not a broad term search.
+- Leading and trailing slashes are optional.
+- Missing, archived, deleted, or inaccessible paths fail without creating folders.
+
+### Signature
+
+```ts
+static resolveFolderPath(path: string): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.resolveFolderPath('exports/daily');
+```
+
+<span id="storage-ensureFolderPath" aria-hidden="true"></span>
+
+## `storage.ensureFolderPath()`
+
+Resolves a folder path and idempotently creates any missing segments.
+
+Notes:
+- No-op in debug mode.
+- Existing folders are never mutated.
+- ACL options apply to every newly created segment.
+
+### Signature
+
+```ts
+static ensureFolderPath(
+      path: string,
+      options?: StorageEnsureFolderPathOptions,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.ensureFolderPath('exports/daily', {
+  restricted: true,
+});
+```
+
+<span id="storage-getFile" aria-hidden="true"></span>
+
+## `storage.getFile()`
+
+Returns metadata for a file entry in the default `explorer` namespace.
+
+### Signature
+
+```ts
+static getFile(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const file = await storage.getFile(storageEntryId);
+```
+
+<span id="storage-getFileData" aria-hidden="true"></span>
+
+## `storage.getFileData()`
+
+Reads storage file content.
+
+Notes:
+- Text file batch reads reuse cached stats and auto-build them if missing.
+- Binary reads return a base64 string.
+- Direct reads are limited to 10 MB unless you request a ranged buffer.
+
+### Signature
+
+```ts
+static getFileData(
+      storageEntryId: string,
+      options?: StorageFileReadOptions,
+    ): Promise<any>;
+```
+### Example
+
+```ts
+const lines = await storage.getFileData(storageEntryId, { batchNumber: 1 });
+```
+
+<span id="storage-getFileStats" aria-hidden="true"></span>
+
+## `storage.getFileStats()`
+
+Detects encoding, newline separator, and line batches for a text file.
+
+Notes:
+- Derived stats are cached on the storage entry metadata for later batch reads.
+
+### Signature
+
+```ts
+static getFileStats(
+      storageEntryId: string,
+      options?: StorageFileStatsOptions,
+    ): Promise<StorageFileStats>;
+```
+### Example
+
+```ts
+const stats = await storage.getFileStats(storageEntryId, {
+  separator: '\n',
+  batchSize: 5000,
+});
+```
+
+<span id="storage-getEntry" aria-hidden="true"></span>
+
+## `storage.getEntry()`
+
+Returns metadata for any storage entry in the default `explorer` namespace.
+
+### Signature
+
+```ts
+static getEntry(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.getEntry(storageEntryId);
+```
+
+<span id="storage-createFolder" aria-hidden="true"></span>
+
+## `storage.createFolder()`
+
+Creates a folder in the default `explorer` namespace.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static createFolder(data: StorageFolderInput): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.createFolder({ name: 'Exports' });
+```
+
+<span id="storage-putObject" aria-hidden="true"></span>
+
+## `storage.putObject()`
+
+Uploads a small object in one request in the default `explorer` namespace.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static putObject(data: StoragePutObjectInput): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const file = await storage.putObject({
+  name: 'summary.md',
+  data: '# Daily summary',
+  mimeType: 'text/markdown',
+  computeStats: 'sync',
+});
+```
+
+<span id="storage-createUploadSession" aria-hidden="true"></span>
+
+## `storage.createUploadSession()`
+
+Opens an upload session for a file in the default `explorer` namespace.
+
+Notes:
+- No-op in debug mode.
+- Use this instead of `storage.appendFile(...)`; uploads are resumable and finalized explicitly.
+
+### Signature
+
+```ts
+static createUploadSession(
+      data: StorageUploadSessionInput,
+    ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
+```
+### Example
+
+```ts
+const upload = await storage.createUploadSession({
+  name: 'archive.zip',
+  contentTypeHint: 'application/zip',
+  uploadMode: 'incremental',
+});
+await storage.uploadPart(upload.session.storageUploadSessionId, {
+  data: chunkBase64,
+  dataEncoding: 'base64',
+});
+const result = await storage.finalizeUploadSession(
+  upload.session.storageUploadSessionId,
+);
+```
+
+<span id="storage-extendUploadSession" aria-hidden="true"></span>
+
+## `storage.extendUploadSession()`
+
+Extends the TTL for an active upload session.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static extendUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+```
+### Example
+
+```ts
+const session = await storage.extendUploadSession(storageUploadSessionId);
+```
+
+<span id="storage-getUploadSession" aria-hidden="true"></span>
+
+## `storage.getUploadSession()`
+
+Returns the current upload session state together with uploaded part manifests.
+
+Notes:
+- No-op in debug mode.
+- Multipart sessions expose uploaded parts with computed byte ranges.
+
+### Signature
+
+```ts
+static getUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSessionView>;
+```
+### Example
+
+```ts
+const state = await storage.getUploadSession(storageUploadSessionId);
+```
+
+<span id="storage-uploadPart" aria-hidden="true"></span>
+
+## `storage.uploadPart()`
+
+Uploads one part into an active multipart upload session.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static uploadPart(
+      storageUploadSessionId: string,
+      partNumber: number | StorageUploadPartInput,
+      data?: StorageUploadPartInput,
+    ): Promise<StorageUploadPartResult>;
+```
+### Example
+
+```ts
+await storage.uploadPart(storageUploadSessionId, 2, {
+  data: nextChunk,
+  dataEncoding: 'utf8',
+});
+
+Example (incremental numbering):
+await storage.uploadPart(storageUploadSessionId, {
+  data: nextChunk,
+  dataEncoding: 'utf8',
+});
+
+Example (repair a specific multipart chunk):
+await storage.uploadPart(storageUploadSessionId, 7, {
+  data: repairedChunk,
+  dataEncoding: 'utf8',
+});
+```
+
+<span id="storage-finalizeUploadSession" aria-hidden="true"></span>
+
+## `storage.finalizeUploadSession()`
+
+Finalizes an upload session and materializes the storage entry.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static finalizeUploadSession(
+      storageUploadSessionId: string,
+      data?: StorageUploadSessionFinalizeInput,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView }>;
+```
+### Example
+
+```ts
+const result = await storage.finalizeUploadSession(storageUploadSessionId, {
+  computeStats: 'async',
+});
+```
+
+<span id="storage-abortUploadSession" aria-hidden="true"></span>
+
+## `storage.abortUploadSession()`
+
+Cancels an active upload session.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static abortUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+```
+### Example
+
+```ts
+await storage.abortUploadSession(storageUploadSessionId);
+```
+
+<span id="storage-updateEntry" aria-hidden="true"></span>
+
+## `storage.updateEntry()`
+
+Updates mutable storage entry fields such as name, metadata, or ACLs.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static updateEntry(
+      storageEntryId: string,
+      data: StorageEntryUpdateInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.updateEntry(storageEntryId, {
+  name: 'report-final.csv',
+  version: currentVersion,
+});
+```
+
+<span id="storage-moveEntry" aria-hidden="true"></span>
+
+## `storage.moveEntry()`
+
+Moves an entry to another folder or provider root.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static moveEntry(
+      storageEntryId: string,
+      data: StorageEntryMoveInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.moveEntry(storageEntryId, {
+  parentStorageEntryId: destinationFolderId,
+  version: currentVersion,
+});
+```
+
+<span id="storage-archiveEntry" aria-hidden="true"></span>
+
+## `storage.archiveEntry()`
+
+Archives an entry without deleting its backing object.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static archiveEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.archiveEntry(storageEntryId, { version: currentVersion });
+```
+
+<span id="storage-restoreEntry" aria-hidden="true"></span>
+
+## `storage.restoreEntry()`
+
+Restores an archived or deleted storage entry.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static restoreEntry(
+      storageEntryId: string,
+      data: StorageRestoreInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.restoreEntry(storageEntryId, { version: currentVersion });
+```
+
+<span id="storage-deleteEntry" aria-hidden="true"></span>
+
+## `storage.deleteEntry()`
+
+Soft-deletes a storage entry.
+
+Notes:
+- No-op in debug mode.
+
+### Signature
+
+```ts
+static deleteEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.deleteEntry(storageEntryId, { version: currentVersion });
+```
+
+<span id="storage-getDownload" aria-hidden="true"></span>
+
+## `storage.getDownload()`
+
+Generates a signed download URL for a storage file.
+
+### Signature
+
+```ts
+static getDownload(
+      storageEntryId: string,
+      preview?: boolean,
+    ): Promise<StorageDownload>;
+```
+### Example
+
+```ts
+const download = await storage.getDownload(storageEntryId, true);
+```
+
+<span id="storage-getText" aria-hidden="true"></span>
+
+## `storage.getText()`
+
+Reads a text window from a storage file.
+
+### Signature
+
+```ts
+static getText(
+      storageEntryId: string,
+      options?: StorageTextReadOptions,
+    ): Promise<StorageTextContent>;
+```
+### Example
+
+```ts
+const excerpt = await storage.getText(storageEntryId, {
+  startLine: 1,
+  endLine: 50,
+});
+```

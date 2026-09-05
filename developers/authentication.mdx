@@ -1,0 +1,73 @@
+---
+title: Authentication
+description: Authenticate server integrations, interactive sessions, the SDK, and the CLI without crossing trust boundaries.
+icon: key
+---
+
+RevoEngine authenticates requests first, then enforces instance isolation, roles, ownership, and resource-specific policy.
+
+## Server-to-server API keys
+
+Use an instance-bound API key for backend services and CI:
+
+```http
+Authorization: Bearer <api-key>
+```
+
+```bash
+curl "https://api.revoengine.com/api/v1/me" \
+  --header "Authorization: Bearer $REVO_API_KEY"
+```
+
+The key resolves its instance. New clients should not require a separate tenant selector for API-key authentication. If an instance header is also sent, it must identify the same instance.
+
+Create keys for the smallest suitable identity—prefer a dedicated service account for automation—and assign only the roles needed by the called operations.
+
+## Interactive platform sessions
+
+The RevoEngine web application uses short-lived authenticated sessions. Instance-scoped calls include the selected instance context. Account, device, provider, and instance security policy can invalidate an otherwise well-formed token.
+
+Do not copy browser session tokens into scripts. Create a scoped API key for unattended access.
+
+## SDK authentication
+
+Standalone Node.js uses an explicit option or environment variable:
+
+```ts
+import { RevoClient } from '@revoengine/sdk';
+
+const revo = new RevoClient({
+  apiKey: process.env.REVO_API_KEY,
+});
+```
+
+The first platform call validates the key through `/api/v1/me` and discovers the bound Sandbox endpoint. Revo-hosted Custom Node.js receives an execution-bound runtime and must not construct a client or access a tenant API key.
+
+## CLI authentication
+
+```bash
+revo auth login
+revo auth status
+revo auth logout
+```
+
+For CI, supply `REVO_URL` and `REVO_TOKEN` from the CI secret store. The CLI stores interactive credentials in the operating-system config directory, not in the project.
+
+## Authorization outcome
+
+| Status | Meaning |
+| --- | --- |
+| `401` | Credential, required session/instance context, or security state is missing or invalid |
+| `403` | Identity is valid but lacks a required role or resource permission |
+
+## Credential hygiene
+
+- Keep keys in a server-side secret manager or environment variable.
+- Never bundle a key into browser or mobile client code.
+- Do not write keys to `.revoengine/`, component source, repository config, logs, screenshots, or support tickets.
+- Rotate a key when its operator or storage boundary changes; revoke it immediately after suspected exposure.
+- Treat signed download/upload URLs as temporary credentials.
+
+<Warning>
+  Query-string API-key transport exists only for limited compatibility. URLs commonly leak through browser history, proxies, analytics, and logs. Use the `Authorization` header for all new integrations.
+</Warning>

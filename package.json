@@ -1,0 +1,29 @@
+{
+  "name": "revoengine-public-docs",
+  "private": true,
+  "scripts": {
+    "dev": "mint dev",
+    "validate": "mint validate",
+    "check:links": "mint broken-links --check-anchors --check-redirects",
+    "check:a11y": "mint a11y",
+    "generate:low-code-reference": "node scripts/generate-low-code-reference.mjs",
+    "sync:low-code-reference": "node scripts/generate-low-code-reference.mjs --sync",
+    "check:low-code-reference": "node scripts/generate-low-code-reference.mjs --check",
+    "generate:openapi": "node scripts/sync-platform-openapi.mjs",
+    "sync:openapi": "node scripts/sync-platform-openapi.mjs --sync",
+    "check:openapi": "node scripts/sync-platform-openapi.mjs --check",
+    "check:openapi-source": "node scripts/sync-platform-openapi.mjs --check --require-source",
+    "sync:platform-contracts": "node scripts/platform-contracts.mjs --sync --require-source",
+    "check:platform-contracts": "node scripts/platform-contracts.mjs --check",
+    "check:platform-contracts:source": "node scripts/platform-contracts.mjs --check --require-source",
+    "test:openapi": "node --test test/*.test.mjs",
+    "check:content": "node scripts/check-content.mjs",
+    "check": "npm run test:openapi && npm run check:platform-contracts && npm run check:content && npm run validate && npm run check:links && npm run check:a11y"
+  },
+  "devDependencies": {
+    "mint": "4.2.874"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

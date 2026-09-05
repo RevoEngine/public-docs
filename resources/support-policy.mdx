@@ -1,71 +1,88 @@
 ---
-title: 'Support Policy'
-description: 'In addition to Term of Service (TOS) hereinafter referred to as Agreement, under which the RevoNG has agreed to provide RevoNG Platform to Customer, the Platform is provided with a Support to Customer based on contracted Plan of the Service.'
+title: Support Policy
+description: Support scope, priorities, and response objectives for contracted RevoEngine Services.
+icon: life-ring
 ---
 
-# Definitions
+<Note>
+  **Current version:** 2 · **Last updated:** 5 September 2026
+</Note>
 
-1. Platform means contracted instance within RevoNG.
-2. Plan means tier included as the part of Agreement, which is one of the following: Start, Standard, Plus, Business and Enterprise, however, Support Plan is capped at Standard free of charge for all tiers excluding Start, as long as it is not upgraded.
-3. Error means, outage, lack of operation or incorrect operation of the Platform or its individual features, as a result of which the System does not work as intended.[AW1]
-4. Ticket means, when Customer successfully submitted request trough web ticketing. Tickets are divided into the following categories and optionally priority, (A) Incident, priorities: critical, high, medium, low; (B) Billing; (C) Consultancy; (D) Other - general queries and questions including feature requests and general product feedback;
-5. Initial Response Time means, when RevoNG receives Ticket and verify its validity providing reply and estimated resolution time, Tickets must be submitted trough web ticketing as Incident.
-- a) “8x5” means from 9am to 5pm (UTC +02:00), Monday through Friday, excluding public holidays in the country of Poland, the Initial Response Time and Resolution Time are not guaranteed.
-- b) “12x5” means from 7am to 7pm (UTC +02:00), Monday through Friday, excluding public holidays in the country of Poland.
-- c) “24x7” means from 24 hours per day per week.
+## Definitions
 
-# 1. Initial Response Time
+1. **Platform** — the contracted RevoEngine instance operated by the Platform Operator.
+2. **Plan** — the tier included in the Agreement: Start, Standard, Plus, Business, or Enterprise. Except for Start, the included Support level is capped at Standard unless the Client purchases an upgrade.
+3. **Error** — an outage, lack of operation, or incorrect operation of the Platform or any of its features, resulting in the Platform not working as intended.
+4. **Ticket** — a request successfully submitted by the Client through the designated web-ticketing channel. Tickets are categorized as Incident, Billing, Consultancy, or Other. Incident priorities are critical, high, normal, and low. Other includes general inquiries, feature requests, and general product feedback.
+5. **Initial Response Time** — the period in which RevoEngine Support receives a Ticket, verifies its validity, replies, and provides an estimated resolution time. Tickets must be submitted through the designated incident channel. Support windows are:
+   - a) **8x5** — 9:00 AM to 5:00 PM (UTC+02:00), Monday through Friday, excluding public holidays in Poland; Initial Response Time and resolution time are not guaranteed;
+   - b) **12x5** — 7:00 AM to 7:00 PM (UTC+02:00), Monday through Friday, excluding public holidays in Poland;
+   - c) **24x7** — 24 hours a day, seven days a week.
 
-| Tier                          | P1 (Critical)         | P2 (High)             | P3 (Normal)           | P4 (Low)               |
-|-------------------------------|-----------------------|-----------------------|-----------------------|------------------------|
-| Start                         | 2 business days (8x5) | 5 business days (8x5) |                       |                        |
-| Standard                      | 4 hours (8x5)         | 8 hours (8x5)         | 2 business days (8x5) | 5 business days (8x5)  |
-| Plus (Optional Upgrade)       | 2 hours (12x5)        | 4 hours (12x5)        | 1 business day (8x5)  | 2 business days (8x5)  |
-| Business (Optional Upgrade)   | 1 hour (24x7)         | 4 hours (24x7)        | 1 business day (12x5) | 2 business days (12x5) |
-| Enterprise (Optional Upgrade) | 15 min (24x7)         | 1 hour (24x7)         | 4 hours (12x5)        | 1 business day (12x5)  |
+## 1. Initial Response Time
 
-# 2. Incident Priorities
+| Tier | P1 — Critical | P2 — High | P3 — Normal | P4 — Low |
+| --- | --- | --- | --- | --- |
+| Start | 2 business days (8x5) | 5 business days (8x5) | — | — |
+| Standard | 4 hours (8x5) | 8 hours (8x5) | 2 business days (8x5) | 5 business days (8x5) |
+| Plus — Optional Upgrade | 2 hours (12x5) | 4 hours (12x5) | 1 business day (8x5) | 2 business days (8x5) |
+| Business — Optional Upgrade | 1 hour (24x7) | 4 hours (24x7) | 1 business day (12x5) | 2 business days (12x5) |
+| Enterprise — Optional Upgrade | 15 minutes (24x7) | 1 hour (24x7) | 4 hours (12x5) | 1 business day (12x5) |
 
-**P4 (Low)** Instance is not affected, this type of priority is used for:
+## 2. Incident Priorities
+
+### P4 — Low
+
+The instance is not affected. This priority is used for:
+
 - Feedback.
 - Feature requests.
 - General questions.
 - Incidents related to Preview functionality.
 
-**P3 (Normal)** Instance has one or more of the following:
-- Unexpected behavior of Platform functionality, which has a very randomized effect, that is hard to predict and difficult to replicate.
-- Performance degradation of the Platform (e.g., API response times), requests are successfully processed but with the delay which might cause low to medium business impact.
-- Partial and non-critical loss of functionality of the Platform where users are able to login and use most of the core functionalities, that has low to medium business impact, temporary workaround is available.
-- Loss of functionality of the Platform with high business impact but temporary workaround is applied (a temporary solution was applied and Ticket was downgraded from **P2 - High**).
+### P3 — Normal
 
-**P2 (High)** Instance has one or more of the following:
-- Performance degradation of the Platform (e.g., API response times), requests are successfully processed but with the delay which might cause high business impact.
-- Partial and non-critical loss of functionality of the Platform where users are able to login and use most of the core functionalities, that it has high business impact, temporary workaround is available.
-- Loss of functionality of the Platform with high business impact but temporary workaround is applied (a temporary solution was applied and Ticket was downgraded from **P1 - Critical**).
+The instance has one or more of the following:
 
-**P1 (Critical)** Instance has one or more of the following:
-- Platform is down and irresponsive, which causes high business impact.
+- Unexpected Platform behavior that is difficult to predict and reproduce.
+- Platform performance degradation, such as increased API response times, where requests are processed successfully but the delay may cause low-to-medium business impact.
+- Partial, non-critical loss of Platform functionality with low-to-medium business impact, where Users can log in and use most core functionality and a temporary workaround is available.
+- Loss of Platform functionality with high business impact after a temporary workaround has been applied and the Ticket has been downgraded from **P2 — High**.
+
+### P2 — High
+
+The instance has one or more of the following:
+
+- Platform performance degradation, such as increased API response times, where requests are processed successfully but the delay may cause high business impact.
+- Partial, non-critical loss of Platform functionality with high business impact, where Users can log in and use most core functionality and a temporary workaround is available.
+- Loss of Platform functionality with high business impact after a temporary workaround has been applied and the Ticket has been downgraded from **P1 — Critical**.
+
+### P1 — Critical
+
+The instance has one or more of the following:
+
+- The Platform is down and unresponsive, causing high business impact.
 - Critical loss of functionality of the Platform and no temporary workaround is available.
 - Security vulnerability has been identified.
 
-<Note>RevoNG Support has ability to downgrade the priority if it does not follow provided guidelines.</Note>
+**Priority review.** RevoEngine Support may adjust the priority when a Ticket does not meet the applicable severity guidelines.
 
-# 3. Optional Upgrade
+## 3. Optional Upgrade
 
-- As a part of the Agreement, the Customer is provided with the ability to upgrade their support level. Currently, Start Customers are not able to get any commitments when it comes to initial response time.
-- Standard, Plus, Business and Enterprise Customers are supported with Standard level of the support free of charge where Plus, Business and Enterprise Customers are able to upgrade their support level.
+- The Agreement allows the Client to upgrade the Support level. Start Clients do not receive a contractual Initial Response Time commitment.
+- Standard, Plus, Business, and Enterprise Clients receive the Standard Support level without an additional fee. Plus, Business, and Enterprise Clients may purchase an eligible upgrade.
 
-There is no possibility of accessing optional upgrade of the support services where contracted instance has higher tier, e.g. Standard cannot be upgraded with no exceptions, additional examples:
-- Customers with Plus tier are not able to upgrade their level of the support services to Business and Enterprise which is lower overall than their contracted instance Agreement.
-- Business Customers can use both Plus and Business upgrades.
-- Enterprise Customers can use full range of the optional upgrades starting from Plus.
+An optional Support upgrade cannot exceed the tier of the contracted instance. Standard cannot be upgraded. Additional examples:
 
-For the pricing and upgrades, please contact our Sales sales@revong.com or your dedicated RevoNG contact.
+- Plus Clients cannot upgrade Support to Business or Enterprise.
+- Business Clients may use Plus or Business Support upgrades.
+- Enterprise Clients may use the full range of optional upgrades starting from Plus.
 
-# Revisions
+For pricing and upgrades, contact [sales@revong.com](mailto:sales@revong.com) or your dedicated RevoEngine contact.
 
-| Version | Updated Date | Status | Description                      |
-|---------|--------------|--------|----------------------------------|
-| 1       | 20.05.2023   | Active | Initial version of the document. |
+## Revision History
 
-
+| Version | Date | Status | Changes |
+| --- | --- | --- | --- |
+| 1 | 20 May 2023 | Superseded | Initial version of the document. |
+| 2 | 5 September 2026 | Active | Updated RevoEngine product terminology and publication format. |

@@ -1,0 +1,85 @@
+---
+title: Search and discovery
+description: Find platform resources, navigation destinations, and exact implementation references.
+icon: magnifying-glass
+---
+
+RevoEngine separates workspace discovery from code and conversation search. Choose the surface that owns the thing you are trying to find, then open the exact result before changing or correlating it.
+
+## Workspace search
+
+Open **Search** from the sidebar or press `⌘ K` on macOS / `Ctrl K` on other platforms. With an empty query, the modal lists accessible navigation destinations. After you enter a term, it queries indexed resource metadata and loads additional results as you scroll.
+
+Results can include:
+
+- Users, Service Accounts, Groups, and Permission groups;
+- Components, Endpoints, Job templates, Jobs, Schedules, Events, and Event History;
+- Databases, database Views and data destinations;
+- Secrets, Files, Storage, Webhooks, Logs, and Trace;
+- Dashboards, Playground, Web IDE, Agents, plugins, and Agent memory;
+- account and instance configuration destinations.
+
+Each result carries a stable reference type and ID. Open it to resolve the current resource rather than relying on the highlighted name or excerpt.
+
+## Search behavior
+
+Search uses names, descriptions, categories, keywords, routing keywords, tags, and other indexed metadata appropriate to the resource type. Results are paginated and remain instance-scoped.
+
+Authorization is applied before results are returned. However, a result that links to a composite view can still contain subresources with additional ACL checks.
+
+<Tip>
+  Use a distinctive identifier—Component name, Endpoint path, Job ID, Event history ID, or operation ID—before broad business terms such as `order` or `production`.
+</Tip>
+
+## Favourites and Quick Access
+
+Select the favourite action on a resource or static navigation destination to add it to the sidebar. Favourites store a reference, not a copy. Opening one resolves current authorization and current resource state.
+
+Use favourites for stable work areas such as a production failure dashboard or a settlement Job template. Do not rely on them as evidence that a resource still exists or that access has not changed.
+
+## Code search in Web IDE
+
+Web IDE search finds implementation text inside Components and supports Component-type scope, case-sensitive matching, and whole-word matching. It is the correct surface for questions such as:
+
+- Where is `lib.Payments.Settlement.Client.send` called?
+- Which Component reads `operationId`?
+- Which element handles `CUSTOM_ORDER_APPROVED`?
+
+Open the result in the editor and confirm the Component, element, current version, and surrounding code. See [Web IDE](/build/web-ide).
+
+## Chat and Assistant search
+
+Chat search returns accessible message matches grouped by their conversation and includes an excerpt or attachment summary. Assistant thread search belongs to the Assistant workspace and observes thread-sharing permissions.
+
+Conversation search finds discussion, not authoritative runtime state. Follow referenced IDs into the owning Job, Event, resource, or Trace view.
+
+## A reliable investigation pattern
+
+```text
+search a stable identifier
+  -> open exact resource
+  -> confirm instance, ID, version, and lifecycle
+  -> follow operation/job/event lineage
+  -> inspect Logs or Trace
+```
+
+For example, when a warehouse reports a duplicate order:
+
+1. Search the `operationId` or order ID.
+2. Open the matching Event History or Job.
+3. Confirm the target and attempt lineage.
+4. Open the related webhook or Trace.
+5. Compare idempotency metadata before retrying.
+
+## Search is not proof of absence
+
+Archived, deleted, restricted, unindexed, very recent, or historical content may require its dedicated list or history view. If a search returns nothing:
+
+- confirm the selected instance;
+- open the owning product list and include archived/deleted records;
+- search by stable ID instead of display name;
+- verify your roles and resource Groups;
+- use the Web IDE for source text;
+- inspect history and Trace for execution evidence.
+
+The Assistant follows the same discipline: discover a bounded candidate, load its exact current state, and make claims from that evidence rather than a broad text match.

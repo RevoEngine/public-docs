@@ -1,0 +1,198 @@
+---
+title: Operate Agents
+description: Design Agent responsibilities, connect triggers, inspect runs, handle action-required states, and scale production workloads safely.
+icon: chart-line
+---
+
+The Agents workspace is the operating console for durable AI work. It combines the Agent definition, current health, runs, queued inbox items, workspace files, and execution evidence so operators can answer one question quickly: **what is this Agent responsible for, and what happened to its work?**
+
+## Operator flow
+
+<Steps>
+  <Step title="Define one durable responsibility">
+    Write a measurable mission, explicit responsibilities, operating principles, and success criteria. Keep a human owner for the business outcome even when execution is autonomous.
+  </Step>
+  <Step title="Assign a least-privilege principal">
+    Choose an active service account with only the platform, data, and integration access needed by that responsibility. Ownership controls management; the service account controls runtime access.
+  </Step>
+  <Step title="Configure a safe execution envelope">
+    Select the model and reasoning effort, start with one active root run, attach only required plugins, and choose `default` or `auto_review` tool access. Use `review_required` when a plan must be approved before action.
+  </Step>
+  <Step title="Prove a direct run">
+    Start with a bounded instruction and inspect the ordered run events, tool outcomes, workspace artifacts, and final status. Confirm that the Agent handles missing access and incomplete evidence correctly.
+  </Step>
+  <Step title="Connect Inbox, Schedule, or Event delivery">
+    Prefer Inbox for auditable queued work. Add deterministic de-duplication for retried producers and define whether recurring schedules wake queued work or create a concrete task.
+  </Step>
+  <Step title="Operate by exception">
+    Watch action-required, failed, delayed, and capacity-blocked work. Resume, retry, continue, cancel, or adjust the Agent only after reviewing the evidence and impact.
+  </Step>
+</Steps>
+
+## Workspace map
+
+| Surface | Operator question |
+| --- | --- |
+| **Overview** | Is the Agent healthy, active, and completing its responsibility? |
+| **Runs** | Which task is running, waiting, finished, failed, or cancelled? |
+| **Inbox** | What queued work is available, delayed, claimed, or de-duplicated? |
+| **Storage** | Which durable inputs and outputs belong to this Agent? |
+| **Config** | Which identity, principal, runtime, tools, plugins, and limits are effective? |
+| **Activity and trace** | Which actions, child runs, and terminal results explain the outcome? |
+
+## Choose the entry path
+
+| Entry path | Choose it when | Operator practice |
+| --- | --- | --- |
+| Direct run | A person is starting one bounded task | Include a clear instruction and correlation data; inspect it before automating similar work |
+| Inbox | Work must be queued, prioritized, delayed, or de-duplicated | Use type, priority, availability time, and a stable de-duplication key |
+| Schedule | Work recurs by time | Decide whether the schedule wakes Inbox work or creates a concrete recurring task |
+| Event | A platform or external event contains the task payload | Preserve source and event identifiers for traceability and retries |
+| Handoff | Another Agent delegates governed work | Keep the parent-child lineage and do not assume the receiving Agent has broader access |
+
+### Inbox-first pattern
+
+Inbox is the safest default for operational automation:
+
+1. the producer persists an instruction and correlation payload;
+2. non-terminal duplicates with the same key are rejected or reused rather than multiplied;
+3. the highest-priority available item is claimed when the Agent has capacity;
+4. the item links to the run that owns its execution;
+5. terminal result or error remains inspectable with the original item.
+
+Use `DIRECT_RUN` for latency-sensitive work only after concurrency, idempotency, and downstream limits are understood.
+
+## Run lifecycle
+
+A normal run progresses through `CREATED`, `PENDING`, and `PROCESSING` to `FINISHED`. It can instead enter `ACTION_REQUIRED`, `ERROR`, or `CANCELLED`.
+
+Pending work is not necessarily unhealthy. It can be waiting for its availability time, Agent capacity, child work, reconciliation, or another durable condition. Inspect the wait reason before retrying.
+
+| Control | Use it when | Result |
+| --- | --- | --- |
+| Resume | A waiting or action-required run can continue after the blocker is resolved | Schedules a fresh execution attempt on the same run |
+| Retry | A failed task should be attempted again from its durable input | Creates a distinct retry run so the failed history remains immutable |
+| Continue | A terminal run needs follow-up work in the same operational context | Creates a successor in the same session rather than rewriting the original run |
+| Cancel | The requested outcome is no longer valid or execution is unsafe | Cancels the run and propagates cancellation through active descendants |
+
+<Warning>
+  Do not retry repeatedly without reading the error and trace. Authentication, policy, invalid configuration, non-idempotent external effects, and missing workspace inputs require correction rather than more attempts.
+</Warning>
+
+## Plans, approvals, and action required
+
+Use `review_required` when the scope or proposed changes must be approved before execution. Tool-level approval still applies independently: a standard plan can reach an approval gate, and an approved plan does not authorize an unrelated or more dangerous operation.
+
+When a run reaches `ACTION_REQUIRED`:
+
+- read the requested action and the operation it would authorize;
+- confirm the target, scope, and reversibility;
+- verify that the selected operator is allowed to approve it;
+- approve, reject, or supply clarification through the run control;
+- confirm the run resumes and records the outcome.
+
+See [Approvals and plans](/ai/approvals-and-plans) for the full safety model.
+
+## Delegated work
+
+Delegation is useful when independent subtasks can run in parallel and their results can be verified before merge. A parent run owns the plan, child-run budget, concurrency, and merge behavior.
+
+Use child runs for independent evidence collection, separate systems, or naturally partitioned analysis. Keep work in the parent when steps share mutable state, must execute in strict order, or would create conflicting external actions.
+
+The two failure strategies are:
+
+- `fail_parent`: stop the parent when a required child fails;
+- `merge_partial`: continue only when partial results are useful and the final output can identify missing evidence explicitly.
+
+Child runs inherit governed execution boundaries. Delegation does not grant the parent or child a different service-account identity, bypass approvals, or escape the Agent workspace.
+
+## Production use cases
+
+### Incident evidence coordinator
+
+Use an Agent to collect alert context, inspect relevant platform traces, correlate recent changes, and prepare an escalation note.
+
+Recommended starting configuration:
+
+- Operator work mode and a model/reasoning combination validated for incident analysis;
+- Inbox delivery with an incident-id de-duplication key;
+- one active root run and `fail_parent` for required evidence;
+- `auto_review` permissions, with external notification actions reviewed;
+- a managed workspace for evidence and the final incident report.
+
+Success means the Agent distinguishes verified evidence from hypotheses and names missing access instead of inventing a root cause.
+
+### Release readiness coordinator
+
+Use an Agent to gather build, test, migration, security, and rollout evidence across a release.
+
+- Trigger from a recurring schedule or release event;
+- store check results and the final release record in the workspace;
+- delegate independent evidence sources with bounded concurrency;
+- use `merge_partial` only if the output must remain useful while clearly marking incomplete checks;
+- require review before mutations or rollout actions.
+
+### Data-quality and reconciliation worker
+
+Use an Agent to compare source totals, detect anomalies, and prepare an exception report.
+
+- Use one Inbox item per period and data domain;
+- use a deterministic period/source de-duplication key;
+- keep source-of-truth rules in the structured definition or governed workspace instructions;
+- grant read access broadly enough for reconciliation, but review corrections separately;
+- continue a terminal run for operator questions rather than changing the historical result.
+
+### Agentic engineering worker
+
+Use an Agent for bounded repository analysis, code changes, focused tests, and a review-ready handoff.
+
+- Coding work mode and a model/reasoning combination validated for the repository and task class;
+- `review_required` for broad or high-risk modifications;
+- explicit success criteria for tests, changed files, and artifact evidence;
+- conservative child concurrency to avoid overlapping edits;
+- workspace-scoped file writes and approval for changes outside the assigned boundary.
+
+### Integration operations coordinator
+
+Use an Agent to inspect integration health, prepare synchronization work, and call an approved MCP or component plugin.
+
+- attach the active registry plugin rather than copying its definition;
+- use the plugin's declared mutation, reversibility, and target scope;
+- keep external writes under `default` or `auto_review` until the operation is proven idempotent;
+- preserve upstream correlation ids in the trigger payload and run trace;
+- never place bearer tokens or secret values in instructions, Inbox payloads, or workspace files.
+
+## Change management
+
+Before changing model, instructions, plugins, permissions, workspace, or concurrency:
+
+1. inspect active runs and Inbox backlog;
+2. pause the Agent if the change could alter in-flight behavior;
+3. finish or cancel active runs before replacing the workspace;
+4. read the latest Agent version and submit it with the update;
+5. run a bounded validation task;
+6. compare outcomes and traces before restoring wider trigger delivery.
+
+Deleting an Agent is a lifecycle operation, not a cleanup shortcut. Active work is cancelled, and references from schedules or events can block deletion until the automation is updated. Restore is available for soft-deleted Agents; review workspace and trigger state before reactivation.
+
+## Operational checklist
+
+- The mission has an accountable human or group owner.
+- The service account is active and least privilege.
+- Success criteria are measurable and do not depend on undocumented assumptions.
+- Tool and plugin actions have correct approval and side-effect classifications.
+- Inbox producers use correlation and de-duplication keys.
+- Root, child, concurrent-child, and tick limits match downstream capacity.
+- Required output is persisted before the run claims completion.
+- Action-required and failed runs have an operator path.
+- Retry behavior is safe for external side effects.
+- Run events and workspace artifacts are sufficient to explain the outcome.
+
+<CardGroup cols={2}>
+  <Card title="Agent configuration" href="/ai/agent-configuration" icon="sliders">
+    Review every configuration field and accepted value.
+  </Card>
+  <Card title="Memory and workspaces" href="/ai/memory-and-workspaces" icon="folder-tree">
+    Keep continuity, durable knowledge, and files in the correct store.
+  </Card>
+</CardGroup>

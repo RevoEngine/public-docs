@@ -1,0 +1,124 @@
+---
+title: Jobs and durable execution
+description: Decide when to use a Job, configure its limits, and operate it as a durable background process.
+icon: briefcase
+---
+
+A Job is a durable execution record for a Component. Use one when a task must outlive an HTTP request, needs a schedule/event trigger, can take meaningful time, or must leave a reviewable status, logs, retry lineage, and result.
+
+## Why use a Job instead of an Endpoint
+
+| Need | Use a Job | Do not use a Job |
+| --- | --- | --- |
+| Nightly synchronization with an ERP or CRM | Yes — Schedule a template, use a service-account principal, concurrency key, retry, and history. | An interactive user is waiting for a sub-second result. |
+| Export thousands of rows to Storage | Yes — return an accepted status to the UI and expose the finalized artifact when the Job ends. | A small synchronous download that fits the caller deadline. |
+| Process files uploaded by customers | Yes — Event-trigger a template, validate the file, save a durable result, and make replay safe. | The task is only to validate request shape at an Endpoint boundary. |
+| Send an external notification after a business event | Usually — protect the provider with idempotency and a retry policy. | The caller needs an immediate, transactional response from the provider. |
+| Rebuild a reporting projection overnight | Yes — run independently of UI sessions and retain success/failure evidence. | The value must be calculated inline for every HTTP request. |
+| One-off operator repair or backfill | Yes — use explicit input, a bounded selection, and a reviewable Job ID. | An ad-hoc script with unbounded production access. |
+
+An Endpoint is synchronous application ingress. It should validate, perform bounded work, and respond while the caller is still waiting. A Job is asynchronous application work. It can be started by an Endpoint, but the Endpoint should return a durable Job/operation reference rather than pretend a long task is complete.
+
+## The limit model
+
+The configured timeout is a hard part of the Job contract. It is checked when the template is created or updated and enforced at execution time.
+
+See [Limits and quotas](/platform/limits-and-quotas) for the distinction between platform ceilings, per-instance policy, form validation, and runtime enforcement.
+
+| Limit | Current contract |
+| --- | --- |
+| Minimum timeout | `1` second. |
+| Default timeout | `300` seconds (5 minutes) when a template does not set one. |
+| Maximum timeout | Instance quota `jobTimeout`, configurable up to `3540` seconds — **59 minutes**. A lower tenant quota takes precedence, so operators should confirm the current instance value before depending on the maximum. |
+| Default memory | `128` MiB when omitted by the job service. |
+| Maximum memory | Instance quota `jobMemory`, configurable up to `4096` MiB — **4 GiB**. A lower tenant quota takes precedence. Reserve only what the Component needs. |
+| Concurrency limit | Per logical key: `1`–`1000` concurrent executions. Lease TTL: `1`–`86400` seconds. |
+| Retry attempts | The configured total includes the initial attempt; retries apply after terminal `ERROR`, not cancellation or success. |
+
+The 59-minute limit is intentionally not a substitute for an unbounded worker. Split a longer workflow into idempotent stages, persist the handoff state, and schedule or trigger the next Job. That produces recoverable boundaries and avoids tying one execution to a long-held resource or credential.
+
+## Configure a template
+
+The **Jobs** workspace shows template identity, Component, metadata, actor timestamps, and version. Select a template to open its Details panel: the panel separates **Runtime input**, **Concurrency**, **Retry**, and metadata, and offers **Run** for a deliberate operator invocation. This separation is useful: it makes the settings that change capacity and duplicate-side-effect risk visible before a run is created.
+
+```json
+{
+  "name": "Nightly CRM synchronization",
+  "category": "Integrations",
+  "componentId": "4d3390ac-2c06-4eb0-8cd4-0b69c3aa531a",
+  "componentVersion": 12,
+  "triggerUser": "a6e96a8a-0f13-4865-bb07-64260c3de208",
+  "timeout": 1800,
+  "options": {
+    "input": { "region": "eu", "mode": "incremental" },
+    "hideRequest": true,
+    "memory": 512,
+    "concurrency": { "key": "crm-sync-eu", "limit": 1, "ttl": 2100 },
+    "retry": {
+      "enabled": true,
+      "maxAttempts": 4,
+      "minBackoffSeconds": 30,
+      "maxBackoffSeconds": 900,
+      "maxDoublings": 4,
+      "bypassConcurrencyOnRetry": false
+    }
+  }
+}
+```
+
+`componentVersion` pins a known low-code version for a controlled release. Omit it only when the task should intentionally resolve the latest active version. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
+
+## What a Job gives you
+
+```text
+template / schedule / event / explicit run
+  -> durable Job record
+  -> authorization and current-definition resolution
+  -> one claimed execution attempt
+  -> logs, result, status, and retry lineage
+  -> terminal state and operator-visible evidence
+```
+
+The durable record makes these questions answerable after the caller has gone away:
+
+- Did the work start, remain pending, get cancelled, expire, finish, or error?
+- Which component version and execution principal were selected?
+- Which input/result fields were intentionally hidden from history?
+- Was this a retry child, and what happened on the preceding attempt?
+- Did a downstream artifact exist and finalize successfully?
+
+## Design for retries and timeouts
+
+Jobs are at-least-once from the perspective of external systems. A timeout, worker interruption, or delivery retry can leave the platform without proof that a remote side effect did not happen.
+
+1. Create an idempotency key per business effect before calling the provider.
+2. Store/check the provider correlation ID before scheduling a retry.
+3. Make each stage independently safe to run again.
+4. Keep remote calls, large file work, and database writes bounded.
+5. Use a concurrency key for a shared account, file, or customer when two writes would conflict.
+6. Break work approaching the timeout into resumable chunks; write a checkpoint to a Table or Storage before enqueueing the next chunk.
+
+<Warning>
+Do not increase timeout, memory, or retry count merely to hide a failing workflow. Use the Job's logs, trace, selected version, and retry lineage to establish the failed boundary first.
+</Warning>
+
+## Operate a Job
+
+Use **Jobs → Job History** to inspect an exact Job ID, its status, current/selected version, logs, timing, and retry root. “Accepted” means the request created or scheduled durable work; it is not a success result. Confirm `FINISHED` or a finalized artifact before notifying users or triggering a dependent business process.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Automation" href="/operate/automation" icon="gears">
+    Configure schedules, events, webhooks, and retry delivery.
+  </Card>
+  <Card title="Traces and correlation" href="/operate/traces" icon="timeline">
+    Investigate execution and handoff failures.
+  </Card>
+  <Card title="Components" href="/build/components" icon="puzzle-piece">
+    Build the versioned logic a Job executes.
+  </Card>
+  <Card title="Agent triggers" href="/ai/agents" icon="robot">
+    Use durable Agents when the work requires planning and tool selection, not one fixed Component.
+  </Card>
+</CardGroup>

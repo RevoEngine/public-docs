@@ -1,0 +1,103 @@
+---
+title: Endpoint configuration reference
+description: Configure route matching, target versions, validation, execution limits, and response behavior.
+icon: sliders
+---
+
+This reference describes the public Endpoint definition managed through the UI or Platform API. It complements [Endpoints](/operate/endpoints), which explains lifecycle and operations.
+
+## Definition fields
+
+| Field | Required | Behavior |
+| --- | --- | --- |
+| `name` | yes | Operator-facing name. Keep it stable enough for search and audit. |
+| `active` | no | Defaults to active. Use `false` for validate-before-activate delivery. |
+| `path` | yes | Starts with `/`; static segments use letters, numbers, `.`, `_`, `-`; dynamic segments use `:name`; `@` is also supported as a segment token. Repeated and trailing slashes are normalized. Maximum 1024 characters. |
+| `method` | yes | `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`. Path uniqueness is per method. |
+| `componentId` | no | Target Component. Omit it for a static response Endpoint. |
+| `componentVersion` | no | Exact low-code version to pin. `CUSTOM_NODEJS` targets must omit it and execute their selected ready runtime revision. |
+| `timeout` | no | Seconds. The minimum is platform-defined and the effective maximum is constrained by the current instance quota. Align it to the caller deadline. |
+| `category`, `desc`, `metadata` | no | Organization and context. Metadata is JSON limited to 16 KiB / 64 top-level keys; `__*` keys are reserved. |
+| `options` | no | Execution, validation, libraries, response shaping, and controlled template input. |
+
+## `options` fields
+
+| Field | Meaning |
+| --- | --- |
+| `input` | Operator-defined values available through `api.input()` and endpoint execution context. Do not place caller data or secrets here. |
+| `guard` | Inline `ValidatorSchema` for this Endpoint. |
+| `componentSchemaId` | Reusable `JSON_VALIDATOR` Component ID. |
+| `componentSchemaElement` | Schema element key; omit to use the component's default element. |
+| `componentSchemaVersion` | Version of the reusable schema to pin; omit to follow the latest active schema. |
+| `validateResponse` | HTTP status for validation failure (`100`–`599`); modern responses default to `400`. |
+| `customValidateResponse` | Safe replacement body for a validation failure. |
+| `validateHideResponse` | Hides detailed validation errors from callers. |
+| `response` | Static successful response body when `componentId` is omitted. |
+| `httpCode` | Successful response code (`200`–`299`). |
+| `noResult` | Suppresses a successful response body. |
+| `popResult` | Returns one named Component element result; the first character is normalized to uppercase. |
+| `includeLibs`, `excludeLibs` | Runtime library selection. Prefer explicit necessary libraries. |
+| `skipLibs` | Skip shared-library loading when the Component does not need it. |
+| `hideRequest`, `hideResponse` | Limit request/response persistence in execution history; they do not prevent application code from logging the same value. |
+| `legacyResults` | Enables legacy response envelopes. Do not use for new contracts. |
+| `memory` | Execution memory budget in MiB, up to 1024. |
+
+## A component-backed example
+
+```json
+{
+  "name": "Confirm order",
+  "active": false,
+  "method": "POST",
+  "path": "/orders/:orderId/confirm",
+  "componentId": "4d3390ac-2c06-4eb0-8cd4-0b69c3aa531a",
+  "componentVersion": 12,
+  "timeout": 20,
+  "options": {
+    "input": { "notificationChannel": "email" },
+    "componentSchemaId": "1f24e4ca-2dd0-4ce0-9fd9-4c0cd76e3ab1",
+    "componentSchemaVersion": 7,
+    "componentSchemaElement": "requestSchema",
+    "validateResponse": 422,
+    "customValidateResponse": { "message": "Request is invalid" },
+    "httpCode": 200,
+    "popResult": "Response",
+    "hideRequest": true,
+    "memory": 128
+  }
+}
+```
+
+## A static example
+
+```json
+{
+  "name": "Health response",
+  "active": false,
+  "method": "GET",
+  "path": "/health",
+  "timeout": 10,
+  "options": {
+    "httpCode": 200,
+    "response": { "status": "ok" },
+    "noResult": false
+  }
+}
+```
+
+## Delivery rules
+
+1. Validate route conflicts, rejected validation cases, selected component version, and intended response shape while inactive.
+2. Activate only after the generated runtime OpenAPI document and client examples reflect the intended public contract.
+3. Preserve request compatibility when changing a live path. Create a new versioned path instead of changing established parameter semantics unexpectedly.
+4. Treat an accepted control-plane write as a definition update—not proof that a caller has completed a runtime invocation.
+
+<Warning>
+The runtime chooses an inline `guard` before a schema Component reference. Configure one clear validation source per Endpoint; do not use both as a fallback mechanism.
+</Warning>
+
+## Related guides
+
+- [JSON Validator](/low-code/json-validator)
+- [Endpoint runtime](/developers/endpoint-runtime)
+- [Platform API](/developers/platform-api)

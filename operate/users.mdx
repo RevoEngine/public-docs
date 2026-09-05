@@ -1,0 +1,83 @@
+---
+title: Users
+description: Provision people, control platform access, and manage their group and permission membership.
+icon: user
+---
+
+Users are human identities that work interactively in a RevoEngine instance. A valid login alone does not grant access: the account must be active, platform access must be enabled, the required platform roles must be assigned, and any resource ACL must admit the user or one of their Groups.
+
+## Create or invite a user
+
+Open **Users** and select **Add**. The detail form contains:
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| Name | Yes | Display and audit identity. |
+| Email | Yes | Unique login/contact identity; validated before save. |
+| Surname | No | Additional human-readable identity. |
+| Phone | No | Optional contact information with phone validation. |
+| Metadata | No | Organization-owned JSON attributes. |
+| Advanced data | No | Instance-specific advanced identity data; change only under your identity policy. |
+
+After creation, reopen the user to manage **Permission groups** and **Groups**. Membership is deliberately configured after the identity exists so every assignment targets a stable user ID.
+
+## Two membership types
+
+- **Permission groups** provide reusable platform role sets, such as Component authoring or Automation operations.
+- **Groups** provide membership for resource ACLs, such as access to a restricted finance Table or Storage folder.
+
+A user generally needs both when the resource is restricted: a platform role permits the operation type, while Group membership admits the resource.
+
+## Lifecycle actions
+
+| Action | Effect |
+| --- | --- |
+| Disable | Makes the account inactive. Existing instance sessions and Realtime connections are invalidated as the security change propagates. |
+| Activate | Returns an eligible inactive account to active state. Review memberships first. |
+| Disable platform access | Removes workspace admission without deleting the account record. |
+| Enable platform access | Restores instance admission, subject to current roles and ACLs. |
+| Delete | Moves the account to the permanent account-removal lifecycle. |
+| Restore | Recovers an eligible deleted record for administrative review. |
+
+Disabling an account retains its API-key records, but admission rejects keys whose owner is inactive. Account deletion is the permanent credential-cleanup boundary.
+
+## Roles required to administer users
+
+| Action | Role |
+| --- | --- |
+| List and inspect | `USER_READ`, `USER_WRITE`, or `USER_ADMIN` |
+| Edit profile and membership | `USER_WRITE` or `USER_ADMIN` |
+| Activate, disable, change platform access, or delete | `USER_ADMIN` |
+
+The UI hides or disables actions the current operator cannot perform. The API independently enforces authorization; hidden controls are not the security boundary.
+
+## Enterprise onboarding pattern
+
+1. Authenticate the user through the configured SSO/SAML or approved identity provider.
+2. Confirm the expected email and instance entitlement.
+3. Add the user to business Groups that map to restricted resources.
+4. Add the user to the smallest Permission group required for their job.
+5. Validate one representative read and write operation.
+6. Record the access owner and review date.
+
+<Tip>
+  Prefer identity-provider or business-role driven membership processes over one-off direct grants. Reusable Groups make reviews and offboarding easier to explain.
+</Tip>
+
+## Incident and offboarding flow
+
+For a suspected compromise, disable the account immediately, revoke unrecognized trusted devices, rotate exposed keys, and verify that HTTP and Realtime admission fail. Use delete only when the intended account lifecycle and retention policy require permanent removal.
+
+For ordinary offboarding, first identify Jobs, Schedules, Endpoints, or integrations that still use the person's identity. Move unattended work to a [Service Account](/operate/service-accounts) before disabling access.
+
+## Production checklist
+
+- Use SSO/SAML for enterprise workforce identity.
+- Never run unattended automation as a person.
+- Assign platform roles through Permission groups.
+- Assign restricted resources through Groups.
+- Review administrators and trusted devices regularly.
+- Disable first during an incident; investigate before permanent deletion.
+- Verify access with the user's actual role and ACL combination.
+
+See [Groups](/operate/groups), [Permissions](/operate/permissions), and [Identity and access](/operate/identity-and-access).

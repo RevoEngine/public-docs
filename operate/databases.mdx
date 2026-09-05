@@ -1,0 +1,248 @@
+---
+title: Databases
+description: Model business data, decide its constraints and access boundary, then operate records, audit, exports, and read models from one workspace.
+icon: database
+---
+
+Databases provide the structured data layer for RevoEngine applications. The workspace deliberately follows the same five-part model as the product UI: **Tables → Audit → Views → Materialized Views → Cache**.
+
+## Start with a business record, not a generic table
+
+An `orders` Table is not merely a place to put JSON. It answers who may see an order, which field identifies it, which transitions are traceable, and which query must remain fast.
+
+<CardGroup cols={3}>
+  <Card title="Model" icon="table-columns">
+    Choose durable fields, primary keys, defaults, references, and only the indexes justified by a real read path.
+  </Card>
+  <Card title="Protect" icon="lock">
+    Make the Table restricted when a group or service account should be the only principal that can read or mutate it.
+  </Card>
+  <Card title="Operate" icon="timeline">
+    Enable audit before sensitive changes, export a governed CSV when needed, and inspect change evidence without leaving the workspace.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={3}>
+  <Card title="Tables" icon="table" href="/operate/database-definitions">
+    Define fields, constraints, partitions, ACLs, and store mutable application records.
+  </Card>
+  <Card title="Audit" icon="clock-rotate-left" href="/operate/database-audit">
+    Investigate row changes with actor, keys, before/after values, snapshots, and Trace correlation.
+  </Card>
+  <Card title="Views" icon="binoculars" href="/operate/database-views">
+    Save governed, read-only models over one or more Tables.
+  </Card>
+  <Card title="Materialized Views" icon="layer-group" href="/operate/materialized-views">
+    Persist query output for read-heavy workflows and refresh it deliberately or on a Schedule.
+  </Card>
+  <Card title="Cache" icon="bolt" href="/operate/database-cache">
+    Operate instance-scoped application keys, values, types, sizes, and TTLs.
+  </Card>
+</CardGroup>
+
+## Choose the correct database surface
+
+| Surface | Data ownership | Write model | Freshness | Primary use |
+| --- | --- | --- | --- | --- |
+| Table | Durable source of truth | Insert, update, delete, bulk mutation | Current | Orders, balances, transactions, configuration, workflow state |
+| Audit | Immutable row-change evidence until privileged deletion | Captured automatically from audited Tables | Created with each mutation | Investigation, accountability, compliance evidence |
+| View | Saved query over current sources | Read-only output; governed source actions are previewed separately | Current at query time | Reusable joins, filtered projections, read APIs |
+| Materialized View | Persisted query result | Read-only result; refresh rebuilds it | Last successful refresh | Expensive dashboards, summaries, read-heavy integration output |
+| Cache | Disposable application acceleration state | Atomic key/value operations with optional TTL | Until expiry or invalidation | Read-through caching, idempotency hints, counters, short leases |
+
+## Build a Table
+
+1. Open **Databases → Tables**.
+2. Create a Table with a stable name, description, category, and field definition.
+3. Decide whether access is unrestricted within the resource role boundary or restricted to selected users and groups.
+4. Enable row audit if the application requires evidence for subsequent inserts, updates, and deletes.
+5. Add test rows and verify filters, field types, and authorization.
+6. Read and mutate the Table from a Component, Endpoint, job, or the Platform API.
+
+Table names begin with a letter or underscore and contain letters, numbers, and underscores. Treat names as durable integration identifiers; use the display description and category for operator-facing context.
+
+### What the Table panel exposes
+
+From **Databases → Tables**, select a Table and open **Definition**. The side panel keeps the data grid in context while exposing the Table name, category, description, metadata, size, Definition, Audit, and Restricted controls. Select a column row to open its own field-definition panel, where the name, type, primary-key setting, default generation, and metadata are visible together.
+
+Use **Audit** for evidence of subsequent inserts, updates, and deletes; switching it on does not backfill older rows. Use **Restricted** with users or Groups for the resource boundary—do not treat a category or hidden UI field as an access-control rule.
+
+## Query rows
+
+Use the structured query model for most requests. It supports:
+
+- bounded pagination;
+- field projection;
+- nested `and`, `or`, and `not` filters;
+- sorting, grouping, and distinct selection;
+- type-aware casts;
+- supported joins and common table expressions on surfaces that explicitly allow them.
+
+```js
+const result = await api.getDatabaseData('orders', {
+  fields: ['orderId', 'customerId', 'total', 'status'],
+  filter: {
+    and: [
+      { field: 'status', op: 'eq', value: 'READY' },
+      { field: 'total', op: 'gte', value: 100, filterType: 'number' },
+    ],
+  },
+  sort: { createdAt: 'DESC' },
+  take: 100,
+});
+```
+
+Prefer a narrow projection and a bounded page. Follow the returned paging contract instead of loading an entire Table into memory.
+
+### Platform API read paths
+
+The generated Platform API exposes two complementary read operations:
+
+| Operation | Use it for |
+| --- | --- |
+| [Get Database data](/api-reference/databases/get-database-data) | Query-string filtering, projection, sorting, joins, casts, pagination, and count. An explicit `take` is validated up to 10,000; larger values are rejected rather than silently treated as 10,000. |
+| [Query Database data with a request body](/api-reference/databases/query-database-data-with-a-request-body) | A structured JSON query when nested filters, joins, expressions, or casts are awkward to encode in a URL. Joined Tables are authorization-checked independently. |
+
+Both return `data`, `results`, and `next`, plus `total` only when count is requested. The body-based query does not publish a larger guaranteed page ceiling. Keep pages bounded and prefer keyset-like business filters for large data sets instead of increasing `skip` indefinitely.
+
+## Mutate data safely
+
+Dedicated insert, update, upsert, and delete operations apply schema validation and resource authorization. For a check-then-write flow, use a database transaction and keep remote network calls outside it.
+
+Bulk update and delete accept filters. Preview the affected selection in your application flow, then apply the mutation with a deliberately bounded scope.
+
+<Warning>
+  A filter-free bulk mutation or truncate operation can affect every row. Restrict these operations to administrative workflows and require explicit confirmation in your own UI.
+</Warning>
+
+Schema validation, primary-key requirements, foreign references, and uniqueness can reject a write. Large filtered update/delete operations are executed in bounded batches; a later batch failure does not make a previously committed batch disappear unless the caller used an explicit transaction-capable runtime flow. Design idempotency and retry behavior around the operation you selected.
+
+## Views
+
+A View is a saved, read-only query surface over accessible Tables. The structured builder covers projections, joins, nested filters, grouping, functions, casts, and stable sorting while retaining source-field lineage. An explicitly enabled Resource Admin can also author a restricted raw SQL `SELECT`/`WITH` definition.
+
+Use [Database Views](/operate/database-views) for the complete builder flow, output-query contract, ACL behavior, governed source actions, limits, failures, and links to every generated `Database Views` API operation.
+
+## Materialized Views
+
+A Materialized View persists query output for expensive aggregation and read-heavy workloads where controlled freshness is acceptable. It requires a unique output key so refresh can run concurrently; optional output indexes support real filter and sort paths.
+
+The manual API uses HTTP 202 but completes the database refresh before it returns. Scheduled refreshes are tracked as Automation Jobs, while governed mutation previews over materialized output have their own asynchronous status resource. [Materialized Views](/operate/materialized-views) documents these boundaries, freshness metadata, scheduling, failure behavior, and lifecycle.
+
+## Safe actions through a View
+
+When direct field lineage is available, a View can prepare an update or delete against a source Table:
+
+1. Choose the action and target Table.
+2. Map View keys to target keys.
+3. Preview the exact affected selection.
+4. Wait for a large preview operation if it is processed asynchronously.
+5. Submit the short-lived mutation token returned by preview.
+
+This preview-and-token boundary prevents a mutation from silently applying to a different selection after the operator reviewed it.
+
+## Audit
+
+Audit is opt-in per Table and captures inserts, updates, and deletes performed after it is enabled. The **Databases → Audit** workspace provides a cross-Table grid, while a Table-specific history narrows the evidence to that Table or row.
+
+Audit entries expose operation, actor, time, Table identity and version, row key, changed field names, before/after values, the row snapshot, and `operationId`. List views use a bounded projection; open one audit event to retrieve its complete evidence and follow the correlated Trace.
+
+<Note>
+  Enabling audit starts capture from that point forward. It does not reconstruct earlier changes.
+</Note>
+
+Audit access follows the Table's resource access. Administrative deletion of audit history is a separate, permanent privileged operation. [Database Audit](/operate/database-audit) documents the exact captured fields, Table and row filters, API projection, truncate boundary, retention, and correlation workflow.
+
+## Cache
+
+**Databases → Cache** exposes the application cache namespace, not the platform's internal operational state. Operators can:
+
+- list logical keys;
+- inspect a value and its type;
+- check size and TTL;
+- create or replace a key;
+- set expiration, make a key persistent, or delete it.
+
+```text
+customer-summary:7f0e...
+integration:exchange-rates:EUR
+```
+
+Use clear prefixes and finite TTLs. Cache is an acceleration layer: the durable source of truth should remain a Table or an external system.
+
+See [Database Cache](/operate/database-cache) for request-scoped versus instance
+cache, atomic read-through, idempotency, counters, compare-and-set, TTL semantics,
+administration bounds, and recovery patterns.
+
+## Clone, export, and lifecycle
+
+- **Clone** creates a new Table asynchronously and is suitable for controlled copies or environment preparation.
+- **Export** streams selected rows to CSV and places the result in Storage. You can choose a private destination, the Storage root, or an accessible folder, and assign retention.
+- **Delete** is recoverable while the Table remains in its deleted lifecycle state.
+- **Restore** returns a deleted definition and its retained data when allowed.
+- **Truncate** removes rows; identity restart is opt-in rather than implicit. Truncate does not create row-level audit events, so use a deliberately confirmed filtered delete when every removed row must remain in audit history.
+
+The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-database-data-to-csv), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
+
+## Access model
+
+Resource roles and per-resource ACLs work together:
+
+| Layer | Purpose |
+| --- | --- |
+| Resource Read | Read accessible Tables, Views, data, and audit evidence. |
+| Resource Write | Create and mutate accessible data resources. |
+| Resource Admin | Manage all data resources, ACLs, and privileged lifecycle operations. |
+| Users and groups | Narrow a restricted Table or View to named principals. |
+
+The principal executing a Component or job is evaluated at runtime. Giving a developer access in the UI does not automatically grant the same access to a service account used by automation.
+
+## How the data plane works
+
+Table and View definitions live in the control plane, while generated data structures hold application rows. Requests are validated against the stored definition, authorized against current roles and ACLs, and compiled from the structured query contract. Cache and query planning improve performance without replacing durable data truth.
+
+Schema-changing operations, clones, exports, scheduled materialized refreshes, and materialized action previews may cross asynchronous execution boundaries. Follow the operation-specific result: an export or Job is tracked separately, an action preview can return a pollable operation, and a successful manual materialized refresh already represents completed work even though its HTTP status is 202.
+
+## Production checklist
+
+- Use stable Table and field names.
+- Select only the fields a caller needs.
+- Bound page size and bulk mutations.
+- Enable audit before regulated data starts changing.
+- Keep external side effects outside database transactions.
+- Index materialized output according to real filters and sorts.
+- Give automation service accounts explicit access to restricted sources.
+- Treat Cache as disposable and choose TTLs intentionally.
+- Apply retention and ACLs to exported CSV files.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Definition reference" icon="table-columns" href="/operate/database-definitions">
+    Select field types, constraints, defaults, references, and audit deliberately.
+  </Card>
+  <Card title="Database Audit" icon="clock-rotate-left" href="/operate/database-audit">
+    Trace row-level inserts, updates, and deletes to actors and operations.
+  </Card>
+  <Card title="Database Views" icon="binoculars" href="/operate/database-views">
+    Build reusable read models and query their governed output.
+  </Card>
+  <Card title="Materialized Views" icon="layer-group" href="/operate/materialized-views">
+    Persist expensive results and operate their refresh lifecycle.
+  </Card>
+  <Card title="Database Cache" icon="bolt" href="/operate/database-cache">
+    Accelerate reads and coordinate short-lived work with TTL-bound application state.
+  </Card>
+  <Card title="Low-code Database API" icon="code" href="/low-code/database">
+    Query, mutate, and transact from Components.
+  </Card>
+  <Card title="Automation" icon="gears" href="/operate/automation">
+    Refresh materialized Views and process data asynchronously.
+  </Card>
+  <Card title="Storage" icon="folder-open" href="/operate/storage">
+    Find exported files and apply access and retention policies.
+  </Card>
+  <Card title="IAM" icon="users-gear" href="/operate/identity-and-access">
+    Combine resource roles with user and group ACLs.
+  </Card>
+</CardGroup>

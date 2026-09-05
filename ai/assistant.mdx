@@ -1,0 +1,157 @@
+---
+title: Assistant
+description: Work with the RevoEngine Assistant in persistent, platform-aware threads.
+icon: messages
+---
+
+The RevoEngine Assistant is an interactive workspace for platform questions and supervised execution. It can explain a contract, find an object by name, investigate a failed run, review code, build an implementation plan, or perform an approved platform operation.
+
+Unlike a generic chatbot, the Assistant works through authorized RevoEngine capabilities and keeps the conversation, execution state, and artifacts connected to one thread.
+
+## Where the Assistant is strong
+
+The Assistant is designed for platform-aware engineering and operations work: it can connect an intent to the exact RevoEngine objects, their selected versions, dependencies, execution evidence, and governed change path. That is a materially different capability from a general-purpose chat model with only pasted context.
+
+It is especially effective for:
+
+- impact analysis before changing a shared Component, library, Endpoint, or schema;
+- tracing a failed Job, Event, webhook, Endpoint execution, or Agent run from durable evidence;
+- agentic coding against versioned low-code and custom Node.js application definitions;
+- producing a plan, validation sequence, and rollback boundary before a production mutation;
+- using permitted platform and plugin capabilities without handing credentials to a model prompt.
+
+Its differentiation is **grounded context plus governed action**: it can inspect and, when admitted, change the actual application model rather than merely suggest text or code in isolation.
+
+## Capability and access boundary
+
+The Assistant can have broad access to your *authorized* platform surface, but it never receives blanket administrator access just because it is an Assistant. Every turn is constrained by the current identity, thread configuration, instance policy, enabled tools, target ACLs, and approval policy.
+
+| Area | It can do when admitted | Boundary |
+| --- | --- | --- |
+| Application model | Find and inspect Components, libraries, Endpoints, databases, Storage, automation, Agents, active versions, history, and dependencies | Only objects visible to the execution identity. |
+| Code and validation | Inspect declarations/source, compare versions, run bounded Sandbox probes, and prepare/apply a governed change | No bypass of deployment readiness, activation, compile checks, or platform contracts. |
+| Operations | Read execution history, logs, trace-linked context, events, webhook attempts, and retry lineage | Evidence remains subject to retention, masking, and permission. |
+| Files | Read or write authorized managed Storage entries | File scope, retention, ACL, and tool policy still apply. |
+| External information | Search/load public web sources when the web capability is enabled | No arbitrary network or credential access. |
+| Integrations | Call an attached, governed plugin | Plugin status, operation policy, arguments, and approval rules apply independently. |
+| Mutations | Submit permitted Platform API operations, Storage writes, plugin actions, or handoffs | Read-only and write-capable calls are classified separately; a required approval pauses execution. |
+
+It cannot reveal Secret values merely by being asked, bypass role checks or tenant isolation, access private RevoEngine control-plane implementation, run arbitrary host shell commands, or silently perform a blocked/destructive/external change. A tool shown in the activity timeline is evidence of a governed attempt, not proof of unlimited capability.
+
+## Start a productive thread
+
+<Steps>
+  <Step title="State the outcome">
+    Describe what should be true when the work is complete. Include constraints such as environment, compatibility requirements, or whether you want explanation only.
+  </Step>
+  <Step title="Reference the target">
+    Mention a platform object from the composer when possible. A direct reference is safer than relying on a similar display name.
+  </Step>
+  <Step title="Choose how the Assistant should work">
+    Select the model, reasoning effort, planning policy, and permission level appropriate for the task. Attach only the plugins needed for this thread.
+  </Step>
+  <Step title="Follow the execution timeline">
+    Watch searches, reads, validation, plan progress, and approval requests. Open a completed activity to inspect its persisted details.
+  </Step>
+  <Step title="Verify the outcome">
+    Ask the Assistant to run the relevant validation or inspect the updated object. A written claim is not a substitute for a successful check.
+  </Step>
+</Steps>
+
+## Threads are the unit of work
+
+A thread preserves the visible conversation and the runtime state needed to continue safely. You can:
+
+- rename, search, delete, and restore threads;
+- continue a completed thread with new instructions;
+- keep a durable goal across several turns without requiring a visible plan;
+- pause, resume, update, or clear that goal;
+- share a read-only thread view;
+- fork from a selected message to explore another direction without rewriting the source thread;
+- inspect message-level execution details and retained artifacts.
+
+Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store.
+
+## Give the Assistant concrete context
+
+### Platform references
+
+Use the reference picker to attach the exact component, endpoint, database, Agent, job, file, or other supported platform object. The runtime can then inspect current details and, where available, historical versions or dependencies.
+
+### Images
+
+The composer supports PNG, JPEG, and WebP images up to 10 MB each. Images are uploaded to a draft message before send, so an interrupted upload does not publish a partial user message.
+
+### Plugins
+
+Attach registry plugins when the task needs tenant-specific or external capabilities. Attached plugin IDs remain associated with the thread and are still filtered by status, policy, and tool-level safety rules.
+
+## Models and reasoning
+
+The models available to the Assistant are controlled by the current RevoEngine release and instance configuration. Public reasoning levels are **Low**, **Medium**, **High**, and **Extra high**.
+
+Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
+
+<Tip>
+  More reasoning is not automatically better. A precise target, expected result, and validation requirement often improve the outcome more than increasing the reasoning level.
+</Tip>
+
+## Streaming, background work, and follow-ups
+
+Assistant turns stream messages, progress, tool activity, and action-required events as they happen. When background processing is enabled, the server can continue a persisted turn after the client disconnects; reopening the thread hydrates the current durable state.
+
+If you send another message while a turn is active, the UI can queue it for later or use it to steer the current work. Steering is a correction to the active task, not a new independent thread.
+
+## What you can inspect
+
+The execution timeline can include:
+
+| Entry | Meaning |
+| --- | --- |
+| Progress update | A concise milestone in the current response |
+| Tool activity | A governed read, validation, execution, or plugin call |
+| Execution plan | Ordered work with pending, in-progress, and completed steps |
+| Action required | Approval, plan review, or clarification needed from you |
+| Artifact | Persisted code, arguments, results, report, or generated file that is safe to expose |
+
+Reasoning can be presented as concise summaries and progress—not private chain-of-thought. Secrets and private platform implementation are not included in shared thread output.
+
+## Capabilities in practice
+
+Typical read capabilities include platform and code search, contract inspection, version comparison, dependency analysis, operations investigation, conversation retrieval, and approved web research. Governed action capabilities include bounded validation, Platform changes, Storage operations, plugin actions, messaging, memory, and Agent handoff.
+
+Availability is determined by the current identity, target ACL, instance configuration, Agent or thread policy, and approval requirements. Read [Tools and skills](/ai/tools-and-skills) for the public capability families and examples of requests that keep work bounded.
+
+## Example requests
+
+```text
+Explain the input and output contract of the referenced endpoint. Do not change it.
+```
+
+```text
+Investigate why yesterday's billing job failed. Use execution evidence and separate confirmed facts from hypotheses.
+```
+
+```text
+Update this component to handle an empty customer list, validate it in Sandbox, and ask for approval before applying the change.
+```
+
+```text
+Prepare a review-required implementation plan for the referenced workflow. Include validation and rollback steps.
+```
+
+## Assistant and regular chat
+
+The Assistant surface is separate from user and group chat. Regular chat manages conversations between people and system notifications; it does not automatically execute the Assistant tool loop.
+
+<CardGroup cols={2}>
+  <Card title="Configuration and personalization" href="/ai/assistant-configuration" icon="sliders">
+    Understand instance defaults, personal preferences, memory, and Agent workspaces.
+  </Card>
+  <Card title="Agentic coding" href="/ai/agentic-coding" icon="code">
+    Follow the evidence-first coding workflow.
+  </Card>
+  <Card title="Approvals and plans" href="/ai/approvals-and-plans" icon="shield-check">
+    Configure how supervised actions pause and resume.
+  </Card>
+</CardGroup>

@@ -1,0 +1,28 @@
+---
+title: Low-code runtime reference
+description: Generated, searchable reference for every public global and method available in the Monaco editor.
+icon: book-open
+---
+
+The low-code runtime is an isolated execution environment, not Node.js or a browser. This reference is generated from the same canonical declaration source used to create Monaco editor types. It contains only supported public methods, with their current signature, behavior notes, and declaration-provided usage example.
+
+<Tip>
+  Search this documentation for an exact method, for example `api.httpCall`, `storage.putObject`, `agent.startRun`, or `util.validate`.
+</Tip>
+
+| Global | Methods | Use it for |
+| --- | ---: | --- |
+| [`api`](/low-code/reference/api) | 70 | Execution, platform, Database, HTTP, automation, and compatibility methods. |
+| [`storage`](/low-code/reference/storage) | 22 | Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods. |
+| [`agent`](/low-code/reference/agent) | 51 | Durable Agent, inbox, run, plugin, and Assistant-thread methods. |
+| [`util`](/low-code/reference/util) | 33 | Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers. |
+
+## Runtime globals
+
+- `api` is the main execution and platform surface. Only active methods are published.
+- `storage` is the canonical Explorer Storage surface for files and objects.
+- `agent` owns Agent, inbox, run, plugin, and Assistant lifecycle operations. Availability depends on instance policy.
+- `util` owns validation and security helpers, including hashing, cryptography, encoding, and identifiers.
+- Active library declarations are resolved through `lib.Category.Name.ElementKey.X`, where `X` is an exported function, class, constant, or other public symbol. `inject()` reads an earlier element in the same ordered component.
+
+Refresh after a declaration change with `npm run sync:low-code-reference`.

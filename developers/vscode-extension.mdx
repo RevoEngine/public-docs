@@ -1,0 +1,125 @@
+---
+title: VS Code extension
+description: Develop RevoEngine low-code components locally with workspace views, Git-aware sync planning, debugging, and runtime-aware TypeScript support.
+icon: square-terminal
+---
+
+<img src="/images/revoengine-vscode.png" alt="RevoEngine Platform Tools extension icon" width="72" />
+
+**RevoEngine Platform Tools** is the official VS Code extension for local RevoEngine low-code workspaces. It is an editor layer over the [RevoEngine CLI](/developers/cli): the extension presents project state, components, local changes, and debugger output; the CLI remains the authenticated platform client.
+
+<Note>
+  The extension works only in a trusted workspace. VS Code disables it in Restricted Mode because it runs the local CLI and reads or writes the opened project files.
+</Note>
+
+## Requirements
+
+- VS Code 1.90 or newer;
+- Node.js 24 or newer, matching the current CLI requirement;
+- a current `@revoengine/cli` installation available as `revo`;
+- a RevoEngine API key stored through the CLI login flow.
+
+Install the prerequisites and extension:
+
+```bash
+npm install --global @revoengine/cli@latest
+code --install-extension revoengine.revoengine
+```
+
+You can also install **RevoEngine Platform Tools** from the VS Code Extensions view. If your organization distributes a signed `.vsix` artifact, use VS Code's **Install from VSIX…** command instead.
+
+## First workspace
+
+<Steps>
+  <Step title="Open and trust the project">
+    Open the repository folder in VS Code and trust it. The extension is intentionally inactive in untrusted workspaces.
+  </Step>
+  <Step title="Authenticate the CLI">
+    Open the RevoEngine activity-bar view and run **RevoEngine: Authenticate CLI**. The CLI asks for an API key and resolves the instance bound to it; do not place the key in workspace files.
+  </Step>
+  <Step title="Initialize the workspace">
+    Run **RevoEngine: Initialize Workspace**. This creates the local project metadata under `.revoengine/` and defines the workspace used by the CLI.
+  </Step>
+  <Step title="Refresh editor types">
+    Run **RevoEngine: Refresh Editor Types** so IntelliSense reflects the current low-code runtime, active libraries, and generated definitions for the authenticated instance.
+  </Step>
+  <Step title="Inspect before changing">
+    Use the Workspace, Components, Sync, and Debugger views to check local state, baseline differences, and runtime behavior before any push or activation.
+  </Step>
+</Steps>
+
+## What the extension adds
+
+| View or capability | What it does |
+| --- | --- |
+| **Workspace** | Shows CLI availability, authentication state, workspace metadata, component identity mode, editor types, and compiler configuration. |
+| **Components** | Browses local components by category; pulls or pushes an individual component, compares local changes, adds elements, and reorders them. |
+| **Search** | Searches local component names, identifiers, categories, descriptions, and element files, then opens the matching source. |
+| **Sync** | Builds a local change plan against the last synchronized baseline. In Git workspaces it keeps Git as the branch-conflict authority. |
+| **Debugger** | Runs a selected component or temporary JavaScript/TypeScript source through the CLI, streams logs, and saves result evidence locally. |
+| **Library navigation** | Enables definition navigation for `lib.Category.Name.ElementKey.X` references using generated metadata. |
+| **TypeScript support** | Keeps normal TypeScript diagnostics and IntelliSense while recognizing RevoEngine's valid top-level-return component wrapper. |
+
+## Local project model
+
+The extension and CLI work with a deterministic project layout:
+
+```text
+.revoengine/
+  revo.json
+  types/
+  baselines/
+  output/
+Components/
+  <category>/
+    <component-name>-<component-id>/
+      component.json
+      elements/
+```
+
+`component.json` is the local component manifest. Element files are ordered by the manifest and use names derived from their element keys. The extension keeps a last-synced baseline under `.revoengine/baselines/` solely for local review; it is not a replacement for Git or the platform's version history.
+
+## Git-first synchronization
+
+In a Git repository, use ordinary Git workflows for branch pull, rebase, merge, and conflict resolution. Then select **Refresh** in the Sync view to recalculate the RevoEngine plan and safely update clean baselines.
+
+Direct RevoEngine pull and push actions remain available for non-Git workspaces or deliberate repair workflows, but they are not a substitute for branch conflict management. Always open a diff before pushing a changed component.
+
+## Debug without deployment
+
+The Debugger runs a working-copy snapshot of the selected component. It can use current editor buffers and changed local library overrides, yet it does not save, push, deploy, or activate the original component.
+
+Use it to validate a bounded input payload, inspect streamed `api.log()` output, and review returned results, timing, and memory consumption. Treat an external side effect performed by component code as consequential even though the source itself was not deployed.
+
+## Monorepos and settings
+
+For a project whose RevoEngine workspace lives below the repository root, use **RevoEngine: Set Workspace Directory**. The extension stores the relative directory in `.revoengine/vscode.json`:
+
+```json
+{
+  "workspaceDirectory": "backend"
+}
+```
+
+Useful settings include:
+
+| Setting | Purpose |
+| --- | --- |
+| `revoengine.cliPath` | Use a named or absolute CLI executable when `revo` is not on `PATH`. |
+| `revoengine.autoRefreshAfterPull` | Refresh the Components view after a successful pull. |
+| `revoengine.autoPullWhenEmpty` | Opt in to a first-time bulk pull for an otherwise ready empty workspace. |
+| `revoengine.autoFormatJsonOnOpen` | Format RevoEngine-managed source and JSON files on open through the active VS Code formatter. |
+| `revoengine.lifecycleLogLevel` | Enable bounded extension diagnostics in the RevoEngine Output channel when troubleshooting. |
+
+<Warning>
+  Never commit `.revoengine/` credentials, debug payloads containing private data, generated output with secrets, or local baselines as a way to share access. Use Git for reviewed source changes and the CLI credential store for authentication.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="CLI workflow" href="/developers/cli-projects" icon="terminal">
+    Initialize projects, synchronize components, review drift, and push with explicit intent.
+  </Card>
+  <Card title="Debugging" href="/build/debugging" icon="bug">
+    Understand the Sandbox and component debugging workflow.
+  </Card>
+</CardGroup>

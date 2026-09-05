@@ -1,0 +1,123 @@
+---
+title: Platform UI tour
+description: Follow the RevoEngine workspace from authoring to execution, evidence, and governance.
+icon: display
+---
+
+The RevoEngine workspace is an enterprise execution control plane. Its persistent navigation, global search, list-first grids, detail panels, dashboards, Chat, and Assistant keep build, runtime, evidence, and access decisions inside one instance context.
+
+## Workspace anatomy
+
+| Area | How to use it |
+| --- | --- |
+| Instance context | The first route segment and workspace header identify the active tenant instance. Confirm it before changing production data. |
+| Sidebar | Opens product workspaces and saved favourites. Collapse it when editing or comparing dense content. |
+| Search | Press `⌘ K` / `Ctrl K` to open a resource or navigation destination. |
+| Grid | Filter, sort, select, and bulk-operate on one resource family. |
+| Side detail | Select a row to inspect or edit without losing the filtered list behind it. |
+| Dynamic header | Holds lifecycle actions such as Save, Run, Activate, Disable, Delete, Restore, or Deploy. |
+| Breadcrumb | Preserves resource and instance context and supports deep links. |
+
+Actions are role-aware, but the API enforces access independently. A hidden button is a UI affordance, not the security boundary.
+
+## Build application logic
+
+<CardGroup cols={2}>
+  <Card title="Components" icon="puzzle-piece" href="/build/components">
+    Create reusable executable logic, libraries, versions, and custom Node.js services.
+  </Card>
+  <Card title="Web IDE" icon="laptop-code" href="/build/web-ide">
+    Edit elements, navigate definitions, debug, review diffs, and deploy selected changes.
+  </Card>
+  <Card title="Playground" icon="flask" href="/build/playground">
+    Prototype low-code JavaScript with JSON input and streamed debugger evidence.
+  </Card>
+  <Card title="Libraries" icon="books" href="/build/libraries">
+    Publish governed dependencies consumed as `lib.Category.Name.ElementKey.X`.
+  </Card>
+</CardGroup>
+
+The normal authoring flow is **open current Component → edit focused elements → resolve diagnostics → debug → review diff → deploy → verify the consuming runtime surface**.
+
+## Model and inspect data
+
+- **Databases → Tables** defines row-oriented application data and opens the data grid.
+- **Views** and **Materialized views** expose governed query projections; materialized views can be refreshed by Schedule.
+- **Storage** manages current file entries, folders, upload sessions, metadata, ACLs, retention, previews, and workspaces.
+- **Files** remains the legacy explorer for existing `fileId` integrations.
+- **Cache Explorer** exposes authorized cache inspection and management.
+
+Use a Table or Storage object as authoritative state. Dashboards, search results, realtime frames, and previews are projections over that state.
+
+## Expose and automate
+
+| Workspace | Responsibility |
+| --- | --- |
+| Endpoints | Synchronous HTTP contracts: method, path, authentication, validation, Component/static target, limits, and response behavior. |
+| Jobs | Reusable durable Component execution policy and individual execution history. |
+| Schedule | Five-field cron + IANA timezone + one Job, Agent, or materialized-view target. |
+| Events | Typed and filtered messages routed to a Job or Agent. |
+| Event History | Accepted message, fan-out evidence, related execution, and controlled replay. |
+| Webhooks | Asynchronous outbound HTTP attempts with retries and retained/masked evidence. |
+
+Separate definition from execution. Editing a Job template does not rewrite completed Job history; replaying an event uses current definitions but creates new lineage.
+
+## Observe operations
+
+- **Dashboards** compose role-aware grids, charts, and Component-powered custom widgets.
+- **Job History** owns attempts, status, timing, input/result visibility, logs, and retry lineage.
+- **Event History** owns event payload and fan-out.
+- **Webhooks** owns outbound attempt state.
+- **Activity history** provides a cross-resource stream of changes and runtime events.
+- **Logs** provides structured records; **Trace** correlates spans, operations, resources, and failures end to end.
+
+Start with the user-visible failure, locate its operation, Job, or Event identifier, and move toward Trace. Do not diagnose from a dashboard count alone.
+
+## Govern identities and data
+
+<CardGroup cols={2}>
+  <Card title="Users" icon="user" href="/operate/users">
+    Manage people, account state, platform access, and memberships.
+  </Card>
+  <Card title="Service Accounts" icon="server" href="/operate/service-accounts">
+    Manage workload identities, owners, memberships, and API keys.
+  </Card>
+  <Card title="Groups" icon="users" href="/operate/groups">
+    Grant membership used by restricted-resource ACLs.
+  </Card>
+  <Card title="Permissions" icon="shield-keyhole" href="/operate/permissions">
+    Compose reusable platform role sets.
+  </Card>
+</CardGroup>
+
+**Secrets** stores versioned sensitive values. Secret metadata can be discoverable to authorized operators while secret values stay out of normal logs, source, and documentation.
+
+## AI and collaboration
+
+- **AI Assistant** opens as a workspace panel for interactive research, code, governed tools, approvals, and artifacts.
+- **Agents** provides durable Agent definitions, runs, sessions, inbox, memory, plugins, and Storage workspaces.
+- **Chat** supports direct/group conversations and a read-only system notification inbox.
+
+These surfaces have separate persistence and access models. A Chat message is not automatically Agent memory, and an Assistant draft does not become deployed Component code until the normal review and deployment path completes.
+
+## Example: investigate a failed order
+
+1. Open the order-operations Dashboard and select the failed Job row.
+2. Inspect attempt status, Component version, principal, and `operationId`.
+3. Follow the originating Event History and confirm the message/filter.
+4. Open Trace for the operation.
+5. Inspect the database transaction, secret lookup, egress call, and Storage receipt spans.
+6. Fix and debug the Component in Web IDE.
+7. Deploy the reviewed element.
+8. Retry or replay only after confirming idempotency and external state.
+
+## Navigation practices
+
+- Confirm the active instance and environment before every consequential action.
+- Save recurring views as favourites or dashboards.
+- Keep list filters while opening details in the side panel.
+- Share deep links containing the exact resource or execution ID.
+- Treat Delete as a lifecycle action; prefer Restore over recreating duplicate definitions.
+- Use Search for discovery and Trace/history for proof.
+
+Continue with [First production workflow](/platform/first-production-workflow) for a complete balance, order, transaction, egress, and Storage example.

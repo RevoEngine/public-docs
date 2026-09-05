@@ -1,0 +1,109 @@
+---
+title: Team chat and system inbox
+description: Collaborate around durable messages, mentions, attachments, and operational notifications.
+icon: comments
+---
+
+Chat is the durable person-to-person collaboration surface in a RevoEngine instance. It supports direct and group conversations, replies, emoji reactions, mentions, attachment delivery, search, read state, muting, archiving, and recoverable deletion. System threads use the same history model for read-only operational notifications.
+
+## Start a conversation
+
+1. Open Chat and select **New conversation**.
+2. Search for one or more accessible participants.
+3. Add an optional group-thread title where the UI requests it.
+4. Send the first message or attach files.
+
+Creating the same direct participant set can reopen the existing conversation rather than creating an uncontrolled duplicate. The current user must be a participant to read or mutate thread content.
+
+## Work with messages
+
+From a message action menu you can, when authorized:
+
+- reply while preserving the referenced message;
+- edit your message;
+- add or remove an emoji reaction;
+- mark the timeline from a selected message as unread;
+- soft-delete and restore a message;
+- remove an attachment from a message.
+
+Read receipts are stored as a message boundary. Marking a message read covers messages through that point; marking one unread makes that message and newer messages unread for the current user.
+
+## Thread state is personal
+
+- **Mute** suppresses attention signals for the current participant without stopping durable delivery.
+- **Archive** removes the thread from the participant's active list without deleting it for others.
+- **Mark unread** creates a personal follow-up boundary.
+- **Delete** is a shared soft-delete lifecycle and should not be used as a personal inbox filter.
+
+System threads are read-only notification conversations. Their content and membership are controlled by the platform; mutable thread and composer actions are not available.
+
+## Attachments
+
+Chat attachments are stored in RevoEngine Storage. The UI uses idempotent direct-upload batches so several selected files can be tracked as one composer operation.
+
+```text
+create upload batch
+  -> create one session per file
+  -> upload bytes to temporary provider URLs
+  -> heartbeat active sessions when needed
+  -> complete and verify uploads
+  -> send message with finalized Storage entry IDs
+```
+
+Finalization is the availability boundary. A selected file or completed byte transfer is not yet a message attachment until the Storage session is verified and bound.
+
+Downloads, previews, and thumbnails use short-lived authorized URLs. Do not copy a signed URL into durable notes; request a fresh one from the thread context.
+
+<Warning>
+  Chat is not a secret manager. Do not send API keys, passwords, private keys, or production credentials as text or attachments.
+</Warning>
+
+## Search and mentions
+
+Search returns accessible message matches with the owning thread and an excerpt. A hit with no text can use its attachment summary. Open the result to restore the exact conversation context rather than acting on an excerpt alone.
+
+Unread message and mention counts belong to each participant. Muting changes notification behavior, not searchability or authorization.
+
+## Realtime and reconnect
+
+Connected clients receive thread, message, reaction, receipt, attachment, and presence updates. Realtime frames improve latency; persisted Chat APIs remain authoritative.
+
+After reconnecting, the client reloads thread and message state. A missed WebSocket frame must not cause permanent message loss or invent a local-only read state.
+
+## Operational patterns
+
+### Incident room
+
+Create a group conversation for the incident, pin operation or Trace identifiers in the opening message, and attach exported evidence. Use replies for decision lineage. Keep remediation in governed platform resources rather than executable snippets copied from chat.
+
+### System notification inbox
+
+Use a system thread for durable notifications that operators must be able to search later. A system message supplements—rather than replaces—the underlying Job, Event, Webhook, or Trace evidence.
+
+## Chat, Assistant, and Agents
+
+| Surface | Purpose |
+| --- | --- |
+| Chat | Human collaboration and system-to-human notification history. |
+| Assistant | Interactive AI work with plans, tools, approvals, and artifacts. |
+| Agent inbox | Durable work admitted to an autonomous Agent. |
+
+Chat messages do not become Assistant context or Agent memory unless an explicit governed workflow connects them.
+
+## Failure and recovery
+
+- If an attachment fails, discard or retry the upload batch before sending the message.
+- If Realtime disconnects, reload persisted state rather than replaying local mutations blindly.
+- If a message send outcome is ambiguous, reconcile by the client draft/idempotency identity before sending again.
+- Deleting a thread or message does not delete unrelated Storage objects or external copies.
+- Archiving and muting are per-user and do not signal resolution to other participants.
+
+## Good collaboration hygiene
+
+- Include the resource, Job, Event, or operation ID in operational discussions.
+- Use replies for decision and evidence lineage.
+- Keep secrets in [Secrets](/operate/secrets).
+- Archive resolved conversations; do not delete them to clear a personal inbox.
+- Treat system notifications as pointers to authoritative evidence.
+
+See [Storage](/operate/storage) for file lifecycle and [Realtime](/operate/realtime) for delivery behavior.

@@ -1,0 +1,83 @@
+---
+title: Groups
+description: Govern access to restricted Tables, Views, Storage folders, and other resources.
+icon: users
+---
+
+Groups collect users and Service Accounts for resource-level ACLs. They answer **which principals may access this restricted resource**. They do not grant platform capabilities by themselves; use [Permissions](/operate/permissions) for reusable role sets.
+
+## Create a Group
+
+Open **Groups**, select **Add**, and provide:
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| Name | Yes | Clear business or security-boundary name. |
+| Category | No | Groups related access sets in the UI. |
+| Description | No | Scope, approver, and intended resources. |
+| Owner type | Yes | `USER` or `GROUP`. |
+| Owner | Yes | Accountable user or parent ownership group. |
+| Metadata | No | Searchable ownership, review, system, or environment attributes. |
+
+After saving, reopen the Group and use **Members** to add or remove users and Service Accounts. A Group avatar can be uploaded for discovery; the UI accepts JPG, JPEG, PNG, GIF, or WEBP up to 5 MB.
+
+## Apply a resource ACL
+
+```text
+principal has FILE_READ
+  + principal belongs to Finance Documents
+  + folder ACL allows Finance Documents
+  = principal can read that restricted folder
+```
+
+The same user without `FILE_READ` still cannot download. A user with `FILE_READ` but outside the allowed Group still cannot enter the restricted branch.
+
+For hierarchical Storage, a restricted ancestor continues to constrain descendants. Adding a user to a child-oriented Group cannot bypass an ancestor they are not allowed to access.
+
+## Group design patterns
+
+| Pattern | Example |
+| --- | --- |
+| Business domain | `Finance Operations`, `Customer Support EU` |
+| Application boundary | `Checkout Production Readers` |
+| Data sensitivity | `Payroll Restricted` |
+| Workload access | `Settlement Service Accounts` |
+
+Avoid Groups named only `Admins`, `Team 1`, or `Temporary`. The name should still explain the boundary during an access review six months later.
+
+## Ownership and nesting
+
+Owner type expresses accountability. A Group-owned Group is useful when a platform team owns several access sets, but it should not be mistaken for automatic member inheritance unless the target ACL and current membership explicitly provide it.
+
+Use metadata to record an approver, review cadence, ticket reference, and environment. Do not encode credentials or sensitive personal data in Group metadata.
+
+## Lifecycle and roles
+
+| Action | Role |
+| --- | --- |
+| List and inspect | `USER_READ`, `USER_WRITE`, or `USER_ADMIN` |
+| Create, edit, and manage members | `USER_WRITE` or `USER_ADMIN` |
+| Delete | `USER_ADMIN` |
+| Restore | Authorized user administration access |
+
+Delete is recoverable. Before deleting, search for Tables, Views, Storage entries, and other resources that reference the Group. Removing the boundary without replacing it can either block workloads or produce an unintended access-policy change.
+
+## Quarterly review
+
+1. Confirm the owner is still accountable.
+2. Export or inspect current members.
+3. Remove inactive identities and obsolete Service Accounts.
+4. Review every restricted resource referencing the Group.
+5. Verify members also have the minimum platform role required.
+6. Record the next review in metadata or your governance system.
+
+## Production checklist
+
+- Name the protected business or application boundary.
+- Set an accountable owner.
+- Keep human and workload membership explainable.
+- Pair Group ACLs with least-privilege platform roles.
+- Review restricted ancestors in Storage.
+- Find resource references before deleting a Group.
+
+See [Identity and access](/operate/identity-and-access) and [Permissions](/operate/permissions).

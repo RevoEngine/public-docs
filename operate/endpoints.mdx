@@ -1,0 +1,198 @@
+---
+title: Endpoints
+description: Design, validate, publish, and operate an HTTP contract without separating its route, code, limits, and evidence into different systems.
+icon: route
+---
+
+Endpoints turn application logic into a governed HTTP interface. Each Endpoint owns a method and path, an optional input guard, an execution timeout, response behavior, and an optional Component target.
+
+## What you actually configure in the workspace
+
+The **Endpoints** grid is the contract inventory: name, category, description, active state, method, path, Component, metadata, and creation time are visible before opening a definition. Select a row to configure its Details panel.
+
+<CardGroup cols={3}>
+  <Card title="Route" icon="route">
+    Choose method and path, then make the name and category useful for operators rather than clients.
+  </Card>
+  <Card title="Target" icon="puzzle-piece">
+    Select a Component and intentionally choose Latest or a reviewed Component version.
+  </Card>
+  <Card title="Boundary" icon="shield-halved">
+    Configure request validation, timeout, memory, response shape, and history visibility together.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={3}>
+  <Card title="Design" icon="pen-ruler">
+    Choose the HTTP contract, validation policy, and response shape.
+  </Card>
+  <Card title="Activate" icon="circle-play">
+    Make a validated definition available to callers without redeploying the application.
+  </Card>
+  <Card title="Operate" icon="chart-line">
+    Inspect execution statistics, logs, and traces using stable correlation IDs.
+  </Card>
+</CardGroup>
+
+## Endpoint lifecycle
+
+1. Build and test the Component that implements the request.
+2. Open **Endpoints** and create a definition with a unique method and path.
+3. Select a Component, or configure a static response for a lightweight endpoint.
+4. Add an inline guard or select a reusable JSON validator Component.
+5. Configure timeout, libraries, template input, and response behavior.
+6. Validate the definition and activate it.
+7. Call the Endpoint through the Endpoint Runtime URL for your environment.
+8. Use Endpoint statistics, Logs, and Trace to operate it.
+
+<Tip>
+  Create a new Endpoint as inactive when you want to validate the contract before exposing it to callers.
+</Tip>
+
+## Routing
+
+An Endpoint is uniquely identified by its HTTP method and normalized path. Supported methods are `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
+
+```text
+/customers/:customerId/orders/:orderId
+```
+
+Named dynamic segments are decoded and exposed to the Component as path parameters. Static paths are preferred over dynamic candidates, so `/customers/current` is more specific than `/customers/:customerId`.
+
+Paths:
+
+- start with `/`;
+- may contain letters, numbers, `.`, `_`, and `-` in static segments;
+- may use named parameters such as `:customerId`;
+- are normalized to remove repeated and trailing slashes;
+- are matched together with the HTTP method.
+
+## Request data
+
+The Component receives a structured request context containing:
+
+| Input | Description |
+| --- | --- |
+| Body | Parsed request body. |
+| Query | Query-string values. |
+| Headers | Caller headers after platform-owned and authorization headers are removed. |
+| Parameters | Values captured from dynamic path segments. |
+| Template input | Operator-defined values stored in Endpoint options. |
+
+Treat all caller-controlled fields as untrusted. Do not forward inbound headers wholesale to another system.
+
+## Validate input
+
+Use one of two guard sources:
+
+- **Inline guard** for a contract that belongs only to this Endpoint.
+- **JSON validator Component** for a contract shared by several Endpoints or workflows.
+
+A guard can validate `body`, `query`, `headers`, and `parameters`. You can configure the validation status code, provide a safe custom error body, or hide detailed validation errors from the caller.
+
+<Warning>
+  Validation runs before the target Component. Keep error responses free of submitted credentials and internal validation details.
+</Warning>
+
+## Configure an order command, step by step
+
+For `POST /orders/:orderId/confirm`, set the route and Component first. In **Options**, set a short timeout because this Endpoint should create a Job and return `202`, not wait for an external payment or fulfilment provider. Put stable operator-owned values in **Inputs**; the Component reads them through `api.input()`. Use a request guard for the body and path parameters, choose `202` as the success code, and enable **Hide request** when the payload can contain personal or financial data.
+
+The same panel offers **Full result** versus a selected element result, no-body responses, library selection, validation status, and request/response history controls. Choose the response contract before activation so generated OpenAPI matches what clients will receive.
+
+## Choose the execution target
+
+### Component-backed Endpoint
+
+Use a Component-backed Endpoint for business logic, database access, integrations, and dynamic responses. Standard low-code Components can follow the latest active version or a deliberately pinned version.
+
+Hosted custom Node.js Components follow their active runtime revision. Saving source does not make an unverified revision executable: the previous active revision remains in service until the new deployment is ready and selected.
+
+### Static Endpoint
+
+An Endpoint without a Component can return a configured static body and successful `2xx` status. This works well for simple health, discovery, or fixed configuration responses.
+
+## Shape the response
+
+For new Endpoints, use the modern response behavior:
+
+- return the Component result map;
+- select one named element result with `popResult`;
+- suppress the response body with `noResult`;
+- set a normal successful `2xx` status;
+- deliberately return another status and body from component logic when the API contract requires it.
+
+Legacy result envelopes remain available for existing consumers, but should not be selected for new integrations.
+
+## Runtime behavior
+
+At a high level, an invocation follows this path:
+
+```text
+authenticate and authorize
+  -> match active method + path
+  -> validate the structured request
+  -> resolve the active Component and libraries
+  -> execute within configured limits
+  -> normalize the HTTP response
+  -> emit operational evidence
+```
+
+Endpoint definitions are stored in the control plane. Runtime caches accelerate route matching and executable artifacts, while activation state and version selection remain authoritative. Definition changes invalidate runtime state automatically.
+
+The runtime does not automatically retry an HTTP invocation. A caller should retry only when the operation is idempotent or protected by an application idempotency key.
+
+## Security and access
+
+Endpoint management and invocation are separate capabilities:
+
+| Capability | Typical use |
+| --- | --- |
+| Endpoint Read | Inspect definitions and statistics. |
+| Endpoint Write | Create, edit, activate, and disable Endpoints. |
+| Endpoint Admin | Administrative lifecycle operations. |
+| Endpoint Invoke | Call active runtime Endpoints without managing them. |
+
+Use a service account with only the roles needed by the integration. The execution principal's current access also governs access-controlled platform operations performed during the request.
+
+## OpenAPI and discovery
+
+RevoEngine can generate an OpenAPI document for all active runtime Endpoints or for one Endpoint. Use it to:
+
+- publish an integration contract;
+- generate a typed client;
+- import operations into API tooling;
+- compare a planned change before activation.
+
+The generated contract describes your runtime Endpoints. The [Platform API reference](/api-reference/introduction) separately documents the control plane used to manage RevoEngine itself.
+
+## Production checklist
+
+- Validate body, query, and path parameters at the boundary.
+- Use a dedicated service account for machine callers.
+- Pin a low-code Component version when a rollout must remain immutable.
+- Set a timeout that reflects the caller's own deadline.
+- Avoid request and response persistence for sensitive payloads when the options permit it.
+- Make retry-sensitive writes idempotent.
+- Record the Execution ID returned by your application flow and the distributed Operation ID from diagnostics.
+- Review generated OpenAPI after every contract change.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Build Components" icon="puzzle-piece" href="/build/components">
+    Implement reusable business logic and manage executable versions.
+  </Card>
+  <Card title="Endpoint Runtime" icon="server" href="/developers/endpoint-runtime">
+    Integrate with the synchronous execution surface.
+  </Card>
+  <Card title="Configuration reference" icon="sliders" href="/operate/endpoint-configuration">
+    See every public route, validation, execution, and response option.
+  </Card>
+  <Card title="Authentication" icon="key" href="/developers/authentication">
+    Authenticate human and machine callers.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/operate/observability">
+    Diagnose an invocation across statistics, logs, and traces.
+  </Card>
+</CardGroup>

@@ -1,0 +1,90 @@
+---
+title: Event History
+description: Inspect event payloads, target fan-out, related Jobs, and controlled replay.
+icon: clock-rotate-left
+---
+
+Event History is the durable evidence that an event was accepted and evaluated. Use it to answer three different questions: **what arrived**, **which definitions matched**, and **what execution was scheduled**.
+
+## Read the history grid
+
+Open **Jobs → Event History**. List rows include the event name, creator and creation time, payload size, metadata, and lifecycle state. Large messages are omitted from list projections so the grid remains responsive; open a row to load the complete message.
+
+The detail panel provides:
+
+- the full JSON message;
+- searchable metadata;
+- resolved Job templates;
+- related Job executions;
+- the history identifier used for correlation;
+- deletion state and available operator actions.
+
+For Job targets, open the related Job rather than diagnosing Component failure from the event row alone. The Event history proves dispatch lineage; Job history owns runtime result, attempts, logs, and terminal state.
+
+## Follow one delivery end to end
+
+1. Copy the `jobEventHistoryId` from the Event History detail.
+2. Inspect the normalized message and metadata.
+3. Confirm that the expected Event definition appears in the resolved targets.
+4. Open each related Job and capture its job and operation identifiers.
+5. Correlate the execution in Logs or Trace when the target failed or produced an unexpected result.
+
+```text
+jobEventHistoryId
+  -> Event definition / targetId
+  -> jobId or agentRunId
+  -> operationId
+  -> logs and trace spans
+```
+
+## Replay
+
+Users with `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` can select one or more history rows and choose **Replay**. RevoEngine creates a new dispatch lineage and reports how many selected events were requested and replayed.
+
+<Warning>
+  Replay evaluates the saved message against the **current** Event definitions and current target configuration. It does not restore an old Component, principal, filter, or external-system state.
+</Warning>
+
+Before replaying a production event:
+
+- confirm why the original target did not complete;
+- verify whether any external side effect already succeeded;
+- check that the current Event target is still intended;
+- supply idempotency at the target boundary;
+- replay the smallest possible selection;
+- inspect the newly created lineage rather than overwriting the original evidence.
+
+## Deletion and restore
+
+Deleting Event history is a recoverable visibility operation available to `AUTOMATION_ADMIN`. Restore makes the row available again. Neither action reverses Jobs, Agent runs, database mutations, outbound requests, or third-party effects already produced by the event.
+
+Treat deletion as a retention and workspace-hygiene decision, not as incident remediation.
+
+## Access
+
+| Action | Required role |
+| --- | --- |
+| List and inspect history | `AUTOMATION_READ` or `AUTOMATION_ADMIN` |
+| Replay | `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` |
+| Delete or restore | `AUTOMATION_ADMIN` |
+
+Authorization still applies when following a related resource. A user may see an Event history row but lack access to the target Job template, Agent, or restricted data used during execution.
+
+## Common diagnoses
+
+<AccordionGroup>
+  <Accordion title="No target was scheduled">
+    Check that the Event definition was active when the message arrived, its type matches exactly, and its filter evaluates to true for the normalized message.
+  </Accordion>
+  <Accordion title="The target was scheduled but nothing changed">
+    Open the related Job or Agent run. The failure occurred after fan-out and belongs to the target execution, its principal, or a downstream dependency.
+  </Accordion>
+  <Accordion title="Replay created a different result">
+    Compare current Event and target versions with the original timestamps. Replay intentionally uses current configuration and current authorization.
+  </Accordion>
+  <Accordion title="The message is absent from the grid row">
+    Open the detail panel. List projections omit large messages; this is not evidence that the original event had an empty body.
+  </Accordion>
+</AccordionGroup>
+
+See [Events](/operate/events) to configure subscriptions and [Observability](/operate/observability) to continue from dispatch evidence into runtime diagnosis.

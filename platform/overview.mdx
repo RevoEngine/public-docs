@@ -1,0 +1,56 @@
+---
+title: Platform overview
+description: How RevoEngine unifies enterprise BaaS capabilities, governed execution, operations, and AI.
+icon: layer-group
+---
+
+RevoEngine brings application logic, data, integration, automation, identity, operations, and AI into one instance-scoped enterprise platform. Definitions are versioned and governed in the control plane; every execution uses those definitions under the current principal, ACL, policy, and quota.
+
+The platform can be approached as BaaS for application teams, an execution control plane for platform engineering, and an operational workspace for security and support. Those are views of the same application model—not separate products glued together.
+
+## Product surfaces
+
+| Surface | Use it for | Runtime outcome |
+| --- | --- | --- |
+| Governed execution | Components, Sandbox, endpoint runtime, and custom Node.js revisions | Bounded work selected from a versioned definition |
+| API and integration | Endpoint contracts, OpenAPI, webhooks, events, SDK, and CLI | Controlled synchronous ingress and asynchronous delivery |
+| Data BaaS | Tables, Views, materialized views, structured queries, cache, and row audit | Governed structured data with durable lifecycle evidence |
+| Storage BaaS | Files, folders, workspaces, multipart sessions, retention, and artifacts | Durable object data with hierarchical access controls |
+| Automation | Jobs, schedules, events, concurrency, retries, and webhooks | Durable background execution with lineage and terminal state |
+| IAM and enterprise identity | SSO/hybrid provider policy, MFA sessions, service accounts, roles, Groups, and ACLs | Every request and execution is evaluated in current authorized context |
+| Operational evidence | Activity, versions, Logs, Trace, Statistics, Job/Event/Webhook history, and database audit | Correlation from authored change to runtime outcome |
+| Governed AI | Assistant, Agents, skills, plugins, plans, approvals, memory, and workspaces | Auditable contextual work over permitted platform state |
+
+<Info>
+  Older RevoEngine documentation used **Resources** and **Schemas** as top-level product concepts. Current documentation uses the concrete domains shown above. Database structures and endpoint input contracts remain explicit, but they are no longer presented as a generic Resources layer.
+</Info>
+
+## Typical end-to-end flow
+
+1. Establish identity, permission groups, service accounts, and resource ACLs.
+2. Model data in a database or connect to an external system.
+3. Author logic as a component, reusable library, or custom Node.js revision.
+4. Validate behavior in Sandbox and release a selected version.
+5. Publish through an Endpoint, Storage flow, automation trigger, or the Platform API.
+6. Observe logs, traces, activity, audit, job history, and execution results.
+7. Use the Assistant or an Agent to inspect, change, or operate the same governed resources within policy.
+
+## Choose the right entry point
+
+<CardGroup cols={2}>
+  <Card title="Enterprise execution" icon="building-shield" href="/platform/enterprise-execution">
+    Understand the BaaS control loop, SSO/IAM, evidence model, and governed AI.
+  </Card>
+  <Card title="Platform UI" icon="display" href="/platform/ui-tour">
+    Visual authoring, operations, governance, and AI workflows.
+  </Card>
+  <Card title="Platform API" icon="brackets-curly" href="/developers/platform-api">
+    Programmatic management of definitions and state.
+  </Card>
+  <Card title="Node.js SDK" icon="node-js" href="/developers/sdk-overview">
+    Use the governed runtime from hosted or standalone Node.js.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/developers/cli">
+    Local component workflows, drift review, and environment promotion.
+  </Card>
+</CardGroup>

@@ -1,23 +1,50 @@
 ---
-title: 'Platform API - HTTP Codes'
-description: 'Platform API does support these HTTP Status codes.'
-sidebarTitle: HTTP Codes
+title: Errors and HTTP status codes
+description: Handle Platform API failures and retry only when the operation is safe.
+icon: circle-exclamation
 ---
 
-# Default Responses
+Most Platform API errors return JSON with a stable HTTP status, an ISO timestamp, and a human-readable message. Some operations add a machine-readable code, field-level validation details, or operation-specific metadata.
 
-| Code  | Description                                                                 |
-|-------|-----------------------------------------------------------------------------|
-| `200` | `OK` - The request has succeeded.                                           |
-| `201` | `Created` - The request has succeeded and resource has been created.        |
-| `400` | `Bad Request` - The request cannot be fulfilled due to bad payload.         |
-| `401` | `Unauthorized` - Authentication is required.                                |
-| `401` | `Payment required` - Check status of your subscription.                     |
-| `403` | `Forbidden` - You don't have necessary permissions to access this resource. |
-| `404` | `Not Found`- The requested resource was not found.                          |
-| `409` | `Conflict` - Resource has already been created.                             |
-| `429` | `Too Many Requests` - Your request has been throttled.                      |
-| `500` | `Internal Server Error` - Generic error message.                            |
-| `502` | `Bad Gateway` - Invalid response from server.                               |
+```json
+{
+  "statusCode": 400,
+  "timestamp": "2026-09-04T12:00:00.000Z",
+  "message": "Validation failed"
+}
+```
 
-<Note>In case of `429`, `500`, `502`, we recommend to retry the request using exponential backoff.</Note>
+## Common status codes
+
+| Code | Meaning | Client action |
+| --- | --- | --- |
+| `200` | Request completed | Consume the response. |
+| `201` | Resource created or operation accepted | Use the returned identifier or status. |
+| `202` | Asynchronous work accepted | Poll or follow the documented realtime/history flow. |
+| `400` | Invalid request or business precondition | Correct the request; do not retry unchanged. |
+| `401` | Missing or invalid authentication/instance context | Refresh or replace credentials and context. |
+| `403` | Insufficient permission | Request the required role or resource access. |
+| `404` | Resource or route not found | Verify the identifier, lifecycle state, and path. |
+| `409` | Version, identity, or state conflict | Reload current state and reconcile before writing. |
+| `413` | Request body exceeds the accepted limit | Reduce or stream the payload. |
+| `429` | Rate or concurrency limit reached | Back off and retry only if the operation is idempotent. |
+| `500` | Unexpected platform failure | Capture identifiers and contact support if persistent. |
+| `502` | An execution provider or upstream dependency failed | Verify side effects before retrying. |
+| `503` | Required runtime or schema is temporarily unavailable | Retry with backoff when the operation is safe. |
+| `504` | Execution deadline exceeded | Treat started mutations as potentially indeterminate. |
+
+## Retry policy
+
+Never retry every `5xx` or timeout automatically. A connection can fail after a database, storage, endpoint, or external provider has accepted the mutation.
+
+Safe retry sequence:
+
+1. Classify the operation as read-only, idempotent, or non-idempotent.
+2. Check the returned resource or execution state when possible.
+3. Reuse an idempotency or correlation key supported by the target.
+4. Apply bounded exponential backoff with jitter.
+5. Stop on validation, authentication, authorization, and version conflicts until corrected.
+
+## Support evidence
+
+Capture the request method and path, timestamp, status, and relevant resource/execution identifiers. Redact bearer tokens, secret values, signed URLs, and sensitive request data.

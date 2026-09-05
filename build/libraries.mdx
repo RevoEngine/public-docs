@@ -1,0 +1,64 @@
+---
+title: Libraries
+description: Share typed business logic across low-code components.
+icon: books
+---
+
+Library components turn stable business rules into an instance-wide namespace. The runtime resolves a public library export as:
+
+```text
+lib.Category.Name.ElementKey.X
+```
+
+`Category` and `Name` identify the library component, `ElementKey` is the library element key, and `X` is the exported function, class, constant, or other public symbol. These identifiers are case-sensitive. Do not shorten the path to a component name alone: that changes the resolved object.
+
+## Author a library
+
+Export the symbols from the element source. The platform places them below the complete library path; the source itself does not need to manufacture namespace objects.
+
+```ts
+// Category: CRM, Name: Customers, Element key: Queries
+export function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export async function load(customerId: string) {
+  const result = await api.getDatabaseData('customers', {
+    filter: { field: 'customerId', op: 'eq', value: customerId },
+    take: 1,
+  });
+  return result.data[0] ?? null;
+}
+
+export const defaultPageSize = 100;
+
+export class CustomerNotFoundError extends Error {}
+```
+
+The exact authoring shape shown by the editor is authoritative for your instance and active library version.
+
+## Consume a library
+
+```js
+const email = lib.CRM.Customers.Queries.normalizeEmail(api.input('email'));
+const customer = await lib.CRM.Customers.Queries.load(api.input('customerId'));
+const pageSize = lib.CRM.Customers.Queries.defaultPageSize;
+
+const error = new lib.CRM.Customers.Queries.CustomerNotFoundError();
+
+return { email, customer, pageSize, errorName: error.name };
+```
+
+Use the exact path shown by Monaco for the active library. Public code uses the complete canonical `lib.Category.Name.ElementKey.X` form.
+
+## Versioning behavior
+
+An execution resolves one effective library manifest. Updating or activating a library invalidates the relevant runtime and editor artifacts. A running execution continues with the version it resolved at start; a later execution receives the newly active version.
+
+## Design guidance
+
+- Keep libraries focused on reusable domain behavior.
+- Treat category, library name, and element key as public API segments; rename them as a compatibility change.
+- Document public and non-obvious functions with concise JSDoc.
+- Prefer platform `util.*` helpers for generic encoding, hashing, IDs, or sleep.
+- Test the library directly, then test one consuming component to confirm the generated type and runtime export agree.

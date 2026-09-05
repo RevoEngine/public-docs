@@ -1,0 +1,296 @@
+---
+title: Events
+description: Route platform and business events to governed Jobs or Agents.
+icon: bolt
+---
+
+Events turn a typed message into durable work. An Event definition says **which messages it accepts**, **which target receives them**, and **which filter must match** before RevoEngine schedules anything.
+
+One Event definition has one target. Create several active definitions for the same type when one business signal must fan out to independent Jobs or Agents; Event History records which targets matched and which filters skipped delivery.
+
+## When to use an Event
+
+Use an Event when work should begin because state changed, not because a person called an Endpoint or a clock reached a particular time.
+
+| Scenario | Event definition |
+| --- | --- |
+| Process a finalized Storage upload | `STORAGE_CREATED` → validation Job |
+| Generate a preview after a Storage write | `STORAGE_CREATED` → rendering Job |
+| Reconcile access after an identity change | `USER_UPDATED` → governance Job |
+| React to a domain signal | `CUSTOM` with `customType` such as `CUSTOM_ORDER_APPROVED` |
+
+<Tip>
+  Publish small event envelopes and let the target load authoritative data by ID. Event metadata is searchable, but it is not a replacement for a Table or Storage object.
+</Tip>
+
+## Create an Event in the UI
+
+Open **Jobs → Events**, select **Add**, and configure the definition.
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| Name | Yes | Operator-facing name used in lists and history. |
+| Category | No | Presentation grouping for larger automation estates. |
+| Description | No | Why the subscription exists and what it is expected to start. |
+| Type | Yes | A built-in lifecycle type or `CUSTOM`. |
+| Custom type | For `CUSTOM` | The application event name. Use a stable, namespaced value. |
+| Target type | Yes | `JOB_TEMPLATE` or `AGENT`. |
+| Target | Yes | The Job template or Agent that receives matching work. |
+| Delivery mode | Agent only | `INBOX` queues durable Agent work; `DIRECT_RUN` starts a run directly. |
+| Activate upon creation | New definitions | Whether matching begins immediately. |
+| Metadata | No | Searchable ownership, service, environment, or cost-centre labels. |
+| Filter | No | Conditions evaluated against the normalized message. Empty means match all. |
+
+For a Job target, the selected template carries the Component, execution principal, input defaults, limits, concurrency, and retry policy. For an Agent target, delivery uses the current Agent definition.
+
+## Operate configured Events
+
+The **Jobs → Events** grid is the inventory of current and deleted definitions. It exposes name, category, description, active state, event type, target type, target ID, metadata, creation/update ownership, version, and deletion state. Every visible column can be used as an operator filter where its data type allows it.
+
+Open a row to review the effective target, delivery mode, metadata, and filter before changing lifecycle state. The header links directly to **History**, so the definition and its observed deliveries remain separate:
+
+| Definition action | Effect |
+| --- | --- |
+| **Activate** | Starts matching future messages after target configuration and instance quotas are revalidated. |
+| **Disable** | Stops future matches; existing Event History and already scheduled targets remain. |
+| **Run** | Publishes a controlled test message under this definition's stored type. |
+| **Update** | Replaces editable configuration with optimistic version checking. A stale editor is rejected. |
+| **Delete** | Soft-deletes and disables the definition. |
+| **Restore** | Makes a deleted definition available again; review target and filter before activation. |
+
+Instance settings govern the total and active Event-definition quotas. An active definition whose target was deleted, disabled, or is no longer authorized cannot be admitted until that dependency is corrected.
+
+## Create a custom business event
+
+Choose **Type → Custom** when the signal belongs to your application rather than a RevoEngine resource lifecycle. In the **Custom type** field enter the business suffix, for example `ORDER_APPROVED`; the durable/API type becomes `CUSTOM_ORDER_APPROVED`.
+
+Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `CUSTOM_SEND_EMAIL_NOW`.
+
+### Example: approved high-value order
+
+Create a Job template first, then register one filtered Event definition:
+
+```bash
+curl --request POST "$REVO_API_URL/api/v1/automation/event" \
+  --header "Authorization: Bearer $REVO_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "name": "High-value approved orders",
+    "category": "Order assurance",
+    "desc": "Checks balance, persists a transaction, and notifies the risk provider.",
+    "type": "CUSTOM_ORDER_APPROVED",
+    "targetType": "JOB_TEMPLATE",
+    "targetId": "'"$JOB_TEMPLATE_ID"'",
+    "active": true,
+    "filter": {
+      "and": [
+        { "field": "message.order.total", "op": "gte", "value": 10000 },
+        { "field": "message.order.currency", "op": "in", "value": ["EUR", "PLN"] },
+        { "field": "message.account.status", "op": "eq", "value": "ACTIVE" }
+      ]
+    },
+    "metadata": { "owner": "risk-platform", "environment": "production" }
+  }'
+```
+
+Trigger the definition with a small envelope. The Job should reload the authoritative order and account by ID, verify the balance in a database transaction, create an idempotent transaction record, call the risk provider with a Secret-backed API key, write any durable receipt to Storage, and return its `operationId` and evidence IDs.
+
+```bash
+curl --request POST "$REVO_API_URL/api/v1/automation/event/$EVENT_ID/run" \
+  --header "Authorization: Bearer $REVO_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "message": {
+      "order": { "orderId": "ord_8d31", "total": 12500, "currency": "EUR" },
+      "account": { "accountId": "acc_201", "status": "ACTIVE" }
+    },
+    "metadata": {
+      "correlationId": "checkout_99f1",
+      "producer": "checkout-endpoint"
+    }
+  }'
+```
+
+<Note>
+  The Event message is routing context, not financial truth. The target must reload balance, order status, and prior transaction state under its own principal before it commits a side effect.
+</Note>
+
+## Filter event messages
+
+The visual filter builder supports **all**, **any**, and **none** matching. Enter message paths without the `message.` prefix; use dot notation for nested properties.
+
+```text
+customer.region      eq       eu
+order.total          gte      10000
+order.currency       in       EUR,PLN
+```
+
+Supported comparisons include equality, numeric ordering, list membership, null checks, contains, starts/ends with, and case-sensitive or case-insensitive pattern matching.
+
+The UI accepts only the property inside the event `message`. For example, enter `name`, `mimeType`, or `metadata.kind`; the editor persists the safe query path as `message.name`, `message.mimeType`, or `message.metadata.kind`. Do not type the `message.` prefix into the visual field.
+
+For a CSV ingestion subscription, configure all conditions:
+
+```text
+mimeType              eq       text/csv
+metadata.pipeline     eq       settlements
+name                  ilike    settlement-*.csv
+```
+
+Wildcard text entered as `*` is normalized to the query wildcard used by the stored filter. Property paths are limited to safe dot notation; prototype-related segments and prefixed paths are rejected.
+
+### Filter operators
+
+| Operator | Behavior |
+| --- | --- |
+| `eq`, `ne` | Exact JSON-value equality or inequality. |
+| `gt`, `gte`, `lt`, `lte` | Numeric comparison; non-numeric values do not match. |
+| `in`, `notIn` | Exact comparison against a required array of candidates. |
+| `isNull`, `isNotNull` | Tests missing/`null` versus a present non-null value; no comparison value is required. |
+| `contains` | Substring, array-member, or partial object containment according to the actual value type. |
+| `startsWith`, `endsWith` | Case-sensitive string boundary match. |
+| `like`, `notLike` | SQL-style `%` and `_` pattern match. The UI converts `*` to `%`. |
+| `ilike`, `notILike` | Case-insensitive pattern match. |
+
+The visual builder supports up to six safe message-path segments and deliberately writes only `message.*` filters. The Platform API accepts a validated filter tree over `message.*`, searchable `metadata.*`, or the event `type`, with nested `and`, `or`, and `not` groups and at most twelve field-path segments. Unsafe keys such as `__proto__`, `prototype`, and `constructor` are rejected on both surfaces.
+
+```json
+{
+  "or": [
+    { "field": "metadata.source", "op": "eq", "value": "checkout" },
+    {
+      "and": [
+        { "field": "type", "op": "eq", "value": "CUSTOM_ORDER_APPROVED" },
+        { "field": "message.order.region", "op": "in", "value": ["eu", "uk"] }
+      ]
+    }
+  ]
+}
+```
+
+<Warning>
+  A filter is an admission rule, not a data validator. Validate the complete business payload in the target Component before creating side effects.
+</Warning>
+
+## Trigger a controlled test
+
+Saved active Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`.
+
+1. Open the Event and select **Run**.
+2. Enter a JSON `message` representative of production traffic.
+3. Optionally delay delivery with `inSeconds`; the API accepts up to 2,592,000 seconds (30 days).
+4. Submit and retain the returned Event history identifier.
+5. Open **Event History** and confirm which targets were scheduled or skipped.
+
+```json
+{
+  "inSeconds": 0,
+  "message": {
+    "orderId": "ord_8d31",
+    "status": "APPROVED",
+    "region": "eu"
+  },
+  "metadata": {
+    "correlationId": "checkout_99f1",
+    "source": "acceptance-test"
+  }
+}
+```
+
+## Built-in event families
+
+The current catalogue includes lifecycle events for:
+
+- Storage create, update, synchronize, archive, restore, and delete;
+- legacy File finalize, archive, and delete;
+- User and Service Account create, update, activate, deactivate, restore, and delete;
+- account API-key create, update, and delete.
+
+Use `CUSTOM_*` events for business vocabulary owned by your application. Do not reuse an identity or Storage event to carry an unrelated domain message. The selector presents `CUSTOM` plus a suffix field, while the stored and API-visible type is the combined `CUSTOM_<SUFFIX>` value.
+
+### Storage lifecycle cookbook
+
+| Event type | Durable fact | Typical target |
+| --- | --- | --- |
+| `STORAGE_CREATED` | A folder or finalized new file entry exists. | Validate a new incoming object or index a folder. |
+| `STORAGE_UPDATED` | Mutable entry data or a replaced file version changed. | Refresh a projection or reprocess a replacement. |
+| `STORAGE_SYNCHRONIZED` | Asynchronous text statistics finished and the entry projection was updated. | Start line-batched parsing that depends on `lineCount` and `batchNumber`. |
+| `STORAGE_ARCHIVED` | An entry or subtree entered the archived lifecycle. | Remove it from a downstream search index. |
+| `STORAGE_RESTORED` | A manually archived entry or subtree became active again. | Rebuild an external projection. |
+| `STORAGE_DELETED` | The archived entry was permanently tombstoned and provider cleanup was requested. | Remove external references and retention evidence. |
+
+`STORAGE_CREATED` is emitted after the Storage record is durable and an upload is finalized. With `computeStats: 'async'`, it can arrive before text statistics; subscribe to `STORAGE_SYNCHRONIZED` if the first Job must read cached batches immediately. Reports workspace lifecycle messages are not published as customer Storage events.
+
+Legacy `FILE_FINALIZED`, `FILE_ARCHIVED`, and `FILE_DELETED` exist only for integrations still using the old Files model. Do not select them for a new Storage workflow.
+
+## Incoming file → Event → Job → output
+
+1. An operator, SDK, or Component uploads a file into the Storage **Files** workspace and finalization creates a `storageEntryId`.
+2. `STORAGE_CREATED` records the entry projection as the Event message. A filter admits only the intended MIME type, folder policy, or user metadata.
+3. The selected Job template starts its Component under the template's service account. The Job input contains `{ type, metadata, message }`.
+4. The Component reads `api.input()?.message.storageEntryId`, validates authoritative entry metadata and content, and uses bounded `storage.getFileData()` batches.
+5. It writes a result with `storage.putObject()` or a finalized upload session, then returns the operation ID and both Storage entry IDs.
+6. Event History proves admission and target scheduling; Job History, logs, and the output Storage entry prove processing.
+
+<Note>
+  Grant the Job service account read access to the input's complete ancestor ACL chain and write access to the output folder. An Event matching successfully does not bypass Storage authorization at execution time.
+</Note>
+
+See the full [Storage ingestion example](/operate/storage) for Component code and retry-safe output design.
+
+## Roles and lifecycle
+
+| Action | Required role |
+| --- | --- |
+| List and inspect | `AUTOMATION_READ` or `AUTOMATION_ADMIN` |
+| Run, activate, or disable | `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` |
+| Create, update, delete, or restore | `AUTOMATION_ADMIN` |
+
+Updates use a version field for optimistic concurrency. Deleting is recoverable; restoring returns the definition but does not imply that it should immediately be active. Review its target and filter first.
+
+## Delivery and failure semantics
+
+```text
+event accepted
+  -> durable Event history created
+  -> active definitions resolved
+  -> filters evaluated
+  -> matching targets scheduled
+  -> target identifiers recorded
+```
+
+Acceptance confirms that RevoEngine recorded the event; it does not mean every target completed successfully. Diagnose fan-out in Event History, then follow the related Job or Agent run for execution-level status.
+
+Storage commits are not rolled back if post-commit lifecycle event enqueueing fails. Operators should therefore reconcile important ingestion sources against Storage entries as well as monitor Event History; the durable file remains the source of truth.
+
+Event delivery can be repeated by infrastructure or by an operator replay. Targets that call payment, provisioning, or messaging systems must enforce an idempotency key such as `eventHistoryId + targetId`.
+
+### Diagnose by boundary
+
+<AccordionGroup>
+  <Accordion title="The Event never appears in History">
+    Confirm the producer used the expected type, the trigger request was accepted, and any delayed `inSeconds` window has elapsed. For Storage workflows, also inspect the durable Storage entry because a committed file remains authoritative if post-commit event enqueueing fails.
+  </Accordion>
+  <Accordion title="History exists but the target was skipped">
+    Compare the saved normalized message with the definition filter. Check data types as well as values: the number `10000` is not the string `"10000"` for exact equality.
+  </Accordion>
+  <Accordion title="The target was scheduled but failed">
+    Continue in Job History or the Agent run. Event History owns admission and fan-out, while target history owns execution, permissions, retries, and result.
+  </Accordion>
+  <Accordion title="A custom event matches too many definitions">
+    Use a more specific `CUSTOM_*` type or add message/metadata filters. Keep each definition responsible for one target so unwanted fan-out can be disabled independently.
+  </Accordion>
+</AccordionGroup>
+
+## Production checklist
+
+- Give custom types stable `CUSTOM_*` names.
+- Filter before starting expensive work.
+- Validate the payload again inside the target.
+- Use a dedicated service account on Job templates.
+- Correlate Event history with downstream operation IDs.
+- Make every external side effect replay-safe.
+- Disable the definition before changing a production target.
+- Review configured definitions and active quotas periodically; remove obsolete subscribers instead of leaving ambiguous filters active.
+
+See [Event History](/operate/event-history) for fan-out evidence and replay, [Jobs](/operate/jobs) for durable target execution, and [Storage](/operate/storage) for lifecycle, ACL, retention, and batching semantics.

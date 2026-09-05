@@ -1,0 +1,95 @@
+---
+title: Playground
+description: Prototype low-code logic in a managed editor before creating or changing a Component.
+icon: flask
+---
+
+Playground is a scratch workspace for low-code JavaScript. It combines a Monaco editor with the same debugger used by Components, but does not require an existing Component or expose the code through an Endpoint.
+
+## When to use Playground
+
+Use it to:
+
+- learn a runtime API method with safe input;
+- test a database query or JSON transformation;
+- prototype a return contract for a dashboard widget;
+- reproduce a small integration failure;
+- prepare code before placing it in a governed Component.
+
+Use the Web IDE when you need Component metadata, multiple elements, version history, dependency consumers, review, and deployment.
+
+## Run a first experiment
+
+1. Open **Playground**.
+2. Enter low-code JavaScript in the Monaco editor.
+3. Open the debugger panel.
+4. Provide JSON input.
+5. Set timeout, memory, streaming, and production-mode behavior.
+6. Run and inspect terminal logs, returned result, and performance.
+
+```js
+const orderId = api.input('orderId');
+
+if (!orderId) {
+  api.throw(400, { message: 'orderId is required' });
+}
+
+api.log({ message: 'Loading order', args: { orderId } });
+
+return {
+  orderId,
+  checkedAt: new Date().toISOString()
+};
+```
+
+```json
+{
+  "orderId": "ord_8d31"
+}
+```
+
+## Debugger settings
+
+| Setting | Behavior |
+| --- | --- |
+| Input | JSON object available through `api.input()`. Invalid JSON is rejected before execution. |
+| Timeout | Interactive deadline; the current UI validates 0–600 seconds and defaults to 10. |
+| Memory | Interactive memory budget; the current UI defaults to 64 MiB and validates from 32 MiB. |
+| Stream | Shows runtime log frames followed by one terminal result or error. |
+| Production mode | Runs with production-mode behavior; use only for a deliberate test. |
+| Dirty library overrides | Includes unsaved library changes from the current Web IDE workspace. |
+
+Playground settings do not modify the limits of any later Endpoint, Job, dashboard widget, or deployed Component.
+
+## Interpret a run
+
+The debugger presents:
+
+- structured terminal entries from `api.log()` and runtime warnings;
+- one returned result or terminal error;
+- timing and managed-runtime memory measurements when available;
+- local input/result history for fast iteration.
+
+Streaming is request-scoped, not a durable production log tail. If you need repeatable operational evidence, move the code into a Component and execute it through a governed surface with Job/Endpoint history and Trace.
+
+## Safety boundaries
+
+Playground code can still reach platform data and external services allowed to the current principal. Some side-effect methods may be suppressed in debug mode and emit a warning, but you must not assume every call is simulated.
+
+<Warning>
+  Never use a live payment, provisioning, messaging, or deletion call as a casual Playground test. Use a sandbox account or explicit dry-run input and verify each method's debug behavior.
+</Warning>
+
+The editor preserves Playground source for the current instance in browser-local state. That is a convenience, not a source-control or recovery guarantee. Copy approved code into a Component and deploy it through the Web IDE.
+
+## Move from prototype to production
+
+1. Create a Component with a clear category, name, and element key.
+2. Copy only the reviewed logic from Playground.
+3. Replace test constants with validated `api.input()` values, Secrets, or configuration.
+4. Add idempotency and transaction boundaries around side effects.
+5. Debug the Component with the real library dependency set.
+6. Deploy and connect it to an Endpoint, Job, Event, or dashboard widget.
+7. Verify execution under the intended service account.
+
+See [Debugging components](/build/debugging), [Web IDE](/build/web-ide), and the [Low-code Runtime](/low-code/overview).

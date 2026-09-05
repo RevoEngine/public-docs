@@ -1,0 +1,60 @@
+---
+title: Quickstart
+description: Build and run your first RevoEngine endpoint.
+icon: rocket
+---
+
+This walkthrough creates a component, tests it in the Sandbox, and exposes it as an HTTP endpoint.
+
+<Steps>
+  <Step title="Create a component">
+    Open **Components**, create a JavaScript or TypeScript component, and add a logic element.
+
+    ```js
+    const name = api.input('name') ?? 'world';
+    return {
+      message: `Hello, ${name}!`,
+      executionId: api.getExecutionId(),
+    };
+    ```
+  </Step>
+  <Step title="Run it in the Sandbox">
+    Open the debugger, provide an input object, and run the component.
+
+    ```json
+    { "name": "RevoEngine" }
+    ```
+
+    Inspect the result, logs, execution ID, and timing before publishing the component.
+  </Step>
+  <Step title="Create an endpoint">
+    Open **Endpoints**, select the component, choose an HTTP method and route, then configure input validation and a timeout. Activate the endpoint only after the validation preview succeeds.
+  </Step>
+  <Step title="Call the endpoint">
+    Use the endpoint URL shown by the platform. Authentication and the exact base URL depend on the endpoint policy configured for your instance.
+
+    ```bash
+    curl --request POST \
+      --url "https://your-endpoint.example/hello" \
+      --header "content-type: application/json" \
+      --data '{"name":"RevoEngine"}'
+    ```
+  </Step>
+</Steps>
+
+## Continue with your preferred workflow
+
+<CardGroup cols={2}>
+  <Card title="Stay in the Web IDE" icon="browser" href="/build/web-ide">
+    Edit components with runtime-aware types, library navigation, and integrated debugging.
+  </Card>
+  <Card title="Use the CLI" icon="terminal" href="/developers/cli">
+    Pull components into a local workspace, review drift, debug, and push changes safely.
+  </Card>
+  <Card title="Use custom Node.js" icon="node-js" href="/build/custom-nodejs">
+    Build a hosted component with an injected Revo runtime and npm dependencies.
+  </Card>
+  <Card title="Integrate with the SDK" icon="box" href="/developers/sdk-overview">
+    Call RevoEngine from a standalone Node.js service or from hosted custom code.
+  </Card>
+</CardGroup>

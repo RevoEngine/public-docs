@@ -1,0 +1,71 @@
+---
+title: Component configuration
+description: Configure component metadata, ordered elements, versions, access, and execution behavior.
+icon: sliders
+---
+
+This page is the field-level companion to [Components](/build/components). A Component definition describes what can execute; an active version or ready custom runtime revision determines what does execute.
+
+## Component fields
+
+| Field | Required | Rules and operational meaning |
+| --- | --- | --- |
+| `name` | yes | Durable component identifier. In a library, it is a public namespace segment in `lib.Category.Name.ElementKey.X`; use a valid JavaScript identifier and treat a rename as a breaking change. |
+| `type` | yes | `CODE_JS`, `CODE_TS`, `CODE_JS_LIB`, `CODE_TS_LIB`, `JSON_VALIDATOR`, or `CUSTOM_NODEJS`. Type determines editor, validation, and deployment behavior. |
+| `active` | no | Set false to validate and review before making a low-code version selectable. |
+| `category`, `desc` | no | Operator-facing organization and context; do not use them as runtime identifiers. |
+| `metadata` | no | JSON object, limited to 16 KiB and 64 top-level keys. Keys beginning `__` are reserved. Do not store secrets. |
+| access lists | policy-dependent | Restrict a component to selected users or groups when the default resource role boundary is too broad. |
+
+## Elements for low-code Components
+
+`CODE_JS`, `CODE_TS`, and library variants contain ordered elements. The runtime evaluates them in ascending `order`; later elements can retrieve an earlier result with `inject(key)`.
+
+| Field | Requirement |
+| --- | --- |
+| `key` | Unique JavaScript identifier. It starts with a letter, `_`, or `$`; later characters can include letters, numbers, `_`, and `$`. Reserved runtime names are rejected. |
+| `order` | Integer, unique within the component type. Do not use order to hide dependencies—make data flow explicit with `inject`. |
+| `details` | The JavaScript or TypeScript source for the element. |
+| `desc` | Optional operator-facing explanation. |
+| `hidden` | Controls UI presentation, not an authorization boundary. |
+| `overrideDetails` | An explicit controlled override where the component model supports it. Review it as source code. |
+
+```ts
+// Element: loadCustomer, order: 10
+return (await api.getDatabaseData('customers', {
+  filter: { field: 'customerId', op: 'eq', value: api.input('customerId') },
+  take: 1,
+})).data[0] ?? null;
+
+// Element: response, order: 20
+const customer = inject('loadCustomer');
+if (!customer) api.throw(404, { message: 'Customer not found' });
+return { customerId: customer.customerId, status: customer.status };
+```
+
+## Type-specific configuration
+
+| Type | Configuration boundary |
+| --- | --- |
+| `CODE_JS`, `CODE_TS` | One or more ordered executable elements. Standard runtime declarations are supplied by Monaco. |
+| `CODE_JS_LIB`, `CODE_TS_LIB` | Reusable exports reached through `lib.Category.Name.ElementKey.X`, where `X` is a function, class, or const exported by the element. Keep side effects out of module initialization. |
+| `JSON_VALIDATOR` | Exactly one element containing a JSON schema. See [JSON Validator](/low-code/json-validator). |
+| `CUSTOM_NODEJS` | Multi-file Node.js project with manifest/entrypoint and managed deployment. It executes only after a revision is ready and selected. |
+
+## Versioning and activation
+
+Saving creates a versioned low-code definition. A caller can follow the current active version or explicitly pin a version where the consuming surface supports it. Changing a definition invalidates executable caches, but an activation decision remains deliberate.
+
+For `CUSTOM_NODEJS`, source save and availability are separate: the platform builds/deploys a revision, exposes its status, and only a ready selected revision may serve an Endpoint. A failed or pending revision does not replace the previously serving revision.
+
+## Debug configuration
+
+Sandbox debugging is request-scoped. Provide realistic input, select only the libraries required for the test, and use a bounded timeout/memory budget. Debug execution is evidence for the input supplied; it is not an activation or deployment action.
+
+<Warning>
+Component metadata, source, logs, and debug input are all potential data-exposure paths. Keep credentials in Secrets, avoid logging sensitive request bodies, and do not use `hidden` as an access-control feature.
+</Warning>
+
+## Related reference
+
+The full method inventory shown in the editor is generated under [Low-code runtime reference](/low-code/reference/index). It separates platform calls (`api`), Storage (`storage`), agent controls (`agent`), and pure helpers (`util`).

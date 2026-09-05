@@ -1,0 +1,53 @@
+---
+title: Security and governance
+description: Enterprise identity, IAM/ACL, SSO, secrets, auditability, and safe execution boundaries.
+icon: shield-halved
+---
+
+RevoEngine applies instance isolation and role checks at every public request and execution boundary. API keys identify their owning principal and instance; clients do not choose an arbitrary tenant with a request header. Governance is applied consistently to UI/API requests, Endpoint execution, Jobs, Storage, database work, realtime connections, Assistant tools, and Agent runs.
+
+## Core controls
+
+- **Users and service accounts** provide human and machine identities.
+- **SSO and hybrid identity modes** admit configured SAML or OIDC/JWK identity providers under instance policy.
+- **Groups and role groups** assign permissions at the platform level.
+- **Resource ACLs** narrow Tables, Views, Storage, and other supported resources to explicit users and Groups.
+- **API keys** are scoped to an account and should be stored only in a server-side secret manager or local OS credential store.
+- **Secrets** keep sensitive values outside component source, logs, and documentation.
+- **Audit and trace** connect changes and executions to stable identifiers.
+- **Approval gates** pause agent mutations that require user review.
+
+## Enterprise identity and session control
+
+SSO and hybrid deployments require an accepted identity-provider policy. Human sessions are short-lived and bound to the account, selected instance, device, and security revision; MFA and trusted-browser controls participate in session admission. This prevents a browser credential from becoming a durable workload credential.
+
+Machine work uses service accounts and API keys. The runtime reloads the execution principal and evaluates its current roles and ACLs when work begins. Use different service accounts for CI, data integration, scheduled automation, and AI/Agent workloads with different blast radius.
+
+## Evidence and audit layers
+
+RevoEngine does not treat every history record as the same type of audit. Use the correct evidence layer:
+
+| Layer | Evidence |
+| --- | --- |
+| Activity and versions | Who authored or changed a platform definition, and what version was selected. |
+| Trace and Logs | Technical execution path, timing, errors, and correlation. |
+| Job/Event/Webhook history | Durable asynchronous attempt, retry, delivery, and terminal status. |
+| Database row audit | Insert, update, and delete evidence on Tables with audit enabled. |
+| Assistant/Agent artifacts | Tool activity, plans, approvals, visible outputs, and report evidence. |
+
+## Execution trust model
+
+Low-code components run within managed execution limits. Hosted custom Node.js is intended for trusted tenant-authored code and dependencies; it is not an adversarial marketplace sandbox. Do not run unreviewed packages as if they were isolated from the execution principal.
+
+## Safe operational practice
+
+1. Use least-privilege roles and separate human from service identities.
+2. Keep tokens in environment variables or a secret manager; never commit them.
+3. Validate and activate versions deliberately.
+4. Treat interrupted mutations as potentially indeterminate until verified.
+5. Use Assistant and Agent approvals for consequential writes.
+6. Correlate support evidence with execution, operation, job, thread, or run IDs—not with raw credentials or request headers.
+
+<Warning>
+  Never paste API keys, secret values, signed URLs, authorization headers, or private runtime tokens into an Assistant thread, log message, issue, or documentation page.
+</Warning>

@@ -1,0 +1,83 @@
+---
+title: RevoEngine CLI
+description: Authenticate, inspect an instance, configure local editor types, and automate delivery from the terminal.
+icon: terminal
+---
+
+`@revoengine/cli` is the official command-line client for RevoEngine. It requires Node.js 24 or newer.
+
+```bash
+npm install --global @revoengine/cli
+```
+
+The package installs `revo` as the primary command. `revoengine` remains a compatible alias.
+
+## Sign in
+
+```bash
+revo auth login
+revo auth status
+```
+
+Login prompts for an API key, validates it through `/api/v1/me`, and infers the instance bound to the key. Remove the stored default login with:
+
+```bash
+revo auth logout
+```
+
+Interactive credentials live in the operating-system config directory:
+
+- macOS and Linux: `~/.config/revoengine`
+- Windows: `%APPDATA%/revoengine`
+
+Named environment profiles are stored separately from the default login. Logout does not delete those profiles.
+
+## Essential commands
+
+```bash
+revo --help
+revo -i
+revo endpoints
+revo search CODE customerId
+revo search SIMPLE invoice
+revo request GET /api/v1/me
+revo request POST /api/v1/endpoints '{"name":"Example"}'
+```
+
+`revo request` is a low-level escape hatch for authenticated Platform API calls. Prefer dedicated commands when they provide planning, confirmation, local state, or verification.
+
+## Configuration precedence
+
+For the default client, configuration resolves in this order:
+
+1. command flags such as `--url` and `--token`;
+2. environment variables;
+3. stored interactive configuration;
+4. the default API origin.
+
+Named `--from` and `--to` environment profiles resolve independently and are not mixed with the default environment variables.
+
+Supported environment aliases include:
+
+```bash
+export REVO_URL="https://api.revoengine.com"
+export REVO_TOKEN="$REVO_CI_TOKEN"
+revo endpoints
+```
+
+`REVO_BASE_URL`, `REVO_API_KEY`, and their `REVOENGINE_*` equivalents are also supported.
+
+<Warning>
+  Pass CI credentials from the CI secret store. Do not commit tokens in shell scripts, `.env` files, project metadata, or `.revoengine/`.
+</Warning>
+
+## Automation output
+
+Commands that support `--json` emit machine-readable output for CI and review tooling. Human-readable progress and streamed debug logs use stderr where appropriate, leaving the final result on stdout.
+
+The interactive update notifier checks for a newer CLI release at most once every 24 hours. Disable it in CI with `REVO_NO_UPDATE_NOTIFIER=1` or `--no-update-notifier`.
+
+<CardGroup cols={2}>
+  <Card title="Local projects" icon="folder-tree" href="/developers/cli-projects" />
+  <Card title="Environment promotion" icon="arrow-right-arrow-left" href="/developers/cli-environments" />
+</CardGroup>
