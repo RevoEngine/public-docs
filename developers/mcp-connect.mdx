@@ -1,0 +1,121 @@
+---
+title: Connect an MCP client
+description: Authenticate, initialize, and verify a session with the public RevoEngine MCP server.
+icon: link
+---
+
+Connect an MCP-capable IDE, AI client, or custom integration to the RevoEngine Streamable HTTP endpoint. The credential determines the instance and permissions visible to the client.
+
+## Prerequisites
+
+- An active RevoEngine instance.
+- A dedicated user or service-account API key.
+- Read roles for discovery and any additional roles required by tools the client may call.
+- A client that supports remote MCP over Streamable HTTP and custom request headers.
+
+<Warning>
+  Do not place a RevoEngine key in a repository, workspace settings committed to Git, prompt, screenshot, or browser application. Use the client's operating-system credential store, secret input, or environment-variable integration.
+</Warning>
+
+## Connection values
+
+| Setting | Value |
+| --- | --- |
+| Server URL | `https://mcp.revoengine.com/mcp` |
+| Transport | Streamable HTTP |
+| Authentication | Bearer API key |
+| Request content type | `application/json` |
+| Session header | `Mcp-Session-Id` after initialization |
+
+An instance-bound API key resolves its instance automatically. Do not add a second tenant selector unless your organization's authentication flow explicitly requires it.
+
+## Configure a compatible client
+
+Client configuration formats vary, but the effective configuration is equivalent to:
+
+```json
+{
+  "name": "revoengine",
+  "transport": "streamable-http",
+  "url": "https://mcp.revoengine.com/mcp",
+  "authentication": {
+    "type": "bearer",
+    "tokenFromEnvironment": "REVO_API_KEY"
+  }
+}
+```
+
+This is a portable model, not a file to paste unchanged into every client. Map the URL and secret environment variable to the fields supported by your MCP client. Avoid clients that can only store the token as plaintext inside a shared project.
+
+## Initialize the session
+
+<Steps>
+  <Step title="Send initialize">
+    Send a standard JSON-RPC `initialize` request to the MCP endpoint. Include client identity and the protocol version supported by the client.
+
+```bash
+curl "https://mcp.revoengine.com/mcp" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {},
+      "clientInfo": { "name": "orders-operator", "version": "1.0.0" }
+    }
+  }'
+```
+  </Step>
+  <Step title="Store the returned session id">
+    A successful response describes tools, resources, and prompts. The HTTP response also contains `Mcp-Session-Id`. Keep it as opaque session state and send it on subsequent requests made with the same credential.
+  </Step>
+  <Step title="Confirm initialization">
+    Send `notifications/initialized` with the session id. Notifications intentionally return HTTP `202` without a JSON-RPC response body.
+  </Step>
+  <Step title="Read effective context">
+    Call `resources/read` for `revo://context/effective`. This confirms the catalogue currently visible to the authenticated client before it attempts a tool call.
+  </Step>
+</Steps>
+
+## Verify discovery
+
+With `MCP_SESSION_ID` set from the initialization response:
+
+```bash
+curl "https://mcp.revoengine.com/mcp" \
+  --request POST \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "Mcp-Session-Id: $MCP_SESSION_ID" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "resources/read",
+    "params": { "uri": "revo://context/effective" }
+  }'
+```
+
+Then request `tools/list`. A healthy connection can still return a narrow tool set when the credential has limited roles; that is expected and preferable to granting broad access for setup convenience.
+
+## Production setup checklist
+
+- Create a dedicated identity for the client.
+- Assign the least-privileged roles required by its workflow.
+- Store the key outside shared project configuration.
+- Make the client run `initialize` instead of assuming a previous session.
+- Read platform context and skills before generating RevoEngine changes.
+- Confirm sensitive calls using the safety metadata from `tools/list`.
+- Record the client's own operation correlation alongside RevoEngine execution identifiers.
+
+<CardGroup cols={2}>
+  <Card title="Protocol and sessions" href="/developers/mcp-sessions" icon="arrows-rotate">
+    Follow the complete request, batch, notification, and SSE lifecycle.
+  </Card>
+  <Card title="Resources and prompts" href="/developers/mcp-resources-and-prompts" icon="book-open">
+    Orient the client before it selects a tool.
+  </Card>
+</CardGroup>

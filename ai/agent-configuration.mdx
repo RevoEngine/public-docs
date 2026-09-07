@@ -133,7 +133,7 @@ The create form defaults to `INBOX`.
 | `type` | No | Logical type, up to 128 characters |
 | `payload` | No | JSON object copied into run state |
 | `priority` | No | Integer from 0 to 1,000; higher values are claimed first |
-| `availableAt` | No | ISO timestamp after which the item can be claimed |
+| `scheduleFor` | No | ISO timestamp with timezone or Unix milliseconds, from request acceptance through 30 days ahead. The item is recorded immediately and becomes claimable at this time. |
 | `dedupeKey` | No | Up to 255 characters; unique per Agent among non-terminal items |
 
 Use a deterministic de-duplication key for retried webhooks and recurring producers, for example `invoice:2026-09:customer-42`.
@@ -143,11 +143,17 @@ Use a deterministic de-duplication key for retried webhooks and recurring produc
 A direct run requires `instruction` and can include:
 
 - `triggerType`, `triggerRefType`, and `triggerRefId` for correlation;
-- `delaySeconds` from 0 to 86,400;
+- `scheduleFor` as an ISO timestamp with timezone or Unix milliseconds, up to 30 days ahead;
 - a JSON `state` object for run-scoped context;
 - up to 32 additional `pluginIds`.
 
 Do not use run state for secrets or durable files. Keep secrets in Secrets and persistent output in the Agent workspace.
+
+A delayed direct run is visible immediately as `CREATED`, with `scheduledFor` in its details. It does not occupy an execution slot while waiting for its initial time. Once due, it must pass the Agent's concurrency gate; waiting for capacity is `PENDING` with a capacity wait reason. Later continuation wake times are separate from the original accepted schedule.
+
+<Warning>
+  Use `scheduleFor` for both Inbox and direct runs. A past public timestamp or one more than 30 days ahead is rejected. An already accepted request that reaches dispatch after its time becomes immediately eligible; eligibility is not a promise of an exact start time.
+</Warning>
 
 ## Delegation and limits
 

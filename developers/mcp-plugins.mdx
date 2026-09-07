@@ -1,0 +1,108 @@
+---
+title: MCP server plugins
+description: Connect remote MCP servers to RevoEngine Assistants and Agents with synchronized manifests, Secret bindings, and per-tool governance.
+icon: plug-circle-plus
+---
+
+An MCP server plugin lets the RevoEngine Assistant or an autonomous Agent use tools from an approved remote MCP server. The plugin is an administrative integration boundary: connecting a server does not automatically expose every remote capability to every AI workflow.
+
+## When to use an MCP plugin
+
+Use an MCP server plugin when:
+
+- an external system already publishes a maintained MCP tool contract;
+- several RevoEngine Agents need the same governed integration;
+- the remote catalogue changes independently and must be synchronized and reviewed;
+- credentials must remain in RevoEngine Secrets rather than prompts or Agent configuration;
+- read and write tools from one provider require different policies.
+
+Use a [component tool plugin](/ai/plugins#component-tools) when the business operation should be implemented, versioned, executed, and observed entirely inside RevoEngine.
+
+## Configuration model
+
+| Setting | Contract |
+| --- | --- |
+| `kind` | `mcp_server` |
+| `mcpServer.transport` | `streamable_http` or supported `sse` transport |
+| `mcpServer.url` | Absolute HTTPS endpoint for the remote MCP server |
+| `mcpServer.connectTimeoutMs` | Bounded connection and initialization timeout |
+| `mcpServer.manifestTtlMs` | How long a synchronized remote manifest can be reused before refresh policy applies |
+| `mcpServer.toolNamePrefix` | Optional namespace prefix used to avoid local tool-name collisions |
+| `mcpServer.authMode` | `none`, `bearer`, `basic`, or governed header bindings |
+| `mcpToolset.defaultConfig` | Default enablement, loading, safety, and approval policy for discovered tools |
+| `mcpToolset.configs` | Per-remote-tool overrides keyed by the remote tool name |
+
+Use the generated [Platform API reference](/api-reference/introduction) for the exact create and update DTO. The administrative UI exposes the same lifecycle without requiring a handwritten payload.
+
+## Authentication and Secrets
+
+Bearer tokens, basic-auth passwords, and sensitive custom headers must reference a RevoEngine Secret. A binding can follow the active Secret data revision or pin an explicit revision when controlled credential rollout requires it.
+
+Non-sensitive static header values are supported, but do not use that field to avoid Secret governance.
+
+<Warning>
+  Never put a remote token, password, private header value, or signed URL in the plugin name, description, routing text, metadata, skill content, or Agent instructions.
+</Warning>
+
+## Safe onboarding workflow
+
+<Steps>
+  <Step title="Create the connection definition">
+    Select the transport, HTTPS endpoint, bounded timeout, authentication mode, and Secret bindings. Keep the plugin disabled for general use.
+  </Step>
+  <Step title="Test connectivity">
+    Authenticate and initialize the remote server. A successful connection test proves reachability and handshake compatibility; it does not approve every discovered tool.
+  </Step>
+  <Step title="Synchronize the manifest">
+    Fetch the remote tool catalogue and store the reviewed capability snapshot. Inspect new, removed, and changed schemas as an integration contract diff.
+  </Step>
+  <Step title="Apply default policy">
+    Decide whether discovered tools are enabled or deferred by default. Start with read-oriented discovery and deny unexpected mutation capabilities.
+  </Step>
+  <Step title="Review per-tool overrides">
+    Set aliases, mutation intent, reversibility, target scope, approval mode, and side-effect summaries for each admitted operation whose behavior differs from the default.
+  </Step>
+  <Step title="Enable and attach">
+    Enable the plugin only after review, then attach it to the intended Assistant thread, Agent definition, Agent policy, or individual run.
+  </Step>
+  <Step title="Validate end to end">
+    Run a read-only scenario, confirm evidence and output limits, then validate writes with explicit approval and a reversible test target.
+  </Step>
+</Steps>
+
+## Per-tool governance
+
+Each discovered tool can override:
+
+- whether it is enabled;
+- whether it is loaded immediately or deferred behind discovery;
+- the local alias presented to the Agentic System;
+- approval mode and safety tier;
+- read, write, destructive, or external mutation intent;
+- reversibility and affected target scope;
+- a concise side-effect summary shown during review.
+
+Remote metadata is evidence supplied by another server, not a substitute for administrator review. RevoEngine policy should describe the real operation even when the remote manifest understates its side effects.
+
+## Manifest changes
+
+Treat any of the following as a contract change:
+
+- a tool is added or removed;
+- a name, description, or input schema changes;
+- a read operation gains write behavior;
+- required authentication or headers change;
+- output size, latency, or external side effects materially change.
+
+If refresh fails, RevoEngine retains the last known usable manifest for operator inspection instead of silently trusting an incomplete replacement. Re-test authentication and review the next successful diff before relying on newly advertised behavior.
+
+## Attachment and runtime behavior
+
+An active plugin is still unavailable unless it is admitted by the current attachment and Agent policy. At execution time RevoEngine evaluates the current identity, plugin state, tool configuration, approval policy, input schema, timeout, and result-size limits.
+
+Remote tool descriptions and outputs are external content. Do not allow them to override tenant policy, reveal Secrets, or expand the Agent's responsibility.
+
+<CardGroup cols={2}>
+  <Card title="Plugin lifecycle" href="/ai/plugins" icon="plug" />
+  <Card title="Approvals and plans" href="/ai/approvals-and-plans" icon="clipboard-check" />
+</CardGroup>

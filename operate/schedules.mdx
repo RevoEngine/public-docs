@@ -171,7 +171,26 @@ A successful schedule tick means the target was admitted for dispatch, not that 
 
 Scheduling infrastructure may retry delivery. Use target-level idempotency for consequential side effects and design recurring work so a delayed tick can be distinguished from a duplicate.
 
-The scheduler delivers `scheduleId`, then the platform reloads the current durable definition. This keeps pause, target, and Agent-current-version decisions authoritative at execution time rather than trusting a stale copy embedded in the delivery request.
+The scheduler delivers a Schedule identity and occurrence time. On first acceptance, the platform reads the current definition and stores the accepted target. Retries of that same occurrence use its accepted snapshot; editing the Schedule affects subsequent occurrences, not work already accepted.
+
+## Schedule History
+
+Open **Jobs → Schedule History** to inspect accepted occurrences across the instance, or open one Schedule's details for the filtered view. Each accepted cron tick or manual Run has one occurrence record. `Schedule History ID` identifies that occurrence; `Schedule ID` identifies the definition that produced it, and the adjacent **Schedule** reference resolves its name and opens the scheduler. The grid uses date filters for scheduled and audit timestamps, UUID filters for identifiers, a numeric Version filter, and the standard show/hide-deleted control. For a Job target, select the Job reference in details to inspect execution and retry evidence.
+
+Manual Run first stores and publishes an `ACCEPTED` occurrence and only then submits dispatch. The returned `scheduleHistoryId` therefore identifies a row that already exists. If queue submission fails, the same row becomes `ERROR` with `TRANSPORT_SUBMISSION_FAILED`; it is not hidden behind an internal task.
+
+| Handling status | Meaning |
+| --- | --- |
+| `ACCEPTED` / `DISPATCHING` | The occurrence was recorded and its target is being dispatched. |
+| `DISPATCHED` | Target dispatch returned an execution reference. This does not mean the business operation succeeded. |
+| `SKIPPED` | The delivered occurrence was not dispatched; inspect its reason, such as an inactive Schedule or an empty Agent Inbox wake. |
+| `ERROR` | Dispatch failed. Delivery recovery can retry the same accepted occurrence. |
+
+Repeated delivery of a completed occurrence does not create another history row. Disabling a Schedule prevents future ticks; it does not create synthetic skipped rows for every time the Schedule would otherwise have run. History begins when occurrence recording is enabled, without fabricated historical executions.
+
+Every accepted occurrence freezes the target. Job-template and platform-operation execution identities are deterministic for that occurrence, so transport replay returns the original execution instead of starting a second one. Direct Agent runs use the same occurrence identity; queued Agent delivery keeps the occurrence dedupe key on its durable Inbox item.
+
+For API access, use `GET /api/v1/automation/schedule-history` with a `scheduleId` filter, or `GET /api/v1/automation/schedule-history/{scheduleHistoryId}` for one occurrence. Job records expose `scheduleHistoryId`, including retry children.
 
 ## Real production patterns
 

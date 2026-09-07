@@ -178,16 +178,12 @@ Saved active Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`
 
 1. Open the Event and select **Run**.
 2. Enter a JSON `message` representative of production traffic.
-3. Optionally delay delivery with exactly one scheduling field:
-   - `inSeconds` keeps the existing relative-seconds contract;
-   - `scheduleFor` sets an absolute ISO 8601 date-time or Unix timestamp in milliseconds.
-   Both forms accept only a time from now through 30 days ahead.
+3. Optionally set `scheduleFor` to an ISO 8601 date-time with timezone or Unix timestamp in milliseconds, from acceptance through 30 days ahead.
 4. Submit and retain the returned Event history identifier.
 5. Open **Event History** and confirm which targets were scheduled or skipped.
 
 ```json
 {
-  "inSeconds": 300,
   "message": {
     "orderId": "ord_8d31",
     "status": "APPROVED",
@@ -220,8 +216,18 @@ await fetch(`/api/v1/automation/event/${eventId}/run`, {
 ```
 
 <Warning>
-  Do not send both `inSeconds` and `scheduleFor`. A past absolute time or a value more than 30 days ahead is rejected before queueing.
+  Use `scheduleFor` for delayed delivery. A past absolute time or a value more than 30 days ahead is rejected before acceptance.
 </Warning>
+
+### What exists before a delayed Event is due?
+
+Event History and Jobs for matching Job templates are created immediately, using the filters and targets accepted with the Event. The Event History row exposes its immutable `scheduledFor`, audit version, and last-update evidence. For an Event scheduled two hours ahead, you can inspect those Jobs now: they wait as `SCHEDULED`, with the same accepted deadline. The Event message remains the input snapshot; later edits to Event filters do not change this accepted occurrence.
+
+When the time arrives, Jobs become eligible for dispatch and still respect concurrency. Delivery retry resumes the accepted work without intentionally creating another Job for the same matched target. Make downstream business effects idempotent as well.
+
+<Note>
+  A request timeout is not cancellation. Accepted work can finish materializing through recovery. Check Event History before submitting the same business event again.
+</Note>
 
 ## Built-in event families
 
@@ -295,7 +301,7 @@ Event delivery can be repeated by infrastructure or by an operator replay. Targe
 
 <AccordionGroup>
   <Accordion title="The Event never appears in History">
-    Confirm the producer used the expected type, the trigger request was accepted, and any delayed `inSeconds` window has elapsed. For Storage workflows, also inspect the durable Storage entry because a committed file remains authoritative if post-commit event enqueueing fails.
+    Confirm the producer used the expected type and the trigger request was accepted. Delayed Job-template targets should already be visible in Event History; inspect their `scheduledFor` and wait reason. For Storage workflows, also inspect the durable Storage entry because a committed file remains authoritative if post-commit event delivery fails.
   </Accordion>
   <Accordion title="History exists but the target was skipped">
     Compare the saved normalized message with the definition filter. Check data types as well as values: the number `10000` is not the string `"10000"` for exact equality.

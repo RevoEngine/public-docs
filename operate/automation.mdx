@@ -95,13 +95,15 @@ Cancellation, success, expiration, and handled operator stops do not create auto
 ## Job lifecycle
 
 ```text
-CREATED -> PENDING -> PROCESSING -> FINISHED
+SCHEDULED -> PENDING -> PROCESSING -> FINISHED
                          |          ERROR -> retry child
                          +--------> CANCELLED
                          +--------> EXPIRED
 ```
 
 Open **Jobs → Job History** to inspect status, origin, input/output visibility, Component version, processing time, logs, and retry lineage.
+
+Immediate Jobs start at `PENDING`; delayed Jobs start at `SCHEDULED`. `scheduledFor` records the accepted dispatch time, not an execution-duration limit. Wait reasons distinguish the scheduled time, dispatch, concurrency, and retry backoff. A due Job can remain pending while another execution holds its concurrency slot. Reading a due Job as `PENDING` does not itself change its record version.
 
 Operator actions have deliberately different meaning:
 

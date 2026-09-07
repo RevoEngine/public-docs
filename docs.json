@@ -161,6 +161,19 @@
             ]
           },
           {
+            "group": "Model Context Protocol",
+            "icon": "plug",
+            "pages": [
+              "developers/mcp-overview",
+              "developers/mcp-connect",
+              "developers/mcp-sessions",
+              "developers/mcp-tools",
+              "developers/mcp-resources-and-prompts",
+              "developers/mcp-plugins",
+              "developers/mcp-troubleshooting"
+            ]
+          },
+          {
             "group": "Node.js SDK",
             "pages": [
               "developers/sdk-overview",
@@ -238,6 +251,8 @@
     }
   },
   "redirects": [
+    { "source": "/mcp", "destination": "/developers/mcp-overview" },
+    { "source": "/developers/mcp", "destination": "/developers/mcp-overview" },
     { "source": "/run-api/:slug*", "destination": "/developers/endpoint-runtime" },
     { "source": "/solutions/endpoints", "destination": "/operate/endpoints" },
     { "source": "/solutions/databases", "destination": "/operate/databases" },

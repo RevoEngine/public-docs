@@ -13,6 +13,7 @@ RevoEngine exposes several developer surfaces because managing an enterprise app
 | [Platform API](/developers/platform-api) | Components, endpoints, databases, Storage, automation, identity, Assistant threads, Agents, and operational state | HTTPS or generated OpenAPI client |
 | [Endpoint runtime](/developers/endpoint-runtime) | Calling active HTTP endpoints created in RevoEngine | Any HTTP client |
 | [Sandbox API](/developers/sandbox-api) | Transient debug, saved-component execution, validation, editor types, and SDK runtime dispatch | RevoEngine UI, CLI, or approved integration |
+| [MCP server](/developers/mcp-overview) | Giving MCP-capable IDEs and AI clients governed access to RevoEngine context, skills, tools, and structured operations | Streamable HTTP MCP client |
 | [Node.js SDK](/developers/sdk-overview) | Using `api`, `storage`, `agents`, utilities, and active low-code libraries from Node.js | `@revoengine/sdk` |
 | [CLI](/developers/cli) | Local editor setup, component sync, debug, drift review, and environment promotion | `@revoengine/cli` |
 | [VS Code extension](/developers/vscode-extension) | Component navigation, local review, Git-aware sync plans, debugger runs, and generated runtime types | `revoengine.revoengine` + CLI |
@@ -22,11 +23,13 @@ flowchart LR
   D["Developer or CI"] --> API["Platform API\n/api/v1"]
   D --> CLI["Revo CLI"]
   D --> SDK["Node.js SDK"]
+  AIC["MCP-capable client"] --> MCP["RevoEngine MCP\n/mcp"]
   C["Application client"] --> EP["Endpoint runtime\nconfigured routes"]
   CLI --> API
   CLI --> SBX["Sandbox\n/v1"]
   SDK --> API
   SDK --> SBX
+  MCP --> STATE
   API --> STATE["Instance definitions and state"]
   EP --> EXEC["Active component runtime"]
   SBX --> EXEC
@@ -64,6 +67,7 @@ Endpoint runtime and Sandbox origins belong to the authenticated instance. Read 
 - The [API reference](/api-reference/introduction) is generated from the current Platform API OpenAPI document.
 - Sandbox request DTOs and the published SDK contract define executable payloads.
 - CLI-generated types describe the effective low-code and library surface for the authenticated instance.
+- MCP resources, prompts, tool schemas, and safety metadata describe the effective Agentic client surface for the authenticated session.
 
 <Warning>
   Never place API keys, secret values, signed upload URLs, or raw authorization headers in source control, browser code, logs, screenshots, or Assistant prompts.

@@ -45,7 +45,7 @@ When a platform contract changes, update the implementation, generated OpenAPI, 
 The public API and Low-Code reference are one release contract. The release pipeline
 must explicitly provide both canonical inputs through `REVOENGINE_PLATFORM_OPENAPI`
 and `REVOENGINE_LOW_CODE_DECLARATIONS`; this public repository does not assume or
-publish a private monorepo layout. Refresh both sanitized snapshots, generated
+publish a private source-tree layout. Refresh both sanitized snapshots, generated
 references, and `platform-contracts.json` with:
 
 ```bash
@@ -80,15 +80,15 @@ rejects non-public metadata, missing summaries, descriptions or explicit securit
 metadata, unknown security schemes, duplicate operation IDs, missing tag descriptions,
 and path/method drift.
 
-Before any documentation publication, the monorepo or release pipeline **must** run:
+Before any documentation publication, the release pipeline **must** run:
 
 ```bash
 npm run check:platform-contracts:source
 ```
 
-That source-backed gate fails if either canonical monorepo source is unavailable or
-its snapshot has drifted. Public-repository CI cannot access the private monorepo, so
-it runs the snapshot-to-generated `check:platform-contracts` gate instead. The
+That source-backed gate fails if either canonical release input is unavailable or
+its snapshot has drifted. Public-repository CI runs the snapshot-to-generated
+`check:platform-contracts` gate. The
 `Platform contract synchronization` dispatch workflow provides the same credential-free
 verification on demand; it does not replace the mandatory source-backed publication
 gate.

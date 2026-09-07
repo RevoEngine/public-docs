@@ -84,7 +84,7 @@ Before merging documentation changes, run the complete repository gate:
 npm run check
 ```
 
-Before publication from a monorepo checkout, also require the canonical sources:
+Before publication from the product release workspace, also require the canonical sources:
 
 ```bash
 npm run check:platform-contracts:source
@@ -93,8 +93,8 @@ npm run check:platform-contracts:source
 For a changed public API contract, refresh `api-reference/openapi.json` from the generated platform specification and verify that the relevant handwritten workflow page still matches it.
 
 For a changed public API or low-code declaration, run
-`npm run sync:platform-contracts` from a checkout that can read both canonical
-monorepo sources. It refreshes the checked-in snapshots, generated public
+`npm run sync:platform-contracts` from a release workspace that can read both canonical
+source artifacts. It refreshes the checked-in snapshots, generated public
 references, and fingerprint manifest. Commit the generated output; CI verifies
 snapshot-to-output parity, while the publication pipeline must run the
 source-backed gate above to prevent source drift.

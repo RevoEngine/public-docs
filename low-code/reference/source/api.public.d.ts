@@ -1091,7 +1091,7 @@ declare class api {
      * Schedules a custom event.
      *
      * Notes:
-     * - The existing Date argument and `scheduleDate` option remain supported.
+     * - Use the options object's `scheduleFor`; legacy delay properties are ignored.
      * - New code should use `scheduleFor` with a Date, ISO 8601 date-time, or Unix timestamp in milliseconds.
      * - The absolute time cannot be in the past or more than 30 days ahead.
      * - No-op in debug mode.
@@ -1109,7 +1109,7 @@ declare class api {
   static triggerEvent(
       name: string,
       message: any,
-      scheduleDateOrOptions?: Date | TriggerEventOptions,
+      options?: TriggerEventOptions,
     ): Promise<string>;
 
   /**
@@ -1117,8 +1117,8 @@ declare class api {
      *
      * Notes:
      * - Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
-     * - The existing absolute Date argument remains supported.
-     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Retired positional date and relative-delay arguments are ignored.
      * - No-op in debug mode.
      *
      * Example:
@@ -1133,7 +1133,7 @@ declare class api {
       targetType: ExecutionTargetType,
       targetId: string,
       input?: any,
-      scheduleDate?: Date | AutomationScheduleOptions,
+      options?: AutomationScheduleOptions,
     ): Promise<string>;
 
   /**
@@ -1142,8 +1142,8 @@ declare class api {
      * Notes:
      * - No-op in debug mode.
      * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateId, ...)`.
-     * - The existing absolute Date argument remains supported.
-     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Retired positional date and relative-delay arguments are ignored.
      *
      * Example:
      * const jobId = await api.triggerJob(
@@ -1155,15 +1155,15 @@ declare class api {
   static triggerJob(
       templateId: string,
       input?: any,
-      scheduleDate?: Date | AutomationScheduleOptions,
+      options?: AutomationScheduleOptions,
     ): Promise<string>;
 
   /**
      * Schedules a webhook delivery.
      *
      * Notes:
-     * - The existing absolute Date argument remains supported.
-     * - New code should pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
+     * - Retired positional date and relative-delay arguments are ignored.
      * - No-op in debug mode.
      *
      * Example:
@@ -1179,7 +1179,7 @@ declare class api {
      */
   static triggerWebhook(
       webhook: WebhookInput,
-      scheduleDate?: Date | AutomationScheduleOptions,
+      options?: AutomationScheduleOptions,
     ): Promise<Webhook>;
 
   /**

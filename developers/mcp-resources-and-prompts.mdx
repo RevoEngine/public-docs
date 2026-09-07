@@ -1,0 +1,108 @@
+---
+title: Resources, skills, and prompts
+description: Load RevoEngine platform context, model-visible skills, low-code declarations, and reusable MCP prompts.
+icon: book-open
+---
+
+MCP resources explain RevoEngine semantics that do not fit in a tool schema. Prompts provide reusable starting messages for common operating modes. A capable client should read them before guessing how a platform concept works.
+
+## Recommended orientation sequence
+
+<Steps>
+  <Step title="Read effective context">
+    Start with `revo://context/effective` to understand the catalogue visible in the authenticated session.
+  </Step>
+  <Step title="List skills">
+    Read `revo://skills`, select the skill matching the task, then read `revo://skills/{skillId}`.
+  </Step>
+  <Step title="Load exact declarations when coding">
+    For low-code work, inspect `revo://runtime/low-code-declarations` and read the referenced type declaration instead of inventing an API surface.
+  </Step>
+  <Step title="Discover tools last">
+    Use `tools/list` after the client understands the resource model, safety expectations, and relevant runtime contract.
+  </Step>
+</Steps>
+
+## Core resources
+
+| URI | Content | Use it when |
+| --- | --- | --- |
+| `revo://platform/about` | Platform purpose and authority order | The client needs a concise product orientation |
+| `revo://platform/resource-model` | Control-plane resources and execution relationships | Planning work across Components, Endpoints, Databases, Storage, or Automation |
+| `revo://platform/runtime-surfaces` | Runtime globals, execution surfaces, and library access | Writing or reviewing low-code runtime logic |
+| `revo://platform/enterprise-standards` | Governance, evidence, approvals, and safe-change expectations | Preparing a production mutation or operational response |
+| `revo://context/effective` | Session-visible catalogue summary | Verifying what the authenticated client can currently see |
+| `revo://skills` | Searchable skill catalogue with resource links | Selecting task-specific RevoEngine guidance |
+| `revo://runtime/low-code-declarations` | Index of current declaration resources | Locating exact editor-compatible TypeScript contracts |
+| `revo://types/api.public.d.ts` | Public low-code declaration text | Generating code against `api`, `storage`, `agent`, `util`, `inject(...)`, and related globals |
+
+The catalogue may add resources over time. Use `resources/list` and `resources/templates/list` rather than treating this table as a protocol negotiation substitute.
+
+## Read a resource
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "resource-1",
+  "method": "resources/read",
+  "params": {
+    "uri": "revo://platform/resource-model"
+  }
+}
+```
+
+The result contains a `contents` array with the resource URI, MIME type, and text. JSON resources are returned as text with `application/json`; parse them only after a successful response.
+
+## Resource templates
+
+RevoEngine currently exposes templates for:
+
+| URI template | Resolves to |
+| --- | --- |
+| `revo://skills/{skillId}` | Full guidance for one skill selected from `revo://skills` |
+| `revo://types/{name}` | A named public runtime declaration resource |
+
+Do not guess a skill id or declaration filename. Resolve it from the corresponding index resource first.
+
+## Skills are guidance, not execution
+
+A RevoEngine skill describes how to approach a product workflow, what evidence to collect, which capability families are relevant, and which safety boundaries matter. Reading a skill does not run a tool and does not grant permissions.
+
+This separation lets a client load detailed domain guidance without expanding its execution authority.
+
+## Reusable prompts
+
+Use `prompts/list` to discover the current prompt catalogue. The present workflow families include:
+
+| Prompt | Purpose |
+| --- | --- |
+| `revo.platform_orientation` | Explain RevoEngine and route an unfamiliar request to the correct product surface |
+| `revo.enterprise_change_safety` | Prepare a mutation with blast-radius, approval, evidence, and rollback considerations |
+| `revo.control_plane_workflow` | Discover, inspect, change, and verify control-plane resources |
+| `revo.low_code_runtime_guidance` | Work with runtime globals, Components, libraries, Storage, and Sandbox validation |
+
+Retrieve one prompt with:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "prompt-1",
+  "method": "prompts/get",
+  "params": {
+    "name": "revo.enterprise_change_safety"
+  }
+}
+```
+
+The result is a standard MCP prompt message collection. The client decides how to present or apply it.
+
+## Independent client context
+
+The public MCP initialization instructions are server-level operating guidance. They do not copy a user's Assistant preferences, personal memory, private Agent workspace, or active Assistant thread into an independent MCP client.
+
+If a workflow needs Assistant conversation state, use the Assistant surface. If it needs direct instance operations from another client, use public MCP with an identity and context appropriate to that client.
+
+<CardGroup cols={2}>
+  <Card title="Assistant and Agent memory" href="/ai/memory-and-workspaces" icon="brain" />
+  <Card title="Low-code reference" href="/low-code/reference/index" icon="code" />
+</CardGroup>

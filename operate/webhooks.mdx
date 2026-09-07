@@ -61,7 +61,13 @@ If a Webhook must contain a sensitive header, disable unnecessary detail retenti
 
 ## Attempt lifecycle
 
-The Webhooks grid is operational history. A row records status, attempt count, scheduled time, elapsed time, payload size, creator, metadata, and—when retained—the request and attempt responses.
+The Webhooks grid is operational history. A row records status, attempt count, scheduled time, elapsed time, payload size, creator, and metadata. **Message**, immediately after Size, previews the persisted request when it is at most 32 KiB; larger requests show a compact placeholder and remain available from Webhook details. You can still filter by fields in the complete stored request. The outbound request belongs to this one Webhook; delivery attempts are separate evidence, not copies of the request payload.
+
+Open **Delivery attempts** in the Webhook details to inspect each attempt's scheduled, started, response, and retry timestamps, result, and duration. Entries are paginated. The API equivalent is `GET /api/v1/automation/webhook/{webhookId}/attempts?offset=0&limit=20`; it returns `{ data, total, offset, limit }` and accepts a maximum limit of 200.
+
+A delayed Webhook starts `SCHEDULED`; an immediately eligible one starts `PENDING`. `PROCESSING` means delivery is in progress. `FINISHED`, `ERROR`, and `CANCELLED` describe its terminal outcome. `scheduledFor` retains the initial requested time, while `nextEligibleAt` can change for retry backoff.
+
+Attempt evidence can arrive out of order. A late response for attempt 2 does not replace a newer attempt 3 in the summary, and duplicate evidence does not increment the record version. A terminal outcome is not reopened by a late delivery notification. Check individual attempts when investigating timestamps rather than assuming their arrival order is execution order.
 
 ```text
 request accepted

@@ -14503,6 +14503,181 @@
         ]
       }
     },
+    "/api/v1/automation/schedule-history": {
+      "get": {
+        "operationId": "AutomationController_getScheduleHistory",
+        "parameters": [
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of rows to return. Parsed from a query-string integer. Most QueryWrapper-backed list endpoints default to 100 when omitted.",
+            "schema": {
+              "minimum": 0,
+              "maximum": 10000,
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are logical wrapper fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint wrapper.",
+            "schema": {
+              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
+            "schema": {
+              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "distinct",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper DISTINCT ON logical fields as a JSON array string, indexed array query object, array, or legacy CSV. The wrapper rewrites selected distinct fields into distinct select items.",
+            "schema": {
+              "example": "category,global",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper field projection as a JSON array string, indexed array query object, array, or legacy CSV. String fields must be allowlisted logical wrapper fields. Advanced select items may use field, fn, raw, cast, coalesce, or case expressions when the endpoint enables dynamic projection.",
+            "schema": {
+              "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "joins",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper join definitions as a JSON string or bracket-style query object. This is only honored by endpoints that explicitly enable dynamic joins, such as dynamic database data reads. Each join has table, alias, type (left or inner), and an on condition.",
+            "schema": {
+              "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper groupBy logical fields as a JSON array string, indexed array query object, array, or legacy CSV. Only honored when the endpoint enables dynamic grouping or already has grouped defaults.",
+            "schema": {
+              "example": "[\"category\",\"global\"]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cast",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper cast mapping as a JSON string or bracket-style query object. Keys are selected aliases or logical fields; values are database definition types such as TEXT, INTEGER, BIGINT, NUMERIC, BOOLEAN, DATE, TIMESTAMP, TIMESTAMPTZ, JSON, JSONB, or UUID where supported.",
+            "schema": {
+              "example": "{\"userCount\":\"INTEGER\"}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "with",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper CTE definitions as a JSON string or bracket-style query object. Only honored by endpoints that explicitly enable dynamic CTEs.",
+            "schema": {
+              "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "debug",
+            "required": false,
+            "in": "query",
+            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List accepted schedule occurrences and their execution references.",
+        "tags": [
+          "Automation"
+        ],
+        "description": "List accepted schedule occurrences and their execution references. The request is scoped to the authenticated instance and enforces Automation roles and lifecycle state."
+      }
+    },
+    "/api/v1/automation/schedule-history/{scheduleHistoryId}": {
+      "get": {
+        "operationId": "AutomationController_getScheduleHistoryDetails",
+        "parameters": [
+          {
+            "name": "scheduleHistoryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get one schedule occurrence, its target snapshot and dispatch outcome.",
+        "tags": [
+          "Automation"
+        ],
+        "description": "Get one schedule occurrence, its target snapshot and dispatch outcome. The request is scoped to the authenticated instance and enforces Automation roles and lifecycle state."
+      }
+    },
     "/api/v1/automation/webhook": {
       "get": {
         "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -14723,6 +14898,52 @@
         "tags": [
           "Automation"
         ]
+      }
+    },
+    "/api/v1/automation/webhook/{webhookId}/attempts": {
+      "get": {
+        "operationId": "AutomationController_getWebhookAttempts",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List webhook delivery attempts without duplicating the request.",
+        "tags": [
+          "Automation"
+        ],
+        "description": "List webhook delivery attempts without duplicating the request. The request is scoped to the authenticated instance and enforces Automation roles and lifecycle state."
       }
     },
     "/api/v1/automation/webhook/cancel": {
@@ -25569,11 +25790,8 @@
       "RunJobDto": {
         "type": "object",
         "properties": {
-          "scheduledDate": {
-            "type": "string"
-          },
           "scheduleFor": {
-            "description": "Absolute execution time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future. Cannot be combined with scheduledDate.",
+            "description": "Absolute execution time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future.",
             "oneOf": [
               {
                 "type": "string",
@@ -25874,14 +26092,8 @@
       "TriggerJobEventRequestDto": {
         "type": "object",
         "properties": {
-          "inSeconds": {
-            "type": "number",
-            "description": "Trigger delay in seconds (maximum 2592000 seconds = 30 days).",
-            "maximum": 2592000,
-            "minimum": 0
-          },
           "scheduleFor": {
-            "description": "Absolute trigger time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future. Cannot be combined with inSeconds.",
+            "description": "Absolute trigger time as an ISO 8601 date-time string or Unix timestamp in milliseconds. Must not be in the past or more than 30 days in the future.",
             "oneOf": [
               {
                 "type": "string",
@@ -26358,6 +26570,7 @@
               "ENDPOINTS",
               "TEMPLATES",
               "SCHEDULE",
+              "SCHEDULE_HISTORY",
               "EVENTS",
               "JOBS",
               "AGENTS",
@@ -28538,6 +28751,12 @@
             "description": "Next scheduled wake timestamp.",
             "example": "2026-06-13T10:30:00.000Z"
           },
+          "scheduledFor": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Accepted initial dispatch deadline. Independent of later continuation wake times.",
+            "example": "2026-06-13T10:30:00.000Z"
+          },
           "tickSeq": {
             "type": "number",
             "description": "Current tick sequence.",
@@ -29177,9 +29396,18 @@
             "minimum": 0,
             "maximum": 1000
           },
-          "availableAt": {
-            "type": "string",
-            "description": "Optional ISO timestamp after which the inbox item becomes claimable.",
+          "scheduleFor": {
+            "description": "Optional claim deadline within 30 days of acceptance. The inbox item is recorded immediately.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "description": "Unix timestamp in milliseconds"
+              }
+            ],
             "example": "2026-04-12T12:00:00.000Z"
           },
           "dedupeKey": {
@@ -29223,9 +29451,18 @@
             "minimum": 0,
             "maximum": 1000
           },
-          "availableAt": {
-            "type": "string",
-            "description": "Optional ISO timestamp after which the inbox item becomes claimable.",
+          "scheduleFor": {
+            "description": "Optional updated claim deadline within 30 days of this request.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "description": "Unix timestamp in milliseconds"
+              }
+            ],
             "example": "2026-04-12T12:15:00.000Z"
           },
           "dedupeKey": {
@@ -29390,12 +29627,19 @@
             "description": "Optional external reference id for correlation.",
             "example": "44444444-4444-4444-8444-444444444444"
           },
-          "delaySeconds": {
-            "type": "number",
-            "description": "Optional delay before the first tick is scheduled.",
-            "example": 30,
-            "minimum": 0,
-            "maximum": 2592000
+          "scheduleFor": {
+            "description": "Optional first-dispatch deadline, from acceptance through 30 days ahead. The run is recorded immediately.",
+            "example": "2026-06-13T10:30:00.000Z",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "description": "Unix timestamp in milliseconds"
+              }
+            ]
           },
           "state": {
             "type": "object",

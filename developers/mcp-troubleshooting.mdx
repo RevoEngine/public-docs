@@ -1,0 +1,106 @@
+---
+title: MCP troubleshooting
+description: Diagnose RevoEngine MCP authentication, sessions, discovery, tool validation, rate limits, SSE, and remote plugin synchronization.
+icon: stethoscope
+---
+
+Diagnose MCP from the transport boundary inward: service discovery, authentication, session, catalogue, then the selected operation. Do not begin by repeatedly calling a mutation.
+
+## Fast health checks
+
+Check public discovery:
+
+```bash
+curl "https://mcp.revoengine.com/"
+curl "https://mcp.revoengine.com/healthz"
+```
+
+Then verify the authenticated endpoint without sending a JSON-RPC operation:
+
+```bash
+curl --head "https://mcp.revoengine.com/mcp" \
+  --header "Authorization: Bearer $REVO_API_KEY"
+```
+
+`HEAD /mcp` confirms endpoint, credential, and origin reachability. It does not initialize an MCP session.
+
+## HTTP outcomes
+
+| Status | Meaning | Response |
+| --- | --- | --- |
+| `200` | JSON-RPC request was processed | Inspect `result` or `error`; HTTP success does not guarantee tool success |
+| `202` | A JSON-RPC notification was accepted without a response body | Expected for `notifications/initialized` |
+| `204` | Successful `HEAD` or CORS preflight | Continue with `initialize` for an RPC session |
+| `400` | Session header is missing or malformed, or initialization was mixed with other batch work | Initialize alone and send the returned session id |
+| `401` | Credential is missing, invalid, expired, or revoked | Replace or rotate the client credential |
+| `403` | Identity or browser origin is not permitted | Review roles, instance access, and allowed client origin |
+| `404` | Session was not found or has expired | Initialize a new session; do not keep retrying the old id |
+| `406` | SSE request did not accept `text/event-stream` | Add the required `Accept` header or use POST-only RPC |
+| `429` | Request, mutation, tool-call, or listening-session capacity was exceeded | Wait for `Retry-After` and reduce concurrency |
+| `503` | Session or transport coordination is temporarily unavailable | Retry with bounded backoff; do not treat it as an expired session |
+
+## JSON-RPC errors
+
+JSON-RPC errors normally arrive in an HTTP `200` response:
+
+| Code | Meaning | Typical fix |
+| --- | --- | --- |
+| `-32600` | Invalid JSON-RPC request | Send an object or non-empty batch with `jsonrpc: "2.0"` and a method |
+| `-32601` | Unsupported method | Use the methods advertised by the current RevoEngine MCP contract |
+| `-32602` | Invalid method parameters or tool arguments | Re-read the tool `inputSchema` or resource URI and correct the request |
+| `-32603` | Operation failed after dispatch | Inspect the safe error message and corresponding platform evidence; retry only when the operation is idempotent |
+
+## Common symptoms
+
+<AccordionGroup>
+  <Accordion title="The client connects but shows no or very few tools">
+    Run `tools/list` directly and read `revo://context/effective`. The key may have only read roles, the requested capability may be unavailable to that identity, or the client may be displaying a cached catalogue. Reconnect after changing roles; do not grant administrator access only to make setup easier.
+  </Accordion>
+  <Accordion title="Every call says the session id is missing">
+    Confirm that the client can read the `Mcp-Session-Id` response header from `initialize` and sends it on all later POST and GET requests. Do not look for the id inside the JSON-RPC result body.
+  </Accordion>
+  <Accordion title="A previously working session returns 404">
+    The session expired or no longer matches the credential. Initialize again and replace the locally stored session id. If the key was rotated, always establish a fresh session with the new key.
+  </Accordion>
+  <Accordion title="The listening stream closes but POST calls still work">
+    The SSE connection is a heartbeat/listening channel, not the result transport. Reconnect it with the same valid session id. Tool results continue to return from `POST /mcp`.
+  </Accordion>
+  <Accordion title="A tool call returns invalid arguments">
+    Refresh `tools/list`, compare the submitted object with `inputSchema`, include required properties, and remove undeclared fields. A synchronized tool contract may have changed since the client cached it.
+  </Accordion>
+  <Accordion title="A tool appears read-only but selected arguments can mutate">
+    Inspect `classificationMode`, `possibleSafetyTiers`, and `mutationIntent`. An argument-dependent tool can expose both read and mutation operations. Present confirmation based on the selected operation and target.
+  </Accordion>
+  <Accordion title="A remote MCP plugin cannot synchronize">
+    Test the remote HTTPS endpoint and its Secret bindings, then review transport type and connection timeout. A connection test and manifest synchronization are separate lifecycle steps. Keep the plugin disabled if the current remote contract cannot be reviewed.
+  </Accordion>
+</AccordionGroup>
+
+## Safe retry rules
+
+- Retry `initialize`, discovery, resource reads, prompts, and other confirmed reads with bounded exponential backoff.
+- Honor `Retry-After` on `429`.
+- On `404`, create a new session rather than retrying the old id.
+- On an uncertain write failure, inspect the returned execution identifier or affected resource before issuing the call again.
+- Do not automatically retry destructive or external operations unless their documented contract is idempotent.
+- Keep batch size and parallel calls bounded; rate policy counts contained tool and mutation calls.
+
+## Evidence to collect
+
+When escalating an MCP problem, provide:
+
+- timestamp and environment;
+- client name and version;
+- HTTP status and JSON-RPC error code;
+- JSON-RPC method name;
+- whether failure occurred before or after initialization;
+- RevoEngine execution or operation identifier when returned;
+- redacted request shape and tool name;
+- whether a fresh session reproduces the issue.
+
+Never attach an API key, full authorization header, Secret value, session id, private tool output, or unredacted customer payload.
+
+<CardGroup cols={2}>
+  <Card title="Protocol and sessions" href="/developers/mcp-sessions" icon="arrows-rotate" />
+  <Card title="General API errors" href="/developers/errors" icon="circle-exclamation" />
+</CardGroup>

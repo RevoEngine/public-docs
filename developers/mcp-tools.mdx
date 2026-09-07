@@ -1,0 +1,145 @@
+---
+title: Tools and safety
+description: Discover RevoEngine MCP tools, interpret schemas and safety metadata, and execute calls with explicit client-side confirmation.
+icon: screwdriver-wrench
+---
+
+MCP tools expose governed RevoEngine capabilities to an authenticated client. The catalogue is assembled from the current platform release, instance-visible capabilities, and caller authority, so it must be discovered at runtime.
+
+## Discover before calling
+
+Request the catalogue after initialization:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "tools-1",
+  "method": "tools/list",
+  "params": {}
+}
+```
+
+Each entry contains a stable call name for that session, a description, and an `inputSchema`. Generate arguments from that schema; do not infer a payload from the tool title or an older cached response.
+
+## Tool entry
+
+```json
+{
+  "name": "<tool-name>",
+  "title": "Human-readable title",
+  "description": "What the operation does and when to use it",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "openWorldHint": false
+  },
+  "_meta": {
+    "revo": {
+      "safetyTier": "read",
+      "mutationIntent": "read",
+      "requiresApproval": false,
+      "classificationMode": "static",
+      "possibleSafetyTiers": ["read"],
+      "confirmationRecommended": false
+    }
+  }
+}
+```
+
+### Standard annotations
+
+| Annotation | Interpretation |
+| --- | --- |
+| `readOnlyHint` | The operation is classified as not changing managed or external state |
+| `destructiveHint` | At least one supported path can delete or irreversibly replace state |
+| `openWorldHint` | The operation can interact with a target outside the closed RevoEngine resource model |
+
+Annotations are planning hints, not additional authorization. A read-only hint does not make unavailable data visible, and a destructive hint does not grant deletion rights.
+
+### RevoEngine safety metadata
+
+| Field | Use it for |
+| --- | --- |
+| `safetyTier` | The default safety class advertised for the tool |
+| `mutationIntent` | Whether the tool reads, writes, executes, affects an external system, or has argument-dependent behavior |
+| `classificationMode` | `static` when the class is fixed; `argument_dependent` when the selected operation and arguments determine it |
+| `possibleSafetyTiers` | The safety classes a mixed tool can reach |
+| `confirmationRecommended` | A signal that the client should present a confirmation even though MCP has no Assistant approval pause |
+
+For an argument-dependent tool, evaluate the requested operation and target—not only its top-level `safetyTier`.
+
+## Execute a tool
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "call-1",
+  "method": "tools/call",
+  "params": {
+    "name": "<tool-name-from-tools-list>",
+    "arguments": {
+      "<property-from-input-schema>": "<value>"
+    }
+  }
+}
+```
+
+RevoEngine validates the arguments against the advertised schema before execution. Unknown tools and invalid arguments return a JSON-RPC error instead of attempting a partial call.
+
+A successful result includes both MCP content and machine-readable output:
+
+```json
+{
+  "content": [
+    { "type": "text", "text": "Concise operation summary" }
+  ],
+  "structuredContent": {
+    "executionId": "<execution-id>",
+    "status": "accepted"
+  },
+  "isError": false,
+  "_meta": {
+    "revo": {
+      "safetyTier": "write",
+      "mutationIntent": "write",
+      "readOnly": false,
+      "countsAsMutation": true
+    }
+  }
+}
+```
+
+The exact `structuredContent` belongs to the selected tool. Persist identifiers such as an execution, job, run, or resource id when the result exposes them, and inspect the corresponding RevoEngine history rather than inferring completion from a summary string.
+
+## Confirmation model
+
+<Warning>
+  Direct MCP calls are not paused inside a RevoEngine Assistant conversation. The authenticated client acts with its own authority. A client that can issue writes must provide its own confirmation, review, or policy gate before it sends the call.
+</Warning>
+
+A production client should:
+
+1. default to discovery and read-only inspection;
+2. show the selected tool, target, mutation intent, and relevant arguments before a sensitive action;
+3. require explicit confirmation for destructive or external changes;
+4. omit secrets and hidden headers from previews and logs;
+5. keep the returned execution identifiers as evidence;
+6. re-read affected state after a successful mutation.
+
+## Capability families
+
+Depending on identity and release, the catalogue can include capabilities for platform resource discovery, controlled updates, runtime execution, Storage, automation, operational evidence, and Agent workflows. The exact list is deliberately not copied into this page: `tools/list` is the authoritative searchable inventory for the current session.
+
+<Tip>
+  Read `revo://context/effective` and the matching Revo skill resource before selecting a tool for an unfamiliar product area. This gives the model product semantics that a JSON Schema alone cannot express.
+</Tip>
+
+<CardGroup cols={2}>
+  <Card title="Resources and prompts" href="/developers/mcp-resources-and-prompts" icon="book-open" />
+  <Card title="Platform security" href="/platform/security-and-governance" icon="shield-halved" />
+</CardGroup>
