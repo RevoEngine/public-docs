@@ -117,6 +117,22 @@ Bulk update and delete accept filters. Preview the affected selection in your ap
 
 Schema validation, primary-key requirements, foreign references, and uniqueness can reject a write. Large filtered update/delete operations are executed in bounded batches; a later batch failure does not make a previously committed batch disappear unless the caller used an explicit transaction-capable runtime flow. Design idempotency and retry behavior around the operation you selected.
 
+### Ordered mass updates
+
+The **Mass Update** workspace accepts an ordered list of transformations. A column can appear more than once: for example, trim a text value and then append a suffix. Supported operations include assignment, arithmetic, boolean toggling, date changes, text editing, array membership changes and JSON transformations.
+
+Text editing covers insertion, literal replacement, trimming and case conversion. Arrays support adding or removing items; JSON supports merging, setting a path and removing a path. Transformations preserve NULL unless an explicit empty-value policy is selected. The API accepts at most 100 operations and validates the operands for each one.
+
+Preview the filtered selection before submitting. Ordered operations do not replace the normal authorization or transaction boundaries. See the current [low-code API reference](/low-code/reference/api) for exact operation shapes.
+
+### CSV and Excel exports
+
+The export dialog offers **CSV** and **Excel (XLSX)** for Tables and Views. Choose the destination, filename and access settings, then follow the asynchronous export through its job and resulting file.
+
+CSV remains the default when existing API or low-code callers omit the format. Excel preserves supported column types; values that exceed Excel's numeric precision are written as text. The server checks the worksheet ceiling of 1,048,575 data rows plus a header and 16,384 columns before accepting an Excel export.
+
+Exports are managed files in [Storage](/operate/storage). See [1.5.0](/changelog/1.5.0) for the related data and spreadsheet changes.
+
 ## Views
 
 A View is a saved, read-only query surface over accessible Tables. The structured builder covers projections, joins, nested filters, grouping, functions, casts, and stable sorting while retaining source-field lineage. An explicitly enabled Resource Admin can also author a restricted raw SQL `SELECT`/`WITH` definition.
@@ -182,7 +198,7 @@ administration bounds, and recovery patterns.
 - **Restore** returns a deleted definition and its retained data when allowed.
 - **Truncate** removes rows; identity restart is opt-in rather than implicit. Truncate does not create row-level audit events, so use a deliberately confirmed filtered delete when every removed row must remain in audit history.
 
-The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-database-data-to-csv), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
+The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-database-data-to-csv-or-xlsx), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
 
 ## Access model
 

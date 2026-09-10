@@ -1,0 +1,63 @@
+---
+title: "0.6.0 — More control over Components, Endpoints and data export"
+sidebarTitle: "0.6.0"
+icon: "tag"
+description: "15 October 2025"
+---
+
+RevoEngine 0.6.0 sharpens several established application-building workflows. The Web IDE gains a structured way to move through Component material; Endpoint definitions receive an explicit execution profile; and Database CSV downloads can be prepared for the system that will consume them. The release also makes a managed-file update available as an automation event, connecting a routine resource change to the flows that follow it.
+
+## Highlights
+
+- Navigate Components by category, Component and element, with a separate list of changed work.
+- See whether an element is new, modified or marked for removal before continuing work.
+- Create and manage Component elements from the browser workspace.
+- Give each new Endpoint a defined visibility, compatibility, library-loading and memory profile.
+- Choose CSV delimiters, Boolean values, NULL representation and JSON encoding for Database downloads.
+- Start event-driven work when a managed File is updated.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Navigate a Component as a working structure" defaultOpen={true}>
+
+The Web IDE now presents Component material as a hierarchy: categories contain Components, and Components contain their individual elements. A builder can expand the relevant branch, open an element and retain the location through the editor's address and breadcrumb. This makes it much easier to enter a specific part of an application from a bookmarked or shared browser location, instead of first rediscovering the Component in a broad resource list.
+
+The navigator also separates changed work from the rest of the application. An element carries a visible state for a new item, a modification or an item marked for removal. That gives a builder an immediate inventory of the active editing session, while the normal tree remains available for moving to related material.
+
+Element management is part of the same workspace. Builders can add an element to a Component, update its key, name, description, order and details, or stage an element for deletion. The important practical difference is that navigation and item management now describe the same application structure: the builder does not have to translate between an editor pane and an unrelated resource view.
+
+  </Accordion>
+  <Accordion title="Define how an Endpoint should run">
+
+An Endpoint is now created with a full, predictable execution-options profile when one has not been supplied. Its request and response remain visible by default; legacy result mode and library skipping are disabled; and the default execution memory is 32 MB. These settings make the initial behavior of a newly defined Endpoint explicit rather than leaving it dependent on an incomplete options object.
+
+Endpoint metadata can also identify the particular Component schema element that it represents, alongside the schema identity and version. This is useful when an application exposes more than one callable element from the same Component definition: the Endpoint can retain the exact element-level connection needed by surrounding template and automation work.
+
+  </Accordion>
+  <Accordion title="Prepare a CSV for the destination system">
+
+CSV download was already part of the Database workflow; 0.6.0 adds choices for the exported representation. The export dialog lets an operator choose a delimiter and include hidden columns when needed. When the selected Database contains Boolean values, the download can express them as check and cross marks, `1` and `0`, or `true` and `false`.
+
+The available controls follow the definition being exported. Nullable columns can use empty cells for NULL values, while Databases with JSON or JSONB columns can emit those values as Base64. A spreadsheet-friendly human review and a downstream import often need different representations; these choices let the same query result serve both without hand-editing every file after download.
+
+  </Accordion>
+  <Accordion title="React when a managed File changes">
+
+Managed-file updates can now publish a File Updated event. An automation can use that event as the start of a follow-on process: for example, validate a newly revised input file, refresh data derived from it or notify the people responsible for the next operational step. The event is raised for an update, so it represents the current managed-file record rather than a generic file-system signal.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Dashboard routes open the selected dashboard canvas directly.
+- The Web IDE keeps changed items visible separately from the full Component tree.
+
+## Related guides
+
+[Web IDE](/build/web-ide) · [Components](/build/components) · [Endpoints](/operate/endpoints) · [Databases](/operate/databases) · [Automation](/operate/automation)
+
+## Continue through the releases
+
+[Newer: 0.7.0](/changelog/0.7.0) · [All releases](/releases/changelog) · [Earlier: 0.5.2](/changelog/0.5.2)

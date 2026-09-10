@@ -1,0 +1,80 @@
+---
+title: "1.0.3 — Conversation branches, governed capabilities and transactional low-code"
+sidebarTitle: "1.0.3"
+icon: "tag"
+description: "9 May 2026"
+---
+
+This release gives the early Agent and Assistant experience more useful continuity while adding a concrete non-AI building block for application logic: transactional Database Data work. Builders can preserve an exploratory conversation, take an alternative path from the relevant message, and configure the candidate capabilities an alpha task may use. The core RevoEngine application platform remains independently useful for normal production Components, data, files, Endpoints and Automation.
+
+## Highlights
+
+- Fork a conversation at the message where an alternative becomes useful.
+- Create a branch only, or continue it with a new request.
+- Retry an unfinished request and compact long-running discussion context.
+- Register and review candidate component, MCP and skill capabilities for alpha tasks.
+- Group dependent Database Data operations in a supported low-code transaction.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Branch at the decision point, not at the end of the transcript" defaultOpen={true}>
+
+A conversation fork starts from a selected visible message. That lets a builder return to the point where an assumption, option or implementation direction changed and explore another route without overwriting the existing discussion. The original thread remains available as the record of the first approach; the new thread has its own title and working path.
+
+A branch can be created as context only when the next instruction is not ready yet. Alternatively, a builder can create the branch and send its next instruction immediately, so the new path begins with a clear purpose. This is useful for comparing design options, narrowing a broad request or keeping a risky experiment separate from the thread that documented the accepted direction.
+
+  </Accordion>
+  <Accordion title="Keep longer work usable">
+
+Early conversational work can become lengthy or stop before producing the intended outcome. This update adds complementary controls for those cases. A user can retry a selected unfinished message without adding a duplicate request, or compact a thread into fresh continuation context when the detailed earlier transcript no longer needs to occupy the active working window.
+
+These controls preserve the distinction between the visible conversation and the task’s active context. Compaction is a continuation aid, not deletion of the recorded discussion; retry is recovery of the selected request, not a promise that every prior tool action will run again. When a task is configured to continue in the background, that remains an explicit choice rather than the default behavior of closing a conversation.
+
+  </Accordion>
+  <Accordion title="Configure what an alpha task may use">
+
+The Agent registry becomes a practical operator workspace for candidate capabilities. A team can describe a capability supplied by a managed Component, a configured MCP server or a reusable skill, then give it a recognizable name, category and explanation. This makes the available surface inspectable before it is attached to an early task.
+
+Configuration also records the intended mode and scope of the capability, together with its safety and approval expectations. That is important because a capability being configured does not mean it is silently granted to every conversation. A task still works through the identity, access policy and selected tools that apply in its instance. The registry is a deliberate preparation step, not an open-ended marketplace claim.
+
+  </Accordion>
+  <Accordion title="Make dependent Database Data changes together">
+
+Low-code now offers a callback-based Database Data transaction for work that must either succeed as one unit or leave the data unchanged. Inside the transaction callback, a builder can read current rows and use supported insert, upsert, update or delete operations before the transaction is committed.
+
+This historical example uses the method name available in 1.0.3. For new code, use `api.transactionDatabase()`; the older name is now deprecated.
+
+```ts
+await api.transactionDatabaseData(async tx => {
+  const existing = await tx.getDatabaseData(
+    'contracts',
+    { filter: { field: 'contractId', op: 'eq', value: api.input('contractId') }, take: 1 },
+    { lock: 'update' },
+  );
+
+  if (existing.results === 0) {
+    await tx.insertDatabaseData('contracts', [
+      { contractId: api.input('contractId') },
+    ]);
+  }
+});
+```
+
+The transaction API keeps its own boundaries clear. It is for supported Database Data operations, not a wrapper around arbitrary external calls, files or Automation actions. Operations inside the callback are awaited in sequence; parallel transaction calls are rejected. If the callback fails, the transaction is rolled back rather than committing a partly completed sequence. Builders can select the supported isolation behavior and use read locks where the workflow requires them.
+
+  </Accordion>
+  <Accordion title="A more useful alpha, without claiming stability too early">
+
+Together, these changes turn the alpha from a linear question-and-answer experiment into a more practical place to explore application work: choose the relevant branch, carry only the needed context forward, describe candidate tools deliberately, and keep data changes atomic when the business rule calls for it. Planning, approval and the full stable Assistant experience continue to mature in subsequent releases.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Agents](/ai/agents) · [Plugins](/ai/plugins) · [Low-code patterns](/low-code/patterns) · [Databases](/operate/databases)
+
+## Continue through the releases
+
+[Newer: 1.1.0](/changelog/1.1.0) · [All releases](/releases/changelog) · [Earlier: 1.0.2](/changelog/1.0.2)

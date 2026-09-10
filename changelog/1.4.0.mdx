@@ -1,0 +1,76 @@
+---
+title: "1.4.0 — Database change history with investigation controls"
+sidebarTitle: "1.4.0"
+icon: "tag"
+description: "5 August 2026"
+---
+
+RevoEngine 1.4.0 adds selectable Database change history for teams that need to understand how an application record reached its current state. A Database can be configured to capture later inserts, updates and deletes, then expose that evidence in an explorer, through a typed custom-component API and with its own retained-history capacity controls.
+
+## Highlights
+
+- Enable row-change capture only on the Databases where it is useful.
+- Record inserts, updates and deletes with a row key, actor, operation identifier and snapshot.
+- Browse global history or narrow the view to one table.
+- Filter by operation, actor, time range, row key or operation identifier.
+- Open an individual entry to inspect its complete available snapshot.
+- Read history from a custom component and manage its retained footprint.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Choose where evidence belongs" defaultOpen={true}>
+
+Change history is opt-in on a Database. That allows a team to put investigation evidence where it matters most—for example, a business record changed by a workflow, integration or operator—without retaining the same level of detail for every table in an application. Enabling capture begins with the next mutation; it does not manufacture a past history for records that were already present.
+
+The captured record identifies the affected table and its definition version, the operation that occurred, the actor and the operation context. It also retains the row key and a snapshot of the affected row. When an update changes a primary key, the earlier key can be retained as part of the entry, helping an operator follow an otherwise confusing transition.
+
+  </Accordion>
+  <Accordion title="Investigate from a focused workspace">
+
+The Database workspace gains a dedicated history view alongside ordinary tables, Views and cache work. Operators can start with all accessible tables or select one table, then work through a server-side grid ordered by the newest activity. The explorer presents the practical context needed for a first pass: table, time, operation, row key, actor, operation identifier and definition version.
+
+A history entry can then be opened for its detailed snapshot. This helps when the current row alone does not explain an outcome: a record may have been deleted, changed by a background operation or altered by a sequence of actions. The explorer provides an evidence trail that can be related to the wider operational history without making the user reconstruct it from log fragments.
+
+  </Accordion>
+  <Accordion title="Filter the question you are asking">
+
+History is most useful when it can answer a specific question. The release supports queries by operation type, actor, operation identifier and time range, as well as an exact row key. An operator investigating one integration run can narrow to its operation identifier; someone examining a single record can follow the row key; and a support review can focus on a short time interval and the actions within it.
+
+The same options are available to custom components. A tailored operations screen can request history directly instead of implementing a parallel record of data mutations:
+
+```ts
+const history = await api.getDatabaseAudit('contracts', {
+  operation: 'UPDATE',
+  from: '2026-08-05T00:00:00.000Z',
+  to: '2026-08-06T00:00:00.000Z',
+  take: 100,
+});
+```
+
+The response is cursor-based, so an application can continue through a larger result set without turning an investigation screen into an unbounded request.
+
+  </Accordion>
+  <Accordion title="Treat retained history as data with a cost">
+
+Captured snapshots have their own capacity accounting. The Database workspace surfaces their footprint so a team can see that change history is a deliberate retained data set, not a free by-product of ordinary updates. This is especially important for tables that change frequently or contain broad records.
+
+Administrators can clean up retained history through controlled operations, including filtered cleanup when an investigation window no longer needs to be kept. The feature therefore supports a complete lifecycle: choose capture, use the evidence while it is valuable, and remove it according to the team's own retention posture.
+
+  </Accordion>
+  <Accordion title="Keep the boundaries clear">
+
+Database change history explains a transition; it does not automatically restore an earlier row. It complements backup and recovery practice rather than replacing it. Likewise, it reports changes after capture is enabled and respects the Database’s ownership configuration. For partitioned table families, the setting belongs with the logical parent rather than becoming a contradictory option on every child.
+
+Those boundaries make the feature useful in day-to-day operations: teams can add focused evidence where it helps, search it with concrete context, and manage its retained size without changing how ordinary Database definitions and records are created.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Database definitions](/operate/database-definitions) · [Runtime API](/low-code/runtime-api) · [Observability](/operate/observability)
+
+## Continue through the releases
+
+[Newer: 1.4.1](/changelog/1.4.1) · [All releases](/releases/changelog) · [Earlier: 1.3.3](/changelog/1.3.3)

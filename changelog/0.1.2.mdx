@@ -1,0 +1,73 @@
+---
+title: "0.1.2 — Reusable communications and clearer operational lists"
+sidebarTitle: "0.1.2"
+icon: "tag"
+description: "26 September 2023"
+---
+
+RevoEngine 0.1.2 adds a dedicated place to maintain application mail templates, including an HTML preview of the content being edited. The same release expands everyday inspection tools: builders can check how a request matches an application API, and operators can arrange long lists using several sorting criteria.
+
+These additions connect presentation and operation to the low-code workspace. Communication content becomes a managed resource, while request inspection and richer sorting make it easier to understand the application surrounding the business logic.
+
+## Highlights
+
+- Create reusable mail templates with a body, subject and descriptive metadata.
+- Preview HTML while editing, before saving a template.
+- Keep template updates tied to the version being edited.
+- Inspect application API matches for an HTTP method and request path.
+- Sort supported operational lists by multiple columns.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Keep application mail in one workspace" defaultOpen={true}>
+
+Mail templates now have their own list and detail workflow. Builders can create a named template, enter its body, add a subject and organize it with a category and description. Required content is checked before submission, and the saved template remains accessible as an application resource that can be opened and maintained later.
+
+This is useful when an application has several kinds of communication with different purposes. A recognizable name and category help the team find the intended message, while a description can explain its role without placing that explanation inside the email itself. The editing workflow keeps those concerns separate from the actual subject and body delivered by the application.
+
+Template creation follows the instance's configured allowance. Updates carry the version that was opened for editing, so saving an old copy does not silently overwrite a newer version. When the underlying template has changed, the builder must return to the current copy before continuing. The release therefore provides both an authoring surface and a controlled way to maintain shared communication content.
+
+  </Accordion>
+  <Accordion title="Preview what the recipient will read">
+
+The mail workspace includes an HTML preview of the current body. Builders can move from editing markup to inspecting its rendered structure without first saving a new template or making a live delivery part of the review process.
+
+A practical workflow is to write the message, preview the heading and paragraphs, return to the body for adjustments and save once the structure is ready. Because the preview follows the form content, it supports iteration on the draft rather than only displaying the last saved version.
+
+The preview is a content-authoring tool. It does not imply that a message has been sent, and it does not replace checking how a particular mail client renders the final delivery. The important addition is a fast visual check inside the template workflow, alongside the subject, name and organizational metadata.
+
+  </Accordion>
+  <Accordion title="Inspect an application's request matching">
+
+Application APIs gain a dedicated inspection flow for a method and path. Instead of changing a definition to discover what it matches, the builder can enter the request shape and review the matching results in the API workspace.
+
+The result helps separate two questions: which application API is selected for a request, and what the associated logic does when it runs. The matching view answers the first. Editing and debugging the selected business logic remain part of their existing authoring workflow.
+
+For example, a builder preparing a new route can check its expected method and URL path, inspect the returned candidates and return to the relevant definition with that context. This is request-matching inspection, not a claim that the inspector executes every matched API or validates an arbitrary request body.
+
+  </Accordion>
+  <Accordion title="Arrange operational data by more than one field">
+
+Supported grids can now retain more than one sorting criterion. Rather than repeatedly replacing one order with another, an operator can build a useful ordering across several columns—for example, arranging items by category and then by name where those columns are available.
+
+The change applies to shared server-side lists and extends to several administration and log views. It builds on the typed filters and paged data workflows already in the application: filters decide which records belong in the result, while sorting determines the order in which the operator reviews them.
+
+Multiple criteria are particularly useful for lists containing many similar entries. Related rows can remain adjacent while a second field establishes the order within those groups, reducing the need to keep changing the view while comparing related resources.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Mail-template navigation connects the resource list, detail form and preview.
+- Supported device, group and role lists gain the same multi-sort interaction.
+- Template metadata remains separate from recipient-facing content, making the resource easier to maintain over time.
+
+## Related guides
+
+[Automation](/operate/automation) · [Web IDE](/build/web-ide) · [Identity and access](/operate/identity-and-access)
+
+## Continue through the releases
+
+[Newer: 0.1.3](/changelog/0.1.3) · [All releases](/releases/changelog) · [Earlier: 0.1.1](/changelog/0.1.1)

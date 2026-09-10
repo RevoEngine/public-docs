@@ -3,6 +3,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { permitsHistoricalMethod } from './historical-release-policy.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ignoredDirectories = new Set(['.git', 'node_modules']);
@@ -144,7 +145,8 @@ function main() {
   for (const method of deprecatedMethods) {
     const pattern = new RegExp(`\\b${method.replace('.', '\\.')}(?![A-Za-z0-9_$])`);
     for (const file of mdxFiles) {
-      if (pattern.test(readFileSync(file, 'utf8'))) {
+      const content = readFileSync(file, 'utf8');
+      if (pattern.test(content) && !permitsHistoricalMethod(relative(root, file).replaceAll('\\', '/'), method, content)) {
         issues.push(`Deprecated low-code method ${method} is published in ${relative(root, file)}.`);
       }
     }

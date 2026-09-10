@@ -178,6 +178,18 @@ Bulk archive and delete accept 1–100 `{ storageEntryId, version }` roots. If b
 
 Upload sessions are durable and their `expiresAt` is authoritative. The default service lease is one hour, but deployments can configure it. `extendUploadSession()` renews an active session; it does not revive `FAILED`, `ABORTED`, `EXPIRED`, or `FINALIZED` sessions.
 
+### Native CSV and Excel files
+
+Structured upload sessions let low-code generate CSV files and Excel workbooks from rows instead of assembling a complete file in memory. Excel supports multiple sheets, declared columns, typed values, styles, filters, frozen panes and formulas with optional cached results. CSV supports explicit encoding, delimiters, quoting and BOM settings.
+
+Use staged writing when the layout needs inference or sparse cells and formulas. Use direct writing for a known column layout with row-only appends. Both modes use the normal session finalization and access lifecycle.
+
+Read structured data in bounded pages using column selection, row limits and continuation cursors. Excel reads can select a worksheet. Finalization can compute supported statistics synchronously, asynchronously or not at all; synchronous statistics make the supported generated file ready for indexed reading when finalization completes.
+
+Precision-sensitive numbers are preserved as text when necessary for Excel. Formula-like CSV values are escaped by default. File details expose available worksheet and row statistics.
+
+See the [Storage runtime reference](/low-code/reference/storage) for current session, part, finalization and file-data contracts, and [1.5.0](/changelog/1.5.0) for the release overview.
+
 ### Incremental upload from low-code
 
 ```js

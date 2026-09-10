@@ -1,0 +1,84 @@
+---
+title: "1.2.2 — Official tools for local Component work"
+sidebarTitle: "1.2.2"
+icon: "tag"
+description: "29 June 2026"
+---
+
+RevoEngine 1.2.2 brings the Component workflow into the developer's normal working environment. The official CLI and VS Code extension make local authoring practical without creating a second implementation path: the terminal, editor and platform continue to share authentication, project metadata and a deliberate synchronization model.
+
+## Highlights
+
+- Install the official RevoEngine CLI for authenticated local work.
+- Initialize a project with generated editor context for supported low-code APIs.
+- Pull, inspect, compare and deliberately push Components.
+- Debug a working copy with structured output before deployment.
+- Use VS Code views for workspace readiness, search, Components and debugger runs.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Start with an authenticated project" defaultOpen={true}>
+
+The CLI introduces a direct path from a local folder to an authenticated RevoEngine workspace. A developer signs in once, checks the active session, then initializes the project. Initialization writes the local project metadata and editor declarations needed to make Component authoring less dependent on browser copying or guesswork. The generated context describes the supported runtime surface, so a developer can work with real application concepts while receiving help from the editor.
+
+```bash
+revo auth login
+revo project init ./app
+```
+
+Credentials can be supplied interactively for a person at a terminal or through the normal environment configuration for controlled non-interactive work. The important boundary is that the CLI authenticates to the existing RevoEngine instance; it does not invent a local tenant or make an unconnected folder authoritative.
+
+  </Accordion>
+  <Accordion title="Treat Components as a reviewable workspace">
+
+A pulled Component is represented as a local manifest together with its ordered element sources. That makes the complete unit of work inspectable in a familiar file tree: a developer can search, use source control, open the relevant element and see the surrounding Component contract. Pulling one Component by its explicit identifier, or a selected collection, is useful for focused maintenance, while bulk operations support larger project refreshes.
+
+```bash
+revo component pull --id 6dfb536a-1111-4222-8333-123456789abc
+revo component push --id 6dfb536a-1111-4222-8333-123456789abc
+```
+
+Synchronization is intentionally not a blind overwrite. Pull compares the local workspace before replacing it, calls out changed or stale content, and asks for confirmation for broad operations unless the developer explicitly forces them. Push reports skipped cases rather than disguising them as successful deployment. This gives teams a workable local loop while keeping deployment a conscious action.
+
+  </Accordion>
+  <Accordion title="Debug the working copy, then choose what to deploy">
+
+The CLI can run a local Component working copy in the platform debug context and return structured logs, warnings, result data, timing and configured resource values. This shortens the feedback loop for a new implementation or an investigation: a developer can adjust the local source, provide a test input and inspect what happened before changing the remote Component.
+
+```bash
+revo component debug 6dfb536a-1111-4222-8333-123456789abc -d '{"filters":{}}'
+```
+
+Debugging is not a stealth deployment mechanism. A debug run evaluates the chosen working copy for inspection; pushing the Component remains the separate, deliberate step. Side effects are still determined by the code and the permitted application context, so developers should use representative inputs and the same care they would apply to any executable application logic.
+
+  </Accordion>
+  <Accordion title="Use VS Code as the visual companion">
+
+The VS Code extension packages this workflow into a focused set of workspace, Component, search and debugger views. It uses the CLI rather than duplicating its platform client: authentication and project initialization stay in one place, while the editor helps a developer see whether the current folder is initialized, whether the CLI is available and which local Components have changed.
+
+From the Components view, a team can navigate by category, pull or push a selected item, compare it with the last synchronized baseline, add an element or discard a local change intentionally. The Search view works across the local Component workspace, making it easier to move from a name or reference to the exact source file. The Debugger view presents the result of the same CLI debug flow rather than hiding execution behind editor-only behavior.
+
+  </Accordion>
+  <Accordion title="Review before synchronization">
+
+The extension stores a local baseline after a successful pull or push. That baseline powers the Changed view and comparison tools, so a developer can distinguish an intentional edit from a folder that merely differs from its last synchronized state. Discard is available for the moments when the right decision is to return to that baseline, not to publish a local experiment.
+
+The extension requires a trusted workspace because it runs the local CLI and reads or writes project files. This is a deliberate safety choice: convenience in the editor does not lower the standard for what is allowed to execute on a developer machine or synchronize to an application.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- The CLI has both a concise primary command and a compatible long-form alias.
+- Local search covers Component names, identifiers, categories and element source paths.
+- Monorepos can designate the folder that contains the RevoEngine workspace.
+
+## Related guides
+
+[CLI](/developers/cli) · [Local projects](/developers/cli-projects) · [VS Code extension](/developers/vscode-extension) · [Debugging](/build/debugging)
+
+## Continue through the releases
+
+[Newer: 1.2.3](/changelog/1.2.3) · [All releases](/releases/changelog) · [Earlier: 1.2.1](/changelog/1.2.1)

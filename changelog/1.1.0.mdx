@@ -1,0 +1,72 @@
+---
+title: "1.1.0 — Assistant beta with plans, platform context and operational tools"
+sidebarTitle: "1.1.0"
+icon: "tag"
+description: "16 May 2026"
+---
+
+The Assistant becomes a broader beta workspace for researching, understanding and progressing application work. Instead of being limited to a linear conversation, users can choose the amount of planning they want, bring the relevant RevoEngine objects into the discussion, and use selected capabilities to gather evidence. The beta is intentionally governed: it works through the configured tools, plugins, permissions and action requirements of the current task.
+
+## Highlights
+
+- Choose direct work, a visible plan or a plan that waits for review.
+- Carry recognized Components, Endpoints, data and other application references into a conversation.
+- Research current public information with bounded search and source loading.
+- Investigate authorized execution and log evidence in the same task.
+- Attach relevant configured plugins and skills deliberately.
+- Set personal Assistant defaults and manage secret revisions more clearly.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Decide how much planning a request needs" defaultOpen={true}>
+
+The composer now makes planning a visible choice. For a small, well-scoped question, a builder can work directly. For a change that benefits from a quick outline, they can ask the Assistant to show the plan and continue. For work that should pause before actions are considered, they can choose review mode and inspect the proposed steps first.
+
+The displayed plan makes progress legible: individual steps show whether they are pending, active, completed or blocked, and a longer explanation can be opened without turning the whole conversation into an oversized checklist. A user can also choose the reasoning effort for the request and, where the task is configured for it, keep the work running in the background. These are choices for the current job, not a way to bypass a required clarification or approval.
+
+  </Accordion>
+  <Accordion title="Start from the object that actually matters">
+
+A request can now carry recognized application references rather than relying on a pasted name or an imprecise description. When a conversation concerns a Component, Endpoint, Database or another supported object, the beta can resolve the reference as working context and show it as a recognizable item in the message. A builder can move from the discussion to the relevant workspace and back without losing the subject of the task.
+
+That makes practical questions more direct: ask what a selected Endpoint does, investigate a referenced execution, or request help with a Component while keeping the object identity visible. A reference is context, not an additional access grant. The same roles and resource policy determine what the conversation may inspect or use.
+
+  </Accordion>
+  <Accordion title="Research current information without leaving the task">
+
+Selected beta tasks can search the public web and load supporting public pages. Search can be focused by freshness, language and country, and returns a bounded set of results rather than an unrestricted crawl. The user can use this for current documentation, market information, public standards or an external integration question while keeping the resulting sources connected to the original task.
+
+The boundaries are intentional. Public research is for public information; it does not expose private content through a search request. The task can only use this capability where it is enabled, and any cited or loaded source should still be reviewed for relevance to the application decision at hand.
+
+  </Accordion>
+  <Accordion title="Bring operational evidence into the discussion">
+
+For authorized operational work, the beta adds structured investigation of execution and log evidence. A task can focus on an exact operation, job or log record, or narrow the search with time, service, event, severity, status and message filters. It can then work in a summary, timeline, errors, payload or query-oriented view instead of treating the first log line as the whole diagnosis.
+
+This supports a useful operator workflow: identify the failing run, ask for the relevant error window, compare the evidence with the referenced application object, and decide the next controlled step. It does not turn the conversation into unrestricted observability access. Results remain bounded and the user must already be allowed to inspect the underlying evidence.
+
+  </Accordion>
+  <Accordion title="Attach capabilities deliberately">
+
+The plugin registry now supports the beta workflow more directly. Operators can describe and organize the capabilities that are appropriate for their instance, including reusable skills and configured external or platform-backed tools. In a conversation, the user can attach the relevant permitted capability instead of assuming that every possible tool should be present for every question.
+
+That gives a team a clearer operating model. A research task can use its approved research capability; a development question can use its relevant low-code or application capability; an operational question can remain limited to read-oriented investigation. Configuring or attaching a plugin never overrides the safety, scope or approval rules associated with it.
+
+  </Accordion>
+  <Accordion title="Make the beta fit the way you work">
+
+Assistant settings provide defaults for reasoning effort, planning behavior, work mode and response tone, plus account-level custom instructions. A user can therefore make new conversations start closer to their preferred working style while still changing the choices for an individual task. Reasoning details can also be hidden by default when the compact result is more useful than the working trace.
+
+Alongside the Assistant work, the security workspace makes secret-revision operations more deliberate. A revision value is masked by default; an authorized operator explicitly reveals it when necessary and can copy it after that action. The same screen supports activating, disabling or deleting the selected revision, so lifecycle decisions and sensitive-value handling stay in the same operational flow.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[AI overview](/ai/overview) · [Assistant](/ai/assistant) · [Plugins](/ai/plugins) · [Agentic coding](/ai/agentic-coding) · [Secrets](/operate/secrets)
+
+## Continue through the releases
+
+[Newer: 1.1.1](/changelog/1.1.1) · [All releases](/releases/changelog) · [Earlier: 1.0.3](/changelog/1.0.3)

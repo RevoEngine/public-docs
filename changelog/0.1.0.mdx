@@ -1,0 +1,70 @@
+---
+title: "0.1.0 — Complete the browser workspace around application logic"
+sidebarTitle: "0.1.0"
+icon: "tag"
+description: "25 June 2023"
+---
+
+RevoEngine 0.1.0 extends the browser builder and operator experience into the surrounding application workspace. With the earlier data, logic, automation and security foundations already in place, this release focuses on the connections that make a low-code application easier to expose, inspect and operate: define an application API against logic, manage application files, compare revisions before choosing a change, and keep teams informed about the automation they own.
+
+The result is a more complete browser workflow. A team can move from an existing logic definition to an externally callable application API, maintain the files that belong alongside that application, and return to the operational areas to investigate or recover a run. The release adds these capabilities without re-announcing the foundation work delivered in the preceding milestones.
+
+## Highlights
+
+- Define application APIs with a method, path and selected logic.
+- Manage application files through a dedicated browser explorer and uploader.
+- Compare two selected logic revisions before acting on a change.
+- Retry eligible failed or cancelled jobs from the operations workspace.
+- Manage template subscriptions and profile keys alongside improved automation logs.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Define how application logic is called" defaultOpen={true}>
+
+A dedicated Application APIs workspace gives a logic definition a clear external entry point. Builders can create and maintain an API definition with a name, HTTP method, path and the logic it should use. The form also keeps application-execution options with the definition, making the endpoint configuration a visible part of the builder workflow rather than an implicit property buried inside the logic editor.
+
+The configuration is deliberately constrained. A method-and-path combination must be unique, and the selected logic is validated as part of the managed flow. This helps a team avoid accidentally creating two definitions that claim the same application entry point. The workspace also separates an application API from the general automation-template area, so an externally callable operation can be reviewed in the context that fits its purpose.
+
+  </Accordion>
+  <Accordion title="Keep application files in the product workspace">
+
+0.1.0 introduces a managed file explorer for application files. From the browser, teams can browse the available entries, add files through the uploader and use the managed flow for synchronization and download. This makes files part of the same workspace as data, logic and automation instead of leaving them as an external afterthought.
+
+The explorer is designed around explicit actions. A team can create and find the entries it needs, move a file through the upload or synchronization flow, download an available file when it is needed elsewhere, and remove entries through the managed experience. That clear lifecycle matters when files support an application's configuration or integrations: the work remains visible to the people maintaining the application.
+
+  </Accordion>
+  <Accordion title="Compare revisions before choosing a change">
+
+The Web IDE now adds a dedicated logic comparer. Builders select two distinct available versions of a logic definition and open them together for review. The comparer does not replace normal editing; it provides the inspection step that is useful when a team needs to understand what changed between revisions before it decides which direction to take.
+
+This makes the version history already associated with logic more practical in a browser workflow. Instead of inspecting one revision at a time, a builder can set a from and to version, see the comparison only after both revisions have been retrieved, and return to the editor with a clearer basis for the next action.
+
+  </Accordion>
+  <Accordion title="Recover work and keep the right people informed">
+
+Automation operations gain two practical controls. First, eligible runs can be retried from the Jobs workspace. The retry action is intentionally limited to cancelled or error runs, so a successful or still-active job is not casually duplicated through the same control. This keeps recovery close to the job details and logs used to diagnose the original run.
+
+Second, template details gain subscription management. Teams can use the template workflow to manage who is subscribed to the relevant automation, while synchronous application API templates remain outside that subscription flow. Together, these controls make it easier to handle both the exceptional case of a failed run and the routine case of keeping responsible people connected to an ongoing automation.
+
+  </Accordion>
+  <Accordion title="Finish the surrounding operator experience">
+
+Profile key management receives its completed browser workflow, giving users a dedicated place to maintain those keys. Automation logs also move into the shared grid presentation, making the information easier to scan alongside the filtering and list controls established in the preceding release.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Clearer separation between application API definitions and general automation templates.
+- Multi-selection support in shared operational grids.
+- Navigation and detail-flow refinements across file, profile and automation areas.
+
+## Related guides
+
+[Low-code overview](/low-code/overview) · [Web IDE](/build/web-ide) · [Automation](/operate/automation) · [Files](/operate/files) · [Identity and access](/operate/identity-and-access)
+
+## Continue through the releases
+
+[Newer: 0.1.1](/changelog/0.1.1) · [All releases](/releases/changelog) · [Earlier: 0.0.3](/changelog/0.0.3)

@@ -164,7 +164,11 @@ When exporting database rows:
 4. use a snapshot/version filter if the source can change during export;
 5. generate the file locally in Node.js, then upload it through a session.
 
-For an HTTP source that already exposes a stream, a RevoEngine Component can instead use `api.httpCall({ ... }, { responseType: 'stream', target: { ... } })` so the response is finalized directly into Storage.
+For an HTTP source, use `api.httpCall({ ... }, { responseType: 'storage', target: { ... } })` so the response is finalized directly into Storage. In Node.js, call this through `revo.api` or the hosted `runtime.api`.
+
+`responseType: 'stream'` means a byte/SSE iterator consumed inside low-code V8; the Node.js SDK does not transport those iterators and rejects this mode before dispatch. Use a Storage target or consume the stream inside a low-code execution and return a bounded result.
+
+For structured CSV or Excel generation, managed upload sessions can accept rows and worksheet batches. See the [workbook and CSV examples in 1.5.0](/changelog/1.5.0) and the current [Storage guide](/operate/storage). Local Node.js generation remains useful when a report needs a format outside the supported structured-file contract.
 
 Callback-based transaction compatibility APIs are intentionally not part of the public SDK. If several remote operations require atomicity, implement that boundary in one RevoEngine component or library where the database transaction context exists.
 

@@ -87,6 +87,31 @@ Invocation then goes to the instance's [Endpoint runtime](/developers/endpoint-r
 
 Some operations schedule work and return before execution finishes. Keep the returned job, deployment, operation, run, thread, or upload-session identifier and use the related history/status surface. Do not infer completion from the HTTP request being accepted.
 
+## Application release summary
+
+Use `GET /api/v1/me/changelog` after sign-in to retrieve the current application release. It uses the normal Platform API authentication and returns a compact summary, not the complete historical changelog.
+
+```json
+{
+  "applicationVersion": "1.5.0",
+  "release": {
+    "publishedAt": "2026-09-10T00:00:00.000Z",
+    "showInApp": true,
+    "title": "What’s new in RevoEngine 1.5.0",
+    "highlights": [
+      "Governed AI-assisted changes with reviewable diffs and approval rationale",
+      "Native CSV and XLSX workflows for Storage, Databases and Database Views",
+      "Ordered Database transformations and live HTTP streams in low-code"
+    ],
+    "url": "https://docs.revoengine.com/changelog/1.5.0"
+  }
+}
+```
+
+Keep the last acknowledged version in your client or application-owned user settings. Compare semantic version components, not strings: `1.10.0` is newer than `1.9.0`. Show the update when `showInApp` permits it and the returned version is newer; decide explicitly how a first-time user should be treated. Save acknowledgement after the user dismisses or reads the update, not simply when the request succeeds.
+
+The endpoint does not track sign-ins or read state, requires no pagination and leaves the normal `/me` profile response unchanged. Follow `release.url` for the full release, or browse [all release notes](/releases/changelog).
+
 ## Compatibility
 
 Treat documented fields as the contract and optional fields as optional. Avoid coupling to response properties that are not represented by the OpenAPI operation or its guide. When generating a client, regenerate it when the published API contract changes and review the diff before deployment.

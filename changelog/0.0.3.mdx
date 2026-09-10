@@ -1,0 +1,67 @@
+---
+title: "0.0.3 — Faster operational work with typed lists and protected configuration"
+sidebarTitle: "0.0.3"
+icon: "tag"
+description: "28 April 2023"
+---
+
+RevoEngine 0.0.3 strengthens the browser foundation with the controls teams need once their data and automation lists become part of everyday work. Shared server-side grids bring type-aware filtering, sorting and paged results to the product's operational surfaces. Saved preferences make those lists more personal to the task at hand, while a new protected secrets workspace gives sensitive configuration a deliberate lifecycle instead of treating it like ordinary application data.
+
+The release is about operating the growing platform with more precision. It refines the workspaces introduced earlier rather than replacing them: builders and operators keep the same broad flow, but gain better ways to find records, preserve a useful working view and separate secret values from general configuration.
+
+## Highlights
+
+- Use reusable server-side grids for large operational lists.
+- Filter text, numbers, dates, identifiers and boolean values with choices appropriate to each type.
+- Sort and page results without loading an entire list into the browser.
+- Save useful grid presentation preferences for recurring work.
+- Manage protected secrets and their revisions from a dedicated security workspace.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Find the right record with typed filters" defaultOpen={true}>
+
+Operational lists are often where a low-code platform either becomes practical or starts to feel like a collection of administration screens. 0.0.3 introduces a reusable server-side grid foundation so the browser can request the portion of a list that is needed for the current view, together with the active filtering and ordering. This supports work across resource, automation and identity-oriented lists without requiring each workspace to invent its own list behavior.
+
+Filtering is type-aware. Text columns can use matching operations such as contains, starts with or ends with; numeric and date columns support equality and range-oriented choices; identifiers have their own matching set; and boolean columns offer direct true, false and empty-state choices. The distinction matters because it keeps the available controls meaningful for the value being inspected, rather than asking users to apply one generic search box to every kind of data.
+
+Sorting and pagination are part of the same interaction. A user can choose the order that makes sense for an investigation, such as the most recently updated work first, while the list remains bounded to the current page of results. That combination is particularly useful for job history, resource records and administrative inventories where the relevant entry is rarely the first one created.
+
+  </Accordion>
+  <Accordion title="Keep a working view that fits the task">
+
+Lists are not only about finding a value once; they are often an operator's working surface throughout the day. The new preference support provides a common foundation for retaining useful grid presentation state. Teams can keep a view arranged around the columns and ordering that matter to a recurring task instead of rebuilding the same table setup every time they return.
+
+Because preferences are part of the shared grid experience, the release moves toward a consistent interaction across the product. The intent is not to force a single layout on every role, but to let a builder, administrator or operator shape the common list surface for the job in front of them. Subsequent releases expand the workspaces that use this foundation; 0.0.3 establishes the reusable behavior itself.
+
+  </Accordion>
+  <Accordion title="Treat secrets as versioned configuration">
+
+Sensitive values receive their own Security workspace. Authorized users can create and manage a secret separately from its revisions, then work with the lifecycle actions attached to that configuration rather than embedding a value directly inside application logic or a generic data record. The browser experience includes list, detail and revision views, giving operators a clear place to see the definition and the revisions associated with it.
+
+The underlying lifecycle supports controlled reveal and operational actions such as activation, disable and destroy. This lets a team rotate or retire a configuration value through an explicit management flow. It also keeps the concept of a secret distinct from the rest of the low-code model: a definition can be identified and administered while access to the underlying value remains a privileged operation.
+
+  </Accordion>
+  <Accordion title="Refine the platform without duplicating the workflow">
+
+This release deliberately builds on the browser builder and automation areas already in place. Schema and record work, logic authoring, job inspection, schedules and event-oriented operations continue to use their established workspaces. 0.0.3 contributes the shared list and security controls that make those areas easier to run at a larger operational scale.
+
+Later releases add application API definitions, managed files and visual comparison of logic revisions. Keeping those additions out of this milestone makes the progression clear: first establish the builder and operator experience, then improve its shared controls, then extend the surrounding application workspace.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Shared query handling for filtered, ordered and counted list results.
+- A common state foundation for server-side operational grids.
+- Security navigation for the new protected configuration area.
+
+## Related guides
+
+[Low-code overview](/low-code/overview) · [Data and records](/low-code/database) · [Automation](/operate/automation) · [Secrets](/operate/secrets)
+
+## Continue through the releases
+
+[Newer: 0.1.0](/changelog/0.1.0) · [All releases](/releases/changelog) · [Earlier: 0.0.2](/changelog/0.0.2)

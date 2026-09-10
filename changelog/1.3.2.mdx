@@ -1,0 +1,71 @@
+---
+title: "1.3.2 — Managed Storage lifecycle and operational delivery"
+sidebarTitle: "1.3.2"
+icon: "tag"
+description: "16 July 2026"
+---
+
+RevoEngine 1.3.2 makes managed files more useful as long-lived application resources rather than anonymous upload outputs. A file can now carry a deliberate expiry, an archive history and a restore choice. The same Storage model reaches profile media and file-transfer workflows, while schedule and event changes keep recurring work connected to a clear operating context.
+
+## Highlights
+
+- Set a Storage entry's lifetime using a duration or an exact expiry.
+- Inspect archive state, including when and why content was archived.
+- Restore content with a new retention decision when required.
+- Keep profile imagery inside managed Storage.
+- Use a Storage entry as a source or destination in supported transfer workflows.
+- Distinguish a maintained platform operation from a team-owned schedule.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Give files an explicit lifetime" defaultOpen={true}>
+
+Storage entries can now carry a retention rule when they are created, uploaded or updated. Teams can use a duration for content whose lifetime starts after finalization, or choose an exact timestamp when a business process has a fixed deadline. That is practical for generated reports, temporary import material, time-bound handoffs and other outputs that should not remain indefinitely by convention alone.
+
+The Storage workspace presents this as part of the entry, alongside its normal details. An archived entry records the archive time and reason, so an operator has useful context when reviewing content that is no longer active. The lifecycle is attached to the managed entry itself, rather than being hidden in each individual producer of that file.
+
+  </Accordion>
+  <Accordion title="Restore intentionally">
+
+Restoring a file is no longer just a reversal of an earlier state. When a file reached expiry, the restore path can require a new retention choice. That asks the person restoring it to decide whether the content should receive another defined lifetime or return without one. It prevents an expired temporary object from silently becoming permanent merely because it was needed once more.
+
+This also makes lifecycle decisions easier to explain. A generated file can be active, archived with a recorded reason, or restored under a newly chosen policy. Teams can apply the same pattern to routine working output and to content that needs a more deliberate review before it returns to an active workflow.
+
+  </Accordion>
+  <Accordion title="Keep application media in Storage">
+
+Profile imagery for people, groups and configured agents now uses managed Storage entries. That brings media into the same ownership, access and lifecycle model as other application content instead of maintaining a separate file path for a visible part of the product. Operators can therefore reason about media with the same familiar entry details and controls used for documents and generated outputs.
+
+The change is especially useful for applications that already use folders and access-controlled Storage as their organizing model. A profile image can live with the rest of its relevant managed content, and its handling follows the established file workflow rather than a parallel mechanism.
+
+  </Accordion>
+  <Accordion title="Move files through a managed workflow">
+
+Custom components can use Explorer Storage as the input or output of supported file-transfer operations. A destination can be created with its name, folder, content hints and retention in one request, or an existing entry can be selected for replacement. This lets an integration receive a file into the application’s managed file model instead of leaving the result outside the workspace.
+
+For example, a short-lived inbound report can be created with a seven-day lifetime as part of its transfer target:
+
+```ts
+await api.sftpGet({
+  storage: { name: 'daily-report.csv', retention: { ttlSeconds: 604800 } },
+}, '/incoming/daily-report.csv', connection);
+```
+
+  </Accordion>
+  <Accordion title="Make recurring delivery easier to follow">
+
+The release also strengthens the operational path around events and schedules. Event-delivery attempts are correlated with the work they produce, giving history a clearer relationship to the request that arrived. Schedule ownership is more explicit as well: a resource-owned recurring operation remains managed by that resource, while ordinary schedules remain the place for team-configured recurring work.
+
+Together, these changes keep a file, a recurring definition and the delivery evidence around it in understandable places. A generated or transferred file can have a lifecycle; a schedule can express intent; and event history can help an operator connect an incoming trigger to the resulting work.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Storage](/operate/storage) · [Runtime API](/low-code/runtime-api) · [Schedules](/operate/schedules) · [Event history](/operate/event-history)
+
+## Continue through the releases
+
+[Newer: 1.3.3](/changelog/1.3.3) · [All releases](/releases/changelog) · [Earlier: 1.3.1](/changelog/1.3.1)

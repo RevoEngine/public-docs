@@ -136,7 +136,7 @@ Use the generated [Preview a Database View action](/api-reference/database-views
 - Updates require the current `version`. A stale version fails rather than overwriting a newer definition.
 - Create and update build the database relation transactionally. Validation or database errors fail the request instead of saving a partial definition.
 - Delete is recoverable: the relation is tombstoned and can be restored if its logical name is available.
-- Export returns 202 and continues as an asynchronous CSV export to an authorized Storage destination. Export output queries cannot redefine joins, CTEs, or raw where clauses.
+- Export returns 202 and continues as an asynchronous CSV or Excel (XLSX) export to an authorized Storage destination. CSV is the default when no format is selected. Excel exports enforce worksheet row and column limits. Export output queries cannot redefine joins, CTEs, or raw where clauses.
 
 ## Database Views API
 

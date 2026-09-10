@@ -1,0 +1,64 @@
+---
+title: "1.1.4 — More deliberate Assistant work: clarify, plan, keep the goal and continue with control"
+sidebarTitle: "1.1.4"
+icon: "tag"
+description: "10 June 2026"
+---
+
+Complex requests are rarely difficult because of one command. They are difficult because a missing choice, an ambiguous target or a changed priority can alter what good work looks like. This release gives the Assistant a clearer task model: make the decision that is missing visible, show the intended sequence, retain a stated goal over the life of the work, and let the user steer or branch a conversation without losing the useful context already established.
+
+## Highlights
+
+- Ask a focused clarification when a necessary choice is missing.
+- Present an execution plan before multi-step work proceeds.
+- Keep an explicit task objective and completion criteria with a thread.
+- Pause, resume, steer or branch a task while retaining context.
+- Use lightweight Assistant responses where a full conversation is not appropriate.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Ask for the decision that matters" defaultOpen={true}>
+
+When a request could safely lead to different outcomes, the Assistant can now ask a focused question instead of silently selecting one. A builder who asks to update an Endpoint, for example, can be asked which version or intended response contract should govern the change. An operator looking for a file-oriented action can resolve the relevant target before work continues.
+
+The answer belongs to the existing task. Users do not need to repeat the request or reconstruct the surrounding detail after supplying the missing decision. This makes clarification feel like a normal part of collaborative work rather than an interruption. It also establishes a practical constraint: a clarification narrows intent; it does not itself approve a protected action or enlarge the resources available to the task.
+
+  </Accordion>
+  <Accordion title="See the work before relying on the result">
+
+For multi-step requests, the Assistant can present an execution plan that separates understanding, preparation, action and validation. The plan helps a user see whether the task is waiting for input, gathering context, preparing a change or ready for the next governed step. It makes a long request inspectable without suggesting that every useful task must become a rigid checklist.
+
+This matters when a task spans several application areas. A plan can make clear that an Endpoint must be inspected before a related automation is adjusted, or that evidence should be reviewed before a configuration change is proposed. The user remains in control of the decision points. Required access checks, review choices and approvals still apply at the relevant action; the plan explains intended work, it is not an authorisation mechanism.
+
+  </Accordion>
+  <Accordion title="Give a conversation a durable objective">
+
+A thread can retain an explicit objective along with success criteria, non-goals and the evidence that should establish completion. That turns a conversation from a stack of isolated prompts into a task with a stated destination. The goal can be updated if scope changes, paused while outside information is gathered and resumed when the work should continue.
+
+The benefit is practical continuity. A user can steer the current response with a correction, branch from a useful earlier message to explore an alternative, or return later without restating what counts as done. Goal state describes intent and keeps the task legible; it does not claim that the Assistant can complete work on its own or that a recorded definition automatically proves completion.
+
+  </Accordion>
+  <Accordion title="Use context with a defined scope">
+
+The Assistant context model also becomes more deliberate. Information can be associated with appropriate task and workspace scope, with explicit visibility and lifecycle choices rather than treating every older detail as permanently interchangeable. That supports continued work while reducing the chance that unrelated material becomes the default context for a new request.
+
+For users, the visible result is a conversation that can stay coherent through planning, clarification and follow-up. The governance remains important: context is available only where the task is allowed to use it, and memory is not a promise that every historical message will be recalled forever.
+
+  </Accordion>
+  <Accordion title="Get a focused answer without creating a full workspace">
+
+Some product surfaces need a concise answer—help understanding a field, interpreting a small result or drafting a short explanation—without automatically adding another prominent long-running conversation to the normal Assistant history. Lightweight responses provide that focused option, including a streamed response when the surface benefits from visible progress.
+
+A full thread remains the right choice for sustained work that needs a goal, files, planning and continuity. The lightweight form gives application builders a complementary interaction shape rather than fragmenting the main Assistant workspace.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Approvals and plans](/ai/approvals-and-plans) · [Agent configuration](/ai/agent-configuration)
+
+## Continue through the releases
+
+[Newer: 1.2.0](/changelog/1.2.0) · [All releases](/releases/changelog) · [Earlier: 1.1.3](/changelog/1.1.3)

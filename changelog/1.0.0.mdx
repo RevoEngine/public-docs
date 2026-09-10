@@ -1,0 +1,65 @@
+---
+title: "1.0.0 — RevoEngine 1.0 — the unified application platform"
+sidebarTitle: "1.0.0"
+icon: "tag"
+description: "14 April 2026"
+---
+
+RevoEngine 1.0 brings a mature application platform into a single public release series. Teams can design reusable business logic, expose governed application APIs, work with structured data and managed files, and operate recurring or background work from connected builder and operator workspaces. This is a broader availability milestone for a platform already proven in production applications, rather than the beginning of its core runtime, data or automation capabilities.
+
+## Highlights
+
+- Build reusable application behavior with Components, shared libraries, the Web IDE and Sandbox.
+- Publish HTTP Endpoints with configuration, validation and controlled execution.
+- Define and operate application data through Databases and queryable records.
+- Store application files in governed folders and use them in business workflows.
+- Connect Components to Jobs, Schedules, Events and Webhooks.
+- Run an application with identity, permissions, history and operational dashboards in the same platform.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build business logic once and reuse it" defaultOpen={true}>
+
+Components are the unit of reusable application behavior. A builder can organize application logic into named elements, edit source in the browser, compare changes and use approved libraries rather than duplicating common code across screens and integrations. The Web IDE supports the authoring workflow, while Sandbox provides a place to validate and debug work before it becomes active.
+
+That distinction matters in production application delivery. Editing, testing, activating and observing a Component are deliberate stages, so teams can keep a dependable relationship between the source they review and the version reached by a caller. The platform is designed for business logic that is useful both behind an internal application screen and behind an external integration.
+
+  </Accordion>
+  <Accordion title="Publish governed APIs">
+
+Endpoints turn selected application logic into an HTTP contract. Builders configure the route, request expectations and execution behavior, then use the platform’s operational surfaces to inspect the resulting activity. This gives a team a practical route from tested Component logic to an integration without requiring a separate custom control plane for every service it publishes.
+
+An Endpoint is not simply a raw function host. Its contract, application context and applicable access controls travel with the configured application definition. That helps teams keep externally reachable behavior aligned with the same delivery, identity and operational model used inside RevoEngine.
+
+  </Accordion>
+  <Accordion title="Work with data and files in the same application model">
+
+Databases combine application definitions with records and supported data operations. Builders can model the data an application owns, work with it in an operational workspace and use it from Components and Endpoint flows. The result is a common application data model rather than separate, disconnected configuration and record-management experiences.
+
+Storage adds managed file and folder workflows. Uploads, generated outputs and supporting business documents can be organised under governed access rules and used as part of application work. Together, data and files support everyday production workflows such as imports, exports, document generation and asynchronous processing.
+
+  </Accordion>
+  <Accordion title="Automate and operate dependable work">
+
+Jobs, Schedules, Events and Webhooks connect application logic to background, recurring and event-driven work. Operators can follow an execution from its configured definition to its run history and related logs, rather than treating automation as invisible infrastructure. This makes it easier to answer practical questions: what ran, what input started it, what happened, and what should run next.
+
+Dashboards and workspace navigation keep that operating picture close to the things a team configures. A builder can move between an application object, the latest execution evidence and the associated data or files without rebuilding context each time.
+
+  </Accordion>
+  <Accordion title="Identity remains part of the product boundary">
+
+Users, service accounts, groups, role groups, permissions and secrets provide the access model for builders, operators and integrations. The same instance boundary applies whether a capability is reached through a workspace, an API or an automated execution. This makes controlled application delivery a platform concern rather than an afterthought attached to individual screens.
+
+Early Assistant and Agent capabilities are included as developing product areas, but they do not redefine the maturity of the established low-code platform. The later release series expands their governed interaction model while Components, data, Storage, automation and operator workspaces remain the production foundation.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Platform overview](/platform/overview) · [First production workflow](/platform/first-production-workflow) · [Web IDE](/build/web-ide) · [Automation](/operate/automation) · [Identity and access](/operate/identity-and-access)
+
+## Continue through the releases
+
+[Newer: 1.0.1](/changelog/1.0.1) · [All releases](/releases/changelog) · [Earlier: 0.9.0](/changelog/0.9.0)

@@ -1,0 +1,70 @@
+---
+title: "1.2.1 — Connected workspaces, better context"
+sidebarTitle: "1.2.1"
+icon: "tag"
+description: "25 June 2026"
+---
+
+RevoEngine 1.2.1 makes the platform easier to use from the places where real work happens: a compatible AI client, a team conversation, a partial search result, or a file produced during an operation. The release connects those entry points to the same governed application context rather than introducing a parallel workspace or a shortcut around the platform's normal controls.
+
+## Highlights
+
+- Connect compatible AI clients through authenticated Model Context Protocol sessions.
+- Discover the capabilities a connection is allowed to use before work begins.
+- Reply to a specific team message and add lightweight reactions without fragmenting the discussion.
+- Find snapshot-backed resources from meaningful partial terms.
+- Persist streamed file output as a governed Storage result.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Connect an AI client to the platform you already operate" defaultOpen={true}>
+
+Model Context Protocol (MCP) connectivity gives a compatible external AI client a standard way to begin an authenticated session with RevoEngine. Once connected, the client can discover the tools, resources and prompts that the instance makes available. That is particularly useful for a builder who wants to work in a preferred client while still operating against the application, data and permissions already configured in RevoEngine.
+
+The connection is intentionally a capability boundary, not a data export. A client does not receive a second, detached copy of customer information simply by connecting. It works through the capabilities exposed by the instance, and individual operations continue to be subject to their normal input, permission and approval requirements. This makes connection setup a distinct concern from the business operation a tool ultimately performs.
+
+  </Accordion>
+  <Accordion title="Make external capabilities an explicit choice">
+
+MCP-backed capability servers can be configured alongside the other tools used for assisted work. That gives an operator a clear place to decide what is available before a task starts, rather than leaving a user to infer why a particular action appeared in a conversation. A useful pattern is to enable only the connection needed for a workflow, inspect the discovered capabilities, and then let the existing policy determine which operations can actually proceed.
+
+This also improves troubleshooting. A failed connection can be investigated at the session boundary; an available capability can be checked for its own inputs and authorization; and a requested action can still wait for a user decision where that is required. The result is a connected workflow with understandable boundaries rather than a black-box handoff.
+
+  </Accordion>
+  <Accordion title="Keep discussions attached to the message that matters">
+
+Team conversations gain two small but important ways to preserve context. A reply records the message it answers, so a question about a configuration, file or decision can remain attached to the original statement even after newer messages arrive. Emoji reactions provide lightweight acknowledgement without forcing a separate follow-up message for every confirmation.
+
+The safeguards matter as much as the interaction. A reply target must belong to the same thread and cannot be a deleted message. System-generated threads remain protected from normal user changes, including actions such as archiving or muting that would make an operational message harder to find. These choices keep ordinary collaboration flexible while preserving a reliable channel for system work.
+
+  </Accordion>
+  <Accordion title="Search from the clue you have">
+
+Resource discovery is improved for the common moment when an operator remembers only part of a name, identifier or definition. Snapshot-backed search now supports partial-token matching, making a distinctive fragment more useful than it was in an exact-name-oriented flow. A builder investigating a component, endpoint or other resource can start from the clue at hand and narrow from the results, instead of recreating the full original wording first.
+
+Search remains a discovery operation. It helps a user locate accessible context; it does not grant access to a resource or turn an unknown object into an editable one. That distinction is valuable for both human navigation and AI-assisted work: a useful result can inform the next step without silently widening the scope of that step.
+
+  </Accordion>
+  <Accordion title="Treat generated files as durable outcomes">
+
+Storage gains a streamed write path for work that produces a file over time. When the output is ready, RevoEngine persists the Storage entry with its normal metadata and access handling, and can surface the result through the existing system-message flow. A user therefore receives a usable file outcome rather than a fragile link in a transient response.
+
+This is practical for exports, generated reports and other operations whose result is naturally a file. The file remains part of the platform's Storage model: its name, type, metadata and access context travel with the persisted entry, while success and failure can be communicated back to the relevant user.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Webhook configuration can carry structured metadata and make proxying an explicit setting.
+- Conversation attachments resolve through their recorded Storage context, helping shared discussions keep file links meaningful.
+- Assisted-work policy refinements keep requested decisions separate from execution.
+
+## Related guides
+
+[MCP overview](/developers/mcp-overview) · [Connect a client](/developers/mcp-connect) · [MCP sessions](/developers/mcp-sessions) · [Storage](/operate/storage) · [Collaboration](/operate/chat)
+
+## Continue through the releases
+
+[Newer: 1.2.2](/changelog/1.2.2) · [All releases](/releases/changelog) · [Earlier: 1.2.0](/changelog/1.2.0)

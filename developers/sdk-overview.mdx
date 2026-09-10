@@ -69,6 +69,10 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 ## Contract behavior
 
+SDK 2.0 requires a platform deployment compatible with its versioned contract. Keep SDK 1.0.1 for older deployments until the platform is upgraded; installing a newer SDK does not update hosted Component package pins.
+
+When migrating to 2.0, use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls. The [SDK 2.0 release notes](/changelog/1.4.3) explain the migration with an HTTP-to-Storage example.
+
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
 
 <Note>

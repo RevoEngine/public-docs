@@ -1,0 +1,60 @@
+---
+title: "1.1.3 — Find the right application area, keep Storage boundaries intact and return to active work"
+sidebarTitle: "1.1.3"
+icon: "tag"
+description: "24 May 2026"
+---
+
+This release improves three moments that matter in a busy application: orienting yourself before opening an object, working with files whose parent folders carry access meaning, and returning to an Assistant task after a brief interruption. The changes extend existing platform workflows rather than creating parallel ways to search, secure files or follow a conversation.
+
+## Highlights
+
+- Search for categories as well as individual application objects.
+- See the kinds of objects a category contains before choosing one.
+- Apply Storage restrictions across the full folder path.
+- Reconnect to recent visible Assistant activity during an active response.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Start with the shape of the application" defaultOpen={true}>
+
+Global search can return categories alongside direct object matches. This is useful when a builder knows the business area—such as onboarding, fulfilment or finance—but does not know the exact Endpoint, Component, Schedule or file to open. A category result identifies the application-object types associated with that category and shows how much related material is available, giving the user a sensible next step before narrowing the search.
+
+Search remains scoped to what the caller may discover. Category results do not reveal a hidden object merely because its name would match a broad term. That keeps search useful as a navigation aid without turning it into an alternate access path. Once a category is selected, familiar filtered search and resource views remain the place to inspect real definitions.
+
+  </Accordion>
+  <Accordion title="Treat folder boundaries as real boundaries">
+
+Storage now evaluates effective access across the full folder hierarchy. If a file sits inside a restricted parent folder, access to the file must make sense against that parent as well as against the file's own settings. This aligns the meaning of a protected folder with what users expect: moving content below it does not make the parent restriction irrelevant.
+
+For a team, the workflow is straightforward. Organise sensitive material below a restricted folder, grant appropriate people or groups access at the relevant level, and use standard Storage views and file-oriented workflows with the same expectation of protection. Exploration can indicate when a restriction is inherited from an ancestor, helping an operator understand why an item is not generally available. This refines existing access control; it is not a separate permission model or a substitute for deliberate sharing choices.
+
+  </Accordion>
+  <Accordion title="Return to a conversation that is still working">
+
+Assistant activity is easier to follow when the browser connection is interrupted or the user returns while a response is still being produced. The conversation can recover recent visible events after the last event received, so the user sees a continuous task rather than an unexplained gap.
+
+That helps while checking an Endpoint configuration, switching briefly to a Storage record or recovering from a transient connection drop. The feature is continuity for an active response. It does not turn the stream into permanent audit history, and it does not change governed message history or conversation permissions.
+
+  </Accordion>
+  <Accordion title="Keep discovery, context and action connected">
+
+Together these changes reduce friction without concealing enterprise constraints. Search can begin at a meaningful category; the selected resource still has its normal context and permissions. Storage protects a hierarchy as a hierarchy; the operator can inspect why a restriction applies. Assistant activity can resume visibly; the conversation remains tied to its normal task and available capabilities.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Search results use clearer application-object type context.
+- Storage exploration carries inherited-restriction information for relevant items.
+- Assistant streaming receives continuity improvements for in-progress responses.
+
+## Related guides
+
+[Search](/platform/search) · [Storage](/operate/storage) · [Permissions](/operate/permissions) · [Assistant](/ai/assistant)
+
+## Continue through the releases
+
+[Newer: 1.1.4](/changelog/1.1.4) · [All releases](/releases/changelog) · [Earlier: 1.1.2](/changelog/1.1.2)

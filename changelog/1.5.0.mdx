@@ -1,0 +1,200 @@
+---
+title: "1.5.0 — Reviewed AI changes, native spreadsheets and personal memory"
+sidebarTitle: "1.5.0"
+icon: "tag"
+description: "10 September 2026"
+---
+
+RevoEngine 1.5.0 substantially expands the Assistant, managed file processing and high-volume data operations. It builds on the stable Assistant Gateway and the established Database, Storage, Component and Automation foundation, adding workflows that keep proposed changes reviewable, generated files governed and longer-running work easier to continue.
+
+## Highlights
+
+- Review proposed Component and Endpoint changes before they are applied.
+- Receive a visible manual, automatic or fallback decision outcome.
+- Manage Assistant defaults, instructions and personal memory in one workspace.
+- Continue focused work from forked conversations and discover accessible earlier results.
+- Create, read and export native CSV and Excel files through managed Storage.
+- Apply an ordered sequence of Database text, array, number and JSON operations.
+- See new release information in the application and use a more compact conversation workspace.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Review the actual proposed change" defaultOpen={true}>
+
+Assistant changes to supported Components and Endpoints can show the current and proposed source alongside editable properties. The review is designed to explain the business effect of a change without hiding the surrounding context needed to judge it. A compact comparison keeps the decision in the conversation, while a larger comparison view supports closer inspection without losing the active work.
+
+The proposal is tied to the version and effect that were inspected. If the underlying source changes first, a fresh proposal is required rather than applying an outdated comparison. Supported precise text edits can use the same review-aware path for Component elements, Agent-related text and managed Storage text.
+
+  </Accordion>
+  <Accordion title="Automatic review with visible outcomes">
+
+Some explicitly requested changes can receive an automatic outcome when the available evidence supports a safe decision. The conversation distinguishes that result from manual approval and from a fallback to a user decision when intent, evidence or proposal freshness is insufficient. Each outcome carries an explanation that remains with the work history, so a user can inspect both the original request and the resulting change.
+
+This is not a removal of user control. Eligibility is bounded, and an unclear or stale proposal returns to a visible manual decision. The goal is to reduce unnecessary friction for well-supported changes while keeping a consequential mutation understandable and accountable.
+
+  </Accordion>
+  <Accordion title="AI preferences, memory and continuity">
+
+Assistant preferences bring defaults, instructions and personal memory together under one save action. Users can review, replace or clear their own memory text, making durable context a visible product setting instead of hidden message-by-message behavior. Instructions express how the Assistant should work; memory contributes relevant context within a bounded budget.
+
+Forked conversations carry a focused account of relevant earlier messages, attachments and artifacts, allowing a user to explore a related path without losing the original work. Scoped discovery can search accessible conversation material with date filters and continuation pages, while an exact result is checked again before it is opened.
+
+  </Accordion>
+  <Accordion title="Native CSV and Excel authoring">
+
+Storage upload sessions can accept structured rows and workbook batches. CSV writing supports deliberate encoding, BOM, delimiter and quoting choices. Spreadsheet workflows can declare columns and typed values, then use headers, filters, frozen panes, hidden content, styles and formulas where appropriate. Staged writing serves inferred layouts and sparse cells; direct writing suits a known layout and row-only append flow.
+
+Structured reads can select columns, limit rows and continue with a cursor so a large file need not be loaded wholesale into application code. CSV handles supported encodings and quoted multiline fields, while Excel reads can target a worksheet. Exact large numbers remain text where a spreadsheet numeric cell would lose precision, and formula-like CSV values are escaped by default.
+
+  </Accordion>
+  <Accordion title="Database exports and ordered mass updates">
+
+Database and View export workflows offer CSV and Excel while preserving the managed destination, filename and access model. Excel exports preserve supported numbers, booleans and dates, retain precision-sensitive values as text, and validate spreadsheet limits before the job is accepted. Completed outputs remain discoverable through the existing job and Storage lifecycle.
+
+Mass Update can now apply up to one hundred ordered operations, including repeated work on the same column. Builders can combine text transformations, array membership changes and JSON merge, set or path removal in one request. Empty strings, JSON scalars and precise large values remain literal values; NULL stays NULL unless an explicit empty-value policy is selected.
+
+  </Accordion>
+  <Accordion title="A clearer everyday workspace">
+
+Longer conversations gain responsive thread navigation and compact, expandable content previews, making it easier to return to a selected thread on smaller screens. The application also has a release-news modal backed by an authenticated release payload, so a user can see a release title, date, highlights and a link to the full notes after sign-in. The update appears only after entering an authenticated instance, not on the login screen. The application remembers the acknowledged version separately for each user and instance in that browser. A first visit shows the latest release; returning users see a newer release once. The permanent What’s new entry shows the current version and reopens its highlights, with the full release page one click away.
+
+  </Accordion>
+  <Accordion title="Build a workbook with headers, filters and formulas">
+
+A report can be written as structured data rather than assembled as binary content in the Component. This example creates a price sheet and a summary sheet, keeps identifiers as text, formats numeric prices and freezes the header row.
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'price-report.xlsx',
+  contentTypeHint:
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  writeMode: 'staged',
+  sheets: [
+    {
+      name: 'Prices',
+      freeze: { rows: 1 },
+      table: {
+        header: true,
+        autoFilter: true,
+        columns: [
+          { key: 'sku', header: 'SKU', type: 'string', width: 22 },
+          {
+            key: 'price', header: 'Price', type: 'number',
+            style: { numFmt: '#,##0.00' },
+          },
+        ],
+      },
+    },
+    { name: 'Summary' },
+  ],
+});
+
+await storage.uploadPart(session.storageUploadSessionId, {
+  sheets: [
+    {
+      sheet: 'Prices',
+      rows: [
+        { sku: '000100', price: 19.95 },
+        { sku: '000200', price: 29.95 },
+      ],
+    },
+    {
+      sheet: 'Summary',
+      cells: [
+        { address: 'A1', value: 'Total price' },
+        { address: 'B1', formula: 'SUM(Prices!B2:B3)', result: 49.9 },
+      ],
+    },
+  ],
+});
+
+const { entry } =
+  await storage.finalizeUploadSession(session.storageUploadSessionId);
+return { storageEntryId: entry.storageEntryId };
+```
+
+Use staged writing for sparse cells, formulas or an inferred layout. For a large row-only export with a known layout, choose `writeMode: 'direct'` and declare every worksheet and column when creating the session. Parts select a worksheet with `sheet`; session layout declarations name it with `name`. Finalization is the point at which the resulting managed file is available.
+
+  </Accordion>
+  <Accordion title="Produce CSV for a specific receiving system">
+
+CSV output can specify its dialect instead of leaving encoding and separators to the recipient's assumptions. Here the header labels differ from the object keys, a UTF-8 BOM is requested and the delimiter is a semicolon.
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'customers.csv',
+  contentTypeHint: 'text/csv',
+  writeMode: 'direct',
+  csv: { encoding: 'utf8', bom: true, delimiter: ';' },
+  sheets: [{
+    name: 'Customers',
+    table: {
+      header: true,
+      columns: [
+        { key: 'id', header: 'Customer ID' },
+        { key: 'name', header: 'Customer name' },
+      ],
+    },
+  }],
+});
+await storage.uploadPart(session.storageUploadSessionId, {
+  rows: [{ id: '000042', name: 'Müller & Co.' }],
+});
+const result =
+  await storage.finalizeUploadSession(session.storageUploadSessionId);
+return { entry: result.entry, stats: result.fileStats };
+```
+
+The writer handles quoting and record formatting. Formula-like text is escaped by default, and applications can retain precision-sensitive identifiers as text instead of converting them to spreadsheet numbers. The same structured-file family supports bounded reads, selected columns and cursor continuation for downstream processing.
+
+  </Accordion>
+  <Accordion title="Consume an outbound event stream">
+
+HTTP streaming now distinguishes an application-consumed stream from a managed Storage transfer. V8 Components can consume bytes or decoded SSE events incrementally; they do not need to wait for the complete response body.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://provider.example/events',
+    method: 'POST',
+    headers: { Accept: 'text/event-stream' },
+    data: { stream: true },
+  },
+  {
+    requestType: 'json',
+    responseType: 'stream',
+    streamFormat: 'sse',
+    timeout: 60000,
+  },
+);
+let eventCount = 0;
+try {
+  if (response.status < 200 || response.status >= 300) {
+    return { status: response.status };
+  }
+  for await (const event of response.data) {
+    // Decode event.data according to the provider's documented format.
+    if (event.event === 'completed' || event.data === '[DONE]') break;
+    eventCount++;
+  }
+  return { eventCount };
+} finally {
+  await response.close();
+}
+```
+
+The initial call resolves after headers; iteration waits for subsequent data. Closing releases the upstream request even if the response is never fully consumed. The timeout covers the whole operation, not a fresh interval for every event. Reconnection and replay remain application decisions. This is outbound SSE consumption in the managed V8 runtime, not a new inbound Endpoint SSE response mode.
+
+For a file that should go directly into managed Storage, use `responseType: 'storage'` with a `target`; for a Storage-backed upload use `requestType: 'storage'` with a `source`. This release replaces the older Storage-transfer use of the word `stream` with that explicit distinction.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Approvals and plans](/ai/approvals-and-plans) · [AI preferences](/ai/assistant-configuration) · [Memory and workspaces](/ai/memory-and-workspaces) · [Storage](/operate/storage) · [Databases](/operate/databases) · [HTTP and Storage](/low-code/http-and-storage)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.4.3](/changelog/1.4.3)

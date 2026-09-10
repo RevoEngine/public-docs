@@ -1,0 +1,72 @@
+---
+title: "0.8.0 — Live conversation workspaces, stronger low-code authoring and more focused operations"
+sidebarTitle: "0.8.0"
+icon: "tag"
+description: "31 March 2026"
+---
+
+RevoEngine 0.8.0 connects three parts of everyday application work: following an active Assistant conversation, writing reusable low-code logic with better structure, and operating large resource views without losing the surrounding context. The release advances the early Assistant substantially, while also delivering non-AI improvements to query authoring, shared libraries, navigation and grids. That balance matters: the conversational experience grows alongside the established platform rather than standing in for it.
+
+## Highlights
+
+- Follow an Assistant response as it develops inside its active conversation.
+- Use shared low-code libraries with typed members available during authoring.
+- Write structured Database queries with editor-aware support.
+- Expand and organise favourite navigation items into a hierarchy.
+- Focus dense server-backed grids in a dedicated larger working view.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Stay in the conversation while work is happening" defaultOpen={true}>
+
+The Assistant becomes a more active conversation workspace. Instead of treating a response as one completed block that arrives after a wait, the application can keep the current thread, its messages and streamed activity together as the response develops. The composer, message presentation and conversation list are reworked around that live state, so a user can remain oriented in the same task while the result is still taking shape.
+
+This makes longer exchanges more usable. The person asking the question can see the current conversation in context and continue operating the application around it, rather than moving through a disconnected chat surface. It is a meaningful step in the Assistant's progression, but it remains an early platform-aware Assistant rather than the later stable Agentic System, governed change workflow or autonomous operation.
+
+  </Accordion>
+  <Accordion title="Make reusable logic easier to call correctly">
+
+Low-code Components often need shared business rules, not duplicated snippets copied from one element to another. This release improves the authoring contract for shared libraries by making typed library members available in the editor. A builder can work against a clearer description of a reusable member and its inputs, which makes the relationship between a Component and its shared logic easier to understand before execution.
+
+The managed V8 runtime remains the place where the Component is executed; the improvement is about helping the builder express valid code in the first place. Reusable logic can stay in a library, while the Component keeps the application-specific orchestration that belongs to its own workflow.
+
+  </Accordion>
+  <Accordion title="Give Database queries a structured low-code surface">
+
+Structured query authoring is added to the low-code runtime and editor support. Instead of requiring every data-oriented Component to invent its own unstructured access pattern, a builder can describe a Database request through the supported query capability and receive validation and authoring assistance.
+
+For example, the structured query surface supports a Component that loads a record by a value supplied in its execution input:
+
+```js
+const response = await api.getDatabaseDataV2('customers', {
+  filter: {
+    field: 'customerId',
+    op: 'eq',
+    value: api.input()?.body?.customerId,
+  },
+  take: 1,
+});
+
+return 'result' in response ? response.result.data[0] ?? null : null;
+```
+
+The snippet illustrates a bounded application task: read a managed Database, make the structured filter explicit and return a defined result when no matching row exists. It is not an invitation to bypass the managed data model or a claim that arbitrary database access is available.
+
+  </Accordion>
+  <Accordion title="Keep navigation useful as the workspace grows">
+
+Favourites gain hierarchical organisation and expand-or-collapse behaviour. This lets an operator keep related resources together rather than flattening every useful destination into one long list. The improvement is small in isolation, yet valuable when a person repeatedly moves between Components, Databases, operational views and the Assistant over a longer session.
+
+Grid work also gains a focused larger view for server-backed resource tables. A user can move a dense grid into a mode where the data has more room, while the grid state remains part of the surrounding application experience. It is designed for investigation and operation, not as a separate reporting product.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Web IDE](/build/web-ide) · [Components](/build/components) · [Databases](/operate/databases) · [Navigation](/platform/ui-tour)
+
+## Continue through the releases
+
+[Newer: 0.9.0](/changelog/0.9.0) · [All releases](/releases/changelog) · [Earlier: 0.7.0](/changelog/0.7.0)

@@ -15,7 +15,10 @@
   "favicon": "/favicon.svg",
   "navbar": {
     "links": [
-      { "label": "Status", "href": "https://revoengine.statuspage.io/" }
+      {
+        "label": "Status",
+        "href": "https://revoengine.statuspage.io/"
+      }
     ],
     "primary": {
       "type": "button",
@@ -32,12 +35,19 @@
           {
             "group": "Get started",
             "icon": "rocket",
-            "pages": ["introduction", "quickstart", "platform/ui-tour", "platform/search"]
+            "pages": [
+              "introduction",
+              "quickstart",
+              "platform/ui-tour",
+              "platform/search"
+            ]
           },
           {
             "group": "Guides",
             "icon": "compass",
-            "pages": ["platform/first-production-workflow"]
+            "pages": [
+              "platform/first-production-workflow"
+            ]
           },
           {
             "group": "Architecture and concepts",
@@ -61,7 +71,15 @@
         "groups": [
           {
             "group": "Components",
-            "pages": ["build/components", "build/component-configuration", "build/libraries", "build/custom-nodejs", "build/web-ide", "build/playground", "build/debugging"]
+            "pages": [
+              "build/components",
+              "build/component-configuration",
+              "build/libraries",
+              "build/custom-nodejs",
+              "build/web-ide",
+              "build/playground",
+              "build/debugging"
+            ]
           },
           {
             "group": "Low-code runtime",
@@ -130,7 +148,13 @@
         "groups": [
           {
             "group": "Assistant",
-            "pages": ["ai/overview", "ai/assistant", "ai/assistant-configuration", "ai/agentic-coding", "ai/approvals-and-plans"]
+            "pages": [
+              "ai/overview",
+              "ai/assistant",
+              "ai/assistant-configuration",
+              "ai/agentic-coding",
+              "ai/approvals-and-plans"
+            ]
           },
           {
             "group": "Autonomous agents",
@@ -184,11 +208,137 @@
           },
           {
             "group": "CLI",
-            "pages": ["developers/cli", "developers/cli-projects", "developers/cli-environments"]
+            "pages": [
+              "developers/cli",
+              "developers/cli-projects",
+              "developers/cli-environments"
+            ]
           },
           {
             "group": "VS Code",
-            "pages": ["developers/vscode-extension"]
+            "pages": [
+              "developers/vscode-extension"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "icon": "clock-rotate-left",
+        "groups": [
+          {
+            "group": "Release notes",
+            "pages": [
+              "releases/changelog"
+            ]
+          },
+          {
+            "group": "Public releases",
+            "pages": [
+              {
+                "group": "1.5.x",
+                "pages": [
+                  "changelog/1.5.0"
+                ]
+              },
+              {
+                "group": "1.4.x",
+                "pages": [
+                  "changelog/1.4.3",
+                  "changelog/1.4.2",
+                  "changelog/1.4.1",
+                  "changelog/1.4.0"
+                ]
+              },
+              {
+                "group": "1.3.x",
+                "pages": [
+                  "changelog/1.3.3",
+                  "changelog/1.3.2",
+                  "changelog/1.3.1",
+                  "changelog/1.3.0"
+                ]
+              },
+              {
+                "group": "1.2.x",
+                "pages": [
+                  "changelog/1.2.3",
+                  "changelog/1.2.2",
+                  "changelog/1.2.1",
+                  "changelog/1.2.0"
+                ]
+              },
+              {
+                "group": "1.1.x",
+                "pages": [
+                  "changelog/1.1.4",
+                  "changelog/1.1.3",
+                  "changelog/1.1.2",
+                  "changelog/1.1.1",
+                  "changelog/1.1.0"
+                ]
+              },
+              {
+                "group": "1.0.x",
+                "pages": [
+                  "changelog/1.0.3",
+                  "changelog/1.0.2",
+                  "changelog/1.0.1",
+                  "changelog/1.0.0"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Before 1.0",
+            "pages": [
+              {
+                "group": "2026",
+                "pages": [
+                  "changelog/0.9.0",
+                  "changelog/0.8.0"
+                ]
+              },
+              {
+                "group": "2025",
+                "pages": [
+                  "changelog/0.7.0",
+                  "changelog/0.6.0",
+                  "changelog/0.5.2",
+                  "changelog/0.5.1",
+                  "changelog/0.5.0",
+                  "changelog/0.4.1"
+                ]
+              },
+              {
+                "group": "2024",
+                "pages": [
+                  "changelog/0.4.0",
+                  "changelog/0.3.3",
+                  "changelog/0.3.2",
+                  "changelog/0.3.1",
+                  "changelog/0.3.0"
+                ]
+              },
+              {
+                "group": "2023",
+                "pages": [
+                  "changelog/0.2.0",
+                  "changelog/0.1.3",
+                  "changelog/0.1.2",
+                  "changelog/0.1.1",
+                  "changelog/0.1.0",
+                  "changelog/0.0.3",
+                  "changelog/0.0.2"
+                ]
+              },
+              {
+                "group": "2022",
+                "pages": [
+                  "changelog/0.0.1"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -198,7 +348,11 @@
         "groups": [
           {
             "group": "Before you start",
-            "pages": ["api-reference/introduction", "api-reference/authentication", "api-reference/http-codes"]
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication",
+              "api-reference/http-codes"
+            ]
           },
           {
             "group": "Platform API",
@@ -227,10 +381,20 @@
   },
   "api": {
     "openapi": "api-reference/openapi.json",
-    "playground": { "display": "interactive", "proxy": true, "credentials": false },
-    "params": { "expanded": "closed" },
+    "playground": {
+      "display": "interactive",
+      "proxy": true,
+      "credentials": false
+    },
+    "params": {
+      "expanded": "closed"
+    },
     "examples": {
-      "languages": ["curl", "javascript", "python"],
+      "languages": [
+        "curl",
+        "javascript",
+        "python"
+      ],
       "defaults": "required",
       "autogenerate": true
     }
@@ -239,10 +403,15 @@
     "prompt": "Search RevoEngine concepts, guides, SDK examples, and API operations"
   },
   "contextual": {
-    "options": ["copy", "view"],
+    "options": [
+      "copy",
+      "view"
+    ],
     "display": "toc"
   },
-  "metadata": { "timestamp": true },
+  "metadata": {
+    "timestamp": true
+  },
   "seo": {
     "indexing": "navigable",
     "metatags": {
@@ -251,17 +420,53 @@
     }
   },
   "redirects": [
-    { "source": "/mcp", "destination": "/developers/mcp-overview" },
-    { "source": "/developers/mcp", "destination": "/developers/mcp-overview" },
-    { "source": "/run-api/:slug*", "destination": "/developers/endpoint-runtime" },
-    { "source": "/solutions/endpoints", "destination": "/operate/endpoints" },
-    { "source": "/solutions/databases", "destination": "/operate/databases" },
-    { "source": "/solutions/files", "destination": "/operate/storage" },
-    { "source": "/solutions/jobs", "destination": "/operate/automation" },
-    { "source": "/solutions/realtime", "destination": "/operate/realtime" },
-    { "source": "/features/ai-assistant", "destination": "/ai/assistant" },
-    { "source": "/features/events", "destination": "/operate/automation" },
-    { "source": "/features/schedule", "destination": "/operate/automation" },
-    { "source": "/resources", "destination": "/platform/overview" }
+    {
+      "source": "/mcp",
+      "destination": "/developers/mcp-overview"
+    },
+    {
+      "source": "/developers/mcp",
+      "destination": "/developers/mcp-overview"
+    },
+    {
+      "source": "/run-api/:slug*",
+      "destination": "/developers/endpoint-runtime"
+    },
+    {
+      "source": "/solutions/endpoints",
+      "destination": "/operate/endpoints"
+    },
+    {
+      "source": "/solutions/databases",
+      "destination": "/operate/databases"
+    },
+    {
+      "source": "/solutions/files",
+      "destination": "/operate/storage"
+    },
+    {
+      "source": "/solutions/jobs",
+      "destination": "/operate/automation"
+    },
+    {
+      "source": "/solutions/realtime",
+      "destination": "/operate/realtime"
+    },
+    {
+      "source": "/features/ai-assistant",
+      "destination": "/ai/assistant"
+    },
+    {
+      "source": "/features/events",
+      "destination": "/operate/automation"
+    },
+    {
+      "source": "/features/schedule",
+      "destination": "/operate/automation"
+    },
+    {
+      "source": "/resources",
+      "destination": "/platform/overview"
+    }
   ]
 }

@@ -1,0 +1,78 @@
+---
+title: "1.4.1 — Node.js SDK, reusable low-code and managed key lifetimes"
+sidebarTitle: "1.4.1"
+icon: "tag"
+description: "1 September 2026"
+---
+
+RevoEngine 1.4.1 introduces a typed Node.js SDK for managed Custom Node.js Components and standalone services. It gives developers one supported way to reuse application capabilities and active low-code, while API-key expiry management gives administrators a practical control for time-bounded connections.
+
+## Highlights
+
+- Start a Custom Node.js Component from an SDK-aware template.
+- Use typed API, Storage, Agent, utility and batch namespaces.
+- Connect a standalone service with an instance-scoped API key.
+- Invoke supported low-code from an authenticated Node.js client.
+- Set or adjust a future expiration for an existing API key.
+- Upgrade against a versioned public contract.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Start hosted code with the right context" defaultOpen={true}>
+
+New Custom Node.js Components now start with an SDK-aware entrypoint and package definition. The handler receives the hosted RevoEngine runtime directly, including API, Storage, Agent, utility and batch operations. An author can begin with the application capabilities available to the execution instead of assembling unrelated clients before writing the first feature.
+
+The hosted SDK is for code that belongs to the application itself. It uses the active execution context, so a Component can work with the same managed services as its surrounding workflow. This makes Custom Node.js a natural option for an extension that needs a familiar Node.js authoring model while remaining part of the managed RevoEngine environment.
+
+  </Accordion>
+  <Accordion title="Connect an external service deliberately">
+
+A standalone Node.js service can create an SDK client with an instance-scoped API key and call supported platform namespaces. That gives an integration a typed route to permitted application data and managed Storage without recreating request conventions for each call.
+
+Hosted Components and standalone services share a vocabulary but keep their different contexts clear. A Component receives values from its active execution; an external service establishes an authenticated connection first. Teams can therefore reuse platform-oriented code patterns without treating a background service as though it were an in-app Component.
+
+  </Accordion>
+  <Accordion title="Reuse the low-code you already own">
+
+The SDK adds transient execution of supported low-code. An integration can call a rule already maintained in a Component instead of copying that rule into a separate service. For a standalone service, construct an authenticated client, then pass a small input object to a bounded execution and consume the JSON-serializable result in its own workflow:
+
+```ts
+import { RevoClient } from '@revoengine/sdk';
+
+const apiKey = process.env.REVO_API_KEY;
+if (!apiKey) throw new Error('REVO_API_KEY is required.');
+
+const revo = new RevoClient({ apiKey });
+const result = await revo.execute(
+  `return { region: api.input('region') }`,
+  { inputs: { region: 'eu' }, timeoutMs: 10_000 },
+);
+```
+
+The managed V8 runtime executes the supported low-code with the active application libraries. This helps keep a shared business rule in one place: the managed Component lifecycle continues to own the authored source and activation, while the integration gets a deliberate reuse path.
+
+  </Accordion>
+  <Accordion title="Make upgrades testable">
+
+The SDK publishes a versioned public contract so editor tooling can expose supported method names and argument shapes. A team can select an SDK update deliberately, test it with the application runtime it expects to use and recognize an incompatible surface instead of accepting an unexpected reply as a valid business result.
+
+The contract benefits both authoring modes. A hosted Component does not need an unrelated remote client to use its own context, and a standalone service can discover the supported external call surface without relying on undocumented shapes.
+
+  </Accordion>
+  <Accordion title="Give API keys an explicit end date">
+
+Administrators can now set or change a future expiration for an existing API key. This supports a connection that has a planned access window, such as a staged integration or a temporary operational task, without requiring a separate key solely to revise its end date. The supplied value is checked as a future timestamp and must leave a minimum usable lifetime.
+
+This is an access-lifecycle enhancement, not a change to what a key is allowed to do. It gives teams a clearer way to plan and review when an existing integration should stop using a credential.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Custom Node.js](/build/custom-nodejs) · [SDK overview](/developers/sdk-overview) · [Hosted SDK](/developers/sdk-hosted) · [Standalone SDK](/developers/sdk-standalone) · [Identity and access](/operate/identity-and-access)
+
+## Continue through the releases
+
+[Newer: 1.4.2](/changelog/1.4.2) · [All releases](/releases/changelog) · [Earlier: 1.4.0](/changelog/1.4.0)

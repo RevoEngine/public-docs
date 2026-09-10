@@ -1,0 +1,75 @@
+---
+title: "0.5.2 — A live Files workspace and clearer automation operations"
+sidebarTitle: "0.5.2"
+icon: "tag"
+description: "13 August 2025"
+---
+
+RevoEngine 0.5.2 expands the existing Files experience into a contextual explorer and improves the hands-on operation of schedules, events and webhooks. The release also continues the platform's move toward a Database-oriented data model. Its theme is practical control: keep a file, an automation definition and its next action in the same workspace rather than forcing an operator to reconstruct context from a list, a modal and a separate history view.
+
+## Highlights
+
+- Open Files through a resource-aware explorer with a clear folder and selected-file context.
+- Follow supported file changes through live workspace updates.
+- See upload progress and use contextual file actions from the explorer.
+- Save, run, activate, disable, restore or delete a Schedule according to its state and role.
+- Configure and manually run an Event with an explicit message when the workflow permits it.
+- Trigger webhook work from a dedicated operational flow.
+- Continue the removal of older Resource-backed data paths in favour of the Database-oriented model.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Work with files where they belong" defaultOpen={true}>
+
+The Files workspace is rebuilt around an explorer. Instead of treating a file as an isolated upload or download record, the application can open an explorer in the context of the resource from which the work began. The current folder, selected item, breadcrumb path and list actions remain connected as a person browses through the relevant files.
+
+That matters when files are part of a larger business flow. An operator can enter the explorer from a related application task, inspect a generated document or attachment, move to the enclosing folder and continue without losing the connection to the object that produced it. The explorer also provides a clear empty state, which gives a new or newly selected context a purposeful starting point rather than an unexplained blank area.
+
+  </Accordion>
+  <Accordion title="Follow changing file state">
+
+The explorer is connected to the application's supported live-update flow. When file activity changes the state represented by the current list, the workspace can refresh its view while the operator remains in the task. That is useful for files produced by background application work, for a colleague's supported change or for an upload whose result has just become available.
+
+Uploads gain an explicit queue and progress treatment as part of the same Files refactor. A user can see that a file action is still progressing instead of guessing whether it has been accepted, and file-level actions are available from the explorer's context menu. The release improves the operating experience around existing files; it does not yet claim the later Storage namespace, retention or folder-governance model.
+
+  </Accordion>
+  <Accordion title="Run recurring work deliberately">
+
+Schedules receive a clearer detail workspace for the full operating lifecycle. A permitted administrator can save a schedule, activate or disable it, restore or delete it, while a permitted runner can request a manual run for an active schedule. The screen reflects whether the selected schedule is active or deleted, so an unavailable action is not presented as a normal next step.
+
+For a concrete example, a team can pause a recurring import while its configuration is revised, save the amended schedule, reactivate it when ready and then use the manual-run action to confirm the workflow. That sequence is intentionally stateful: a disabled schedule is not presented as ready to run, and administration rights remain distinct from the right to request an execution.
+
+  </Accordion>
+  <Accordion title="Make event-driven work inspectable">
+
+Events gain the same practical treatment. The details workspace keeps the event definition, its active state and the relevant controls together. It validates the required custom type when the selected event needs one, supports the normal lifecycle controls and offers a manual-run flow that can collect a structured message for the triggered work.
+
+The trigger request is not an unbounded background instruction. It attributes the request to the current user, returns identifiers that can be followed by the surrounding operational tooling and limits a delayed request to thirty days. Those choices make a manually requested event easier to distinguish from an arbitrary anonymous action while preserving the established automation model.
+
+Webhooks also gain a dedicated trigger flow. This gives an operator a focused path to provide the supported trigger input and start the existing webhook workflow, instead of turning a configuration page into an ambiguous execution control. Existing permissions and the webhook's own lifecycle continue to decide what is available.
+
+  </Accordion>
+  <Accordion title="Continue the Database data transition">
+
+The release includes a significant cleanup of older Resource-backed data structures alongside Database and data-request changes. For builders, the product direction is consistent with the earlier Database work: application data should have a clearer definition and record lifecycle rather than remain split between legacy resource structures and newer Database workflows.
+
+New application data work continues through Database definitions and their record operations. Existing Resource-backed data paths are retired as the model is simplified; this removes an older abstraction rather than adding a second way to describe the same business data.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- File explorer actions, upload queue state and live updates are designed to work together in one operational view.
+- Schedule and Event controls distinguish configuration administration from requesting a run.
+- Event messages are optional when triggering, while delayed requests have an explicit maximum duration.
+- The data-model work narrows the platform toward Database-oriented application data without claiming the later Storage or query feature set.
+
+## Related guides
+
+[Files](/operate/files) · [Databases](/operate/databases) · [Automation](/operate/automation)
+
+## Continue through the releases
+
+[Newer: 0.6.0](/changelog/0.6.0) · [All releases](/releases/changelog) · [Earlier: 0.5.1](/changelog/0.5.1)

@@ -1,0 +1,77 @@
+---
+title: "0.3.3 — Live notifications from application logic"
+sidebarTitle: "0.3.3"
+icon: "tag"
+description: "30 May 2024"
+---
+
+RevoEngine adds a realtime publication capability to low-code applications. Business logic can emit a small structured notification, and connected clients in the instance can receive it without repeatedly requesting the same state.
+
+The capability gives application developers a new way to connect a completed operation with the interface that cares about it. It is a live notification path: the underlying application records and managed files remain the source of truth.
+
+## Highlights
+
+- Publish structured application notifications with `api.publishMessage()`.
+- Deliver messages to connected clients through an instance-level channel.
+- Use compact event descriptions to prompt a targeted refresh.
+- Keep notification delivery separate from durable application state.
+- Build live interactions without making every client poll continuously.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Notify a client after meaningful work" defaultOpen={true}>
+
+Low-code can now publish a message when an application operation reaches a point worth reporting. A generated report, completed calculation or changed record can produce a compact notification describing the occurrence.
+
+The initial capability publishes to the instance's `ALL` channel. It is useful for events relevant to connected application clients, but it is not a private per-user messaging channel. Applications should therefore send a minimal event and reference rather than placing sensitive record contents into a broadcast.
+
+For example, after a report has been created successfully, the workflow can publish its reference:
+
+```js
+await api.publishMessage('ALL', {
+  event: 'report.ready',
+  reportId: 'daily-summary',
+  updatedAt: new Date().toISOString(),
+});
+```
+
+The receiving application can use the event to refresh the relevant area or fetch the report through its normal authorized read path. Publishing a reference does not grant permission to read the referenced resource.
+
+  </Accordion>
+  <Accordion title="Use a compact notification contract">
+
+Messages are JSON-serializable values with a maximum serialized size of 1,024 bytes. The limit applies to encoded content, so the useful design is a small message describing what changed rather than a complete copy of a document, table or report.
+
+A stable event name lets the client decide which part of its interface needs attention. A resource reference points to the data it should read. An application timestamp can help the client relate the notification to its own workflow, without implying that notification order is a substitute for the ordering of durable business operations.
+
+Keeping the contract small has another benefit: a notification can remain meaningful even when the structure of the underlying application record changes. The client fetches the current record through the established API instead of depending on every field having been copied into a realtime message.
+
+  </Accordion>
+  <Accordion title="A persistent connection for live delivery">
+
+Connected clients receive messages over a persistent instance connection. The platform manages the connected-client lifecycle, including connection registration, heartbeat activity and disconnect cleanup.
+
+This changes the interaction model available to an application. Instead of repeatedly checking whether a result exists, a connected interface can react when the workflow announces that result. The client still decides how to represent the event: refresh a list, show an update indicator or retrieve the referenced output.
+
+The scope is deliberately clear. This release introduces the realtime delivery primitive and low-code publication path; it does not turn every existing platform screen into a live view automatically. Application consumers opt into the notification contract appropriate to their workflow.
+
+  </Accordion>
+  <Accordion title="Combine realtime with durable business state">
+
+Realtime delivery and persisted application state serve different purposes. A connected client can react quickly to a notification, while a newly opened or reconnected client should read the current state through the normal application API.
+
+A notification is not a durable queue, a delivery receipt from every client or a replayable history. A workflow that must prove completion should record that outcome in its normal data or job lifecycle and then use the message to announce it.
+
+This distinction gives builders a practical integration pattern: persist the business result, publish a compact hint and let the interface read the authorized result. It provides live responsiveness without making a transient browser connection responsible for the correctness of the business operation.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Realtime](/operate/realtime) · [Runtime API](/low-code/runtime-api) · [Automation](/operate/automation)
+
+## Continue through the releases
+
+[Newer: 0.4.0](/changelog/0.4.0) · [All releases](/releases/changelog) · [Earlier: 0.3.2](/changelog/0.3.2)

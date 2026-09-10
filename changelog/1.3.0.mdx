@@ -1,0 +1,80 @@
+---
+title: "1.3.0 — The stable Assistant experience"
+sidebarTitle: "1.3.0"
+icon: "tag"
+description: "6 July 2026"
+---
+
+RevoEngine 1.3.0 establishes the stable interactive Assistant as a durable workspace for governed application work. It builds on the platform's established Components, data, Storage and automation foundation: the Assistant helps a user work with that foundation, while the mature application model remains responsible for permissions, execution and operational control. The release also advances a practical non-AI workflow—controlled database cloning—and makes the application more comfortable to use with system-aware appearance preferences.
+
+## Highlights
+
+- Continue meaningful work in persistent Assistant conversations rather than isolated prompts.
+- See plans, progress, requests for clarification and resulting artifacts in one activity flow.
+- Keep consequential actions tied to a visible user decision.
+- Clone a database with explicit choices for rows and connected partitions.
+- Let new application preferences follow the device appearance by default.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="A conversation that carries the work" defaultOpen={true}>
+
+The stable Assistant treats a conversation as durable work context. A user can ask for help investigating a configuration, preparing a change or assembling an operational result; the Assistant can inspect accessible context, set out a plan, report progress and continue when the user supplies a missing answer. Instead of trying to reconstruct the work from a final chat sentence, the user has a place to return to the messages and activity that led there.
+
+Attachments and generated artifacts belong to that same context. A file supplied for analysis or an output produced by the work can be understood alongside the request that created it. This is valuable when a task spans more than one interaction: the conversation remains useful as a record of intent, context and outcome, not merely a temporary prompt box.
+
+  </Accordion>
+  <Accordion title="Decisions stay visible and deliberate">
+
+The Assistant separates a response from a change that needs the user's choice. If the request is incomplete, it can ask a clarification. If a consequential operation needs approval, the work pauses on that decision with its surrounding plan and activity still visible. The user can evaluate what is proposed rather than guessing what an affirmative response might trigger.
+
+That makes the Assistant complementary to automation, not a replacement for it. Schedules, jobs and other automated application processes retain their established operating controls. The Assistant is the interactive layer for work that benefits from a human conversation, visible intermediate steps and a timely decision. Access remains governed by the application identity and permissions already in effect.
+
+  </Accordion>
+  <Accordion title="Work in a connected application workspace">
+
+The dedicated Assistant workspace brings conversation content and in-progress activity together. A user can follow work while it is happening, then revisit the messages, plan, attachments and artifacts afterwards. Keeping the selected conversation in a real workspace is a better fit for longer-running application work than treating each exchange as a transient modal.
+
+A durable context also supports related work without erasing the original. A user can revisit the source conversation, share the relevant context where supported, or continue a related line of investigation while retaining the decisions and evidence that made the original result understandable. This does not make the Assistant unrestricted; it makes governed work easier to follow over time.
+
+  </Accordion>
+  <Accordion title="Clone a database with the choices exposed">
+
+Database cloning becomes a more complete lifecycle operation for builders who need a safe starting point for a variant, test copy or related data model. The clone can use an explicit target name or a generated one, include rows when that is appropriate, and include connected partitions when the work needs the related database family rather than a single standalone definition. Access-related metadata can be carried forward or deliberately adjusted as part of the request.
+
+The default experience is asynchronous. RevoEngine accepts the clone, keeps one competing clone for the same user and database family from running at the same time, and reports completion through the application's normal system-message flow. That is a more practical model for a potentially substantial operation than keeping an interactive request open until every definition and optional row has been copied.
+
+The same choice is available from supported low-code logic:
+
+```js
+return await api.cloneDatabase('customers', {
+  async: true,
+  includeItems: false,
+  includePartitions: true,
+});
+```
+
+Choose row copying carefully. A schema-oriented clone can be the right way to start an experiment without duplicating operational data; copying rows should be an intentional choice with the normal data-access and retention considerations in mind.
+
+  </Accordion>
+  <Accordion title="Follow the environment you work in">
+
+New application preferences now default to the system appearance rather than forcing a light theme. This small change makes a fresh RevoEngine session feel more at home on a developer or operator's device while preserving appearance as an application preference. It is a quality-of-use improvement that sits alongside—not inside—the Assistant milestone.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Assistant thread handling is standardized around the stable interactive runtime.
+- Conversation outputs carry a clearer created-time context for ordering and review.
+- Job details continue to expose retry attempts and distinct input and output context.
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Approvals and plans](/ai/approvals-and-plans) · [Databases](/operate/databases) · [Low-code API](/low-code/runtime-api) · [Storage](/operate/storage)
+
+## Continue through the releases
+
+[Newer: 1.3.1](/changelog/1.3.1) · [All releases](/releases/changelog) · [Earlier: 1.2.3](/changelog/1.2.3)

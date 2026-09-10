@@ -1,0 +1,71 @@
+---
+title: "0.9.0 — Governed Storage, deliberate Assistant decisions and local developer workflows"
+sidebarTitle: "0.9.0"
+icon: "tag"
+description: "6 April 2026"
+---
+
+RevoEngine 0.9.0 gives applications a managed home for files, makes the early Assistant more deliberate when a requested action needs a decision, and opens a local workflow for teams that want to work with Components from the terminal or VS Code. These capabilities are connected by the same practical idea: application work should carry its context and controls with it, whether the item is a file, a proposed Assistant action or a Component being edited outside the browser.
+
+## Highlights
+
+- Create and organise managed folders and file entries.
+- Start, refresh, finalise or abort a resumable upload session.
+- Move, archive, restore, download or preview a managed entry.
+- Review an Assistant plan and resolve an action that needs an explicit decision.
+- Bootstrap a local project, synchronise Components and inspect the same workspace in VS Code.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Give files a managed application lifecycle" defaultOpen={true}>
+
+Storage introduces a dedicated application surface for folders and file entries. Rather than treating a file as a transient URL passed between unrelated features, the platform can keep it as a managed item with a location, a lifecycle and operations that are meaningful to the surrounding application. A user can explore entries, create folders, rename or move an item, and return archived material when it is needed again.
+
+Uploads are explicit. An application starts a resumable upload session, can refresh it while the transfer is in progress, then finalises or aborts it according to the actual outcome. That separation is useful for files that take time to transfer and for workflows that need to distinguish an intended upload from a completed managed entry. Download and preview operations make the resulting item usable without forcing each application feature to invent its own file access pattern.
+
+Storage is a foundation for governed application work. It establishes the common file-and-folder model used by later generated outputs, imports and attachments; it does not claim every later retention, namespace or processing capability in this first milestone.
+
+  </Accordion>
+  <Accordion title="Put a decision point around meaningful Assistant actions">
+
+The Assistant workspace adds an early planning and action-required experience. When a request reaches a point where it needs an explicit decision, the user can see the proposed plan and resolve the action from the conversation instead of treating the interaction as an opaque background process. A dedicated runtime panel keeps relevant execution information close to the thread, making the state easier to understand while the conversation continues.
+
+This is intentionally a controlled conversation workflow. It gives the user a visible point to decide how to proceed, rather than presenting every potential change as already settled. The capability belongs to the early Assistant progression; it is not a claim that this release delivers the later stable Agentic System or an autonomous operating model.
+
+  </Accordion>
+  <Accordion title="Continue useful conversations without recreating their context">
+
+Message-level retry and copy controls make the conversation workspace more practical. Retry gives a user a fresh attempt at a response without manually rebuilding the previous request. Copy makes it easy to take a useful result into a Component, documentation or the next application task.
+
+The release also adds conversation-fork interaction. A fork lets a person pursue a different direction from the existing discussion while preserving the thread that led to it. That is particularly useful when an investigation has produced a useful baseline but the next question should not overwrite the original train of thought. Together, these controls make an active conversation easier to operate as work, not merely read as chat.
+
+  </Accordion>
+  <Accordion title="Bring the Component workspace to the terminal">
+
+The RevoEngine CLI introduces a local project workflow for code-oriented Components. A developer can authenticate, initialise a project, generate the editor type bundle and keep the local configuration tied to the intended instance. Components can be pulled as an organised workspace, edited locally, pushed back deliberately and debugged against the managed environment.
+
+Bulk synchronisation has explicit safeguards: the workflow reports when local material differs, distinguishes unchanged and stale material, and requires confirmation for broad operations unless the developer intentionally supplies the force option. The result is a usable bridge between a team’s local development habits and the platform’s managed Component model, while the Web IDE remains available for browser-based authoring.
+
+  </Accordion>
+  <Accordion title="Inspect the same workspace in VS Code">
+
+The accompanying VS Code extension builds on the CLI rather than creating a second project model. It checks whether the workspace is initialised, presents Components and their ordered elements in a tree, and can coordinate component retrieval through the terminal workflow. Local element reordering updates both the component manifest and the physical element files, keeping execution order explicit rather than relying on alphabetical filenames.
+
+This split keeps interactive authentication and project setup in the terminal, while VS Code provides workspace inspection, navigation and editing ergonomics. Teams can choose the browser Web IDE or local tooling according to the task without losing the underlying Component structure.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- More resilient streamed Assistant interaction and clearer runtime details.
+- Early Assistant fork and composer refinements for branching work.
+
+## Related guides
+
+[Storage](/operate/storage) · [Assistant](/ai/assistant) · [Web IDE](/build/web-ide) · [Components](/build/components)
+
+## Continue through the releases
+
+[Newer: 1.0.0](/changelog/1.0.0) · [All releases](/releases/changelog) · [Earlier: 0.8.0](/changelog/0.8.0)

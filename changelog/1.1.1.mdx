@@ -1,0 +1,64 @@
+---
+title: "1.1.1 — Steer active work and keep the Dashboard in view"
+sidebarTitle: "1.1.1"
+icon: "tag"
+description: "17 May 2026"
+---
+
+This focused update makes the Assistant beta easier to use while work is already under way and connects it more naturally to the operator’s Dashboard. A user can add direction without throwing away the active task, keep the Assistant in a resizable side workspace, and open Database records from a Dashboard without abandoning the screen that provided the context. It also makes a few Automation integration boundaries more explicit for builders.
+
+## Highlights
+
+- Queue a clarification or next instruction for active Assistant work.
+- Keep a required approval or clarification visible before later work proceeds.
+- Pin and resize the Assistant alongside a Dashboard.
+- Open or create Database records in a contextual Dashboard overlay.
+- Use clearer job-log ordering and timeout expectations in Automation integrations.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Add direction without starting over" defaultOpen={true}>
+
+While an Assistant task is active, the desired result often becomes clearer: perhaps a builder wants to narrow the scope, add a constraint, or tell the task what should happen after the current inspection. The conversation can now hold that instruction as queued direction rather than forcing the user to cancel the task and repeat the original context in a new one.
+
+The queued message is submitted in order when the active work reaches a state where the next instruction can be handled. If the queued submission cannot proceed, it remains available instead of disappearing. This makes the workflow practical for a multi-step request: begin an investigation, notice the relevant business constraint, add it as the next direction, and let the same task continue when ready.
+
+  </Accordion>
+  <Accordion title="Keep the decision that needs your attention">
+
+Steering does not erase the beta’s governed interaction model. If the Assistant has paused for a clarification, approval or other required decision, that state remains attached to the thread while the conversation refreshes. Queued work does not silently run past it.
+
+That distinction is useful in practice. A user can prepare their next instruction while reviewing the current decision, but the decision still needs its normal response before the task may continue. The result is a more fluid conversation without turning “send later” into an override for permissions, approvals or task controls.
+
+  </Accordion>
+  <Accordion title="Keep the Assistant beside the application">
+
+The Assistant can now be pinned to the right side of the application and resized to the width that suits the work. This is a better fit for an operator who needs the conversation visible while reviewing a Dashboard, a Database view or an application workspace. When the task needs more room, the user can return to the floating conversation layout.
+
+The pinned panel is designed to coexist with the Dashboard rather than cover it. Resizing the panel lets the Dashboard reflow around the available space, so the user can keep both the operational visual and the conversation in view. This is particularly helpful when the Assistant is being used as a companion to inspection, not as a replacement for the underlying application workspace.
+
+  </Accordion>
+  <Accordion title="Work with Database records from the Dashboard">
+
+A Database item selected from a Dashboard can now open in a side overlay that preserves the originating Dashboard context. The same pattern applies when starting a new record from that view. An operator can inspect or continue the selected record’s normal details workflow, then close the overlay and remain at the Dashboard instead of navigating away and rebuilding the context manually.
+
+The change is intentionally about flow, not authority. The record continues to use the Database definition, fields and permissions already configured for the application. The overlay simply shortens the path from a visual signal on a Dashboard to the record work it calls for.
+
+  </Accordion>
+  <Accordion title="Clearer boundaries for Automation integrations">
+
+Automation integrations receive more explicit public rules for two common operational questions. Job-log queries document the supported ordering fields and the fixed response shape, making chronological inspection more predictable for a client. Endpoint and Job template timeout configuration now communicates its default and minimum clearly, while the actual maximum remains tied to the current instance quota.
+
+That means an integration can ask the supported question rather than hard-coding an assumed global limit: request job logs using the documented ordering, and configure an execution timeout that the current instance is permitted to accept. The release clarifies the contract; it does not grant a longer timeout than the instance allows.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Assistant](/ai/assistant) · [UI tour](/platform/ui-tour) · [Dashboards](/operate/dashboards) · [Databases](/operate/databases) · [Jobs](/operate/jobs)
+
+## Continue through the releases
+
+[Newer: 1.1.2](/changelog/1.1.2) · [All releases](/releases/changelog) · [Earlier: 1.1.0](/changelog/1.1.0)

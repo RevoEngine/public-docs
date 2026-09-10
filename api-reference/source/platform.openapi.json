@@ -550,6 +550,33 @@
         ]
       }
     },
+    "/api/v1/me/changelog": {
+      "get": {
+        "operationId": "MeController_changelog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseLatestDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current product release for in-app update detection.",
+        "tags": [
+          "Me"
+        ]
+      }
+    },
     "/api/v1/me/time": {
       "get": {
         "description": "\n    ROLES: null\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -1446,7 +1473,8 @@
         "summary": "Disable an account.",
         "tags": [
           "Accounts"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/accounts/{userId}/enablePlatformAccess": {
@@ -1524,7 +1552,8 @@
         "summary": "Disable platform access for user.",
         "tags": [
           "Accounts"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/accounts/{userId}/restore": {
@@ -1933,7 +1962,8 @@
         "summary": "Delete an API key.",
         "tags": [
           "Accounts"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/endpoints": {
@@ -2255,6 +2285,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2329,7 +2367,8 @@
         "summary": "Delete template.",
         "tags": [
           "Endpoints"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/endpoints/{endpointId}/activate": {
@@ -2401,7 +2440,8 @@
         "summary": "Disable endpoint.",
         "tags": [
           "Endpoints"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/endpoints/{endpointId}/restore": {
@@ -2486,7 +2526,8 @@
         "summary": "Get stats from API executions.",
         "tags": [
           "Endpoints"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/endpoints/validate": {
@@ -2526,7 +2567,8 @@
         "summary": "Validate applicable endpoint for given criteria.",
         "tags": [
           "Endpoints"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/component": {
@@ -2809,6 +2851,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2893,6 +2943,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2949,6 +3007,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2984,6 +3050,110 @@
           }
         ],
         "summary": "Replace one component element.",
+        "tags": [
+          "Components"
+        ]
+      }
+    },
+    "/api/v1/component/{componentId}/edit": {
+      "post": {
+        "description": "Atomically edits details only. Requires baseVersion; all literal replacements are validated against original source before one component save. ROLES: COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_editText",
+        "parameters": [
+          {
+            "name": "componentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComponentTextEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit literal text in existing component elements.",
+        "tags": [
+          "Components"
+        ]
+      }
+    },
+    "/api/v1/component/{componentId}/elements/{componentElementId}/edit": {
+      "post": {
+        "description": "Edits details only using the parent component baseVersion. ROLES: COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_editElementText",
+        "parameters": [
+          {
+            "name": "componentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "componentElementId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit literal text in one existing component element.",
         "tags": [
           "Components"
         ]
@@ -3058,7 +3228,8 @@
         "summary": "Disable component.",
         "tags": [
           "Components"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/component/{componentId}/restore": {
@@ -3981,7 +4152,8 @@
         "summary": "Remove user from a group.",
         "tags": [
           "Role Groups"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/role-groups/{roleGroupId}/roleAdd": {
@@ -4079,7 +4251,8 @@
         "summary": "Remove role from a group.",
         "tags": [
           "Role Groups"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/role-groups/{roleGroupId}/restore": {
@@ -4824,7 +4997,8 @@
         "summary": "Remove user from a group.",
         "tags": [
           "Groups"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/groups/{groupId}/restore": {
@@ -5074,7 +5248,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/databases/views/raw-preview": {
@@ -5103,7 +5278,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/databases/views/delete": {
@@ -5132,7 +5308,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/views/{databaseViewId}": {
@@ -5345,6 +5522,21 @@
             }
           },
           {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
+            "schema": {
+              "default": "csv",
+              "example": "xlsx",
+              "type": "string",
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          },
+          {
             "name": "retention",
             "required": false,
             "in": "query",
@@ -5420,9 +5612,9 @@
             "name": "fileName",
             "required": false,
             "in": "query",
-            "description": "Dedicated CSV export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name.",
+            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
             "schema": {
-              "example": "contracts-full.csv",
+              "example": "contracts-full.xlsx",
               "type": "string"
             }
           },
@@ -5479,7 +5671,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/databases/views/{databaseViewId}/refresh": {
@@ -5573,7 +5766,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/databases/views/{databaseViewId}/actions/preview/{operationId}": {
@@ -5685,7 +5879,8 @@
         ],
         "tags": [
           "Database Views"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/cache": {
@@ -6297,7 +6492,8 @@
         "summary": "Delete accessible database row audit events using audit-grid filters.",
         "tags": [
           "Databases"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/audit/{databaseAuditId}": {
@@ -6885,7 +7081,8 @@
         ],
         "tags": [
           "Databases"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/databases/{databaseId}/exportData": {
@@ -7036,6 +7233,21 @@
             }
           },
           {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
+            "schema": {
+              "default": "csv",
+              "example": "xlsx",
+              "type": "string",
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          },
+          {
             "name": "retention",
             "required": false,
             "in": "query",
@@ -7111,9 +7323,9 @@
             "name": "fileName",
             "required": false,
             "in": "query",
-            "description": "Dedicated CSV export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name.",
+            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
             "schema": {
-              "example": "contracts-full.csv",
+              "example": "contracts-full.xlsx",
               "type": "string"
             }
           },
@@ -7145,7 +7357,7 @@
             "bearer": []
           }
         ],
-        "summary": "Export database data to CSV.",
+        "summary": "Export database data to CSV or XLSX.",
         "tags": [
           "Databases"
         ],
@@ -7343,7 +7555,8 @@
         "summary": "Mass delete database data based on filters.",
         "tags": [
           "Databases"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/{databaseId}/deleteData": {
@@ -7437,7 +7650,8 @@
         "summary": "Truncate database data. Identity counters are preserved unless restartIdentity is explicitly enabled.",
         "tags": [
           "Databases"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/{databaseId}/clone": {
@@ -7744,8 +7958,8 @@
                   },
                   "ai.memory.policy": {
                     "enabled": true,
-                    "recallLimit": 8,
-                    "retentionDays": 180
+                    "writebackEnabled": true,
+                    "maxContextTokens": 10000
                   },
                   "ai.security.rules": {
                     "instructions": "Do not expose customer secrets or internal credentials in user-facing output.",
@@ -7852,7 +8066,8 @@
         "summary": "Purge cache.",
         "tags": [
           "Config"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/config/cache": {
@@ -7920,7 +8135,8 @@
         "summary": "Get instance cache statistics.",
         "tags": [
           "Config"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/config/cache/get": {
@@ -7954,7 +8170,8 @@
         "summary": "Get an instance cache value.",
         "tags": [
           "Config"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/config/cache/create": {
@@ -8090,7 +8307,8 @@
         "summary": "Remove instance cache key.",
         "tags": [
           "Config"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/preferences": {
@@ -8390,7 +8608,8 @@
         "summary": "Delete a preference.",
         "tags": [
           "Preferences"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/secrets": {
@@ -9039,7 +9258,8 @@
         "summary": "Disable secret.",
         "tags": [
           "Secrets"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/secrets/{secretId}/destroy/{secretDataId}": {
@@ -9085,7 +9305,8 @@
         "summary": "Destroy secret.",
         "tags": [
           "Secrets"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/files": {
@@ -9307,7 +9528,8 @@
         "summary": "File download.",
         "tags": [
           "Files"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/files/{fileId}/preview": {
@@ -9343,7 +9565,8 @@
         "summary": "File download.",
         "tags": [
           "Files"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/files/delete": {
@@ -9380,7 +9603,8 @@
         "summary": "File delete.",
         "tags": [
           "Files"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/storage/provider-configs": {
@@ -10311,6 +10535,130 @@
         ]
       }
     },
+    "/api/v1/storage/entries/{storageEntryId}/text": {
+      "get": {
+        "operationId": "StorageController_readText",
+        "parameters": [
+          {
+            "name": "storageEntryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "baseVersion",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "contentVersion",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startLine",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lineCount",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "find",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxMatches",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a versioned UTF-8 text range or literal search results.",
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/v1/storage/entries/{storageEntryId}/edit": {
+      "post": {
+        "operationId": "StorageController_editText",
+        "parameters": [
+          {
+            "name": "storageEntryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageTextEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit literal UTF-8 text with metadata and content version fences.",
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
     "/api/v1/storage/objects": {
       "post": {
         "operationId": "StorageController_putObject",
@@ -10552,7 +10900,8 @@
         "summary": "Abort upload session.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/storage/bulk/archive": {
@@ -10582,7 +10931,8 @@
         "summary": "Archive multiple storage entries and complete folder subtrees.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/storage/bulk": {
@@ -10690,7 +11040,8 @@
         "summary": "Archive storage entry.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/storage/{storageEntryId}/restore": {
@@ -10758,7 +11109,8 @@
         "summary": "Create signed download URL.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/storage/{storageEntryId}/preview": {
@@ -10787,7 +11139,8 @@
         "summary": "Create signed preview URL.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/storage/{storageEntryId}/thumbnail": {
@@ -10816,7 +11169,8 @@
         "summary": "Create signed thumbnail URL for an image file.",
         "tags": [
           "Storage"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/chat/threads": {
@@ -11022,7 +11376,8 @@
         "summary": "Archive a thread for the current user.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/chat/threads/{threadId}/unarchive": {
@@ -11894,7 +12249,8 @@
         "summary": "Abort a thread attachment upload session.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/chat/threads/{threadId}/uploads/{storageUploadSessionId}/complete": {
@@ -11997,7 +12353,8 @@
         "summary": "Create a signed download URL for a thread attachment.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/chat/threads/{threadId}/attachments/{storageEntryId}/preview": {
@@ -12034,7 +12391,8 @@
         "summary": "Create a signed preview URL for a thread attachment.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/chat/threads/{threadId}/attachments/{storageEntryId}/thumbnail": {
@@ -12071,7 +12429,8 @@
         "summary": "Create a signed thumbnail URL for a thread image attachment.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/chat/threads/{threadId}/messages/{messageId}/attachments/{storageEntryId}/download": {
@@ -12116,7 +12475,8 @@
         "summary": "Create a signed download URL for a message attachment.",
         "tags": [
           "Chat"
-        ]
+        ],
+        "x-revo-safety-tier": "read"
       }
     },
     "/api/v1/chat/threads/{threadId}/messages/{messageId}/attachments/{storageEntryId}": {
@@ -12690,7 +13050,8 @@
         "summary": "Cancel jobs.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/job/delete": {
@@ -12730,7 +13091,8 @@
         "summary": "Delete job.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/job/{jobId}/restore": {
@@ -13121,7 +13483,8 @@
         "summary": "Delete template.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/template/{jobTemplateId}/restore": {
@@ -13534,7 +13897,8 @@
         "summary": "Schedule pause.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/schedule/delete": {
@@ -13574,7 +13938,8 @@
         "summary": "Schedule delete.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/schedule/{scheduleId}/restore": {
@@ -13840,7 +14205,8 @@
         "summary": "Delete event history.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/eventHistory/replay": {
@@ -13860,7 +14226,14 @@
         },
         "responses": {
           "201": {
-            "description": "Event history replayed."
+            "description": "Event history replay batch accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayEventHistoryResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad input of the data."
@@ -14303,7 +14676,8 @@
         "summary": "Disable event.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/event/delete": {
@@ -14343,7 +14717,8 @@
         "summary": "Delete event.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/event/{eventId}/restore": {
@@ -14859,7 +15234,8 @@
         "summary": "Cancel webhooks.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/webhook/delete": {
@@ -14899,7 +15275,8 @@
         "summary": "Delete webhook.",
         "tags": [
           "Automation"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/automation/webhook/{webhookId}/restore": {
@@ -17089,6 +17466,9 @@
           "200": {
             "description": "Pending action resolved."
           },
+          "400": {
+            "description": "Invalid decision or missing required human-readable response."
+          },
           "403": {
             "description": "Forbidden."
           },
@@ -17142,6 +17522,9 @@
         "responses": {
           "200": {
             "description": "Pending action resolved with streaming continuation."
+          },
+          "400": {
+            "description": "Invalid decision or missing required human-readable response before the stream opens."
           },
           "403": {
             "description": "Forbidden."
@@ -17307,6 +17690,99 @@
         "summary": "Compact thread.",
         "tags": [
           "Assistant"
+        ]
+      }
+    },
+    "/api/v1/agents/memory/me/digest": {
+      "get": {
+        "operationId": "AgentMemoryController_getMyDigest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get the logged-in user canonical memory digest",
+        "tags": [
+          "Agent Memory"
+        ]
+      },
+      "put": {
+        "operationId": "AgentMemoryController_upsertMyDigest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertUserMemoryDigestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Create or update the logged-in user canonical memory digest",
+        "tags": [
+          "Agent Memory"
+        ]
+      },
+      "delete": {
+        "operationId": "AgentMemoryController_removeMyDigest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Clear the logged-in user canonical memory digest",
+        "tags": [
+          "Agent Memory"
+        ]
+      }
+    },
+    "/api/v1/agents/memory/{agentMemoryId}/edit": {
+      "post": {
+        "operationId": "AgentMemoryController_editText",
+        "parameters": [
+          {
+            "name": "agentMemoryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Edit existing memory text with literal replacements and a base version.",
+        "tags": [
+          "Agent Memory"
         ]
       }
     },
@@ -17568,7 +18044,8 @@
         },
         "tags": [
           "Agent Memory"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/agents/memory/{agentMemoryId}/restore": {
@@ -17990,7 +18467,8 @@
         },
         "tags": [
           "Agents"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/agents/{agentId}/storage/{storageEntryId}/download": {
@@ -18252,7 +18730,8 @@
         },
         "tags": [
           "Agents"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/agents/{agentId}/workspace": {
@@ -18656,7 +19135,8 @@
         },
         "tags": [
           "Agents"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/agents/{agentId}/inbox": {
@@ -18908,6 +19388,7 @@
               "example": "fact",
               "type": "string",
               "enum": [
+                "digest",
                 "preference",
                 "fact",
                 "episode"
@@ -19635,6 +20116,53 @@
         ]
       }
     },
+    "/api/v1/agent/plugins/{agentPluginId}/edit": {
+      "post": {
+        "operationId": "AgentPluginController_editText",
+        "parameters": [
+          {
+            "name": "agentPluginId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextEditDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit existing plugin text with literal replacements and a base version.",
+        "tags": [
+          "Agent Plugins"
+        ]
+      }
+    },
     "/api/v1/agent/plugins": {
       "get": {
         "description": "Returns tenant agent plugins using QueryDTO filtering, sorting, projection, pagination, and count options.",
@@ -19837,7 +20365,8 @@
         "summary": "Delete agent plugins",
         "tags": [
           "Agent Plugins"
-        ]
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/agent/plugins/{agentPluginId}": {
@@ -20038,7 +20567,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.3.0",
+    "version": "1.5.0",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -20170,6 +20699,62 @@
           "total",
           "take",
           "skip"
+        ]
+      },
+      "ApplicationReleaseDto": {
+        "type": "object",
+        "properties": {
+          "publishedAt": {
+            "type": "string",
+            "example": "2026-09-10T00:00:00.000Z",
+            "format": "date-time"
+          },
+          "showInApp": {
+            "type": "boolean",
+            "example": true
+          },
+          "title": {
+            "type": "string",
+            "example": "What’s new in RevoEngine 1.5.0"
+          },
+          "highlights": {
+            "example": [
+              "Governed AI-assisted changes",
+              "Native CSV and XLSX workflows"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string",
+            "example": "https://docs.revoengine.com/changelog/1.5.0",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "publishedAt",
+          "showInApp",
+          "title",
+          "highlights",
+          "url"
+        ]
+      },
+      "ApplicationReleaseLatestDto": {
+        "type": "object",
+        "properties": {
+          "applicationVersion": {
+            "type": "string",
+            "example": "1.5.0"
+          },
+          "release": {
+            "$ref": "#/components/schemas/ApplicationReleaseDto"
+          }
+        },
+        "required": [
+          "applicationVersion",
+          "release"
         ]
       },
       "AssistantAppPreferencesDto": {
@@ -20951,7 +21536,20 @@
       },
       "IdDataDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "data": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
       },
       "APISingleStatsDto": {
         "type": "object",
@@ -21136,6 +21734,89 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "TextReplacementDto": {
+        "type": "object",
+        "properties": {
+          "oldText": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newText": {
+            "type": "string"
+          },
+          "expectedMatches": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "oldText",
+          "newText",
+          "expectedMatches"
+        ]
+      },
+      "ComponentTextChangeDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "replacements": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextReplacementDto"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "replacements"
+        ]
+      },
+      "ComponentTextEditDto": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "changes": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentTextChangeDto"
+            }
+          }
+        },
+        "required": [
+          "baseVersion",
+          "changes"
+        ]
+      },
+      "TextEditDto": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "replacements": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextReplacementDto"
+            }
+          }
+        },
+        "required": [
+          "baseVersion",
+          "replacements"
         ]
       },
       "ComponentDeploymentErrorDto": {
@@ -21472,6 +22153,11 @@
                 "AUTOMATION_READ",
                 "AUTOMATION_RUNNER",
                 "AUTOMATION_ADMIN",
+                "AGENT_USER",
+                "AGENT_READ",
+                "AGENT_RUNNER",
+                "AGENT_WRITE",
+                "AGENT_ADMIN",
                 "ENDPOINT_READ",
                 "ENDPOINT_WRITE",
                 "ENDPOINT_ADMIN",
@@ -21935,7 +22621,92 @@
             "type": "string"
           },
           "data": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 100,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "column",
+                    "op"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "column": {
+                      "type": "string"
+                    },
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "set",
+                        "setNull",
+                        "add",
+                        "subtract",
+                        "multiply",
+                        "divide",
+                        "abs",
+                        "floor",
+                        "ceil",
+                        "sqrt",
+                        "round",
+                        "pow",
+                        "toggle",
+                        "addInterval",
+                        "subtractInterval",
+                        "truncate",
+                        "prepend",
+                        "append",
+                        "insert",
+                        "replace",
+                        "trim",
+                        "lower",
+                        "upper",
+                        "mergeJson",
+                        "setJsonPath",
+                        "removeJsonPath",
+                        "addItems",
+                        "removeItems"
+                      ]
+                    },
+                    "value": {
+                      "nullable": true
+                    },
+                    "position": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "search": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "nulls": {
+                      "type": "string",
+                      "enum": [
+                        "preserve",
+                        "empty"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
           },
           "return": {
             "type": "boolean"
@@ -22856,6 +23627,11 @@
             "minLength": 1,
             "maxLength": 60
           },
+          "parentDatabaseId": {
+            "type": "string",
+            "description": "Expected immutable ID of the parent selected by name. Requires parent; rejects a stale selection after rename or name reuse.",
+            "format": "uuid"
+          },
           "partition": {
             "description": "Partition configuration.",
             "allOf": [
@@ -23006,8 +23782,93 @@
             "description": "Return only primary keys (reduces payload)."
           },
           "data": {
-            "type": "object",
-            "description": "Update payload (field -> value)."
+            "description": "Field map with legacy shortcuts, or ordered explicit operations. Use operations for literal assignments and chained transformations.",
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 100,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "column",
+                    "op"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "column": {
+                      "type": "string"
+                    },
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "set",
+                        "setNull",
+                        "add",
+                        "subtract",
+                        "multiply",
+                        "divide",
+                        "abs",
+                        "floor",
+                        "ceil",
+                        "sqrt",
+                        "round",
+                        "pow",
+                        "toggle",
+                        "addInterval",
+                        "subtractInterval",
+                        "truncate",
+                        "prepend",
+                        "append",
+                        "insert",
+                        "replace",
+                        "trim",
+                        "lower",
+                        "upper",
+                        "mergeJson",
+                        "setJsonPath",
+                        "removeJsonPath",
+                        "addItems",
+                        "removeItems"
+                      ]
+                    },
+                    "value": {
+                      "nullable": true
+                    },
+                    "position": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "search": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "nulls": {
+                      "type": "string",
+                      "enum": [
+                        "preserve",
+                        "empty"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "required": [
@@ -23066,6 +23927,10 @@
       "CloneDatabaseDto": {
         "type": "object",
         "properties": {
+          "metadata": {
+            "type": "object",
+            "description": "Replacement user metadata for the root clone only. Omit to inherit source metadata; pass {} to clear user metadata. Maximum 16 KiB and 64 top-level keys. Keys starting with \"__\" are reserved for backend use."
+          },
           "audit": {
             "type": "boolean",
             "description": "Optional audit override. Defaults to the source logical table setting."
@@ -24055,6 +24920,158 @@
           "name"
         ]
       },
+      "StorageCsvOptionsDto": {
+        "type": "object",
+        "properties": {
+          "encoding": {
+            "type": "string",
+            "description": "Output character encoding. Input encoding is detected when omitted.",
+            "example": "utf8"
+          },
+          "bom": {
+            "type": "boolean",
+            "description": "Emit a byte order mark at the start of the file.",
+            "default": false
+          },
+          "delimiter": {
+            "type": "string",
+            "description": "Column delimiter.",
+            "example": "|"
+          },
+          "recordDelimiter": {
+            "type": "string",
+            "description": "Record delimiter.",
+            "enum": [
+              "\n",
+              "\r",
+              "\r\n"
+            ],
+            "example": "\r\n"
+          },
+          "quote": {
+            "type": "string",
+            "description": "Quote character.",
+            "example": "\""
+          },
+          "escape": {
+            "type": "string",
+            "description": "Quote escape character.",
+            "example": "\""
+          },
+          "escapeFormulae": {
+            "type": "boolean",
+            "description": "Prefix spreadsheet formula-like values to prevent CSV formula injection.",
+            "default": true
+          }
+        }
+      },
+      "StorageSheetColumnDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Object key used when appending row objects."
+          },
+          "header": {
+            "type": "string",
+            "description": "Visible header. Defaults to key."
+          },
+          "type": {
+            "type": "string",
+            "description": "Logical value type retained in XLSX fileStats and used by typed row producers.",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "date"
+            ]
+          },
+          "width": {
+            "type": "number",
+            "description": "Column width in Excel character units."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Hide the worksheet column.",
+            "default": false
+          },
+          "style": {
+            "type": "object",
+            "description": "ExcelJS-compatible declarative column style."
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "StorageSheetTableDto": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "Top-left table cell.",
+            "example": "A1",
+            "default": "A1"
+          },
+          "header": {
+            "type": "boolean",
+            "description": "Write a header row.",
+            "default": true
+          },
+          "autoFilter": {
+            "type": "boolean",
+            "description": "Add an auto-filter to the table header.",
+            "default": false
+          },
+          "columns": {
+            "description": "Stable column order. Required for every worksheet in writeMode \"direct\"; optional in \"staged\" mode, where keys may be inferred from appended rows.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageSheetColumnDto"
+            }
+          }
+        }
+      },
+      "StorageSheetFreezeDto": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "number",
+            "minimum": 0
+          },
+          "columns": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "StorageSheetOptionsDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Worksheet name."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "visible",
+              "hidden",
+              "veryHidden"
+            ],
+            "default": "visible"
+          },
+          "table": {
+            "$ref": "#/components/schemas/StorageSheetTableDto"
+          },
+          "freeze": {
+            "$ref": "#/components/schemas/StorageSheetFreezeDto"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "CreateStorageUploadSessionDto": {
         "type": "object",
         "properties": {
@@ -24128,13 +25145,38 @@
           },
           "computeStats": {
             "type": "string",
-            "description": "Default post-finalize compute mode for this upload session.",
+            "description": "Post-finalize compute mode for this upload session. Defaults to sync for XLSX and text/* sessions and none for other binary sessions; an explicit value always overrides the default.",
             "enum": [
               "none",
               "sync",
               "async"
             ],
-            "example": "async"
+            "example": "sync"
+          },
+          "writeMode": {
+            "type": "string",
+            "description": "Structured file materialization mode. Use \"direct\" for a predeclared CSV/XLSX layout and one-pass finalization. For direct XLSX, declare every worksheet and its table.columns before the first append, and send row-only parts. The default \"staged\" mode preserves inferred columns, sparse cells, formulas, dynamic worksheets, and existing integration behavior.",
+            "enum": [
+              "staged",
+              "direct"
+            ],
+            "example": "direct",
+            "default": "staged"
+          },
+          "csv": {
+            "description": "CSV dialect used when row payloads are appended to a text/csv session.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageCsvOptionsDto"
+              }
+            ]
+          },
+          "sheets": {
+            "description": "Workbook worksheet layout. XLSX is inferred from contentTypeHint. In writeMode \"direct\", declare every worksheet here and configure table.columns for each one.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageSheetOptionsDto"
+            }
           },
           "metadata": {
             "type": "object",
@@ -24212,6 +25254,32 @@
           "path"
         ]
       },
+      "StorageTextEditDto": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "replacements": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextReplacementDto"
+            }
+          },
+          "contentVersion": {
+            "type": "string",
+            "description": "Immutable provider generation returned by read_text. Metadata version alone is insufficient."
+          }
+        },
+        "required": [
+          "baseVersion",
+          "replacements",
+          "contentVersion"
+        ]
+      },
       "PutStorageObjectDto": {
         "type": "object",
         "properties": {
@@ -24276,13 +25344,13 @@
           },
           "computeStats": {
             "type": "string",
-            "description": "Optional post-write compute mode.",
+            "description": "Post-write compute mode. Defaults to sync for text/* objects and none for other binary objects; an explicit value always overrides the default.",
             "enum": [
               "none",
               "sync",
               "async"
             ],
-            "example": "none"
+            "example": "sync"
           },
           "restricted": {
             "type": "boolean",
@@ -24339,6 +25407,109 @@
           "data"
         ]
       },
+      "StorageCellInputDto": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "A1 cell address.",
+            "example": "B2"
+          },
+          "value": {
+            "description": "Literal cell value. Supports JSON-compatible strings, numbers, booleans, arrays, objects, and null.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
+          },
+          "formula": {
+            "type": "string",
+            "description": "Excel formula without a leading equals sign."
+          },
+          "result": {
+            "description": "Cached formula result. ExcelJS does not calculate formulas. Supports JSON-compatible strings, numbers, booleans, arrays, objects, and null.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
+          },
+          "style": {
+            "type": "object",
+            "description": "ExcelJS-compatible declarative cell style."
+          }
+        },
+        "required": [
+          "address"
+        ]
+      },
+      "StorageSheetDataPartDto": {
+        "type": "object",
+        "properties": {
+          "sheet": {
+            "type": "string",
+            "description": "Target worksheet name."
+          },
+          "rows": {
+            "type": "array",
+            "description": "Rows represented as keyed objects or positional value arrays. In writeMode \"direct\", append row-only payloads to worksheets declared at session creation.",
+            "maxItems": 100000,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                {
+                  "type": "array",
+                  "items": {}
+                }
+              ]
+            }
+          },
+          "cells": {
+            "description": "Sparse cells addressed independently from table rows. Supported in writeMode \"staged\"; direct XLSX parts must be row-only.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageCellInputDto"
+            }
+          }
+        },
+        "required": [
+          "sheet"
+        ]
+      },
       "UploadStorageUploadSessionPartDto": {
         "type": "object",
         "properties": {
@@ -24365,11 +25536,32 @@
               "base64"
             ],
             "example": "base64"
+          },
+          "rows": {
+            "type": "array",
+            "description": "Rows represented as keyed objects or positional value arrays for a single-sheet CSV or XLSX session. The target sheet is inferred.",
+            "maxItems": 100000,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                {
+                  "type": "array",
+                  "items": {}
+                }
+              ]
+            }
+          },
+          "sheets": {
+            "description": "Rows and optional sparse cells for one or more declared XLSX worksheets. In writeMode \"direct\", each worksheet must have configured table.columns and every part must be row-only.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorageSheetDataPartDto"
+            }
           }
-        },
-        "required": [
-          "data"
-        ]
+        }
       },
       "FinalizeStorageUploadSessionDto": {
         "type": "object",
@@ -24390,7 +25582,7 @@
               "sync",
               "async"
             ],
-            "example": "async"
+            "example": "none"
           }
         }
       },
@@ -24955,11 +26147,12 @@
         "properties": {
           "input": {
             "type": "object",
-            "description": "Custom low-code template input values exposed through api.input().templateInputs.",
+            "description": "Custom low-code template input values exposed through api.input().templateInputs. Must be a JSON object; null is stored as an empty object.",
             "example": {
               "region": "eu",
               "mode": "incremental"
-            }
+            },
+            "nullable": true
           },
           "skipLibs": {
             "type": "boolean",
@@ -25087,11 +26280,12 @@
           },
           "inputs": {
             "type": "object",
-            "description": "Deprecated legacy template inputs. Use options.input.",
+            "description": "Deprecated legacy template inputs. Use options.input. Must be a JSON object; null is stored as an empty object.",
             "example": {
               "region": "eu",
               "mode": "incremental"
-            }
+            },
+            "nullable": true
           }
         },
         "required": [
@@ -25116,7 +26310,9 @@
             ]
           },
           "inputs": {
-            "type": "object"
+            "type": "object",
+            "description": "Runtime input data. Must be a JSON object; null is normalized to an empty object.",
+            "nullable": true
           },
           "options": {
             "description": "Options.",
@@ -25167,7 +26363,8 @@
           },
           "inputs": {
             "type": "object",
-            "description": "Deprecated legacy template inputs. Use options.input."
+            "description": "Deprecated legacy template inputs. Use options.input. Must be a JSON object; null is stored as an empty object.",
+            "nullable": true
           },
           "options": {
             "description": "Execution options. Custom low-code template values live under \"input\".",
@@ -25313,6 +26510,58 @@
             "example": "Europe/Warsaw"
           }
         }
+      },
+      "ReplayEventHistoryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "triggerId": {
+            "type": "string"
+          },
+          "sourceEventHistoryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "eventId",
+          "triggerId",
+          "sourceEventHistoryId"
+        ]
+      },
+      "ReplayEventHistoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "triggerId": {
+            "type": "string"
+          },
+          "requestedTotal": {
+            "type": "number"
+          },
+          "replayedTotal": {
+            "type": "number"
+          },
+          "replays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReplayEventHistoryItemResponseDto"
+            }
+          }
+        },
+        "required": [
+          "batchId",
+          "triggerId",
+          "requestedTotal",
+          "replayedTotal",
+          "replays"
+        ]
       },
       "JobEventRequestDto": {
         "type": "object",
@@ -26345,6 +27594,11 @@
       "ResolveActionRequiredDto": {
         "type": "object",
         "properties": {
+          "actionVersion": {
+            "type": "number",
+            "description": "Optimistic action version used as the idempotency key together with the action id.",
+            "minimum": 0
+          },
           "decision": {
             "type": "string",
             "description": "Resolution decision for the pending action.",
@@ -26450,25 +27704,42 @@
           }
         }
       },
+      "UpsertUserMemoryDigestDto": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string",
+            "description": "Canonical Markdown digest for the logged-in user.",
+            "minLength": 1,
+            "maxLength": 64000
+          },
+          "version": {
+            "type": "number",
+            "description": "Optimistic locking version.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "summary"
+        ]
+      },
       "CreateAgentMemoryDto": {
         "type": "object",
         "properties": {
           "ownerType": {
             "type": "string",
-            "description": "Memory owner. WORKSPACE is bound to an agent workspace root, INSTANCE is tenant-local, and SHARED is instance-wide shared recall.",
+            "description": "Memory owner. USER is private, AGENT belongs to one agent, and WORKSPACE is bound to an attached workspace root.",
             "enum": [
               "USER",
               "AGENT",
-              "WORKSPACE",
-              "INSTANCE",
-              "SHARED"
+              "WORKSPACE"
             ],
             "default": "AGENT",
             "example": "AGENT"
           },
           "ownerId": {
             "type": "string",
-            "description": "Owner id. Required for USER, AGENT, and WORKSPACE memory; ignored for INSTANCE and SHARED.",
+            "description": "Owner id. Required for USER, AGENT, and WORKSPACE memory.",
             "format": "uuid",
             "example": "11111111-1111-4111-8111-111111111111"
           },
@@ -26476,11 +27747,12 @@
             "type": "string",
             "description": "Durable memory kind.",
             "enum": [
+              "digest",
               "preference",
               "fact",
               "episode"
             ],
-            "example": "fact"
+            "example": "digest"
           },
           "name": {
             "type": "string",
@@ -26491,7 +27763,7 @@
           },
           "summary": {
             "type": "string",
-            "description": "Canonical memory body. Keep this concise and durable; it is not transcript archival.",
+            "description": "Canonical Markdown memory digest. It is durable learned context, not transcript archival.",
             "example": "The billing reconciliation workspace uses Stripe as the payment source of truth.",
             "minLength": 1
           },
@@ -26532,15 +27804,13 @@
             "enum": [
               "USER",
               "AGENT",
-              "WORKSPACE",
-              "INSTANCE",
-              "SHARED"
+              "WORKSPACE"
             ],
-            "example": "INSTANCE"
+            "example": "USER"
           },
           "ownerId": {
             "type": "string",
-            "description": "Updated owner id. Used for USER, AGENT, and WORKSPACE memory; null for INSTANCE and SHARED.",
+            "description": "Updated owner id. Used for USER, AGENT, and WORKSPACE memory.",
             "format": "uuid",
             "example": "11111111-1111-4111-8111-111111111111"
           },
@@ -26548,6 +27818,7 @@
             "type": "string",
             "description": "Updated durable memory kind.",
             "enum": [
+              "digest",
               "preference",
               "fact",
               "episode"

@@ -1,0 +1,62 @@
+---
+title: "1.0.2 — Agent alpha v1 and managed coding workspaces"
+sidebarTitle: "1.0.2"
+icon: "tag"
+description: "27 April 2026"
+---
+
+This release introduces the first managed-workspace model for the Agent alpha, alongside practical improvements to browser-based authoring and platform development. It is an early, deliberately bounded capability: RevoEngine’s established Components, Databases, Storage, Endpoints and Automation remain the production foundation, while the Agent work explores how longer tool-backed work can be prepared and contained.
+
+## Highlights
+
+- Prepare an alpha task in a managed workspace with a clear lifecycle.
+- Keep an interactive task session open for multi-step development work.
+- Match work to an environment’s available development capabilities.
+- Run checks across selected platform services more consistently.
+- Use a more unified in-browser editing and comparison foundation.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Give an experimental task a bounded workspace" defaultOpen={true}>
+
+A managed workspace gives an Agent alpha task an identifiable place for its working material. Before work begins, the workspace is prepared; when the work is complete, it is finalized through a separate completion step. That distinction matters for tasks that span more than one command or produce more than one intermediate result: the task can be treated as one unit of work instead of a collection of unrelated calls.
+
+The workspace model also makes its state understandable. A task can be pending, preparing, ready for work, finishing or finished, and an unsuccessful preparation or finish can be reported as such rather than silently appearing successful. The early model supports temporary workspaces by default and a retained-workspace option where that is explicitly configured.
+
+  </Accordion>
+  <Accordion title="Work interactively instead of reducing every task to one result">
+
+The alpha adds a session-oriented execution path for development work that needs input, output and follow-up. An operator can keep a terminal-style task active while it performs a sequence of supported actions, rather than having to split every investigation, build or edit into separate one-shot requests. This is particularly useful when a task needs to inspect its current output before deciding the next command.
+
+The session remains bounded. Input and output are limited, inactive sessions are cleaned up, and a task does not acquire a permanent environment merely by being started. Those limits are part of making an early tool-backed workflow usable without implying that it has unrestricted access or unlimited duration.
+
+  </Accordion>
+  <Accordion title="Choose a suitable development environment">
+
+Not every task needs the same environment. The new capability view lets an alpha task understand whether a configured runner can support the required language tools, package managers, build utilities, document tools or browser-oriented work. This gives teams a basis for assigning a task to an appropriate prepared environment rather than discovering halfway through that a required capability is absent.
+
+It also keeps the scope legible: an available capability describes what the configured environment can do; it does not grant the task access to an unrelated application, file or deployment target. The surrounding RevoEngine identity, permissions and execution controls continue to apply.
+
+  </Accordion>
+  <Accordion title="Improve the path from authoring to verification">
+
+Platform developers gain a more consistent way to run formatting, linting, tests and builds across selected services. The same workflow understands the different task conventions used by the platform’s services and brings the relevant failed output back to the developer. That is helpful when a change touches more than one deployable part of an application and the next verification step should be explicit.
+
+In the web application, the code-authoring foundation is also consolidated around a shared editor worker and a dedicated comparison surface. Builders working with supported low-code and custom-code configuration get a more coherent basis for editing source, inspecting differences and receiving editor feedback across the workspaces that use it.
+
+  </Accordion>
+  <Accordion title="An intentionally early milestone">
+
+This is Agent alpha v1, not the later stable Assistant. It establishes the workspace, session and capability vocabulary that later releases build into conversation continuity, planning, approvals and durable operating experiences. Teams can evaluate the workflow where it is enabled, while continuing to rely on the established platform surfaces for normal production application work.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Agents](/ai/agents) · [Memory and workspaces](/ai/memory-and-workspaces) · [Agent configuration](/ai/agent-configuration) · [Custom Node.js](/build/custom-nodejs)
+
+## Continue through the releases
+
+[Newer: 1.0.3](/changelog/1.0.3) · [All releases](/releases/changelog) · [Earlier: 1.0.1](/changelog/1.0.1)

@@ -1,0 +1,63 @@
+---
+title: "0.7.0 — Model data partitions with the same clarity as the rest of a Database"
+sidebarTitle: "0.7.0"
+icon: "tag"
+description: "21 December 2025"
+---
+
+RevoEngine 0.7.0 extends Database authoring for applications that need records to live in deliberate partitions. Builders can declare a partition strategy, attach a Database to its parent structure and provide the values or boundaries that define membership. The workspace then keeps that relationship visible during review. Alongside the data-model work, saved grid preferences behave more directly in the view being operated, and the dark workspace receives a complete, consistent palette.
+
+## Highlights
+
+- Choose LIST, RANGE or HASH partitioning when the selected key type supports it.
+- Define list values, range boundaries, or hash modulus and remainder in the Database form.
+- Use the selected parent Database to carry the partition key and type into a child relationship.
+- Inspect the parent key and partition strategy without entering edit mode.
+- Keep established partition keys protected once a Database has been created.
+- Save, activate and clear grid preferences in the context of the current resource view.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Choose a partition strategy that fits the key" defaultOpen={true}>
+
+The Database form now offers partitioning as a structured authoring decision. A builder selects the key and then sees the strategies that are valid for that key's data type. Numeric and date or time keys can use LIST, RANGE or HASH; text and UUID keys can use LIST or HASH; Boolean, JSON and JSONB keys are limited to LIST. The form therefore guides the choice from the definition already present in the Database instead of presenting incompatible strategies as equally plausible options.
+
+Each strategy has the fields it needs. LIST accepts one or more membership values. RANGE accepts its from and to boundaries. HASH accepts a modulus and remainder. Boolean list values are converted from the form's textual representation into Boolean data before the definition is submitted. These are product-level data-model choices, not a generic collection of free-form metadata fields.
+
+  </Accordion>
+  <Accordion title="Build child relationships from a parent definition">
+
+A Database can be connected to a parent Database whose partition information supplies the key and type for the relationship. Once a parent is selected, the child form uses that established structure and disables its own independent definition fields where they would conflict. That creates a clear authoring path for a hierarchy: identify the parent, inherit the relevant partition context and provide the values or boundaries that distinguish the child.
+
+The same relationship remains legible after creation. The read-only partition view shows the parent key and the partition strategy, and displays list values in a grid-oriented view. Established partition keys are protected from modification or deletion, so an existing data boundary is inspected rather than casually rewritten as part of an unrelated form edit.
+
+  </Accordion>
+  <Accordion title="Keep saved grid choices attached to the view">
+
+Grid preferences now follow the active grid context instead of being inferred from a route-shaped API address. When a user creates a preference, it becomes the selected preference and is applied to the current grid. Updating a preference can use the actively edited preference definition, and deleting one clears the grid's associated preference state.
+
+For everyday operators, the result is a more direct sequence: configure columns, filtering and the other saved view choices; save it; then work with that view immediately. If it is removed, the grid no longer behaves as though a deleted choice is still active.
+
+  </Accordion>
+  <Accordion title="A complete dark palette for operational work">
+
+The dark theme is refreshed across navigation, detail areas, cards, forms, tables, dropdowns, buttons, notifications, status treatment and loading surfaces. Selected navigation and interactive controls use a violet accent, while text, borders and layered workspace surfaces are adjusted together for a more coherent contrast hierarchy.
+
+This matters in dense resource screens, where a selected row, disabled control, finished status and a primary action need to be distinguishable without each view inventing its own dark colors. The palette gives the Database, grid and wider application workspace a shared visual language.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Partition-specific form hints and controls appear only when the Database definition calls for them.
+- JSON and JSONB partition keys are supported for LIST partitioning.
+
+## Related guides
+
+[Database definitions](/operate/database-definitions) · [Databases](/operate/databases) · [Preferences](/platform/ui-tour) · [UI tour](/platform/ui-tour)
+
+## Continue through the releases
+
+[Newer: 0.8.0](/changelog/0.8.0) · [All releases](/releases/changelog) · [Earlier: 0.6.0](/changelog/0.6.0)

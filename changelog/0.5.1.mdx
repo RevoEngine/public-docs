@@ -1,0 +1,81 @@
+---
+title: "0.5.1 — Build a dashboard, search your code and download data"
+sidebarTitle: "0.5.1"
+icon: "tag"
+description: "13 June 2025"
+---
+
+RevoEngine 0.5.1 brings three practical additions to everyday application work: configurable dashboards, search inside Component source and streamed CSV downloads from Databases. Operators can prepare a useful starting view, builders can locate the code behind a behavior, and teams can take query results into a spreadsheet without copying records by hand.
+
+## Highlights
+
+- Arrange dashboard panels with drag, resize and layout-lock controls.
+- Save named dashboard configurations and load them again.
+- Search Component code with case-sensitive, whole-word and Component-type options.
+- Download Database query results as CSV with column headers and type-aware formatting.
+- Move from an Endpoint summary to the selected Endpoint's operational context.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Arrange the dashboard around the work" defaultOpen={true}>
+
+The dashboard gains an editable grid. Unlock it to add panels, move them into position, resize them or remove a panel that no longer belongs in the view. Lock the layout again when the arrangement is ready for everyday use, so ordinary interaction with its content does not keep moving the panels.
+
+The initial panel catalogue covers active accounts over time, platform-versus-external account distribution, user-versus-service-account distribution and an Endpoint summary grid. An operator can place the Endpoint summary beside the account indicators most relevant to the application, giving each panel the space it needs.
+
+This makes a dashboard something a user can compose, not just a fixed collection of charts. A wide operational table and a small distribution chart need different proportions; the grid lets the layout reflect that instead of forcing each item into the same size.
+
+  </Accordion>
+  <Accordion title="Save a working view and return to it">
+
+Dashboard configurations can be named, saved and selected from a loading dialog. The arrangement retains the panel definitions and grid positions needed to restore the view. Editing a selected configuration updates that saved view; creating a configuration provides a separate arrangement to return to.
+
+A default dashboard choice can be restored when entering the workspace. Selected dashboards also carry their identity into navigation and the page title, making it clearer which prepared view is open.
+
+The working and editing controls are distinct. Reload belongs to the locked operating view, while Add and Save belong to layout editing. For a recurring task, the flow is straightforward: prepare the arrangement once, save it, then load and refresh it when returning to the same operational check.
+
+  </Accordion>
+  <Accordion title="Search the code, not only the Component name">
+
+Application-object search is extended with a code-search mode. A builder can now look for a function call, field name or integration identifier inside Component elements, even when the surrounding Component has an unrelated name.
+
+Results carry the Component's name, category, type and matching element key alongside its source content. This makes a match actionable: identify the relevant Component and element, then continue the investigation in the editor.
+
+Case-sensitive matching distinguishes names that differ only by capitalization. Whole-word matching narrows a search when a short identifier would otherwise appear inside longer names. Component-type filtering limits the scope further, and paged results keep larger searches manageable. An occurrence count helps distinguish a single use from a name repeated across the application.
+
+This is useful before changing an integration contract. Search for the old field or function name, inspect the matching elements, and use that inventory to plan the edits instead of opening every Component manually.
+
+  </Accordion>
+  <Accordion title="Download a Database result as CSV">
+
+Database exports now have a dedicated CSV download. The export follows the Database query workflow and streams the result to the caller. Column headers follow the definition order, keeping the output understandable to a person opening the file and predictable for a downstream importer.
+
+The writer handles values according to their column types. Numeric values are emitted as numbers, text and structured JSON are quoted with embedded quotes escaped, and null values become empty cells. Boolean values use check and cross symbols in this initial format.
+
+For an illustrative order result, the downloaded content can look like:
+
+```csv
+"orderId","customer","amount","approved"
+1001,"North, Warehouse",149.5,✔
+1002,"South Office",,
+```
+
+The comma inside the customer name remains part of that cell because the value is quoted. The empty amount and approval fields on the second row represent missing values. This release provides the basic CSV download; configurable CSV dialects and native workbook generation arrive in later releases.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Dashboard layouts can combine several panel types in one saved configuration.
+- Endpoint summary selection remains connected to its detail workflow.
+- Code-search results include both matching element context and the total occurrence count.
+
+## Related guides
+
+[Dashboards](/operate/dashboards) · [Search](/platform/search) · [Databases](/operate/databases) · [Web IDE](/build/web-ide)
+
+## Continue through the releases
+
+[Newer: 0.5.2](/changelog/0.5.2) · [All releases](/releases/changelog) · [Earlier: 0.5.0](/changelog/0.5.0)

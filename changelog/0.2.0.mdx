@@ -1,0 +1,60 @@
+---
+title: "0.2.0 — Faster operating context for automation and logic"
+sidebarTitle: "0.2.0"
+icon: "tag"
+description: "26 December 2023"
+---
+
+RevoEngine 0.2.0 improves the work that happens around an established automation: reading a schedule, moving from a configuration to the activity it created, and returning to a logic element that still needs attention. The release concentrates on making the existing automation and Web IDE workflows easier to follow when an application contains many definitions, runs and editable elements.
+
+## Highlights
+
+- Move directly between event or job configuration and its operational history.
+- Read a valid schedule expression as plain-language timing while editing it.
+- See whether a schedule is active and use the actions appropriate to that state.
+- Review unsaved logic elements by name and open the exact affected element.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Follow an automation from configuration to history" defaultOpen={true}>
+
+Automation work often moves between two related questions: how is this job or event configured, and what activity has it produced? 0.2.0 makes that relationship explicit in the workspace. An event configuration now presents a direct route to its event history, and the history view leads back to the configuration that defines it. Job templates receive the same connection to job history.
+
+This shortens a common operating loop. A builder can review the definition, open its history to inspect the recorded activity, then return to the configuration to make a deliberate adjustment. Configuration and history remain distinct views, with the links keeping both accessible while a team investigates or refines an automation.
+
+The left navigation follows the same idea. Configuration entries for jobs and events include direct history access, so an operator can reach the appropriate record without first leaving the automation area and rebuilding the route mentally.
+
+  </Accordion>
+  <Accordion title="Read a schedule before you rely on it">
+
+Schedules already provide the timing mechanism for recurring work. This release makes the expression being edited easier to understand by showing a plain-language description whenever the cron value is valid. A builder can still enter the precise schedule expression, while also seeing the timing it represents as part of the form.
+
+That is useful when reviewing a handoff or checking a recurring operation with a teammate: the expression remains the configured value, but the editor gives immediate readable context before the schedule is saved. The schedule form also keeps its category, description, time-zone and linked job details together, so the timing can be read alongside the purpose of the recurring work.
+
+The detail view makes active and inactive configurations visible and presents the corresponding action set. Teams can distinguish a configuration that is ready to operate from one that is currently disabled, then choose the relevant action from the same context.
+
+  </Accordion>
+  <Accordion title="Keep complex logic edits in view">
+
+The Web IDE now adds an explicit Unsaved changes section to its navigation. When an author modifies logic, the list identifies each affected element with its key and the logic where it belongs. This is more precise than a single generic dirty indicator: the author can see what still requires attention, even after opening several areas of a larger logic structure.
+
+Selecting an entry opens the relevant parent category and logic group, then focuses the matching element in the editor. An author can therefore use the list as a working checklist: make several related adjustments, review the changed elements, open one directly for a final check, and continue the existing save flow with a clearer view of the remaining work.
+
+The editor navigation also separates component browsing from search and gives the working pane more flexible space. Together with the unsaved-elements list, these changes make it easier to work through a substantial set of logic elements without losing the location of an edit or the structure around it.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Event and schedule forms receive state-aware configuration presentation in the shared automation workspace.
+- Job and event history remain available from the configuration context as well as from history navigation.
+
+## Related guides
+
+[Automation](/operate/automation) · [Schedules](/operate/schedules) · [Jobs](/operate/jobs) · [Web IDE](/build/web-ide)
+
+## Continue through the releases
+
+[Newer: 0.3.0](/changelog/0.3.0) · [All releases](/releases/changelog) · [Earlier: 0.1.3](/changelog/0.1.3)

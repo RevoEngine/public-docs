@@ -1,0 +1,63 @@
+---
+title: "1.1.2 — Richer conversations, clearer endpoints and safer data updates"
+sidebarTitle: "1.1.2"
+icon: "tag"
+description: "21 May 2026"
+---
+
+This release makes everyday application work more concrete: bring several pieces of supporting material into one Assistant request, speak a request when typing is inconvenient, describe an Endpoint contract more clearly, and express common data changes as a deliberate sequence rather than a workaround. The accompanying workspace refinements keep configuration, execution context and discussion closer together.
+
+## Highlights
+
+- Add several supporting files to one Assistant message.
+- Dictate an Assistant request and review the resulting text before sending it.
+- Define more explicit Endpoint input and output fields.
+- Apply ordered, bounded data transformations in low-code logic.
+- Move between Endpoint, Job, history and plugin work with less context switching.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build a complete request from the material that matters" defaultOpen={true}>
+
+An Assistant conversation can now carry multiple attachments. A builder investigating an import issue, for example, can attach a sample file, an export and a written description to the same request instead of splitting context across messages. The conversation retains the relationship between the question and the material supplied with it.
+
+Voice capture adds another way to start that workflow. Dictate a short instruction, check the captured text, make any needed correction and submit it as a normal message. It is useful while inspecting configuration or execution evidence. Attachments and dictated input do not expand access to files, data or actions: the task continues to use only material and capabilities available in its application context.
+
+  </Accordion>
+  <Accordion title="Describe what an Endpoint expects and returns">
+
+Endpoint configuration now has a stronger contract surface for request and response fields. Rather than making a caller infer every payload detail from implementation, a builder can state expected structure at the Endpoint boundary and shape the result for consumers. This makes an Endpoint easier to connect from a UI component, an automation or another service because its intended input and output are visible where it is configured.
+
+The practical benefit is control over the hand-off between application layers. A team can preserve a structured response where a client needs separate fields, merge a calculated result with existing response data where that is the right contract, and avoid accidental casing changes when an existing consumer depends on a name. These are configuration choices, not replacements for validation or authorization; an Endpoint still executes under its normal rules.
+
+  </Accordion>
+  <Accordion title="Make routine data changes readable">
+
+Low-code data work gains an ordered update form for common transformations. A definition can apply a small sequence such as setting a workflow value, adding to a numeric counter, normalising text and then updating a selected JSON property. Operations run in written order, which matters when later work depends on an earlier result.
+
+The form is designed for precise, bounded edits. It supports literal values and explicit arithmetic, text, date and JSON-path operations; it is not an invitation to hide an unreviewed general-purpose query in application logic. Limits and surrounding data permissions continue to apply. Routine operational changes can therefore stay legible in the definition, while complex business rules remain in the appropriate component or Endpoint.
+
+  </Accordion>
+  <Accordion title="Keep the operational workspace in view">
+
+The editor and related operational views were refined around the way teams move through a task. While working on an Endpoint or Job, users can keep configuration, code-oriented editing, execution samples, event history and related plugin details within the same broader workspace. It reduces the need to rediscover the object that explains why a run behaved as it did.
+
+These changes complement the established platform flow: define a resource, test it with realistic input, inspect execution evidence and adjust the definition with the relevant context available.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Assistant and resource views received focused navigation and presentation refinements.
+- Endpoint configuration supports richer schema-oriented choices.
+- Managed V8 runtime authoring declarations were expanded for the new data-update form.
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Endpoints](/operate/endpoints) · [Low-code](/low-code/overview) · [Jobs](/operate/jobs) · [Plugins](/ai/plugins)
+
+## Continue through the releases
+
+[Newer: 1.1.3](/changelog/1.1.3) · [All releases](/releases/changelog) · [Earlier: 1.1.1](/changelog/1.1.1)

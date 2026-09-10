@@ -1,0 +1,72 @@
+---
+title: "1.3.3 — Portable Component delivery across environments"
+sidebarTitle: "1.3.3"
+icon: "tag"
+description: "1 August 2026"
+---
+
+RevoEngine 1.3.3 strengthens the way teams move custom Components between environments. The release introduces a portable identity strategy, a plan-first CLI workflow and matching VS Code support. Instead of treating instance-specific identifiers as the only way to recognise a Component, a team can give its source a stable identity and make promotion decisions from a readable comparison.
+
+## Highlights
+
+- Use a stable key to recognise a Component across environments.
+- Save named environment profiles for repeatable comparison.
+- Preview creates, updates, target-only items and identity collisions before apply.
+- Narrow a plan by Component key or category.
+- Require explicit confirmation for writes and a separate force decision for removals.
+- Keep local VS Code identity and TypeScript editing aligned with the CLI workflow.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Give a Component an identity that travels" defaultOpen={true}>
+
+A Component can now be matched through a stable key rather than only through the identifier assigned by one environment. This is important when the same application source is promoted from development to test or production: the target may have its own local identifier, while the business Component still needs to be recognised as the same source unit.
+
+The stable key is deliberate, not inferred from a display name at the moment of deployment. It gives teams a durable way to describe the Component they expect to compare, while protected platform fields remain outside normal authoring. Existing instance-bound projects can continue to use their established identity mode; teams that need portable promotion can choose the stable-key approach for their workspace.
+
+  </Accordion>
+  <Accordion title="Compare environments before changing either one">
+
+Named CLI environments make the comparison repeatable. A developer saves the endpoints they work with, then asks the CLI to build a plan between a source and target. The plan categorises what would be created, updated, left unchanged or, when requested, removed. It also identifies target-only Components and identity collisions instead of trying to guess through an ambiguous situation.
+
+A typical review can be used as a CI drift gate before any write is considered:
+
+```bash
+revo env diff --from develop --to e2e --strict
+revo env apply --from develop --to e2e --dry-run
+```
+
+The first command returns a non-zero result when the environments differ. The second produces the same application plan without changing the target. Together they give a team a useful checkpoint between editing Component source and deciding to promote it.
+
+  </Accordion>
+  <Accordion title="Apply a scoped, reviewable plan">
+
+When the plan is accepted, apply remains an explicit action. Teams can narrow it to a Component key or category, which is helpful when a release contains several independent changes. The CLI asks for confirmation in an interactive session, and a non-interactive run must opt in with `--yes`. Removing target-only Components is even more deliberate: it requires a prune plan and a separate force decision.
+
+Collisions are not silently resolved. If more than one Component carries the same stable key, the CLI stops the apply until the team corrects the ownership or scopes the work differently. This turns an otherwise risky promotion ambiguity into a visible delivery decision.
+
+  </Accordion>
+  <Accordion title="Prepare existing workspaces with a plan">
+
+Teams do not have to hand-edit every existing Component before adopting the workflow. The CLI offers a plan/apply path for populating missing stable keys on tracked Components. The plan reports what is already ready and what would change; applying it is separately confirmed. That gives older projects a gradual route to portable identity while keeping the write set visible.
+
+Local lock information is updated around the same strategy, allowing comparison and later operations to retain the connection between source content, the current target and the Component identity selected for the workspace. The result is a more dependable local baseline for delivery work without treating a cache as the application source of truth.
+
+  </Accordion>
+  <Accordion title="Keep the editor connected to the workflow">
+
+The VS Code extension now understands the same identity choice. In stable-key mode it can map a remote Component to the appropriate local Component instead of assuming identifiers are universal. This helps the Components and sync views present the work that actually belongs to the selected local project.
+
+The extension also adds scoped TypeScript support for RevoEngine-managed Component and debugger files. Developers keep normal navigation, completion and diagnostics while the editor accommodates the runtime wrapper semantics of those files. The result is a smoother local authoring experience that complements the Web IDE and the CLI promotion flow.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[CLI](/developers/cli) · [CLI projects](/developers/cli-projects) · [VS Code extension](/developers/vscode-extension) · [Components](/build/components)
+
+## Continue through the releases
+
+[Newer: 1.4.0](/changelog/1.4.0) · [All releases](/releases/changelog) · [Earlier: 1.3.2](/changelog/1.3.2)

@@ -1,0 +1,71 @@
+---
+title: "0.3.1 — Typed Components, recoverable Automation, and the first Assistant conversations"
+sidebarTitle: "0.3.1"
+icon: "tag"
+description: "21 February 2024"
+---
+
+RevoEngine 0.3.1 extends the established production low-code platform in several practical directions. Builders can give Components a clearer implementation role, reuse validation as a versioned definition, and work more confidently in the Web IDE. Operators gain a recovery path for Automation definitions. Alongside those core platform improvements, this release introduces the first conversational Assistant alpha: a focused, private thread experience rather than the planning and platform-aware Assistant that appears in later releases.
+
+## Highlights
+
+- Choose JavaScript, TypeScript, reusable-library, or validation-oriented Component forms.
+- Attach an Endpoint to a separately versioned validation Component.
+- Work across tabs and split editing surfaces while choosing which changed sources to save or discard.
+- Restore deleted Automation definitions instead of recreating them.
+- Start, revisit, cancel, delete, and restore early Assistant conversations.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Give each Component a more deliberate role" defaultOpen={true}>
+
+Components remain the established home for reusable application behavior, but 0.3.1 makes their purpose more explicit. When creating a Component, builders can choose JavaScript or TypeScript for application behavior, or choose the equivalent reusable-library form when the code is intended to support other Components. That distinction helps a team keep request-handling behavior separate from shared helpers while retaining the same Component lifecycle, history, activation, editor, and Playground workflow already used across the platform.
+
+The release also adds a validation-oriented Component form. Instead of treating every incoming payload rule as a piece of hand-maintained endpoint text, builders can define a reusable JSON validation contract. A contract can describe scalar values, nested objects, arrays, required fields, permitted properties, numeric boundaries, and text patterns. The platform checks the definition before it becomes available to an Endpoint, so a malformed or structurally inconsistent rule is caught during authoring rather than becoming a hidden runtime surprise.
+
+  </Accordion>
+  <Accordion title="Reuse a versioned request contract at the Endpoint">
+
+Endpoint configuration now separates the Component that performs application behavior from the Component that validates an incoming request. Select the execution Component and its revision as before, then select a validation Component and, where needed, the validation revision. This makes the two decisions visible: a team can advance application behavior without silently changing its input contract, or deliberately move both to compatible revisions as part of a controlled release.
+
+The Endpoint workspace presents the validation choice in its options area and filters the available revision choices to the selected Component. Builders can therefore reuse one checked request contract across several Endpoints without copying a schema into each form. It also improves review: an operator looking at an Endpoint can tell which application behavior it invokes and which validation definition protects its request, instead of having to infer both from one embedded document.
+
+  </Accordion>
+  <Accordion title="Keep complex Web IDE work under control">
+
+The Web IDE gains a more deliberate multi-source editing flow. Builders can navigate source elements, keep work in tabs, open a second editing surface for side-by-side work, and open comparison from the same editing context. This is useful when a Component contains several related elements or when a library and its consumer need to be reviewed together. The editing workflow keeps the source list, active tabs, and split view connected rather than requiring a builder to reconstruct context between screens.
+
+Changes are treated as a set of decisions rather than one opaque save. The editor identifies changed source elements, lets the builder choose the relevant Component changes, and supports saving or discarding from that selection. After selected saves complete, the editor refreshes its baseline for those sources. That gives teams a safer way to work across several open files: retain an unfinished experiment while saving a ready change, or explicitly discard the part that should not move forward.
+
+  </Accordion>
+  <Accordion title="Recover Automation definitions and distinguish cancellation from deletion">
+
+Automation operations become more recoverable. A deleted job template, schedule, event, webhook, job, or event-history record can be restored from its operational context rather than rebuilt from scratch. In the workspace, a deleted definition is shown as a recovery case: normal editing actions give way to a Restore action until the item returns to service. This preserves the existing definition and helps operators avoid duplicating configuration after an accidental deletion.
+
+The release also makes the distinction between stopping work and removing its record clearer. Cancellation remains the action for an active job or webhook run, while deletion is a separate lifecycle action. That distinction matters operationally: teams can stop an in-flight item when it is no longer wanted without treating a request to halt work as a request to remove the definition or its history. Existing schedules, events, templates, subscriptions, and webhooks continue to use their established workflows.
+
+  </Accordion>
+  <Accordion title="Try the first conversational Assistant alpha">
+
+0.3.1 introduces the first Assistant conversation experience as an alpha. Open the compact chat window, create a thread from an opening message, and the conversation receives a short title to make the thread list easier to revisit. The thread view keeps the messages associated with that conversation, loads history in pages, and gives each user a private list of their own threads. Deleted threads can be included in the list and restored when a conversation should return.
+
+The interaction is intentionally narrow. A thread has a visible processing state, prevents a new prompt while work is still in progress, and offers cancellation when the active request needs to stop. Once a thread is in an eligible completed state, the user can continue the same conversation instead of starting over. This alpha supplies a simple conversational wrapper alongside the mature low-code, endpoint, and Automation platform; it is not yet the later Assistant experience for planning, governed actions, platform context, or streamed operational activity.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Component and validation revisions can be selected through searchable configuration controls rather than long static lists.
+- Validation contracts can express nested request areas such as query values, headers, and body data.
+- Deleted Automation templates surface a focused recovery action instead of normal mutable controls.
+- Assistant conversations can be removed from the normal list without losing the option to restore them.
+
+## Related guides
+
+[Components](/build/components) · [Web IDE](/build/web-ide) · [Endpoints](/operate/endpoints) · [Automation](/operate/automation) · [Assistant](/ai/assistant)
+
+## Continue through the releases
+
+[Newer: 0.3.2](/changelog/0.3.2) · [All releases](/releases/changelog) · [Earlier: 0.3.0](/changelog/0.3.0)

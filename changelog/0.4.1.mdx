@@ -1,0 +1,76 @@
+---
+title: "0.4.1 — A working set for Component changes"
+sidebarTitle: "0.4.1"
+icon: "tag"
+description: "28 February 2025"
+---
+
+The Web IDE becomes more useful for changes that span several Component elements. Separate editor panes, movable tabs and a grouped save review help builders keep related sources visible while deciding which changes are ready to keep.
+
+Database records gain a complementary inspection tool: structured cell values can be opened in a read-only code preview. Both improvements focus on working with detail without losing the surrounding application context.
+
+## Highlights
+
+- Arrange Component elements across two editor panes.
+- Reorder tabs within a pane and move sources between panes.
+- Keep a useful reference open while editing related code.
+- Review additions, changes and removals grouped by Component before saving.
+- Inspect structured Database cell content in an expanded read-only preview.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Keep related sources visible" defaultOpen={true}>
+
+The updated Component editor supports a working set with separate main and split tab groups. A builder can keep a reusable element visible on one side while editing the element that calls it on the other.
+
+This builds on the earlier split-view direction and applies it to the evolving Component workspace. Each pane has its own selected tab and ordering, so moving through one group of sources does not require replacing the reference being inspected in the other pane.
+
+That arrangement is useful for changes involving several related elements: an input transformation and its consumer, a shared helper and a calling operation, or two parts of a business rule that must remain consistent. The workspace lets the builder establish the layout that fits the change rather than repeatedly reopening the same sources.
+
+  </Accordion>
+  <Accordion title="Organize the editor around the current task">
+
+Tabs can be reordered within their pane and moved between the main and split groups. The builder can rearrange the working set as the investigation develops—for example, promoting a source from reference material to the element currently being edited.
+
+The editor also retains the distinction between a source being previewed and a source kept open as a tab. That allows navigation through a larger Component collection without requiring every inspected item to remain permanently in the working set.
+
+When the split workspace is no longer needed, its sources can return to the main tab group. Consolidating the layout does not mean discarding the code being inspected or treating the split pane as a separate copy of the application. The panes are two views into the same Component authoring context.
+
+  </Accordion>
+  <Accordion title="Review the set of changes before saving">
+
+The save workflow groups affected elements under their parent Component. A builder can expand a Component to inspect which elements were added, changed or removed and choose which Component changes to include in the save action.
+
+This matters when a working session touches several areas. Some edits may be ready while others are still being investigated. Grouping by Component keeps the decision aligned with the application definition instead of presenting a flat list of unrelated source files.
+
+The review shows the kind of change alongside the element name. An addition, an edit and a removal are different decisions; making that distinction visible helps the builder inspect the intended scope before continuing. The save action is available when there is selected work to save.
+
+This is the editor's authoring review. It should not be confused with the later Assistant approval experience: here the builder is organizing and saving their own Component work within the Web IDE.
+
+  </Accordion>
+  <Accordion title="Inspect structured data without flattening it">
+
+Database lists now provide an expanded preview for supported structured cell values. Rather than trying to read an entire object inside a narrow grid column, the operator can open a code-oriented view that preserves the value's structure.
+
+The preview is read-only and remains connected to the selected record and column. It supports inspection without implying that opening the value changes the record or executes any content found inside it.
+
+For example, an application record may contain a nested integration response or a collection of related values. An expanded representation makes it easier to distinguish the outer object, its keys and nested entries before returning to the record list. The normal Database detail and editing workflows remain responsible for intentional changes.
+
+  </Accordion>
+  <Accordion title="An authoring workflow that keeps context">
+
+Together, the editor and Database improvements shorten the distance between finding the relevant information and acting on it. A builder can retain source context across panes, review changes by Component and inspect structured application data without repeatedly leaving the workspace.
+
+The release does not introduce a separate local toolchain or replace existing managed execution. It expands the browser workflow around the Components and data already being maintained, with clearer control over what is open, what has changed and what is ready to save.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Web IDE](/build/web-ide) · [Components](/build/components) · [Databases](/operate/databases)
+
+## Continue through the releases
+
+[Newer: 0.5.0](/changelog/0.5.0) · [All releases](/releases/changelog) · [Earlier: 0.4.0](/changelog/0.4.0)

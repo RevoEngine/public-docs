@@ -1,0 +1,68 @@
+---
+title: "1.2.3 — More visible operations, more deliberate follow-through"
+sidebarTitle: "1.2.3"
+icon: "tag"
+description: "2 July 2026"
+---
+
+RevoEngine 1.2.3 improves how a team follows work across the platform. It adds a practical Activity view for understanding resource change, gives automation operators clearer retry and pending-work controls, and advances the Agent beta's ability to discover context and present a multi-step task. The common theme is visibility: a useful next action should come with enough context to make a considered decision.
+
+## Highlights
+
+- Search activity by resource, type, creator and time window.
+- Open a specific historical resource version when a summary is not enough.
+- Configure retry behavior and inspect the resulting attempt chain.
+- Let authorized operators run one selected pending job when intervention is appropriate.
+- Follow Agent plans, progress and requests for a decision as separate stages of work.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Investigate changes through a focused activity view" defaultOpen={true}>
+
+The new Activity experience gives operators a dedicated way to inspect snapshot-backed resource history without first knowing the exact place where a change was made. Search can be narrowed by resource type, a text term, creator or a selected period; quick lookback windows are useful for an incident, while an explicit range helps with a handover or audit conversation. Filters can be combined so an operator can move from a broad question such as “what changed this morning?” to a smaller, reviewable set of results.
+
+Each result is an entry point into the relevant historical resource version. That matters when the activity summary identifies the change but the user needs to inspect the actual state that was recorded at the time. The view is designed for investigation and understanding, not for quietly rewriting history: it helps a user retrieve accessible context and decide whether a normal edit, rollback or further diagnosis is warranted.
+
+  </Accordion>
+  <Accordion title="Give automation failures a defined next step">
+
+Automation jobs can now carry an explicit retry policy rather than relying only on a one-off response to a failed run. The policy travels into the job execution context, allowing the application to preserve the relationship between a root job and its later attempts. In the job details experience, operators can inspect those attempts together with the input and result context that explains why the work was retried.
+
+This is useful for transient operational failures: an integration may be temporarily unavailable, an execution capacity limit may clear, or a dependent system may recover. It is not a reason to hide a persistent business error. A retry remains visible as an attempt, and a team can use the history to distinguish “try again under the configured rule” from “change the configuration or input before running again.”
+
+  </Accordion>
+  <Accordion title="Intervene in pending work with a narrow control">
+
+Sometimes an authorized operator needs to run one known pending job now. The release adds that option while keeping its scope deliberately small: it selects a pending job and bypasses only the job-template concurrency constraint for that intervention. It does not turn the automation surface into an unrestricted execution shortcut, and it remains protected by the normal automation roles.
+
+That distinction supports sensible operations. A team can unblock a time-sensitive job after checking its context, while the broader scheduler, execution state and access model continue to govern the rest of the system. The right use is an informed operational decision, not a substitute for correcting a recurring scheduling or configuration problem.
+
+  </Accordion>
+  <Accordion title="Make Agent beta work easier to read">
+
+The Agent beta expands its platform-aware discovery and planning flow. An Agent can identify relevant accessible application objects, inspect their definitions and assemble a plan around the supported operations available to its configured identity. This reduces the amount of manual identifier gathering required when a task begins with an unfamiliar part of an application.
+
+The release keeps the stages distinct. Discovery is not mutation; a proposed plan is not approval; and a requested decision is not a completed action. Plans, progress updates and choices are presented as different pieces of the task so a user can see whether the Agent is investigating, waiting for information, or ready for a deliberate next step. That is especially helpful in a multi-step task where the useful question is not only “what did it answer?” but “what is it doing now, and what does it need from me?”
+
+  </Accordion>
+  <Accordion title="Use evidence close to the work">
+
+Activity history, retry attempts and Agent task presentation reinforce one another without collapsing into a single feature. An Activity record explains resource change; a job record explains execution attempts; an Agent plan explains an interactive proposal. Keeping those records close to their operating models lets a team investigate the right evidence at the right boundary instead of treating every operational event as a chat message.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Activity results support compact paging so a broad investigation can be narrowed progressively.
+- Job-template inputs, concurrency settings and retry settings receive structured validation.
+- Richer progress and result presentation continues in the assisted-work workspace.
+
+## Related guides
+
+[Activity](/operate/observability) · [Automation](/operate/automation) · [Jobs](/operate/jobs) · [Agents](/ai/agents) · [Approvals and plans](/ai/approvals-and-plans)
+
+## Continue through the releases
+
+[Newer: 1.3.0](/changelog/1.3.0) · [All releases](/releases/changelog) · [Earlier: 1.2.2](/changelog/1.2.2)

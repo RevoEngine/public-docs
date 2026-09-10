@@ -85,6 +85,14 @@ Approval actions can support **Approve**, **Approve all compatible actions for t
 
 The pending action is durable. Resolving it resumes the work from persisted state, and the decision is retained with the execution history.
 
+## Review source changes and decisions
+
+Supported Assistant edits include a comparison of the current and proposed source and editable properties. Inspect the inline comparison in the conversation, or open fullscreen for a side-by-side review. Completed edits retain their comparison and decision history.
+
+Eligible changes explicitly requested by the user can receive an automatic review. The conversation distinguishes automatic approval, manual approval and a return to manual review, with an explanation of the outcome. Unclear intent, insufficient evidence or a stale proposal does not silently become approval.
+
+The decision applies to the version and effect that were reviewed. If the target changes before application, a fresh proposal is required. The review does not bypass roles, access checks or the configured permission policy. See [1.5.0](/changelog/1.5.0) for the full update.
+
 ## Durable goals versus plans
 
 A **goal** is a continuing outcome for a thread that can span follow-up turns. A **plan** is an ordered, reviewable execution contract.

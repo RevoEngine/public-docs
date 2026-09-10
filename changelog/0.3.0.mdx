@@ -1,0 +1,70 @@
+---
+title: "0.3.0 — Components and Endpoints define the application model"
+sidebarTitle: "0.3.0"
+icon: "tag"
+description: "25 January 2024"
+---
+
+RevoEngine 0.3.0 reshapes the early low-code builder around two connected concepts: Components hold reusable application behavior, while Endpoints define the HTTP contract that exposes it. The release also deepens managed runtime file workflows, job investigation, and account security.
+
+## Highlights
+
+- Components become the central unit for reusable application behavior.
+- Endpoints define a Component's HTTP contract and lifecycle separately from its source.
+- The managed V8 runtime gains controlled multipart and file-stream workflows.
+- Job history separates execution output from errors for faster investigation.
+- Authenticator enrollment and clearer instance selection strengthen account operations.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build reusable application behavior with Components" defaultOpen={true}>
+
+Components replace the earlier generic logic model as the home for reusable application code. Builders can create and edit Components, save their elements, inspect version history, compare revisions, control activation, and restore a deleted Component when needed. The model supports both application code and reusable code libraries, giving teams a clear place to distinguish a capability that runs from code intended for reuse.
+
+The builder also brings the editor and Playground into the same Component workflow. Open the focused editor from the Component workspace, keep source elements under one reusable unit, compare a selected historical revision, and exercise behavior in the Playground without turning every capability into a one-off HTTP integration. Read, write, and administrative access remain distinct, so a team can make source inspection broader than source changes.
+
+  </Accordion>
+  <Accordion title="Define the HTTP contract independently">
+
+Endpoints describe how a Component is reached over HTTP. Configure a method and path, select an active Component and, where required, a specific version, then define inputs, validation schema, and endpoint options in a dedicated workspace. This means an Endpoint can intentionally follow a newer Component revision or remain attached to a selected one while the Component continues to evolve.
+
+The Endpoint workspace keeps details, options, inputs, and schema in separate views. Authorized operators can save changes, validate the contract, activate or disable an Endpoint, review execution statistics, and manage deletion or restoration separately from the Component's source lifecycle. The available HTTP methods cover the core read and write patterns, while the schema model can express required fields, scalar and nested object rules, array limits, and value constraints.
+
+  </Accordion>
+  <Accordion title="Move files through managed application workflows">
+
+The managed V8 runtime now supports controlled multipart requests and file-backed streaming for application integrations. Application code can work with managed file metadata, bounded data reads, saved files, and time-limited upload or download access, making file exchange a first-class part of an integration flow rather than a separate manual step.
+
+The workflow is deliberately structured. A streamed request or response is linked to a platform file, and the runtime checks which request modes can be combined before execution. This allows Components to receive or send larger file-oriented payloads while retaining a managed record of the file involved in the operation.
+
+  </Accordion>
+  <Accordion title="Investigate a job from its result to its errors">
+
+Job history now gives operators a clearer investigation flow. Open execution details and elapsed time, inspect structured output independently, then move to the error view when a run needs attention. Eligible failed or cancelled work can be retried from the same operational context, keeping investigation and recovery close together.
+
+Job-related records are retrieved in the context of the selected execution, helping teams focus on information relevant to that run. The error view presents the records as a navigable list, while the output view preserves the structured result for inspection. This is especially useful when a job has completed with a result but still needs a closer operational review.
+
+  </Accordion>
+  <Accordion title="Strengthen account and instance operations">
+
+Account settings gain an authenticator workflow for registering, verifying, or unlinking a device. The guided enrollment view presents a registration code for an authenticator app and confirms the device through a six-digit verification step. Sensitive profile changes can require the authenticator code once protection is enabled.
+
+The sign-in experience also handles choosing and changing the active RevoEngine instance more clearly. Accounts with a default or a single available instance can continue directly, while users with multiple available instances are guided to choose one; switching the active instance and logging out are explicit account actions.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Component and Endpoint activation states are visible in their dedicated workspaces, so inactive behavior is distinguishable from deleted history.
+- Endpoint selection can target an active Component and filter the available revision choices to that Component.
+- Job output, error records, and total execution time are available without leaving the job-history context.
+
+## Related guides
+
+[Components](/build/components) · [Endpoints](/operate/endpoints) · [Playground](/build/playground)
+
+## Continue through the releases
+
+[Newer: 0.3.1](/changelog/0.3.1) · [All releases](/releases/changelog) · [Earlier: 0.2.0](/changelog/0.2.0)

@@ -126,7 +126,8 @@ const file = await storage.getFile(storageEntryId);
 Reads storage file content.
 
 Notes:
-- Text file batch reads reuse cached stats and auto-build them if missing.
+- CSV and XLSX are detected from MIME and return a structured page with rows, headers, columns and a cursor.
+- Other text file batch reads reuse cached line stats and auto-build them if missing.
 - Binary reads return a base64 string.
 - Direct reads are limited to 10 MB unless you request a ranged buffer.
 
@@ -136,19 +137,19 @@ Notes:
 static getFileData(
       storageEntryId: string,
       options?: StorageFileReadOptions,
-    ): Promise<any>;
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
 ```
 ### Example
 
 ```ts
-const lines = await storage.getFileData(storageEntryId, { batchNumber: 1 });
+const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
 ```
 
 <span id="storage-getFileStats" aria-hidden="true"></span>
 
 ## `storage.getFileStats()`
 
-Detects encoding, newline separator, and line batches for a text file.
+Builds reusable record or worksheet indexes and returns file statistics.
 
 Notes:
 - Derived stats are cached on the storage entry metadata for later batch reads.
@@ -244,6 +245,17 @@ Opens an upload session for a file in the default `explorer` namespace.
 Notes:
 - No-op in debug mode.
 - Use this instead of `storage.appendFile(...)`; uploads are resumable and finalized explicitly.
+- Structured CSV/TSV and XLSX sessions default to `computeStats: 'sync'` so
+  byte maps, row indexes, and file stats are ready after finalize. Text
+  `text/*` upload sessions also default to `sync`; other binary sessions
+  default to `none`. An explicit compute mode always overrides the
+  default. The compatibility `staged` XLSX path may still persist its
+  reusable index when `none` is explicit; `direct` with `none` skips it.
+  Both default to `writeMode: 'staged'`.
+  Use `writeMode: 'direct'` for configured CSV/XLSX row exports. For XLSX,
+  declare every worksheet with a non-empty `table.columns` before appending;
+  direct XLSX parts are row-only and cannot contain `cells`.
+  A single `sheets` part can append rows to multiple declared worksheets.
 
 ### Signature
 
@@ -256,13 +268,13 @@ static createUploadSession(
 
 ```ts
 const upload = await storage.createUploadSession({
-  name: 'archive.zip',
-  contentTypeHint: 'application/zip',
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   uploadMode: 'incremental',
+  sheets: [{ name: 'Report', table: { autoFilter: true } }],
 });
 await storage.uploadPart(upload.session.storageUploadSessionId, {
-  data: chunkBase64,
-  dataEncoding: 'base64',
+  rows: [{ productId: 'P-1', price: 12.5 }],
 });
 const result = await storage.finalizeUploadSession(
   upload.session.storageUploadSessionId,
@@ -368,14 +380,12 @@ Notes:
 static finalizeUploadSession(
       storageUploadSessionId: string,
       data?: StorageUploadSessionFinalizeInput,
-    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView }>;
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
 ```
 ### Example
 
 ```ts
-const result = await storage.finalizeUploadSession(storageUploadSessionId, {
-  computeStats: 'async',
-});
+const result = await storage.finalizeUploadSession(storageUploadSessionId);
 ```
 
 <span id="storage-abortUploadSession" aria-hidden="true"></span>

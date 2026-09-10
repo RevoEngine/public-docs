@@ -1,0 +1,63 @@
+---
+title: "1.2.0 — Autonomous Agents beta: durable runs, operational context and native Automation entry points"
+sidebarTitle: "1.2.0"
+icon: "tag"
+description: "14 June 2026"
+---
+
+Autonomous Agents beta introduces a more deliberate operating model for work that extends beyond one interactive exchange. It builds on the established Assistant experience rather than replacing it: the Assistant remains the conversational surface for collaborative tasks, while an Agent can be configured, started and followed as a durable unit of work. This release adds run progress, native Automation entry points and clearer operator context for supported Agent workflows.
+
+## Highlights
+
+- Track supported Agent work as a durable run with visible progress.
+- Keep planning and execution anchored to the current task.
+- Select an Agent as a native Schedule or event target.
+- Identify Agents through richer profile and avatar information.
+- Manage Agent-oriented working context through defined operational surfaces.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Follow a run, not a collection of isolated responses" defaultOpen={true}>
+
+An Agent run gives longer work an owned operational identity. Instead of treating each model interaction as an unrelated background event, an operator can follow a run's current task, progress and continuation state. This is valuable when a workflow needs several steps: gathering the relevant context, performing supported work, recording progress and deciding what should happen next.
+
+The progress model is intentionally practical. It helps an operator see that a run is moving through work and keeps the next step anchored to the current task, rather than presenting a long sequence of opaque internal interactions. A run is still governed by the configured Agent capability, available context and execution rules. The beta does not promise unrestricted autonomy, nor does it turn every background task into an Agent task.
+
+  </Accordion>
+  <Accordion title="Connect supported Agent work to Automation">
+
+Schedules and events can now use an Agent as a native execution target. A team can select the intended Agent in the same Automation flow used to define recurring or event-driven application work, keeping trigger configuration and its operational destination together. For example, a supported periodic workflow can be configured from a Schedule, while a supported event workflow can begin from an event definition.
+
+This is more than a link to a separate tool. The target is validated and retained as part of the Automation definition, so the path from trigger to Agent run is explicit. It also keeps an important constraint visible: only configured and supported Agent work should be targeted. The Automation definition does not broaden the Agent's permissions, remove policy checks or convert a conversational Assistant request into an unattended run without the appropriate configuration.
+
+  </Accordion>
+  <Accordion title="Give operators a clearer Agent surface">
+
+Agents gain richer identity and operational information, including profile and avatar support alongside summary-oriented data. In a growing registry, that makes it easier to distinguish the Agent intended for a particular team or workflow and to see the relevant operational context before starting or reviewing work.
+
+Defined context and memory surfaces complement that identity. Operators can work with Agent-oriented context as a managed part of the workflow instead of relying solely on whatever happened to be visible in a previous interactive exchange. This supports continuity for supported runs while preserving the idea that context has scope, visibility and lifecycle. It should not be read as a promise of unlimited memory or access to unrelated application data.
+
+  </Accordion>
+  <Accordion title="Keep progress understandable in the product">
+
+Visible Assistant activity also becomes more focused by keeping internal timeline details out of the user-facing conversation flow. That is a small but meaningful counterpart to the new Agent operational model: users need a clear account of task-relevant progress, not a stream of low-level implementation detail.
+
+The result is a complementary pair of experiences. Use the Assistant for a collaborative, conversational task that benefits from planning and clarification. Use a configured Agent beta workflow when the work needs a durable run, a defined operational destination and a traceable progression through supported steps. Both remain part of the same RevoEngine application context and its normal governance.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Native target handling is available to both Schedule and event configuration.
+- Agent runtime work includes a defined tool budget and progress-oriented state.
+- Operator-facing Agent data is aligned with the new operational workflow.
+
+## Related guides
+
+[Agents](/ai/agents) · [Agent operations](/ai/agent-operations) · [Agent configuration](/ai/agent-configuration) · [Automation](/operate/automation) · [Assistant](/ai/assistant)
+
+## Continue through the releases
+
+[Newer: 1.2.1](/changelog/1.2.1) · [All releases](/releases/changelog) · [Earlier: 1.1.4](/changelog/1.1.4)

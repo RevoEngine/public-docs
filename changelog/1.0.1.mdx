@@ -1,0 +1,72 @@
+---
+title: "1.0.1 — Resumable files, richer data work and clearer automation history"
+sidebarTitle: "1.0.1"
+icon: "tag"
+description: "23 April 2026"
+---
+
+RevoEngine 1.0.1 makes everyday application operations more composable. Storage can now handle both a small generated object and a longer multipart transfer through one public workflow. Database selections travel further into exports and targeted bulk actions, while automation history and global search provide more useful evidence when a team needs to understand what happened.
+
+## Highlights
+
+- Upload a file directly or build it from resumable, ordered parts.
+- Inspect an active upload before it is finalized, and choose when text-file statistics are calculated.
+- Reuse structured data selections for views, CSV exports and targeted updates or deletes.
+- Browse a job as a paginated, filterable timeline with summary markers and activity density.
+- Find Storage entries through global search alongside other application resources.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Upload files in the shape your workflow needs" defaultOpen={true}>
+
+Storage now offers two complementary paths. Use `storage.putObject(...)` when an application has a complete payload ready to write, such as a generated Markdown summary or a small JSON export. For a larger file, open an upload session and choose either `chunked` mode, where the caller supplies each part number, or `incremental` mode, where RevoEngine assigns the next number. A session can be extended while work continues, inspected to see received parts and byte ranges, then finalized into the managed file entry.
+
+```ts
+const upload = await storage.createUploadSession({
+  name: 'orders.csv',
+  uploadMode: 'incremental',
+  computeStats: 'async',
+});
+
+await storage.uploadPart(upload.session.storageUploadSessionId, {
+  data: csvChunk,
+  dataEncoding: 'utf8',
+});
+
+const file = await storage.finalizeUploadSession(upload.session.storageUploadSessionId);
+```
+
+The same API accepts UTF-8 or base64 data. Text statistics can be skipped, calculated with the write, or scheduled after it, which lets an import flow choose between immediate line-oriented use and a faster hand-off. The resulting Storage entry remains the normal file that other application work can read, organise and reference.
+
+  </Accordion>
+  <Accordion title="Carry one data selection from screen to action">
+
+Database work now uses a more consistent structured selection from retrieval through export and change. A request can select named fields, apply filters and ordering, join related application databases, choose distinct values, group results and use aggregate projections for reporting. Count-only requests avoid fetching a page of rows, while grouped and aggregate results retain the result size that the report needs.
+
+That selection also drives CSV export, so an export follows the fields and data types the caller actually selected rather than falling back to a generic table dump. Targeted update and delete actions use the same filter and join vocabulary. A caller can request affected records or just their primary keys when it needs to continue a workflow with the result. This is useful for operational routines such as marking a filtered set of orders as processed, exporting the same set for review, or removing an explicitly selected archive set.
+
+  </Accordion>
+  <Accordion title="Read automation history as a timeline">
+
+Job history is more useful when a long-running task produces many entries. The job-log view now returns a stable cursor for older results, total matching rows, and optional filters for time range, severity, event and operation. It also includes the first and latest markers for the selected scope, duration-oriented metadata and time buckets that show where activity was concentrated.
+
+This makes it practical to move from a job result to the relevant execution span: focus on an error event, page back through older messages, or see whether a burst of activity happened before the final state. The response is designed for both operator screens and integrations that need a compact timeline rather than an unbounded log download.
+
+  </Accordion>
+  <Accordion title="Find managed files with global search">
+
+Global search now includes managed Storage entries. Results identify a matching folder or object by name and show useful file context such as its kind, file type, extension and current state. Result metadata also records the fields that matched, helping a user distinguish a name match from a match in supporting entry information.
+
+This connects uploaded inputs and generated outputs to the same discovery flow used for other application resources. A search for an import name, document type or familiar file label can lead directly to the managed item instead of requiring a separate manual walk through folder levels.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Low-code Database operations](/low-code/database) · [Runtime API](/low-code/runtime-api) · [Storage](/operate/storage) · [Automation](/operate/automation)
+
+## Continue through the releases
+
+[Newer: 1.0.2](/changelog/1.0.2) · [All releases](/releases/changelog) · [Earlier: 1.0.0](/changelog/1.0.0)

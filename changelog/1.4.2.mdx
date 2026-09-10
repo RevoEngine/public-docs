@@ -1,0 +1,72 @@
+---
+title: "1.4.2 — Timed Automation, deliberate Database copies and clearer Component state"
+sidebarTitle: "1.4.2"
+icon: "tag"
+description: "8 September 2026"
+---
+
+RevoEngine 1.4.2 strengthens the handoff from a configured definition to the work it creates. Automation gains one consistent way to request future delivery across its supported entry points, Database copies can carry chosen target metadata, and Component runtime views make the current revision and status easier to scan.
+
+## Highlights
+
+- Schedule supported Automation runs, events and webhooks for a future time.
+- Use one normalized delivery model for a delay or an explicit scheduled time.
+- Carry supported target metadata when cloning a Database definition.
+- Keep a Database copy's chosen identity clear instead of relying on implicit source defaults.
+- Recognize Component revisions and runtime status directly in the authoring workflow.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Schedule the work you mean to deliver" defaultOpen={true}>
+
+Supported Automation entry points now share a future-delivery model. A user can request a manual template run, event or webhook action for a specific future time instead of learning a different scheduling convention for each entry point. A delay remains useful for relative timing, while a dated schedule expresses the intended moment directly.
+
+For example, a template can receive its run input and a future schedule in the same request. An event-driven process can therefore choose whether work should start immediately, after a delay or at the scheduled point, using the same supported timing language. RevoEngine validates that choice before work is queued.
+
+  </Accordion>
+  <Accordion title="Schedule from low-code with one explicit option">
+
+The new `scheduleFor` option accepts a Date, an ISO date-time string or a Unix timestamp in milliseconds. The requested time must not be in the past or more than thirty days ahead. Existing Date-based calls remain compatible in low-code; new code can use the named option consistently.
+
+```js
+const scheduledFor = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+const eventId = await api.triggerEvent(
+  'order_followup',
+  { orderId: 'order-1001', action: 'check_status' },
+  {
+    scheduleFor: scheduledFor,
+    metadata: { correlationId: 'followup-order-1001' },
+  },
+);
+return { eventId, scheduledFor };
+```
+
+The custom event must already be configured for the intended workflow. The returned identifier refers to the scheduled event, not a completed business result. Scheduling is a no-op in debug mode, so use a normal execution when testing actual delivery.
+
+The same options pattern applies to `api.triggerJob`, `api.triggerTarget` and `api.triggerWebhook`. A delay and an absolute schedule should not be supplied together.
+
+  </Accordion>
+  <Accordion title="Clone a Database definition with an intentional identity">
+
+Database cloning now carries supported root metadata choices through the copy operation. A builder can choose the target name, category, description and tags, together with its restricted flag and user/group assignments. Row copying and connected partitions remain separate clone choices. That makes a clone better suited to a deliberate follow-on definition, such as a separately governed variation of an existing data model.
+
+The operation applies the supported clone options and normal definition validation. A successful definition update also refreshes the related metadata context, helping the application present the current definition after the change.
+
+  </Accordion>
+  <Accordion title="See the Component state that matters">
+
+Component runtime views now include dedicated revision and runtime-status signals. Authors can distinguish the revision they are viewing and recognize the current runtime state while working in the Component area. This brings two operational facts closer to the authoring surface rather than requiring users to infer them from surrounding screens.
+
+The added visibility is particularly useful when a Component participates in an Automation workflow: a team can check the configured action, understand when it is expected to run, and identify the relevant Component revision and state. It improves orientation without changing the Component lifecycle.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Automation](/operate/automation) · [Schedules](/operate/schedules) · [Jobs](/operate/jobs) · [Database definitions](/operate/database-definitions) · [Custom Node.js](/build/custom-nodejs)
+
+## Continue through the releases
+
+[Newer: 1.4.3](/changelog/1.4.3) · [All releases](/releases/changelog) · [Earlier: 1.4.1](/changelog/1.4.1)

@@ -1,0 +1,87 @@
+---
+title: "Release notes"
+sidebarTitle: "Overview"
+icon: "clock-rotate-left"
+description: "Explore RevoEngine's development timeline, product milestones and detailed release notes."
+---
+
+From early experiments in 2020 to an integrated platform for building and operating applications. Follow the product's development, then open a release for its highlights and detailed changes.
+
+<Card title="Latest · 1.5.0 — Reviewed AI changes, native spreadsheets and personal memory" icon="sparkles" href="/changelog/1.5.0">
+  2026-09-10. RevoEngine 1.5.0 substantially expands the Assistant, managed file processing and high-volume data operations. It builds on the stable Assistant Gateway and the established Database, Storage, Component and Automation foundation, adding workflows that keep proposed changes reviewable, generated files governed and longer-running work easier to continue.
+</Card>
+
+## Six years of development
+
+![Development timeline: experiments in 2020, low-code in 2022, Web IDE and V8 in 2023, closed production in November 2023, the 1.0 series in April 2026 and the current platform.](/images/release-timeline.svg)
+
+The first experiments began in 2020. Low-code application development followed in 2022, with the Web IDE and managed V8 runtime growing during 2023. The Closed Production Release followed in November 2023: the execution core powered business workflows while the builder interface continued to evolve.
+
+Early AI was a conversational alpha alongside that production platform. Platform-aware tools, Agent previews and the stable Assistant developed later; their maturity is separate from the maturity of business execution.
+
+**1.0 marks the unified public release series — not the first production deployment.** The versioned notes start with the low-code foundation in December 2022 and follow the milestones that shaped the platform.
+
+## Public platform releases
+
+Major product milestones have their own release pages. The sidebar also includes the smaller releases between them, preserving how each capability developed over time.
+
+<CardGroup cols={2}>
+  <Card title="1.4.0 · Database change history with investigation controls" href="/changelog/1.4.0">
+    2026-08-05 — Enable row-change capture only on the Databases where it is useful.
+  </Card>
+  <Card title="1.3.0 · The stable Assistant experience" href="/changelog/1.3.0">
+    2026-07-06 — Continue meaningful work in persistent Assistant conversations rather than isolated prompts.
+  </Card>
+  <Card title="1.2.0 · Autonomous Agents beta: durable runs, operational context and native Automation entry points" href="/changelog/1.2.0">
+    2026-06-14 — Track supported Agent work as a durable run with visible progress.
+  </Card>
+  <Card title="1.1.0 · Assistant beta with plans, platform context and operational tools" href="/changelog/1.1.0">
+    2026-05-16 — Choose direct work, a visible plan or a plan that waits for review.
+  </Card>
+  <Card title="1.0.0 · RevoEngine 1.0 — the unified application platform" href="/changelog/1.0.0">
+    2026-04-14 — Build reusable application behavior with Components, shared libraries, the Web IDE and Sandbox.
+  </Card>
+</CardGroup>
+
+## Before 1.0: early development and production releases
+
+Explore the original low-code workspace, the managed runtime, data-model changes and the capabilities that followed. Open a milestone below or use the sidebar to follow the intermediate releases.
+
+<CardGroup cols={2}>
+  <Card title="0.9.0 · Governed Storage, deliberate Assistant decisions and local developer workflows" href="/changelog/0.9.0">
+    2026-04-06 — Create and organise managed folders and file entries.
+  </Card>
+  <Card title="0.7.0 · Model data partitions with the same clarity as the rest of a Database" href="/changelog/0.7.0">
+    2025-12-21 — Choose LIST, RANGE or HASH partitioning when the selected key type supports it.
+  </Card>
+  <Card title="0.5.1 · Build a dashboard, search your code and download data" href="/changelog/0.5.1">
+    2025-06-13 — Arrange dashboard panels with drag, resize and layout-lock controls.
+  </Card>
+  <Card title="0.4.1 · A working set for Component changes" href="/changelog/0.4.1">
+    2025-02-28 — Arrange Component elements across two editor panes.
+  </Card>
+  <Card title="0.4.0 · A more deliberate application data model" href="/changelog/0.4.0">
+    2024-12-06 — Define application data through an explicit Database workflow.
+  </Card>
+  <Card title="0.3.3 · Live notifications from application logic" href="/changelog/0.3.3">
+    2024-05-30 — Publish structured application notifications with `api.publishMessage()`.
+  </Card>
+  <Card title="0.3.1 · Typed Components, recoverable Automation, and the first Assistant conversations" href="/changelog/0.3.1">
+    2024-02-21 — Choose JavaScript, TypeScript, reusable-library, or validation-oriented Component forms.
+  </Card>
+  <Card title="0.1.3 · Closed Production Release" href="/changelog/0.1.3">
+    2023-11-24 — Bring business workflows into a closed production operating environment.
+  </Card>
+  <Card title="0.1.1 · Managed execution and a stronger builder workflow" href="/changelog/0.1.1">
+    2023-09-09 — Execute application logic in RevoEngine's managed V8 runtime, with platform operations and reusable application libraries.
+  </Card>
+  <Card title="0.0.1 · Connected low-code foundation" href="/changelog/0.0.1">
+    2022-12-27 — Define business workflows as ordered logic elements, reusable libraries and runnable definitions.
+  </Card>
+</CardGroup>
+
+## Developer tools and release updates
+
+The [CLI](/developers/cli), [VS Code extension](/developers/vscode-extension) and [Node.js SDK](/developers/sdk-overview) have independent package versions. Their releases are included at the corresponding platform milestones.
+
+Applications can use the authenticated [release-summary endpoint](/developers/platform-api#application-release-summary) to retrieve the current version, highlights and a link to its full release page. Linked guides describe the current product; each release page describes its historical milestone.

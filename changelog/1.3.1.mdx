@@ -1,0 +1,69 @@
+---
+title: "1.3.1 — Database Views, controlled actions and event filters"
+sidebarTitle: "1.3.1"
+icon: "tag"
+description: "13 July 2026"
+---
+
+RevoEngine 1.3.1 adds Database Views: reusable read models that turn a named application query into a first-class resource. Teams can build an operational list, reporting model or integration-ready result once, inspect it in a dedicated workspace, and consume it consistently in the application and in custom components. The release also makes event routing more deliberate, so automation can decide which messages match before work is created.
+
+## Highlights
+
+- Create live or materialized Database Views from a saved definition.
+- Preview, filter, sort and project View output without rewriting its query.
+- Refresh materialized results through the View that owns them.
+- Export a Database or View result directly to managed Storage as CSV.
+- Apply source-record actions only when the selected output has verified lineage.
+- Filter event messages and see configured targets that were skipped.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build a reusable read model" defaultOpen={true}>
+
+A Database View captures a query and its output shape as a named application resource. Instead of rebuilding the same joins, expressions and filtering rules in each screen or integration, builders can publish a governed result for other parts of the application to use. The View workspace brings its definition, output preview and operational state together, making a shared model easier to understand and maintain.
+
+Views support both live and materialized use. A live View evaluates the saved definition when it is read. A materialized View keeps a stored result when that is the better fit for an operational or reporting workflow. The two modes give teams a clear choice between current source data and an explicitly refreshed result, rather than hiding that trade-off behind a generic table.
+
+  </Accordion>
+  <Accordion title="Keep query ownership with the View">
+
+Consumers can tailor how they read a View: select fields, filter the saved output, sort it, group it, page through it and request a count. They do not need to copy the View's joins or derived logic into every custom component. That preserves one owned definition while still allowing a screen to ask for the slice it needs.
+
+For example, a custom component can read a curated customer segment with the same data contract used elsewhere:
+
+```ts
+const result = await api.getDatabaseViewData('high_value_customers', {
+  fields: ['customerId', 'totalIncome'],
+  filter: { field: 'totalIncome', op: 'gt', value: 100_000 },
+  sort: ['-totalIncome'],
+  take: 100,
+});
+```
+
+The release also adds managed CSV export for both Databases and Views. A component can choose an accessible Storage destination, output name and the read options appropriate for the export. That is useful for an operational handoff or an integration file while keeping the result connected to the platform's normal file workflow.
+
+  </Accordion>
+  <Accordion title="Refresh deliberately, act only with clear lineage">
+
+Materialized Views make freshness an explicit operating choice. Their refresh lifecycle belongs to the View itself, including the option to schedule the refresh through the normal automation experience. Operators can see that a stored result is being maintained as a defined operation rather than assume it updates invisibly.
+
+A derived row is not automatically safe to change. Where a View supports an update or delete action, RevoEngine requires the author to choose a source Database and map the selected output back to a verified primary-key workset. The platform previews that workset before execution. Views whose output cannot be mapped unambiguously remain read-oriented, which preserves the difference between a convenient projection and a source record that can be changed safely.
+
+  </Accordion>
+  <Accordion title="Route event work with a message filter">
+
+Event definitions can now include a message filter before they fan out to their configured targets. This is useful when one event stream carries several business cases but only some should start a particular workflow. A filter becomes part of the saved event definition instead of requiring each target to implement the same preliminary check independently.
+
+Event history records more of the result of that decision. Operators can distinguish targets that ran from targets that were skipped, helping them answer whether an event was received, whether it matched, and which configured work was created. That makes event-driven operations easier to reason about without turning every non-match into an unexplained absence.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Database Views](/operate/database-views) · [Materialized Views](/operate/materialized-views) · [Runtime API](/low-code/runtime-api) · [Events](/operate/events)
+
+## Continue through the releases
+
+[Newer: 1.3.2](/changelog/1.3.2) · [All releases](/releases/changelog) · [Earlier: 1.3.0](/changelog/1.3.0)

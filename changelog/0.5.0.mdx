@@ -1,0 +1,55 @@
+---
+title: "0.5.0 — Endpoint delivery, from route selection to configuration"
+sidebarTitle: "0.5.0"
+icon: "tag"
+description: "25 April 2025"
+---
+
+RevoEngine 0.5.0 reorganizes Endpoint management around a selected HTTP contract. The collection, detail panel and route inspector work together, so a builder can find the route that handles a request, open its configuration and inspect the Component it invokes.
+
+## Highlights
+
+- Work with an Endpoint collection and the selected detail panel side by side.
+- Inspect matching routes using an HTTP method and concrete request path.
+- Follow a matching pattern to its Endpoint and review captured dynamic path values.
+- Review Component versions, request guards and execution options in distinct form sections.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Keep the collection beside the selected Endpoint" defaultOpen={true}>
+
+The revised workspace places the Endpoint list alongside a routed detail panel. Selecting a row opens that contract's configuration while retaining the surrounding list. Builders working through a family of integration routes can move between items without treating each selection as a separate full-page task.
+
+Details begin with the Endpoint's name, category, description, method and path. The selected Component has a direct link to its authoring workspace. This brings the route and the application behavior it exposes into the same review flow: inspect the public contract, then follow the implementation when a change requires more than editing the route.
+
+The layout is especially useful for related contracts such as order creation, retrieval and status updates. Similar names no longer require repeatedly leaving the collection to confirm which method, path or Component belongs to each item.
+
+  </Accordion>
+  <Accordion title="Check which route will match a request">
+
+The route inspector accepts a method and a path, then returns matching Endpoint patterns. Each result includes a link to its Endpoint and the dynamic values extracted from the request path. An empty result is shown explicitly instead of leaving an old result on screen.
+
+For example, a builder investigating a request such as `GET /orders/123` can inspect the configured pattern and its captured path value, then open the matching Endpoint to review the associated behavior. Multiple results remain individually identifiable. The inspector answers the routing question without issuing that business request.
+
+This is distinct from the request guard configured on an Endpoint. The inspector finds matching routes; a guard checks the incoming request when an Endpoint runs. Keeping those tasks separate makes the result easier to interpret during integration work.
+
+  </Accordion>
+  <Accordion title="Review execution choices in one form">
+
+The detail workspace groups the existing execution controls into explicit sections. The main Component can follow its latest revision or use a selected version. A request guard has its own Component selector and version choice, allowing the two dependencies to be reviewed independently.
+
+The options section brings together timeout, library-loading choice, legacy-result behavior and request/response visibility. JSON input has its own editor section. Builders can review these settings as a checklist around one contract rather than searching through unrelated controls.
+
+A route change and a Component change therefore remain separate decisions. A team can inspect the version used by an Endpoint, examine its guard and review input settings before saving the configuration. The workspace makes those dependencies visible without silently changing which revision the contract uses.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Endpoints](/operate/endpoints) · [Endpoint configuration](/operate/endpoint-configuration) · [Components](/build/components)
+
+## Continue through the releases
+
+[Newer: 0.5.1](/changelog/0.5.1) · [All releases](/releases/changelog) · [Earlier: 0.4.1](/changelog/0.4.1)

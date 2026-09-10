@@ -1,0 +1,82 @@
+---
+title: "0.1.1 — Managed execution and a stronger builder workflow"
+sidebarTitle: "0.1.1"
+icon: "tag"
+description: "9 September 2023"
+---
+
+RevoEngine 0.1.1 introduces the managed V8 execution environment for application logic and a substantially expanded Web IDE. The release develops the platform in two complementary directions: a controlled place to run business logic, and a workspace in which builders can understand, organize and test that logic.
+
+Alongside authoring, Automation gains more complete operating controls. Teams can work with the definition of a process, inspect an individual execution and choose the lifecycle action appropriate to that resource, while keeping these operations within the instance's permission model.
+
+## Highlights
+
+- Execute application logic in RevoEngine's managed V8 runtime, with platform operations and reusable application libraries.
+- Keep related logic elements open in tabs and compare code in a split workspace.
+- Search element names and source content, organize logic into folders and inspect historical versions.
+- Work with explicit controls for background jobs, schedules, events and webhook deliveries.
+- Review request details and execution diagnostics alongside the resources that produced them.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="A managed environment for business logic" defaultOpen={true}>
+
+Application logic now runs through RevoEngine's managed V8 runtime. A definition can combine ordered elements and reusable application libraries with the platform operations made available to that execution. This gives builders a consistent execution model for business rules rather than requiring each rule to become an independently operated server application.
+
+The runtime keeps the sequence of work meaningful: elements execute in their configured order, their results are collected and execution timing remains available for investigation. Builders can examine the outcome of the whole operation while retaining information about the individual pieces that contributed to it. Logs, warnings and traces complement the returned business data.
+
+HTTP-facing logic uses the same managed execution direction. A matched application API supplies request inputs to its selected logic and returns the configured result or response. The public contract and the business implementation remain related but distinct: changing an internal element does not require treating that element as a separate externally callable API.
+
+  </Accordion>
+  <Accordion title="A multi-element Web IDE">
+
+The authoring workspace now supports multiple open elements and a split view. A builder can keep one part of a definition visible while editing another—for example, referring to an input transformation while adjusting the code that consumes its output. Each side maintains its own open tabs, so comparing related elements does not depend on repeatedly replacing a single editor.
+
+Navigation follows the logic's elements and their configured order. Search covers both element names and code content, making it useful when the builder knows a business term or a fragment of an implementation but not the exact element name. Selecting a result brings that element back into the editing workflow.
+
+Logic-folder metadata adds another way to organize work. The workspace can show the containing logic and its element tree together, retaining context as the author moves among sources. These are extensions of the browser authoring tools introduced earlier in the series, not a requirement to move development into a different application.
+
+  </Accordion>
+  <Accordion title="Working with current and historical logic">
+
+The Web IDE distinguishes the latest editable definition from a selected historical version. The current version exposes authoring actions such as adding, saving and deleting elements; historical navigation retains inspection, validation, debugging and comparison without presenting those same editing actions as if the snapshot were current.
+
+That distinction matters during review. Builders can inspect how an earlier definition behaved, compare it with another version and then return to current work with the version context still visible. Validation and debugging remain connected to the selected logic rather than becoming detached utilities.
+
+Together, tabs, search and version-aware controls support a longer development loop: locate the relevant code, inspect its earlier form, make a focused change and test the resulting behavior. The workspace is designed around the whole definition, including relationships between its elements.
+
+  </Accordion>
+  <Accordion title="More explicit Automation operations">
+
+Automation expands the controls surrounding templates, background jobs, schedules and events. Operators can manage a definition separately from the individual work it creates, and use the relevant run, retry, pause, resume or subscription action where that resource supports it.
+
+Event screens gain dedicated run and detail flows. The operator can select the event, supply the information needed to trigger it and inspect its configuration in the same area. Scheduled work retains its own lifecycle, while job operations remain tied to the execution being investigated.
+
+These controls are permission-aware. An available action depends on the type of resource and the authority of the operator; the presence of an item in a list is not itself a grant to change or execute it. This keeps the expanding browser workflow aligned with the platform's administration model.
+
+  </Accordion>
+  <Accordion title="Inspect webhook deliveries in context">
+
+Webhook operations receive a fuller request-oriented workspace. Payload, headers and trigger information are organized alongside delivery details, allowing operators to understand the request associated with a particular item of work.
+
+Status and lifecycle controls support investigation and eligible cancellation or deletion actions. The useful distinction is between configuring or inspecting delivery information and managing work that is already queued or recorded. This release does not present the delivery-history workspace as an unrestricted outbound-request builder.
+
+The surrounding data, file, schema, preference and secret workspaces also adopt more consistent list-and-detail navigation. Operators can move from a collection to the selected resource's actions without learning an entirely different navigation pattern for each area.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Secret and revision management gains a more complete detail workflow.
+- Application API templates receive expanded definition and validation handling.
+- Background execution, event triggers and schedules remain separate operating concepts within the shared Automation workspace.
+
+## Related guides
+
+[Low-code overview](/low-code/overview) · [Runtime API](/low-code/runtime-api) · [Web IDE](/build/web-ide) · [Automation](/operate/automation) · [Jobs](/operate/jobs) · [Debugging](/build/debugging)
+
+## Continue through the releases
+
+[Newer: 0.1.2](/changelog/0.1.2) · [All releases](/releases/changelog) · [Earlier: 0.1.0](/changelog/0.1.0)

@@ -27,7 +27,7 @@ declare class api {
   static createDatabase(data: DatabaseCreateInput): Promise<Database>;
 
   /**
-     * Clones a logical database by name or database id.
+     * Clones a logical database by name.
      *
      * Notes:
      * - No-op in debug mode.
@@ -44,7 +44,7 @@ declare class api {
      * return result.databases;
      */
   static cloneDatabase<TAsync extends boolean = false>(
-      databaseIdOrName: string,
+      name: string,
       options?: DatabaseCloneInput & { async?: TAsync },
     ): Promise<
       TAsync extends true
@@ -55,19 +55,23 @@ declare class api {
     >;
 
   /**
-     * Exports logical database rows directly into Storage as CSV.
+     * Exports logical database rows by name directly into Storage as CSV or XLSX.
      *
      * Notes:
      * - No-op in debug mode.
      * - By default waits for the export, final compose, and storage entry persistence.
+     * - CSV is the default and its dialect, headers, and byte map are indexed during upload.
+     * - XLSX uses the native streaming Storage writer, preserves database value types where Excel supports them,
+     *   and runs a server-side COUNT(*) before starting. A header row leaves 1,048,575 data rows available.
      * - Set `{ async: true }` to return immediately with an accepted response.
      * - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
      *   or provide an accessible Explorer folder storageEntryId.
      *
      * Example:
      * const result = await api.exportDatabase('contracts', {
+     *   format: 'xlsx',
      *   storageDestination: 'ROOT',
-     *   fileName: 'contracts-full.csv',
+     *   fileName: 'contracts-full.xlsx',
      *   restricted: false,
      *   fields: ['contractId', 'customerId'],
      *   sort: { contractId: 'ASC' },
@@ -76,7 +80,7 @@ declare class api {
      * return result.storageEntryId;
      */
   static exportDatabase<TAsync extends boolean = false>(
-      databaseIdOrName: string,
+      name: string,
       options?: ExportDatabaseOptions & { async?: TAsync },
     ): Promise<
       TAsync extends true
@@ -87,13 +91,14 @@ declare class api {
     >;
 
   /**
-     * Exports a saved database view or materialized view directly into Storage as CSV.
+     * Exports a saved database view or materialized view by name directly into Storage as CSV or XLSX.
      * The saved view owns its joins and CTEs; callers may add projection, filters,
      * grouping, sorting, and paging over the resulting view definition.
+     * CSV is the default; pass `format: 'xlsx'` to use the typed native Excel export.
      * Defaults to waiting for the completed Storage entry. Set `async: true` for kickoff semantics.
      */
   static exportDatabaseView<TAsync extends boolean = false>(
-      databaseViewIdOrName: string,
+      name: string,
       options?: ExportDatabaseOptions & { async?: TAsync },
     ): Promise<
       TAsync extends true
@@ -104,7 +109,7 @@ declare class api {
     >;
 
   /**
-     * Updates selected logical-database fields. The public contract requires the current
+     * Updates selected logical-database fields by name. The public contract requires the current
      * version for optimistic locking; send only the fields that should change. Do not
      * copy server-owned databaseId, timestamps, or size into this payload.
      *
@@ -112,37 +117,39 @@ declare class api {
      * - No-op in debug mode.
      *
      * Example:
-     * await api.updateDatabase(databaseId, {
+     * await api.updateDatabase('orders', {
      *   version: current.version,
      *   audit: true,
      * });
      */
-  static updateDatabase(databaseId: string, data: DatabaseUpdateInput): Promise<Database>;
+  static updateDatabase(name: string, data: DatabaseUpdateInput): Promise<Database>;
 
   /**
-     * Soft-deletes a logical database.
+     * Soft-deletes a logical database and its active partition subtree by name.
      *
      * Notes:
      * - No-op in debug mode.
      *
      * Example:
-     * await api.deleteDatabase(databaseId);
+     * await api.deleteDatabase('orders');
      */
-  static deleteDatabase(databaseId: string): Promise<void>;
+  static deleteDatabase(name: string): Promise<void>;
 
   /**
-     * Restores a deleted logical database.
+     * Restores a deleted logical database by its original name.
+     * The name must identify exactly one accessible deleted database; for ambiguous
+     * names select the database by ID through REST or the UI. Strings always mean names.
      *
      * Notes:
      * - No-op in debug mode.
      *
      * Example:
-     * await api.restoreDatabase(databaseId);
+     * await api.restoreDatabase('orders');
      */
-  static restoreDatabase(databaseId: string): Promise<void>;
+  static restoreDatabase(name: string): Promise<void>;
 
   /**
-     * Removes all rows from a logical database.
+     * Removes all rows from a logical database selected by name.
      *
      * Notes:
      * - No-op in debug mode.
@@ -152,10 +159,10 @@ declare class api {
      * - Set restartIdentity only when generated key reuse is explicitly intended.
      *
      * Example:
-     * await api.truncateDatabase(databaseId, { restartIdentity: false });
+     * await api.truncateDatabase('orders', { restartIdentity: false });
      */
   static truncateDatabase(
-      databaseId: string,
+      name: string,
       options?: TruncateDatabaseOptions,
     ): Promise<void>;
 
@@ -318,7 +325,7 @@ declare class api {
   static updateDatabaseDataRequest(
       name: string,
       request: DatabaseMutationRequest,
-      payload: Record<string, any>,
+      payload: DatabaseUpdateData,
       options?: { return?: boolean; onlyKeys?: boolean },
     ): Promise<{ success: number; elapsed: number; data?: any }>;
 
@@ -1182,6 +1189,22 @@ declare class api {
       options?: AutomationScheduleOptions,
     ): Promise<Webhook>;
 
+  /** @localOnly V8 only. The initial await resolves after response headers. */
+  static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat: 'sse'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<HttpSseEvent>>;
+
+  /** @localOnly V8 only. break and close() release the upstream request. */
+  static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat?: 'bytes'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<Uint8Array>>;
+
+  /** Stores only 2xx bodies and returns after finalization; other statuses return bounded diagnostic text. */
+  static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
+      status: number; statusText: string; time: number; headers: LooseObject<string>;
+      request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
+    } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
+
   /**
      * Performs an outbound HTTP request.
      *
@@ -1192,7 +1215,9 @@ declare class api {
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
      * - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
      * - HTTP Storage targets use one provider-streamed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
-     * - `requestType: 'storage'` and `responseType: 'storage'` are not valid; Storage is selected by `source`/`target` while `requestType`/`responseType` describe HTTP encoding.
+     * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
+     * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
+     * - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
      * - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
      * - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
      * - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
@@ -1244,7 +1269,7 @@ declare class api {
      * const response = await api.httpCall(
      *   { url: 'https://example.com/report.csv', method: 'GET' },
      *   {
-     *     responseType: 'stream',
+     *     responseType: 'storage',
      *     target: {
      *       name: 'report.csv',
      *       contentTypeHint: 'text/csv',
@@ -1256,16 +1281,16 @@ declare class api {
      * Storage request stream:
      * await api.httpCall(
      *   { url: 'https://example.com/import', method: 'POST' },
-     *   { requestType: 'stream', source: { storageEntryId } },
+     *   { requestType: 'storage', source: { storageEntryId } },
      * );
      *
      * Storage conversion:
      * await api.httpCall(
      *   { url: 'https://example.com/convert', method: 'POST' },
      *   {
-     *     requestType: 'stream',
+     *     requestType: 'storage',
      *     source: { storageEntryId: sourceEntryId },
-     *     responseType: 'stream',
+     *     responseType: 'storage',
      *     target: { name: 'converted.pdf', contentTypeHint: 'application/pdf' },
      *   },
      * );
@@ -1838,20 +1863,21 @@ declare class storage {
      *
      * Notes:
      * - Use this storage API instead of deprecated legacy `api.getFile*` file reads.
-     * - Text file batch reads reuse cached stats and auto-build them if missing.
+     * - CSV and XLSX are detected from MIME and return a structured page with rows, headers, columns and a cursor.
+     * - Other text file batch reads reuse cached line stats and auto-build them if missing.
      * - Binary reads return a base64 string.
      * - Direct reads are limited to 10 MB unless you request a ranged buffer.
      *
      * Example:
-     * const lines = await storage.getFileData(storageEntryId, { batchNumber: 1 });
+     * const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
      */
   static getFileData(
       storageEntryId: string,
       options?: StorageFileReadOptions,
-    ): Promise<any>;
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
 
   /**
-     * Detects encoding, newline separator, and line batches for a text file.
+     * Builds reusable record or worksheet indexes and returns file statistics.
      *
      * Notes:
      * - Use this storage API instead of deprecated legacy `api.getFileStats` file stats.
@@ -1912,16 +1938,27 @@ declare class storage {
      * Notes:
      * - No-op in debug mode.
      * - Use this instead of `storage.appendFile(...)`; uploads are resumable and finalized explicitly.
+     * - Structured CSV/TSV and XLSX sessions default to `computeStats: 'sync'` so
+     *   byte maps, row indexes, and file stats are ready after finalize. Text
+     *   `text/*` upload sessions also default to `sync`; other binary sessions
+     *   default to `none`. An explicit compute mode always overrides the
+     *   default. The compatibility `staged` XLSX path may still persist its
+     *   reusable index when `none` is explicit; `direct` with `none` skips it.
+     *   Both default to `writeMode: 'staged'`.
+     *   Use `writeMode: 'direct'` for configured CSV/XLSX row exports. For XLSX,
+     *   declare every worksheet with a non-empty `table.columns` before appending;
+     *   direct XLSX parts are row-only and cannot contain `cells`.
+     *   A single `sheets` part can append rows to multiple declared worksheets.
      *
      * Example:
      * const upload = await storage.createUploadSession({
-     *   name: 'archive.zip',
-     *   contentTypeHint: 'application/zip',
+     *   name: 'report.xlsx',
+     *   contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
      *   uploadMode: 'incremental',
+     *   sheets: [{ name: 'Report', table: { autoFilter: true } }],
      * });
      * await storage.uploadPart(upload.session.storageUploadSessionId, {
-     *   data: chunkBase64,
-     *   dataEncoding: 'base64',
+     *   rows: [{ productId: 'P-1', price: 12.5 }],
      * });
      * const result = await storage.finalizeUploadSession(
      *   upload.session.storageUploadSessionId,
@@ -1995,14 +2032,12 @@ declare class storage {
      * - No-op in debug mode.
      *
      * Example:
-     * const result = await storage.finalizeUploadSession(storageUploadSessionId, {
-     *   computeStats: 'async',
-     * });
+     * const result = await storage.finalizeUploadSession(storageUploadSessionId);
      */
   static finalizeUploadSession(
       storageUploadSessionId: string,
       data?: StorageUploadSessionFinalizeInput,
-    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView }>;
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
 
   /**
      * Cancels an active upload session.

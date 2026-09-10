@@ -1,0 +1,79 @@
+---
+title: "0.1.3 — Closed Production Release"
+sidebarTitle: "0.1.3"
+icon: "tag"
+description: "24 November 2023"
+---
+
+This milestone brings RevoEngine into closed production use for business applications. The managed execution core supports operational workflows while the builder workspace continues to develop around it. The version number describes that evolving platform, not a requirement to postpone real application work until the later 1.0 series.
+
+The release also adds a dedicated Event history workspace and more capable editing, debugging and file-transfer workflows. Together, they improve the path from building an application to understanding what happens while it is used.
+
+## Highlights
+
+- Bring business workflows into a closed production operating environment.
+- Inspect recorded event occurrences separately from the jobs they initiate.
+- Follow an event to its associated Automation templates.
+- Organize a growing code workspace by category or logic type.
+- Select the intended logic when debugging from a multi-logic workspace.
+- Keep track of active file uploads after navigating away from Files.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Business execution and the evolving builder" defaultOpen={true}>
+
+Closed production establishes the platform as an environment for operating business applications, with the managed runtime, application data and Automation controls forming the execution foundation. Builders continue to improve definitions and application behavior while operators use the existing interfaces to inspect the resulting work.
+
+The distinction between execution and authoring matters. A production application can depend on its configured business logic while the platform's editor, navigation and administration features continue to expand. The release is therefore a milestone in how the platform is used, not a claim that every future product area has reached its final form.
+
+For teams maintaining an application, the relevant loop now includes both sides: prepare and inspect a change in the builder, then follow its operational context through the application's records and histories. Later releases develop that experience without resetting the foundation established here.
+
+  </Accordion>
+  <Accordion title="Understand the event before investigating the job">
+
+Event history introduces a dedicated list and detail view for recorded event occurrences. Operators can inspect an event's name, identity, note and associated message/context instead of beginning every investigation from a downstream job.
+
+The separation is useful because an event and the work it triggers are different things. An event describes the occurrence and its input; jobs represent executions initiated through Automation. Looking at the event first helps an operator establish what happened and which definitions were involved before reviewing an individual execution.
+
+The detail view includes links to associated Automation templates. An operator can move from the recorded event to the relevant definition without manually searching for every template identifier. Information about protected event content is retained alongside that context, so the history remains part of the platform's managed data workflow.
+
+A typical investigation can start with the occurrence, inspect its note and available message, follow the associated template and then continue into the appropriate execution history. The release adds the missing event-oriented view to that sequence.
+
+  </Accordion>
+  <Accordion title="Find the right code in a growing application">
+
+The editor expands its organization beyond a single open logic definition. Category and type grouping make the workspace easier to navigate when an application contains several kinds of logic and a larger collection of sources.
+
+These views support different ways of finding work. Categories help a builder navigate by the application's own organization; type grouping helps distinguish the kinds of logic being maintained. They provide alternative views of the same working material rather than forcing all sources into one undifferentiated list.
+
+Contextual editor navigation keeps the selected source connected to the surrounding workspace. A builder can move among related definitions, inspect their content and return to the area being changed without continually leaving the editor for a separate resource list.
+
+  </Accordion>
+  <Accordion title="Debug the selected logic, with explicit inputs">
+
+The debugging workflow now distinguishes a multi-logic workspace from a single selected definition. Where several logics are available, the builder can explicitly choose the target before running a test.
+
+Input and output remain separate views. Supported contexts provide the relevant data or code input, and an explicit timeout control is available where the debugging flow exposes it. This makes the test setup visible alongside the chosen target instead of relying on an implicit selection elsewhere in the interface.
+
+The result is a more practical development workflow for applications with reusable libraries and several related definitions: select the intended logic, prepare its input, run the test and inspect the output in the same authoring context. This expands the existing managed debugging capability rather than introducing a separate execution environment.
+
+  </Accordion>
+  <Accordion title="Keep uploads visible while moving through the app">
+
+File uploads gain application-wide progress awareness. Leaving the Files workspace no longer removes all indication that a transfer is still active: the interface can retain an upload notice and direct the user back to Files to inspect its current status.
+
+The browser must remain open while the transfer is in progress. The interface communicates that limitation instead of implying that an upload has already become a durable background job. Returning to the Files page restores the relevant local context and clears the out-of-workspace notice.
+
+This supports ordinary multitasking inside the application while a file is uploading, without confusing navigation with transfer completion. It is an expansion of upload visibility, not a promise of transfer recovery after closing the browser.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Event history](/operate/event-history) · [Automation](/operate/automation) · [Jobs](/operate/jobs) · [Web IDE](/build/web-ide) · [Debugging](/build/debugging) · [Storage](/operate/storage)
+
+## Continue through the releases
+
+[Newer: 0.2.0](/changelog/0.2.0) · [All releases](/releases/changelog) · [Earlier: 0.1.2](/changelog/0.1.2)

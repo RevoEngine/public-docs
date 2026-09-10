@@ -1,0 +1,59 @@
+---
+title: "0.3.2 — Find work faster and keep the workspace personal"
+sidebarTitle: "0.3.2"
+icon: "tag"
+description: "12 April 2024"
+---
+
+RevoEngine 0.3.2 improves the everyday operating experience around an already established low-code execution platform. It adds a dedicated way to find relevant application objects, broadens the preferences that belong to an individual user, and makes endpoint dashboards more useful while an operator is following live application activity. The focus is not a new execution model; it is reducing the friction between opening the application and returning to the work that matters.
+
+## Highlights
+
+- Search across supported application objects from one workspace.
+- Keep personal application, dashboard and favourite preferences.
+- Explore endpoint statistics through an interactive drill-up flow.
+- Refresh endpoint summary information automatically while operating a dashboard.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Search the application instead of opening every section" defaultOpen={true}>
+
+The application gains a dedicated Search workspace for administrators. Enter a term and RevoEngine looks across the retained descriptions of supported application objects, returning results with the object type and the context needed to recognise it. Components and Endpoints can be distinguished from schedules, events, files, users, groups, resources and other managed definitions without first opening each separate management screen.
+
+Results are deliberately shaped for navigation rather than presented as raw internal records. A Component result includes its category and type; an Endpoint carries its HTTP method and path; a file retains its name and path; an event can show its category and event type. This gives a user enough context to choose the right destination when several objects share a similar name.
+
+Search is also built for a real application inventory rather than a tiny demo workspace. Results have a requested page size and continuation state, so the interface can load another page only when one exists. The view therefore remains practical as an instance accumulates more definitions, records and operational history.
+
+  </Accordion>
+  <Accordion title="Let the workspace remember useful personal choices">
+
+Preferences grow beyond a narrow grid setting. A user can keep a personal application preference, dashboard preference or favourite preference, alongside the settings used to shape a data grid. These are personal choices: they are associated with their creator rather than being silently shared as a global configuration for every user.
+
+The update flow protects a choice while it is being edited. A saved preference carries a version, and RevoEngine rejects an update based on an older version when another update has already been accepted. That means a user is asked to refresh rather than accidentally replacing a newer saved layout or favourite selection with stale form state. Deletion and modification are likewise checked against the owner of the personal preference.
+
+This makes the product easier to return to over repeated sessions. A dashboard can remain the working view a person chose, and a favourite can act as a personal shortcut without becoming an unreviewed change to another operator's workspace.
+
+  </Accordion>
+  <Accordion title="Follow endpoint activity through the dashboard">
+
+Endpoint statistics become more interactive. A dashboard user can drill into a selected part of a statistics view and carry that selection into the graph configuration flow. Instead of treating a chart as a fixed report, the operator can move from a visible aggregate to the narrower context that requires attention.
+
+The endpoint-summary area can also refresh automatically. This is useful when the dashboard is being used as an operational surface and new activity may arrive while it is open. The refresh is configured by the dashboard workflow, keeping the summary current without requiring the user to manually reopen the view after each observation.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Search results preserve recognisable details such as an Endpoint method and path or a file location.
+- Personal preference updates use version checks so a stale form cannot silently overwrite a newer saved choice.
+- Dashboard drill-up keeps an investigation connected to the selected endpoint-statistics context.
+
+## Related guides
+
+[Search](/platform/search) · [Dashboards](/operate/dashboards) · [Components](/build/components) · [Endpoints](/operate/endpoints)
+
+## Continue through the releases
+
+[Newer: 0.3.3](/changelog/0.3.3) · [All releases](/releases/changelog) · [Earlier: 0.3.1](/changelog/0.3.1)

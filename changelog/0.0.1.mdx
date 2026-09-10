@@ -1,0 +1,77 @@
+---
+title: "0.0.1 — Connected low-code foundation"
+sidebarTitle: "0.0.1"
+icon: "tag"
+description: "27 December 2022"
+---
+
+The early low-code environment connects authored business logic, managed execution, application data, files, automation and role-aware operations working together. It predates the modern product surfaces and public release series. This is an early development milestone, before the later managed runtime and integrated browser workspace.
+
+## Highlights
+
+- Define business workflows as ordered logic elements, reusable libraries and runnable definitions.
+- Validate and execute logic in Sandbox with results, logs and timing traces.
+- Query, group, filter and change application data from the workflow layer.
+- Turn reusable work into jobs, schedules and named event-triggered operations.
+- Exchange CSV data and manage files inside application workflows.
+- Control authoring and operations through roles, user administration and managed keys.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Define application behavior as composable logic" defaultOpen={true}>
+
+Builders could model application behavior as ordered logic elements rather than placing every rule in a platform service. Definitions separated runnable work, scoped processing, reusable libraries and integration-oriented logic, with activation and validity controls. This established a reusable business-logic layer that later product authoring surfaces would build upon.
+
+Logic definitions had their own identity and lifecycle, while their ordered elements supplied the executable behavior. A builder could update the definition and save its elements as related operations, then select appropriate runnable logic for an application task. The distinction between reusable library content and an executable workflow made reuse an explicit part of the model.
+
+  </Accordion>
+  <Accordion title="Run and inspect low-code safely in Sandbox">
+
+Sandbox connected those definitions to RevoEngine's early execution environment. Builders could validate a set of elements before running it, execute stored logic with its input context and inspect the result through logs, warnings, errors and element-level timing traces. Reusable libraries were initialized for the execution, allowing common business behavior to be shared instead of copied between workflows.
+
+Debugging accepted explicit input data and an ordered set of elements. Options controlled which logs and traces were returned, and an execution date could be supplied when testing date-sensitive logic. This allowed a builder to investigate a specific run with relevant diagnostics instead of relying only on the final value. Debugging still executed the selected logic; it was not a promise that arbitrary business operations had no side effects.
+
+  </Accordion>
+  <Accordion title="Use application data in operational workflows">
+
+The foundation included metadata-backed application data with filtered and paged reads, grouping, sorting and bulk record changes. Workflow code could retrieve the records and field definitions it was authorized to use, while application operators could clone definitions, manage item comments and perform CSV import or export. That made low-code useful for day-to-day business data operations, not only isolated calculations.
+
+Queries could select the required fields and work with bounded pages rather than returning every record. Grouping and sorting supported summary and operational-list use cases. Batch insert, update and delete operations connected those reads to the changes needed by imports and recurring application workflows. The earlier schema-and-resource model provided this foundation; the dedicated Database product came later.
+
+  </Accordion>
+  <Accordion title="Automate recurring and event-driven work">
+
+Reusable work could become a job template, a stored job, a scheduled operation or a response to a named event. Operators could run schedules on demand, pause and resume them, redeploy their configuration and retry stored jobs. Requested, scheduled and event-driven work shared an operational lifecycle around the runtime.
+
+A reusable template and a particular run were separate objects. That distinction allowed operators to inspect a stored execution while continuing to manage the definition used for future work. Pausing a schedule controlled future recurring activity, whereas retrying a stored job initiated another attempt at that task; these actions served different operational purposes.
+
+  </Accordion>
+  <Accordion title="Bring files and external handoffs into the workflow">
+
+Managed files were available to application operations for reading, writing, synchronization and cleanup. CSV import and export connected file interchange to application data, while workflow logic could use files as part of its own execution. The same foundation recorded outbound webhook work for supported external handoffs, keeping it associated with the surrounding operation.
+
+Managed file operations included the transfer and synchronization steps needed to make an uploaded object available to the application. A workflow could read an existing file, produce an output and clean up files it no longer needed. This was the earlier file-management foundation, not the later Storage workspace with its modern folder, namespace and retention controls.
+
+  </Accordion>
+  <Accordion title="Keep authoring and operations role-aware">
+
+Logic authoring, Sandbox execution and Automation were protected by explicit roles. Administration covered people and service identities, activation and disable controls, and managed keys with inspection, update and revocation operations. These controls made the early low-code workflow an administered application capability rather than an unrestricted scripting endpoint.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Select supported runnable logic by name, category and optional namespace segments.
+- Run saved Automation templates directly in addition to schedule and event initiation.
+- Use managed secrets from workflow execution where authorized.
+- Import or export application records as CSV alongside direct bulk operations.
+
+## Related guides
+
+[Low-code overview](/low-code/overview) · [Runtime API](/low-code/runtime-api) · [Automation](/operate/automation) · [Storage](/operate/storage) · [Security and governance](/platform/security-and-governance)
+
+## Continue through the releases
+
+[Newer: 0.0.2](/changelog/0.0.2) · [All releases](/releases/changelog)
