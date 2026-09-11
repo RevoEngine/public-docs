@@ -1,15 +1,16 @@
 ---
-title: "1.5.1 — Intelligent reviews, live Assistant progress and high-volume data workflows"
+title: "1.5.1 — RevoShield-1 reviews, Luna Fast Mode and high-volume data workflows"
 sidebarTitle: "1.5.1"
 icon: "tag"
 description: "11 September 2026"
 ---
 
-RevoEngine 1.5.1 expands what teams can safely delegate to the Assistant and what applications can do with larger operational data sets. Auto Review can evaluate the actual effect of a proposed action, Assistant source work becomes more precise, and users see useful response previews while longer work continues. Low-code Database writes gain an explicit high-volume atomic contract, exports accept the full structured query shape, and Automation becomes easier to address by business-readable Job Template names.
+RevoEngine 1.5.1 expands what teams can safely delegate to the Assistant and how quickly interactive work can move. RevoShield-1 can evaluate the actual effect of a proposed action, Luna gains an optional Fast Mode, Assistant source work becomes more precise, and users see useful response previews while longer work continues. Low-code Database writes gain an explicit high-volume atomic contract, exports accept the full structured query shape, and Automation becomes easier to address by business-readable Job Template names.
 
 ## Highlights
 
-- Let intelligent Auto Review assess the exact proposed action and explain whether it can proceed.
+- Let RevoShield-1 Auto Review assess the exact proposed action and explain whether it can proceed.
+- Use optional Fast Mode with Luna when lower Assistant response latency matters.
 - Follow live Assistant previews that become confirmed progress or final text without duplication.
 - Read exact Component source outlines, matches and line ranges without loading the complete resource.
 - Review the submitted source of newly proposed Components before they are created.
@@ -20,13 +21,22 @@ RevoEngine 1.5.1 expands what teams can safely delegate to the Assistant and wha
 ## In detail
 
 <AccordionGroup>
-  <Accordion title="Intelligent Auto Review for real multi-step work" defaultOpen={true}>
+  <Accordion title="RevoShield-1 Auto Review for real multi-step work" defaultOpen={true}>
 
-Auto Review now evaluates the exact pending action against the user's substantive request, its immediate effects and the evidence available for that operation. It understands that an authorized workflow can require several dependent steps: a necessary intermediate action can proceed when it directly serves the requested outcome and introduces no additional material effect. One action no longer has to complete the whole objective by itself to be considered in scope.
+RevoShield-1 is RevoEngine's specialized Auto Review model. Before an eligible action proceeds, it compares the user's expressed intent with the exact proposed effect, the authorized context available to the task, and the evidence required for that operation. It is designed to reduce routine interruptions without expanding the Assistant's access or treating uncertainty as permission.
+
+RevoShield-1 understands that an authorized workflow can require several dependent steps: a necessary intermediate action can proceed when it directly serves the requested outcome and introduces no additional material effect. One action no longer has to complete the whole objective by itself to be considered in scope.
 
 The reviewer uses the complete submitted configuration for a new resource, the authoritative comparison for a change to an existing resource, and the complete executable proposal for an action that runs code. Earlier tool results are treated as supporting receipts rather than permission for a new effect. If the evidence is incomplete, stale, contradictory or broader than the request, the action returns to the user for a visible decision.
 
 This makes Auto Review more capable without making it permissive. Positive outcomes retain a clear rationale in the conversation, while changes that cannot be verified safely remain manual.
+
+  </Accordion>
+  <Accordion title="Optional Fast Mode for Luna">
+
+Luna now offers an optional Fast Mode for interactive Assistant work. Users opt in with the lightning control when they want lower response latency for the current conversation; Standard remains the normal path when Fast Mode is not selected, and other models do not expose the option.
+
+Usage analytics distinguishes the actual Standard and Fast execution used by each call, so teams can compare responsiveness with cost-weighted usage. RevoShield-1 activity is reported separately as Auto Review usage and is not billed to the user's account.
 
   </Accordion>
   <Accordion title="Live Assistant previews that preserve their place">

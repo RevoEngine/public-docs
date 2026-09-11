@@ -71,7 +71,9 @@ These levels control approval behavior. They do not grant the Assistant or Agent
 
 ### How Auto Review works
 
-Auto Review is designed to preserve the user's intent while reducing routine approval prompts:
+**RevoShield-1** is RevoEngine's specialized Auto Review model. It is designed to preserve the user's intent while reducing routine approval prompts. Before an eligible action proceeds, RevoShield-1 evaluates the exact proposed effect against the user's request, the authorized context available to the task, and the evidence required for that operation.
+
+RevoShield-1 follows these boundaries:
 
 - Read-only investigation can continue without unnecessary interruption.
 - Before an approval-sensitive action, RevoEngine checks the concrete target, requested operation, expected effect, and relevant constraints against what the user asked for.
@@ -80,7 +82,7 @@ Auto Review is designed to preserve the user's intent while reducing routine app
 - If the intent is unclear, the available context cannot establish the effect, the proposal exceeds the requested scope, or the action is too sensitive for automatic approval, the workflow pauses for the user.
 
 <Info>
-  Auto Review does not expand access or replace least-privilege configuration. It adds a review boundary between a clear user request and the action proposed to carry it out.
+  RevoShield-1 does not expand access or replace least-privilege configuration. It adds a review boundary between a clear user request and the action proposed to carry it out. Unsupported, stale, ambiguous, or higher-risk actions remain visible decisions for the user.
 </Info>
 
 <Warning>

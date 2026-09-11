@@ -21525,8 +21525,8 @@
           },
           "highlights": {
             "example": [
-              "Intelligent Auto Review for exact changes and multi-step objectives",
-              "Live Assistant previews, precise source reads and retryable dictation",
+              "RevoShield-1 Auto Review for exact changes and multi-step objectives",
+              "Optional Luna Fast Mode with live Assistant progress",
               "Atomic 100,000-row Database writes, structured exports and Job Templates by name"
             ],
             "type": "array",
@@ -25242,6 +25242,28 @@
           "model": {
             "type": "string",
             "description": "Execution model identifier used to group this usage."
+          },
+          "providerModel": {
+            "type": "string",
+            "example": "gpt-5.6-luna",
+            "nullable": true
+          },
+          "serviceTier": {
+            "type": "string",
+            "example": "priority",
+            "nullable": true
+          },
+          "billingOwner": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "revo"
+            ],
+            "example": "customer"
+          },
+          "customerBillable": {
+            "type": "boolean",
+            "example": true
           }
         },
         "required": [
@@ -25251,7 +25273,9 @@
           "cachedInputTokens",
           "reasoningTokens",
           "totalTokens",
-          "model"
+          "model",
+          "billingOwner",
+          "customerBillable"
         ]
       },
       "InstanceUsageTokenByAccountDto": {
@@ -28332,6 +28356,11 @@
             "type": "string",
             "description": "Optional execution model identifier enabled for this instance."
           },
+          "fastMode": {
+            "type": "boolean",
+            "description": "Optional GPT-5.6 Luna Fast mode for the draft thread. The backend rejects enabling it for any other model.",
+            "default": false
+          },
           "reasoningEffort": {
             "type": "string",
             "description": "Optional assistant reasoning effort for the draft thread: low, medium, high, or xhigh. Defaults to low.",
@@ -28609,6 +28638,10 @@
           "model": {
             "type": "string",
             "description": "Optional execution model identifier enabled for this instance."
+          },
+          "fastMode": {
+            "type": "boolean",
+            "description": "Optional GPT-5.6 Luna Fast-mode override for the resumed turn. The backend rejects enabling it for any other model."
           },
           "reasoningEffort": {
             "type": "string",

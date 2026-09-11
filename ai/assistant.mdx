@@ -90,6 +90,16 @@ Attach registry plugins when the task needs tenant-specific or external capabili
 
 The models available to the Assistant are controlled by the current RevoEngine release and instance configuration. Public reasoning levels are **Low**, **Medium**, **High**, and **Extra high**.
 
+### Current model support
+
+| Model | Interactive Assistant | Autonomous Agents | Fast Mode |
+| --- | --- | --- | --- |
+| **GPT-5.6 Sol** | Supported | Supported | Not available |
+| **GPT-5.6 Terra** | Supported | Supported | Not available |
+| **GPT-5.6 Luna** | Supported | Supported | Optional for interactive Assistant work |
+
+Select Luna's lightning control when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected, and the option is not shown for other models. Autonomous Agent runs use Standard processing. Usage analytics distinguishes the actual Standard and Fast execution used by each Assistant call.
+
 Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
 
 <Tip>
