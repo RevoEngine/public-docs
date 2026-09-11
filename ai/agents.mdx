@@ -47,7 +47,7 @@ The service account is the runtime identity. The Agent can only read or change w
     Choose the model, reasoning effort, execution mode, planning policy, and persistent Agent instructions. Set concurrency and run limits for the expected workload.
   </Step>
   <Step title="Select capabilities">
-    Enable the platform tools and attach only the plugins required by the mission. Define default and per-tool permission policies.
+    Enable the platform tools and attach only the plugins required by the mission. Choose **Restricted**, **Auto Review**, or **Full Access** as the default permission level, then add narrower capability-specific settings where needed.
   </Step>
   <Step title="Review the workspace">
     Use the managed workspace created with the Agent or link an existing authorized folder. The workspace root becomes the durable file boundary for runs.
@@ -68,6 +68,18 @@ The service account is the runtime identity. The Agent can only read or change w
 | Agent handoff | Work delegated by another governed Agent flow | Links the receiving work to its parent run lineage |
 
 Inbox items support a priority, an optional future availability time, an opaque task payload, and a per-Agent de-duplication key for non-terminal work.
+
+## Choose a permission level
+
+| Permission | What it means for Agent work |
+| --- | --- |
+| **Restricted** | The Agent can investigate, read authorized context, and perform actions explicitly permitted without approval. Approval-sensitive effects wait for the user. |
+| **Auto Review** | When an action would otherwise need approval, RevoEngine checks it against the explicit task. Clear, supported actions can continue; uncertain or higher-risk actions pause for review. |
+| **Full Access** | Normal approval prompts are skipped for actions the Agent is otherwise permitted to perform. Existing identity, access, validation, and policy boundaries remain in force. |
+
+Use **Auto Review** for bounded responsibilities where the Agent should make progress without waiting on every routine action. Use **Restricted** when an operator must inspect every material effect. Reserve **Full Access** for trusted workflows with least-privilege identities, narrow capabilities, proven behavior, and an equivalent external control boundary.
+
+See [Approvals and plans](/ai/approvals-and-plans) for the detailed behavior of each level.
 
 ## Runs and sessions
 
@@ -102,7 +114,7 @@ The Agent detail view provides:
 
 - Use a least-privilege service account.
 - Keep the responsibility and success criteria measurable.
-- Start with `default` permissions and explicit approval routing.
+- Start with **Restricted** or **Auto Review** and explicit approval routing.
 - Bound active root runs, child runs, concurrent children, and the execution budget.
 - Add de-duplication keys for recurring or externally retried inbox deliveries.
 - Require durable files only when the task genuinely needs a file deliverable.

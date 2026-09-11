@@ -96,6 +96,20 @@ Use lower effort for direct questions, small edits, and well-scoped reads. Use h
   More reasoning is not automatically better. A precise target, expected result, and validation requirement often improve the outcome more than increasing the reasoning level.
 </Tip>
 
+## Permission levels
+
+Choose the permission level for the task from the Assistant composer:
+
+| Permission | Behavior |
+| --- | --- |
+| **Restricted** | Read-only work and actions explicitly permitted without approval can proceed. Approval-sensitive changes, side-effecting code, and external actions wait for you. |
+| **Auto Review** | When an action would otherwise need approval, RevoEngine checks it against your explicit request and available authorized context. Clearly matching actions can continue automatically; uncertain or higher-risk actions pause for you. |
+| **Full Access** | Normal per-action approval prompts are skipped, but identity, roles, target access, validation, tenant rules, and plugin restrictions remain active. |
+
+For most well-scoped implementation and operations tasks, **Auto Review** provides a practical balance between progress and supervision. Use **Restricted** when you need to inspect every material action. Reserve **Full Access** for trusted workflows whose scope and access are already tightly controlled.
+
+See [Approvals and plans](/ai/approvals-and-plans) for how **Auto Review** handles side effects and multi-step work.
+
 ## Streaming, background work, and follow-ups
 
 Assistant turns stream messages, progress, tool activity, and action-required events as they happen. When background processing is enabled, the server can continue a persisted turn after the client disconnects; reopening the thread hydrates the current durable state.

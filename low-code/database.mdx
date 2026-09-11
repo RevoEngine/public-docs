@@ -30,6 +30,37 @@ Prefer a narrow field projection and bounded `take`. Follow the returned cursor 
 
 Use the dedicated insert, upsert, update, and delete methods. Bulk update and delete accept the canonical structured filter tree.
 
+### Partial updates are the default
+
+`api.updateDatabaseData()` updates one row identified by its primary-key object.
+Put only the properties that change in `newObject`; omitted and `undefined`
+properties are preserved. A present `null` deliberately clears a nullable property.
+
+`api.upsertDatabaseData()` follows the same PATCH rule on a primary-key conflict.
+It creates a missing row from the supplied data, but when the row already exists it
+changes only properties present in that input object. Do not fetch a full row merely
+to change one property.
+
+```js
+await api.upsertDatabaseData(
+  'orders',
+  [{ orderId: 'order-1', status: 'QUEUED' }],
+  { onlyKeys: true },
+);
+```
+
+The third argument controls the response for both `insertDatabaseData()` and
+`upsertDatabaseData()`:
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `return` | `true` | Return the written rows. Set `false` when the rows are not needed. |
+| `onlyKeys` | `false` | With `return` enabled, return only primary-key fields. |
+| `patch` | `true` for upsert | Preserve properties missing from a conflicting upsert row. Set `false` only to request legacy full replacement on conflict. It is not valid for insert. |
+
+For a multi-row PATCH selected by a structured filter, use
+`api.updateDatabaseDataRequest()`:
+
 ```js
 await api.updateDatabaseDataRequest(
   'orders',

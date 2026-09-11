@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="292" viewBox="0 0 720 292" role="img" aria-labelledby="title desc">
   <title id="title">RevoEngine development timeline</title>
-  <desc id="desc">Early experiments in 2020; low-code in 2022; Web IDE and managed V8 runtime in 2023; closed production in November 2023; the unified 1.0 release series in April 2026; RevoEngine 1.5.0 today.</desc>
+  <desc id="desc">Early experiments in 2020; low-code in 2022; Web IDE and managed V8 runtime in 2023; closed production in November 2023; the unified 1.0 release series in April 2026; RevoEngine 1.5.1 today.</desc>
   <rect width="720" height="292" rx="16" fill="#111113"/>
   <defs><marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#737378"/></marker></defs>
   <g fill="none" stroke="#737378" marker-end="url(#arrow)">
@@ -14,6 +14,6 @@
     <g transform="translate(488 24)"><rect width="208" height="110" rx="10" fill="#171719" stroke="#38383e"/><text x="16" y="28" fill="#aaaab2" font-size="13">2023</text><text x="16" y="56" fill="#f4f4f5" font-size="16" font-weight="600">Web IDE + V8 runtime</text><text x="16" y="82" fill="#b0b0b8" font-size="11">A connected builder workspace</text></g>
     <g transform="translate(24 158)"><rect width="208" height="110" rx="10" fill="#171719" stroke="#38383e"/><text x="16" y="28" fill="#aaaab2" font-size="13">November 2023</text><text x="16" y="56" fill="#f4f4f5" font-size="16" font-weight="600">Closed production</text><text x="16" y="82" fill="#b0b0b8" font-size="11">Core business execution</text></g>
     <g transform="translate(256 158)"><rect width="208" height="110" rx="10" fill="#171719" stroke="#38383e"/><text x="16" y="28" fill="#aaaab2" font-size="13">April 2026</text><text x="16" y="56" fill="#f4f4f5" font-size="16" font-weight="600">The 1.0 release series</text><text x="16" y="82" fill="#b0b0b8" font-size="11">A unified public platform</text></g>
-    <g transform="translate(488 158)"><rect width="208" height="110" rx="10" fill="#222225" stroke="#9e9ea6"/><text x="16" y="28" fill="#aaaab2" font-size="13">Today</text><text x="16" y="56" fill="#f4f4f5" font-size="16" font-weight="600">RevoEngine 1.5.0</text><text x="16" y="82" fill="#b0b0b8" font-size="11">Data, AI and developer tools</text></g>
+    <g transform="translate(488 158)"><rect width="208" height="110" rx="10" fill="#222225" stroke="#9e9ea6"/><text x="16" y="28" fill="#aaaab2" font-size="13">Today</text><text x="16" y="56" fill="#f4f4f5" font-size="16" font-weight="600">RevoEngine 1.5.1</text><text x="16" y="82" fill="#b0b0b8" font-size="11">Data, AI and developer tools</text></g>
   </g>
 </svg>

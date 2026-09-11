@@ -89,17 +89,15 @@ For production Agents, set the intended model, reasoning effort, execution mode,
 
 ## Permissions and tools
 
-`policy.defaultToolPermission` controls calls without a specific override:
+Choose the Agent's default permission level in the **Tools** section:
 
-| Value | UI label | Behavior |
-| --- | --- | --- |
-| `default` | Restricted | Read-only work can proceed; changes and external actions follow approval policy. |
-| `auto_review` | Auto review | Safe operations continue while risky changes pause for review. |
-| `full` | Full access | Removes normal per-call approval gates for the Agent; service-account, tenant, plugin, and operation-level restrictions still apply. |
+| Permission | Behavior |
+| --- | --- |
+| **Restricted** | Read-only work and actions explicitly permitted without approval can proceed. Approval-sensitive changes, side-effecting code, and external actions wait for the user. |
+| **Auto Review** | When an action would otherwise need approval, RevoEngine checks it against the user's explicit request and available authorized context. Clearly matching actions can continue automatically; uncertain or higher-risk actions wait for the user. |
+| **Full Access** | Normal per-action approval prompts are skipped. Service-account permissions, tenant rules, target access, plugin restrictions, and validation still apply. |
 
-Use `policy.toolPermissions` for capability-specific overrides. Select capabilities in the **Tools** tab, or use the current names returned by the Platform API instead of hard-coding undocumented identifiers.
-
-`config.toolNames` and `policy.toolNames` associate registered capabilities with the Agent. They are not a substitute for permission policy: execution still depends on the service account, instance policy, target access, and approval classification.
+Capability-specific overrides can narrow or expand the level for a selected capability. Enabling a capability is not an access grant: execution still depends on the service account, instance policy, target access, and the capability's own restrictions.
 
 See [Approvals and plans](/ai/approvals-and-plans) for the decision model and [Tools and skills](/ai/tools-and-skills) for capability discovery.
 
@@ -253,7 +251,6 @@ The following creation payload uses registry plugins and keeps policy separate f
     "childFailureMode": "fail_parent"
   },
   "policy": {
-    "defaultToolPermission": "auto_review",
     "maxActiveRootRuns": 1,
     "maxChildRuns": 4,
     "maxConcurrentChildRuns": 2,

@@ -16,7 +16,7 @@ The Agents workspace is the operating console for durable AI work. It combines t
     Choose an active service account with only the platform, data, and integration access needed by that responsibility. Ownership controls management; the service account controls runtime access.
   </Step>
   <Step title="Configure a safe execution envelope">
-    Select the model and reasoning effort, start with one active root run, attach only required plugins, and choose `default` or `auto_review` tool access. Use `review_required` when a plan must be approved before action.
+    Select the model and reasoning effort, start with one active root run, attach only required plugins, and choose **Restricted** or **Auto Review**. Use `review_required` when a plan must be approved before action.
   </Step>
   <Step title="Prove a direct run">
     Start with a bounded instruction and inspect the ordered run events, tool outcomes, workspace artifacts, and final status. Confirm that the Agent handles missing access and incomplete evidence correctly.
@@ -117,7 +117,7 @@ Recommended starting configuration:
 - Operator work mode and a model/reasoning combination validated for incident analysis;
 - Inbox delivery with an incident-id de-duplication key;
 - one active root run and `fail_parent` for required evidence;
-- `auto_review` permissions, with external notification actions reviewed;
+- **Auto Review**, with external notification actions still routed to the user when they require manual approval;
 - a managed workspace for evidence and the final incident report.
 
 Success means the Agent distinguishes verified evidence from hypotheses and names missing access instead of inventing a root cause.
@@ -158,7 +158,7 @@ Use an Agent to inspect integration health, prepare synchronization work, and ca
 
 - attach the active registry plugin rather than copying its definition;
 - use the plugin's declared mutation, reversibility, and target scope;
-- keep external writes under `default` or `auto_review` until the operation is proven idempotent;
+- keep external writes under **Restricted** or **Auto Review** until the operation is proven idempotent;
 - preserve upstream correlation ids in the trigger payload and run trace;
 - never place bearer tokens or secret values in instructions, Inbox payloads, or workspace files.
 

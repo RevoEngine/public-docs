@@ -10,7 +10,7 @@ RevoEngine separates three controls that are easy to confuse: **execution mode**
 | --- | --- | --- |
 | Execution mode | How interactive or autonomous should this turn be? | `interactive` for supervised work; `background` or `automation` for durable work |
 | Planning policy | Must implementation wait for plan review? | `standard` for normal work; `review_required` for a mandatory review gate |
-| Permission policy | Which side effects require approval? | `default` for production-safe supervision |
+| Permission policy | Which side effects require approval? | **Restricted** for maximum supervision or **Auto Review** for governed autonomy |
 
 ## Execution modes
 
@@ -59,18 +59,32 @@ You can:
 
 Approval of a plan is not blanket approval for every future side effect. Exact mutations can still require their own action approval.
 
-## Permission policies
+## Permission levels
 
-| Policy | Intended use | Behavior |
+| Permission | Intended use | Behavior |
 | --- | --- | --- |
-| `default` | Production and general use | Side-effecting operations normally pause for review |
-| `auto_review` | Bounded, well-understood work | Runtime may auto-review eligible lower-risk actions; higher-risk operations still pause |
-| `full` | Tightly controlled expert workflows | Skips normal approval gates where the caller already has authority; other security checks still apply |
+| **Restricted** | Maximum supervision and sensitive production work | Read-only work and actions explicitly permitted without approval can proceed. Approval-sensitive changes, side-effecting code, external communication, and other material effects wait for you. |
+| **Auto Review** | Well-scoped day-to-day work with fewer interruptions | When an action would otherwise need approval, RevoEngine checks it against your explicit request and the authorized context available for the task. A clearly matching action can continue automatically; uncertain, unsupported, or higher-risk work waits for you. |
+| **Full Access** | Trusted, tightly controlled workflows | Normal per-action approval prompts are skipped. Identity, roles, target access, validation, tenant rules, plugin restrictions, and other platform safety boundaries still apply. |
 
-Per-tool overrides can narrow or expand the policy for a specific capability. Plugin tools also carry their own mutation and approval metadata.
+These levels control approval behavior. They do not grant the Assistant or Agent access to data, tools, plugins, or operations that the current identity cannot otherwise use. Capability-specific settings can apply a different level to selected actions.
+
+### How Auto Review works
+
+Auto Review is designed to preserve the user's intent while reducing routine approval prompts:
+
+- Read-only investigation can continue without unnecessary interruption.
+- Before an approval-sensitive action, RevoEngine checks the concrete target, requested operation, expected effect, and relevant constraints against what the user asked for.
+- Each action in a multi-step task is assessed on its own. A necessary step can continue when it is clearly part of the requested outcome, but approval of one step is not blanket permission for later actions.
+- Code capable of changing platform data or producing external effects is treated as an action, not as a harmless read merely because it is executed as code.
+- If the intent is unclear, the available context cannot establish the effect, the proposal exceeds the requested scope, or the action is too sensitive for automatic approval, the workflow pauses for the user.
+
+<Info>
+  Auto Review does not expand access or replace least-privilege configuration. It adds a review boundary between a clear user request and the action proposed to carry it out.
+</Info>
 
 <Warning>
-  `full` is not an administrator bypass. It does not defeat authentication, tenant isolation, role checks, blocked tools, validation, or external-provider controls. Use it only when the surrounding workflow already provides an equivalent review boundary.
+  **Full Access** is not an administrator bypass. It does not defeat authentication, tenant isolation, role checks, blocked operations, validation, or external-provider controls. Use it only when the surrounding workflow already provides an equivalent review boundary.
 </Warning>
 
 ## Action-required states
@@ -89,7 +103,7 @@ The pending action is durable. Resolving it resumes the work from persisted stat
 
 Supported Assistant edits include a comparison of the current and proposed source and editable properties. Inspect the inline comparison in the conversation, or open fullscreen for a side-by-side review. Completed edits retain their comparison and decision history.
 
-Eligible changes explicitly requested by the user can receive an automatic review. The conversation distinguishes automatic approval, manual approval and a return to manual review, with an explanation of the outcome. Unclear intent, insufficient evidence or a stale proposal does not silently become approval.
+With **Auto Review**, eligible actions explicitly requested by the user can continue after a successful automatic review. The conversation distinguishes automatic approval, manual approval, and a return to manual review, with a short explanation of the outcome. Unclear intent, insufficient context, or a stale proposal does not silently become approval.
 
 The decision applies to the version and effect that were reviewed. If the target changes before application, a fresh proposal is required. The review does not bypass roles, access checks or the configured permission policy. See [1.5.0](/changelog/1.5.0) for the full update.
 
@@ -103,10 +117,10 @@ Use a goal when you want continuity, for example “finish the migration readine
 
 <AccordionGroup>
   <Accordion title="Small read-only investigation">
-    Use `interactive` + `standard` + `default`. Read operations complete without unnecessary approval prompts.
+    Use `interactive` + `standard` + **Restricted**. Read operations complete without unnecessary approval prompts.
   </Accordion>
   <Accordion title="Broad production change">
-    Use `interactive` + `review_required` + `default`. Review the plan, then approve exact mutations as they are proposed.
+    Use `interactive` + `review_required` + **Restricted**. Review the plan, then approve exact actions as they are proposed.
   </Accordion>
   <Accordion title="Durable low-risk background task">
     Configure an Agent with `background` or `automation`, bounded tools, concurrency limits, and an approval-routing policy for exceptional actions.

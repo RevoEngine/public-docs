@@ -5667,6 +5667,52 @@
         "x-revo-safety-tier": "write",
         "summary": "Export Database View data",
         "description": "Starts an asynchronous CSV or Excel (XLSX) export of the saved View output to an authorized Storage destination. CSV is the default. Excel exports enforce worksheet row and column limits. Export queries may filter, project, sort, and page the output but cannot redefine joins, CTEs, or raw where clauses."
+      },
+      "post": {
+        "operationId": "DatabaseViewController_exportDataRequest",
+        "parameters": [
+          {
+            "name": "databaseViewId",
+            "required": true,
+            "in": "path",
+            "description": "Provide databaseViewId.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatabaseExportBodyRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Export accepted."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start a full database view export from a structured request.",
+        "tags": [
+          "Database Views"
+        ],
+        "x-revo-safety-tier": "write",
+        "description": "Start a full database view export from a structured request. The request is scoped to the authenticated instance and enforces View access and lifecycle state."
       }
     },
     "/api/v1/databases/views/{databaseViewId}/data": {
@@ -7411,6 +7457,52 @@
           }
         ],
         "summary": "Export database data to CSV or XLSX.",
+        "tags": [
+          "Databases"
+        ],
+        "x-revo-safety-tier": "write"
+      },
+      "post": {
+        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "operationId": "DatabaseController_exportDataRequest",
+        "parameters": [
+          {
+            "name": "databaseId",
+            "required": true,
+            "in": "path",
+            "description": "Provide databaseId.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatabaseExportBodyRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Export accepted."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start a full database export from a structured request.",
         "tags": [
           "Databases"
         ],
@@ -13526,7 +13618,7 @@
     },
     "/api/v1/automation/template/{jobTemplateId}/run": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    PARAMETER: jobTemplateId accepts an exact active template UUID or unique name.\n    ",
         "operationId": "AutomationController_runFromTemplate",
         "parameters": [
           {
@@ -13564,7 +13656,7 @@
             "bearer": []
           }
         ],
-        "summary": "Run template.",
+        "summary": "Run template by exact ID or unique name.",
         "tags": [
           "Automation"
         ]
@@ -21088,7 +21180,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21420,7 +21512,7 @@
         "properties": {
           "publishedAt": {
             "type": "string",
-            "example": "2026-09-10T00:00:00.000Z",
+            "example": "2026-09-11T00:00:00.000Z",
             "format": "date-time"
           },
           "showInApp": {
@@ -21429,12 +21521,13 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.0"
+            "example": "What’s new in RevoEngine 1.5.1"
           },
           "highlights": {
             "example": [
-              "Governed AI-assisted changes",
-              "Native CSV and XLSX workflows"
+              "Intelligent Auto Review for exact changes and multi-step objectives",
+              "Live Assistant previews, precise source reads and retryable dictation",
+              "Atomic 100,000-row Database writes, structured exports and Job Templates by name"
             ],
             "type": "array",
             "items": {
@@ -21443,7 +21536,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.0",
+            "example": "https://docs.revoengine.com/changelog/1.5.1",
             "format": "uri"
           }
         },
@@ -21460,7 +21553,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.0"
+            "example": "1.5.1"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21965,8 +22058,9 @@
           },
           "legacyResults": {
             "type": "boolean",
-            "description": "Return legacy-shaped results for backward-compatible execution consumers.",
-            "example": false
+            "description": "Deprecated compatibility mode that returns the legacy execution envelope. Do not enable it for new callers; use the current response/result contract instead.",
+            "example": false,
+            "deprecated": true
           },
           "hideRequest": {
             "type": "boolean",
@@ -22048,11 +22142,12 @@
           },
           "noResult": {
             "type": "boolean",
-            "description": "Suppress endpoint result body when true."
+            "description": "Return an empty successful response body. Use for side-effect-only endpoints and omit popResult; do not use a hidden component element to suppress a response."
           },
           "popResult": {
             "type": "string",
-            "description": "Return only one case-sensitive named component result. The API normalizes the first character to uppercase."
+            "description": "Return the raw value from one visible component result instead of the default full result map. Set the exact output key emitted by the bound component; the API canonicalizes its first character to uppercase. Omit only when the complete visible result map is the intended API body.",
+            "example": "OrderSummary"
           },
           "customValidateResponse": {
             "type": "object",
@@ -22152,7 +22247,7 @@
             ]
           },
           "options": {
-            "description": "Endpoint runtime options stored as loose JSONB. Custom low-code input values live under \"input\"; first-class keys such as \"guard\", \"componentSchemaId\", \"componentSchemaVersion\", \"componentSchemaElement\", \"popResult\", \"httpCode\", \"legacyResults\", and \"memory\" live at the options root.",
+            "description": "Endpoint runtime options. Custom low-code values live only under \"input\". Before creating or changing a component-backed endpoint, choose one response contract at the options root: omit both popResult and noResult for the complete visible result map, set popResult to one exact visible output key for its raw value, or set noResult for an empty body. legacyResults is deprecated and must not be used for new endpoints.",
             "default": {
               "input": {},
               "hideRequest": false,
@@ -23200,6 +23295,165 @@
             "type": "string",
             "description": "Absolute future expiration timestamp in ISO 8601 format.",
             "example": "2026-08-01T12:00:00.000Z"
+          }
+        }
+      },
+      "DatabaseExportBodyRequestDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "boolean",
+            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "example": true
+          },
+          "filter": {
+            "type": "object",
+            "description": "Structured QueryWrapper filter tree.",
+            "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}"
+          },
+          "sort": {
+            "description": "Structured sort definition or ordered sort fields.",
+            "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "distinct": {
+            "type": "array",
+            "description": "Structured distinct field selection.",
+            "example": "category,global",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fields": {
+            "type": "array",
+            "description": "Selected plain or computed QueryWrapper fields.",
+            "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ]
+            }
+          },
+          "joins": {
+            "type": "array",
+            "description": "Structured dynamic database joins.",
+            "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "groupBy": {
+            "type": "array",
+            "description": "Structured group-by field selection.",
+            "example": "[\"category\",\"global\"]",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cast": {
+            "type": "object",
+            "description": "Structured selected-field cast mapping.",
+            "example": "{\"userCount\":\"INTEGER\"}"
+          },
+          "with": {
+            "type": "array",
+            "description": "Structured CTE definitions when the export source permits them.",
+            "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
+            "example": false
+          },
+          "join": {
+            "type": "object",
+            "description": "Legacy dynamic database join map.",
+            "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}"
+          },
+          "format": {
+            "type": "string",
+            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
+            "enum": [
+              "csv",
+              "xlsx"
+            ],
+            "example": "xlsx",
+            "default": "csv"
+          },
+          "retention": {
+            "description": "Export file retention. Omit for the destination default, set null for no expiration, or provide exactly one of ttlSeconds and expiresAt.",
+            "nullable": true,
+            "example": {
+              "ttlSeconds": 604800
+            },
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageRetentionDto"
+              }
+            ]
+          },
+          "delimiter": {
+            "type": "string",
+            "description": "CSV field delimiter. Defaults to a comma and must contain fewer than 10 characters.",
+            "example": "|"
+          },
+          "boolType": {
+            "type": "string",
+            "description": "CSV boolean representation.",
+            "example": "boolean",
+            "enum": [
+              "emoji",
+              "number",
+              "boolean"
+            ]
+          },
+          "emptyNull": {
+            "type": "boolean",
+            "description": "Write null values as empty CSV fields instead of the string null.",
+            "example": true
+          },
+          "encodedJson": {
+            "type": "boolean",
+            "description": "Base64-encode JSON and JSONB values in the CSV output.",
+            "example": false
+          },
+          "storageDestination": {
+            "type": "string",
+            "description": "Optional storage destination. Omit to retain the private per-user export namespace, use ROOT for the explorer root, or provide an accessible explorer folder storageEntryId.",
+            "example": "ROOT"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
+            "example": "contracts-full.xlsx"
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "Whether the exported storage entry is restricted. Defaults to true. Restricted ancestors still apply when exporting into a folder.",
+            "example": false,
+            "default": true
           }
         }
       },
@@ -24432,10 +24686,18 @@
           },
           "return": {
             "type": "boolean",
-            "description": "Return primary keys of inserted data."
+            "description": "Return inserted or updated rows. Defaults to true for low-code calls."
+          },
+          "onlyKeys": {
+            "type": "boolean",
+            "description": "When rows are returned, return only primary keys."
+          },
+          "patch": {
+            "type": "boolean",
+            "description": "For upserts, update only properties supplied by each conflicting row. Defaults to true. Set false for the legacy full replacement behavior."
           },
           "data": {
-            "description": "Data limited to 32mb.",
+            "description": "Data limited to 32mb and 100,000 rows.",
             "type": "array",
             "items": {
               "type": "array"
@@ -24627,7 +24889,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "description": "Data limited to 32mb.",
+            "description": "Data limited to 32mb and 100,000 rows.",
             "type": "array",
             "items": {
               "type": "array"
@@ -26930,7 +27192,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Display name of the job template.",
+            "description": "Unique display name of the job template. Direct triggers may resolve the template by this exact name.",
             "example": "Nightly sync"
           },
           "category": {
@@ -27027,7 +27289,7 @@
           },
           "inputs": {
             "type": "object",
-            "description": "Runtime input data. Must be a JSON object; null is normalized to an empty object.",
+            "description": "Template input values for this run. Must be a JSON object; null is normalized to an empty object. Values are materialized only under api.input().templateInputs and cannot modify the top-level execution envelope.",
             "nullable": true
           },
           "options": {
@@ -27045,7 +27307,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name."
+            "description": "Unique display name. Direct triggers may resolve the template by this exact name."
           },
           "category": {
             "type": "string",

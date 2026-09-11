@@ -428,9 +428,14 @@ static getDatabaseAudit(
 
 ## `api.insertDatabaseData()`
 
-Inserts rows.
+Inserts rows. Pass options to control the response: return defaults to true and
+onlyKeys returns only primary-key fields. Insert always validates the complete
+row required for creation; patch is not an insert option.
 
 Notes:
+- A call accepts at most 100,000 rows and executes atomically in one transaction.
+- return defaults to true and includes full rows. return: false omits data; onlyKeys
+  returns primary keys only. Returning full rows has a higher response-memory cost.
 - No-op in debug mode.
 
 ### Signature
@@ -439,6 +444,7 @@ Notes:
 static insertDatabaseData(
       name: string,
       data: LooseObject<any>[],
+      options?: DatabaseDataWriteOptions,
     ): Promise<DatabaseDataActionResponse>;
 ```
 ### Example
@@ -453,9 +459,16 @@ await api.insertDatabaseData('customers', [
 
 ## `api.upsertDatabaseData()`
 
-Upserts rows.
+Creates missing rows and PATCHes only properties present in each conflicting row.
+This is the default: omit unrelated properties rather than reading a full row first.
+A present null clears a nullable property; an omitted or undefined property is unchanged.
+Pass &#123; patch: false &#125; only for the legacy full-replacement conflict behavior.
+Pass &#123; return: false &#125; to skip returned rows, or &#123; onlyKeys: true &#125; for keys only.
 
 Notes:
+- A call accepts at most 100,000 rows and executes atomically in one transaction.
+- return defaults to true and includes full rows. return: false omits data; onlyKeys
+  returns primary keys only. Returning full rows has a higher response-memory cost.
 - No-op in debug mode.
 
 ### Signature
@@ -464,6 +477,7 @@ Notes:
 static upsertDatabaseData(
       name: string,
       data: LooseObject<any>[],
+      options?: DatabaseUpsertOptions,
     ): Promise<DatabaseDataActionResponse>;
 ```
 ### Example
@@ -478,7 +492,10 @@ await api.upsertDatabaseData('customers', [
 
 ## `api.updateDatabaseData()`
 
-Updates rows matched by oldObject.
+PATCHes the row identified by its primary-key oldObject. newObject contains only
+properties to change; omitted or undefined properties are unchanged, while null
+explicitly clears a nullable property. Use updateDatabaseDataRequest for a
+structured-filter bulk PATCH.
 
 Notes:
 - No-op in debug mode.
@@ -506,9 +523,14 @@ await api.updateDatabaseData(
 
 ## `api.deleteDatabaseData()`
 
-Deletes rows.
+Deletes an explicit list of rows identified by primary key.
 
 Notes:
+- A call accepts at most 100,000 rows and executes atomically in one transaction.
+- Prefer deleteDatabaseDataRequest() when the rows can be described by a filter;
+  it avoids loading and transferring every matching primary key to the runtime.
+- Structured query and mutation filters are rejected before SQL execution when they exceed
+  256 KiB, 1,000 nodes, 10,000 values, 16 nested levels, or 10,000 bound parameters.
 - No-op in debug mode.
 
 ### Signature
@@ -1520,6 +1542,11 @@ Notes:
 - Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
 - Retired positional date and relative-delay arguments are ignored.
 - No-op in debug mode.
+- For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
+  The third argument is copied directly into the
+  target job's flat `api.input().templateInputs`. It is shallow-spread over
+  template defaults, retaining non-colliding defaults and overwriting only
+  matching keys; it is never nested below another input property.
 
 ### Signature
 
@@ -1527,7 +1554,7 @@ Notes:
 static triggerTarget(
       targetType: ExecutionTargetType,
       targetId: string,
-      input?: any,
+      input?: Record<string, JsonValue>,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
 ```
@@ -1546,11 +1573,15 @@ const jobId = await api.triggerTarget(
 
 ## `api.triggerJob()`
 
-Schedules a job template.
+Schedules an active job template by its exact ID or exact unique name.
 
 Notes:
 - No-op in debug mode.
-- Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateId, ...)`.
+- Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
+- The input argument is copied directly into the target job's flat
+  `api.input().templateInputs`, shallow-spread over template defaults.
+  Non-colliding defaults remain and matching keys are overwritten; it is not
+  nested under `templateInputs.input` or exposed at top level.
 - Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
 - Retired positional date and relative-delay arguments are ignored.
 
@@ -1558,8 +1589,8 @@ Notes:
 
 ```ts
 static triggerJob(
-      templateId: string,
-      input?: any,
+      templateIdOrName: string,
+      templateInputs?: Record<string, JsonValue>,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
 ```

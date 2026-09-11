@@ -246,9 +246,14 @@ declare class api {
     ): Promise<DatabaseAuditResponse>;
 
   /**
-     * Inserts rows.
+     * Inserts rows. Pass options to control the response: return defaults to true and
+     * onlyKeys returns only primary-key fields. Insert always validates the complete
+     * row required for creation; patch is not an insert option.
      *
      * Notes:
+     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - return defaults to true and includes full rows. return: false omits data; onlyKeys
+     *   returns primary keys only. Returning full rows has a higher response-memory cost.
      * - No-op in debug mode.
      *
      * Example:
@@ -259,12 +264,20 @@ declare class api {
   static insertDatabaseData(
       name: string,
       data: LooseObject<any>[],
+      options?: DatabaseDataWriteOptions,
     ): Promise<DatabaseDataActionResponse>;
 
   /**
-     * Upserts rows.
+     * Creates missing rows and PATCHes only properties present in each conflicting row.
+     * This is the default: omit unrelated properties rather than reading a full row first.
+     * A present null clears a nullable property; an omitted or undefined property is unchanged.
+     * Pass { patch: false } only for the legacy full-replacement conflict behavior.
+     * Pass { return: false } to skip returned rows, or { onlyKeys: true } for keys only.
      *
      * Notes:
+     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - return defaults to true and includes full rows. return: false omits data; onlyKeys
+     *   returns primary keys only. Returning full rows has a higher response-memory cost.
      * - No-op in debug mode.
      *
      * Example:
@@ -275,10 +288,14 @@ declare class api {
   static upsertDatabaseData(
       name: string,
       data: LooseObject<any>[],
+      options?: DatabaseUpsertOptions,
     ): Promise<DatabaseDataActionResponse>;
 
   /**
-     * Updates rows matched by oldObject.
+     * PATCHes the row identified by its primary-key oldObject. newObject contains only
+     * properties to change; omitted or undefined properties are unchanged, while null
+     * explicitly clears a nullable property. Use updateDatabaseDataRequest for a
+     * structured-filter bulk PATCH.
      *
      * Notes:
      * - No-op in debug mode.
@@ -297,9 +314,14 @@ declare class api {
     ): Promise<ResourceItem>;
 
   /**
-     * Deletes rows.
+     * Deletes an explicit list of rows identified by primary key.
      *
      * Notes:
+     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - Prefer deleteDatabaseDataRequest() when the rows can be described by a filter;
+     *   it avoids loading and transferring every matching primary key to the runtime.
+     * - Structured query and mutation filters are rejected before SQL execution when they exceed
+     *   256 KiB, 1,000 nodes, 10,000 values, 16 nested levels, or 10,000 bound parameters.
      * - No-op in debug mode.
      *
      * Example:
@@ -1127,6 +1149,11 @@ declare class api {
      * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - Retired positional date and relative-delay arguments are ignored.
      * - No-op in debug mode.
+     * - For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
+     *   The third argument is copied directly into the
+     *   target job's flat `api.input().templateInputs`. It is shallow-spread over
+     *   template defaults, retaining non-colliding defaults and overwriting only
+     *   matching keys; it is never nested below another input property.
      *
      * Example:
      * const jobId = await api.triggerTarget(
@@ -1139,16 +1166,20 @@ declare class api {
   static triggerTarget(
       targetType: ExecutionTargetType,
       targetId: string,
-      input?: any,
+      input?: Record<string, JsonValue>,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
 
   /**
-     * Schedules a job template.
+     * Schedules an active job template by its exact ID or exact unique name.
      *
      * Notes:
      * - No-op in debug mode.
-     * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateId, ...)`.
+     * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
+     * - The input argument is copied directly into the target job's flat
+     *   `api.input().templateInputs`, shallow-spread over template defaults.
+     *   Non-colliding defaults remain and matching keys are overwritten; it is not
+     *   nested under `templateInputs.input` or exposed at top level.
      * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - Retired positional date and relative-delay arguments are ignored.
      *
@@ -1160,8 +1191,8 @@ declare class api {
      * );
      */
   static triggerJob(
-      templateId: string,
-      input?: any,
+      templateIdOrName: string,
+      templateInputs?: Record<string, JsonValue>,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
 

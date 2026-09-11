@@ -1,0 +1,134 @@
+---
+title: "1.5.1 — Intelligent reviews, live Assistant progress and high-volume data workflows"
+sidebarTitle: "1.5.1"
+icon: "tag"
+description: "11 September 2026"
+---
+
+RevoEngine 1.5.1 expands what teams can safely delegate to the Assistant and what applications can do with larger operational data sets. Auto Review can evaluate the actual effect of a proposed action, Assistant source work becomes more precise, and users see useful response previews while longer work continues. Low-code Database writes gain an explicit high-volume atomic contract, exports accept the full structured query shape, and Automation becomes easier to address by business-readable Job Template names.
+
+## Highlights
+
+- Let intelligent Auto Review assess the exact proposed action and explain whether it can proceed.
+- Follow live Assistant previews that become confirmed progress or final text without duplication.
+- Read exact Component source outlines, matches and line ranges without loading the complete resource.
+- Review the submitted source of newly proposed Components before they are created.
+- Retry failed voice transcription from the retained recording.
+- Insert, upsert or delete up to 100,000 Database rows atomically with explicit response controls.
+- Export structured Database results and trigger active Job Templates by unique name.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Intelligent Auto Review for real multi-step work" defaultOpen={true}>
+
+Auto Review now evaluates the exact pending action against the user's substantive request, its immediate effects and the evidence available for that operation. It understands that an authorized workflow can require several dependent steps: a necessary intermediate action can proceed when it directly serves the requested outcome and introduces no additional material effect. One action no longer has to complete the whole objective by itself to be considered in scope.
+
+The reviewer uses the complete submitted configuration for a new resource, the authoritative comparison for a change to an existing resource, and the complete executable proposal for an action that runs code. Earlier tool results are treated as supporting receipts rather than permission for a new effect. If the evidence is incomplete, stale, contradictory or broader than the request, the action returns to the user for a visible decision.
+
+This makes Auto Review more capable without making it permissive. Positive outcomes retain a clear rationale in the conversation, while changes that cannot be verified safely remain manual.
+
+  </Accordion>
+  <Accordion title="Live Assistant previews that preserve their place">
+
+The Assistant can publish useful response text before a longer round of work has completed. Each preview has a stable identity and appears inside the ordered activity group. When the same text becomes confirmed progress, it updates in place; when it belongs to the final answer, it is promoted without being typed again or duplicated below the activity.
+
+Previews are revised or discarded explicitly, so internal discovery does not leave obsolete text in the conversation. Tool activity remains ordered around the progress that introduced it, and the persisted completed response remains the authoritative final result after reload. Users get earlier feedback without sacrificing a clean final answer.
+
+The working timer also begins from the acknowledged Assistant response rather than an optimistic placeholder, while the displayed response duration includes the preparation that happened after the user's message was accepted.
+
+  </Accordion>
+  <Accordion title="Precise source-aware Component work">
+
+A new read-only source workflow lets the Assistant inspect one exact Component element as an outline, a set of literal or regular-expression matches, or a bounded line range. Search results carry the exact element reference needed for the next read, and continuation metadata supports larger files without replaying the complete Component payload.
+
+Library discovery also returns the selected implementation and its exact element reference without duplicating the whole backing resource. The Assistant can therefore collect the smallest source context needed to explain, change or validate a Component, leaving more conversation capacity for the objective, review evidence and final result.
+
+When a new Component is proposed, its submitted source elements can be shown directly in the approval card as structured code sections. Users can inspect what is about to be created even though no previous resource version exists for a traditional before-and-after comparison.
+
+  </Accordion>
+  <Accordion title="Recoverable voice dictation">
+
+A failed or empty transcription no longer requires the user to record the message again. The composer retains the audio and offers explicit retry or discard actions. Retrying uses the same recording and request identity, prevents overlapping submissions and inserts the recovered transcript into the composer without sending the message automatically.
+
+The same workflow is available in Assistant and Team chat composers. Leaving the conversation or closing the composer cancels the pending request, keeping each recording scoped to the place where it was created.
+
+  </Accordion>
+  <Accordion title="Atomic high-volume Database writes">
+
+Low-code insert, upsert and explicit-key delete calls accept up to 100,000 rows per operation. Outside an explicit caller-managed transaction, a large call is applied atomically: if any part fails, the ordinary operation does not leave a partially written data set.
+
+Upsert now applies only the supplied non-primary-key properties by default. Omitted values remain unchanged, while an explicit `null` remains an intentional assignment. Callers can request primary keys only or suppress returned row data when the full records are unnecessary, reducing the response footprint of bulk workflows.
+
+```js
+const result = await api.upsertDatabaseData(
+  'customers',
+  [
+    { customerId: 'c-001', status: 'ACTIVE' },
+    { customerId: 'c-002', status: 'PAUSED' },
+  ],
+  { onlyKeys: true },
+);
+return result;
+```
+
+Structured reads and request-based mutations also have documented input budgets for request size, filter depth, filter nodes, filter values and bound parameters. Oversized requests are rejected before execution. For condition-based deletion, the filter-based workflow avoids collecting and transferring every matching key into application code.
+
+  </Accordion>
+  <Accordion title="Structured Database and View exports">
+
+Database and Database View exports accept body-based structured requests using the same projection, filter, join, grouping, sorting, distinct-selection and supported-cast concepts as Database reads. Export paging remains server-owned, so an export request describes the result set rather than an arbitrary application page.
+
+Computed and aliased fields retain their selected output names and supported value types in CSV and Excel. Low-code callers can choose asynchronous execution and, when their application already owns completion handling, suppress the additional System notification for that export.
+
+```js
+const exportRequest = await api.exportDatabase('orders', {
+  format: 'xlsx',
+  async: true,
+  skipNotification: true,
+  fileName: 'orders.xlsx',
+  fields: ['orderId', 'status', 'total'],
+  sort: { orderId: 'ASC' },
+});
+return exportRequest;
+```
+
+Export finalization preserves durable ownership across retries and uncertain completion responses. File materialization no longer needs to hold a shared Database transaction for its full duration, and cleanup remains recoverable if a process stops between generation and publication.
+
+  </Accordion>
+  <Accordion title="Job Templates by business-readable name">
+
+Active Job Templates can be triggered by exact unique name as well as by identifier. This makes low-code and direct API calls easier to read while retaining deterministic resolution; an identifier match takes precedence if a UUID-shaped name collides with an existing identifier.
+
+Per-run values remain a flat `templateInputs` object. Template defaults are retained, and matching per-run keys overwrite them at the same level. Names are enforced as unique so the same call resolves consistently.
+
+```js
+const job = await api.triggerJob('Nightly customer sync', {
+  region: 'EU',
+  notifyOwner: true,
+});
+return job;
+```
+
+Endpoint authoring also makes the response contract explicit. A Component-backed Endpoint can return the complete visible result map, one exact visible output value, or an empty successful body for a side-effect-only call. Compatibility output remains available for existing integrations but is deprecated for new Endpoints.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Conversation switching, pagination, draft promotion and deletion are isolated from late responses belonging to another thread.
+- Initial conversation loading and older-message loading have distinct visible states.
+- Detail panels open with a lightweight shell, resize smoothly and can refresh a selected Job attempt without collapsing inspected sections.
+- Enabled default integrations and explicit thread attachments remain consistent through continuation, review and context reduction.
+- Context reduction keeps exact dialogue when reloadable resource context can be removed first.
+- System-managed recovery records operation ownership and completed work so retries do not repeat successful maintenance.
+- An unavailable project selection returns the user to a usable project list instead of leaving a partial session.
+
+## Related guides
+
+[Assistant](/ai/assistant) · [Approvals and plans](/ai/approvals-and-plans) · [Components](/build/components) · [Automation](/operate/automation) · [Databases](/operate/databases)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.0](/changelog/1.5.0)
