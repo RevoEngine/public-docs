@@ -15,7 +15,7 @@ This reference describes the public Endpoint definition managed through the UI o
 | `path` | yes | Starts with `/`; static segments use letters, numbers, `.`, `_`, `-`; dynamic segments use `:name`; `@` is also supported as a segment token. Repeated and trailing slashes are normalized. Maximum 1024 characters. |
 | `method` | yes | `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`. Path uniqueness is per method. |
 | `componentId` | no | Target Component. Omit it for a static response Endpoint. |
-| `componentVersion` | no | Exact low-code version to pin. `CUSTOM_NODEJS` targets must omit it and execute their selected ready runtime revision. |
+| `componentVersion` | no | Omit to follow the latest active low-code version, or set an exact integer for a deliberate stable pin. Decide this explicitly for a new Endpoint. `CUSTOM_NODEJS` targets must omit it and execute their selected ready runtime revision. |
 | `timeout` | no | Seconds. The minimum is platform-defined and the effective maximum is constrained by the current instance quota. Align it to the caller deadline. |
 | `category`, `desc`, `metadata` | no | Organization and context. Metadata is JSON limited to 16 KiB / 64 top-level keys; `__*` keys are reserved. |
 | `options` | no | Execution, validation, libraries, response shaping, and controlled template input. |
@@ -35,7 +35,7 @@ This reference describes the public Endpoint definition managed through the UI o
 | `response` | Static successful response body when `componentId` is omitted. |
 | `httpCode` | Successful response code (`200`–`299`). |
 | `noResult` | Suppresses a successful response body. |
-| `popResult` | Returns one named Component element result; the first character is normalized to uppercase. |
+| `popResult` | Preferred response mode for a new Component-backed Endpoint with a body. Returns the exact named visible Component element result; the first character is normalized to uppercase. Do not infer a key such as `Main` or `Data`. |
 | `includeLibs`, `excludeLibs` | Runtime library selection. Prefer explicit necessary libraries. |
 | `skipLibs` | Skip shared-library loading when the Component does not need it. |
 | `hideRequest`, `hideResponse` | Limit request/response persistence in execution history; they do not prevent application code from logging the same value. |
@@ -87,10 +87,12 @@ This reference describes the public Endpoint definition managed through the UI o
 
 ## Delivery rules
 
-1. Validate route conflicts, rejected validation cases, selected component version, and intended response shape while inactive.
+1. Validate route conflicts, rejected validation cases, selected Component version, and intended response shape while inactive. Confirm whether the binding is latest-active or an exact pin.
 2. Activate only after the generated runtime OpenAPI document and client examples reflect the intended public contract.
 3. Preserve request compatibility when changing a live path. Create a new versioned path instead of changing established parameter semantics unexpectedly.
 4. Treat an accepted control-plane write as a definition update—not proof that a caller has completed a runtime invocation.
+
+When repairing a Component, inspect dependent Endpoints, Job Templates, and Agent Tools before changing version bindings. Preserve their latest/pinned mode; do not migrate existing dependents without explicit operator confirmation.
 
 <Warning>
 The runtime chooses an inline `guard` before a schema Component reference. Configure one clear validation source per Endpoint; do not use both as a fallback mechanism.

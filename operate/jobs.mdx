@@ -67,7 +67,7 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 }
 ```
 
-`componentVersion` pins a known low-code version for a controlled release. Omit it only when the task should intentionally resolve the latest active version. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
+`componentVersion` pins a known low-code version for a controlled release. Omit it only when the task should intentionally resolve the latest active version; make that choice explicitly for a new Job Template. When repairing its Component, preserve each existing Template binding unless the operator explicitly approves a migration. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
 
 The platform rejects retry backoff above 30 days before queueing. If an absolute requested run time becomes due while the request is being processed, the Job is dispatched immediately; the queue is never given a timestamp in the past.
 

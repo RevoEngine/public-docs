@@ -22206,7 +22206,7 @@
           },
           "popResult": {
             "type": "string",
-            "description": "Return the raw value from one visible component result instead of the default full result map. Set the exact output key emitted by the bound component; the API canonicalizes its first character to uppercase. Omit only when the complete visible result map is the intended API body.",
+            "description": "Preferred response mode for a new component-backed endpoint with a body: return the raw value from one visible component result. Set the exact output key emitted by the bound component; the API canonicalizes its first character to uppercase. Omit only when the complete visible result map is the intended API body.",
             "example": "OrderSummary"
           },
           "customValidateResponse": {
@@ -22281,7 +22281,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Exact low-code component version to pin for a stable rollout. CUSTOM_NODEJS endpoints always execute the component active runtime revision and must omit this field."
+            "description": "Optional component binding mode: omit to follow the latest active low-code component version, or set an exact integer to pin a stable rollout. For a new endpoint, choose this behavior explicitly. CUSTOM_NODEJS endpoints always execute the component active runtime revision and must omit this field."
           },
           "timeout": {
             "type": "number",
@@ -22307,7 +22307,7 @@
             ]
           },
           "options": {
-            "description": "Endpoint runtime options. Custom low-code values live only under \"input\". Before creating or changing a component-backed endpoint, choose one response contract at the options root: omit both popResult and noResult for the complete visible result map, set popResult to one exact visible output key for its raw value, or set noResult for an empty body. legacyResults is deprecated and must not be used for new endpoints.",
+            "description": "Endpoint runtime options. Custom low-code values live only under \"input\". For a new component-backed endpoint with a body, prefer popResult and set it to one exact visible output key for its raw value; use the complete visible result map only when explicitly required, or set noResult for an empty body. legacyResults is deprecated and must not be used for new endpoints.",
             "default": {
               "input": {},
               "hideRequest": false,
@@ -22354,7 +22354,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Component version, if left empty it will use latest component version)."
+            "description": "Optional component binding mode: omit to follow the latest active component version, or set an exact integer to retain or introduce a deliberate pin. Do not change an existing binding mode without an explicit compatibility decision."
           },
           "timeout": {
             "type": "number",
@@ -22379,7 +22379,7 @@
             ]
           },
           "options": {
-            "description": "Endpoint runtime options stored as loose JSONB. Custom low-code input values live under \"input\"; first-class keys such as \"guard\", \"componentSchemaId\", \"componentSchemaVersion\", \"componentSchemaElement\", \"popResult\", \"httpCode\", \"legacyResults\", and \"memory\" live at the options root.",
+            "description": "Endpoint runtime options. Custom low-code values live only under \"input\". For a new component-backed endpoint with a body, prefer popResult and set it to one exact visible output key for its raw value; use the complete visible result map only when explicitly required, or set noResult for an empty body. legacyResults is deprecated and must not be used for new endpoints.",
             "default": {
               "input": {},
               "hideRequest": false,
@@ -27245,8 +27245,9 @@
           },
           "legacyResults": {
             "type": "boolean",
-            "description": "Return legacy-shaped results for backward-compatible execution consumers.",
-            "example": false
+            "description": "Deprecated compatibility mode that returns the legacy execution envelope. Do not enable it for new callers; use the current job result contract instead.",
+            "example": false,
+            "deprecated": true
           },
           "hideRequest": {
             "type": "boolean",
@@ -27327,7 +27328,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional fixed component version. When omitted, runtime resolves the latest active version.",
+            "description": "Optional component binding mode: omit to follow the latest active version, or set an exact integer to pin a stable rollout. For a new template, choose this behavior explicitly.",
             "example": 3
           },
           "timeout": {
@@ -27435,7 +27436,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Component version, if left empty it will use latest component version)."
+            "description": "Optional component binding mode: omit to follow the latest active version, or set an exact integer to retain or introduce a deliberate pin. Do not change an existing binding mode without an explicit compatibility decision."
           },
           "timeout": {
             "type": "number",
@@ -31434,7 +31435,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional fixed component version for tools plugins. Forbidden for MCP server plugins.",
+            "description": "Optional component binding mode for tools plugins: omit to follow the latest active component version, or set an exact integer to pin a stable rollout. Choose this behavior explicitly for a new tool. Forbidden for MCP server plugins.",
             "minimum": 0
           },
           "componentToolset": {
@@ -31658,7 +31659,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Replacement fixed component version for tools patches. Forbidden for MCP server patches.",
+            "description": "Replacement component version for tools patches. Omit to preserve the existing binding; set an exact integer only for an explicit compatibility-approved pin or migration. Forbidden for MCP server patches.",
             "minimum": 0
           },
           "componentToolset": {

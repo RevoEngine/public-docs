@@ -104,7 +104,7 @@ The same panel offers **Full result** versus a selected element result, no-body 
 
 ### Component-backed Endpoint
 
-Use a Component-backed Endpoint for business logic, database access, integrations, and dynamic responses. Standard low-code Components can follow the latest active version or a deliberately pinned version.
+Use a Component-backed Endpoint for business logic, database access, integrations, and dynamic responses. Before creating one, decide whether it follows the latest active low-code Component version or pins a deliberately selected version. This is a compatibility decision, not an implementation detail.
 
 Hosted custom Node.js Components follow their active runtime revision. Saving source does not make an unverified revision executable: the previous active revision remains in service until the new deployment is ready and selected.
 
@@ -116,13 +116,15 @@ An Endpoint without a Component can return a configured static body and successf
 
 For new Endpoints, use the modern response behavior:
 
-- return the Component result map;
-- select one named element result with `popResult`;
+- prefer one named visible element result with `popResult` for an Endpoint that returns a body;
+- return the Component result map only when callers explicitly need multiple visible results;
 - suppress the response body with `noResult`;
 - set a normal successful `2xx` status;
 - deliberately return another status and body from component logic when the API contract requires it.
 
 Legacy result envelopes remain available for existing consumers, but should not be selected for new integrations.
+
+When a Component is repaired, inspect its Endpoint, Job Template, and Agent Tool dependencies. A latest-bound consumer follows the repaired Component and needs response-contract validation; a pinned consumer remains on its recorded version. Do not migrate or bump existing consumers without an explicit compatibility decision from the operator.
 
 ## Runtime behavior
 
