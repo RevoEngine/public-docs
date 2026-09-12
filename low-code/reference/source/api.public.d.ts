@@ -61,8 +61,9 @@ declare class api {
      * - No-op in debug mode.
      * - By default waits for the export, final compose, and storage entry persistence.
      * - CSV is the default and its dialect, headers, and byte map are indexed during upload.
-     * - XLSX uses the native streaming Storage writer, preserves database value types where Excel supports them,
-     *   and runs a server-side COUNT(*) before starting. A header row leaves 1,048,575 data rows available.
+     * - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
+     *   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
+     *   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
      * - Set `{ async: true }` to return immediately with an accepted response.
      * - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
      *   or provide an accessible Explorer folder storageEntryId.
@@ -321,7 +322,7 @@ declare class api {
      * - Prefer deleteDatabaseDataRequest() when the rows can be described by a filter;
      *   it avoids loading and transferring every matching primary key to the runtime.
      * - Structured query and mutation filters are rejected before SQL execution when they exceed
-     *   256 KiB, 1,000 nodes, 10,000 values, 16 nested levels, or 10,000 bound parameters.
+     *   8 MiB, 1,000 nodes, 100,000 values, 16 nested levels, or 10,000 bound parameters.
      * - No-op in debug mode.
      *
      * Example:
@@ -1879,7 +1880,8 @@ declare class storage {
     ): Promise<StorageEntryView>;
 
   /**
-     * Returns metadata for a file entry in the default `explorer` namespace.
+     * Returns metadata for a file entry. Without an explicit namespace the entry
+     * is resolved by its globally unique id, matching the REST Storage API.
      *
      * Example:
      * const file = await storage.getFile(storageEntryId);
@@ -1926,7 +1928,8 @@ declare class storage {
     ): Promise<StorageFileStats>;
 
   /**
-     * Returns metadata for any storage entry in the default `explorer` namespace.
+     * Returns metadata for any storage entry. Without an explicit namespace the
+     * entry is resolved by its globally unique id, matching the REST Storage API.
      *
      * Example:
      * const entry = await storage.getEntry(storageEntryId);
@@ -1976,12 +1979,45 @@ declare class storage {
      *   default. The compatibility `staged` XLSX path may still persist its
      *   reusable index when `none` is explicit; `direct` with `none` skips it.
      *   Both default to `writeMode: 'staged'`.
-     *   Use `writeMode: 'direct'` for configured CSV/XLSX row exports. For XLSX,
-     *   declare every worksheet with a non-empty `table.columns` before appending;
-     *   direct XLSX parts are row-only and cannot contain `cells`.
+     * - Set `restricted: true` with explicit `users` and/or `groups` to define
+     *   the finalized entry ACL. These relations may be changed later with
+     *   `storage.updateEntry(...)`; `restricted: false` clears them.
+     *   Use `writeMode: 'direct'` for configured CSV/XLSX row exports with a
+     *   declared schema. For XLSX, declare every worksheet
+     *   with a non-empty `table.columns` before appending; direct XLSX parts are
+     *   row-only and cannot contain `cells`. Use the default `staged` mode when
+     *   append requests can be retried, replaced, reordered, or need inferred
+     *   columns, sparse cells, formulas, or dynamic worksheets.
      *   A single `sheets` part can append rows to multiple declared worksheets.
+     *   Staged mode is the durable default for independent requests that may be
+     *   retried, replaced, reordered, or use inferred columns, sparse cells,
+     *   formulas, or dynamic worksheets.
      *
-     * Example:
+     * @example direct upload
+     * const { session, upload } = await storage.createUploadSession({
+     *   name: 'notes.txt', contentTypeHint: 'text/plain', uploadMode: 'direct',
+     * });
+     * return { sessionId: session.storageUploadSessionId, upload };
+     *
+     * @example declared-schema XLSX
+     * const declared = await storage.createUploadSession({
+     *   name: 'report.xlsx',
+     *   contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+     *   uploadMode: 'incremental', writeMode: 'direct',
+     *   sheets: [{ name: 'Report', table: { columns: [
+     *     { key: 'productId', header: 'Product ID' },
+     *     { key: 'price', header: 'Price', type: 'number' },
+     *   ] } }],
+     * });
+     * await storage.uploadPart(declared.session.storageUploadSessionId, {
+     *   rows: [{ productId: 'P-1', price: 12.5 }],
+     * });
+     * // Append row-only parts according to the declared schema, then finalize.
+     * const result = await storage.finalizeUploadSession(
+     *   declared.session.storageUploadSessionId,
+     * );
+     *
+     * Example (server-mediated row parts):
      * const upload = await storage.createUploadSession({
      *   name: 'report.xlsx',
      *   contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -2160,7 +2196,8 @@ declare class storage {
     ): Promise<StorageEntryView>;
 
   /**
-     * Generates a signed download URL for a storage file.
+     * Generates a signed download URL for a storage file. Without an explicit
+     * namespace the entry is resolved by its globally unique id, matching REST.
      *
      * Example:
      * const download = await storage.getDownload(storageEntryId, true);
@@ -2183,6 +2220,24 @@ declare class storage {
       storageEntryId: string,
       options?: StorageTextReadOptions,
     ): Promise<StorageTextContent>;
+
+  /**
+     * Reads a bounded Storage document. The source is limited to 10 MiB per
+     * call; use getFileData for large or record-oriented files.
+     *
+     * `format: 'text'` is the default and supports optional byte ranges.
+     * `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`
+     * returns an order-preserving XML representation. `format: 'auto'` selects
+     * JSON/XML from the stored MIME type or file extension.
+     *
+     * @example
+     * const doc = await storage.getDocument(storageEntryId, { format: 'auto' });
+     * return doc.document ?? doc.content;
+     */
+  static getDocument(
+      storageEntryId: string,
+      options?: StorageDocumentReadOptions,
+    ): Promise<StorageDocument>;
 }
 
 declare class agent {

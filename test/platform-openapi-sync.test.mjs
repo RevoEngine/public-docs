@@ -80,7 +80,7 @@ test('enriches protected Agent operations and removes non-public paths', () => {
   assert.deepEqual(publicOperationKeys(output), publicOperationKeys(source));
   assert.equal(output.components.schemas.JobTemplateRequestDto.properties.timeout.maximum, 3540);
   assert.equal(output.components.schemas.UpdateJobTemplate.properties.timeout.maximum, 3540);
-  assert.equal(output.components.schemas.JobOptionsDto.properties.memory.maximum, 4096);
+  assert.equal(output.components.schemas.JobOptionsDto.properties.memory.maximum, 2048);
   assert.equal(output.tags.every((tag) => tag.externalDocs?.url?.startsWith('https://docs.revoengine.com/')), true);
   assert.equal(auditPlatformOpenApi(output, source).length, 0);
 });

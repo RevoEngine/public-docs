@@ -1,0 +1,87 @@
+---
+title: "1.5.2 — Faster structured data access and dependable data workflows"
+sidebarTitle: "1.5.2"
+icon: "tag"
+description: "12 September 2026"
+---
+
+RevoEngine 1.5.2 improves how applications read and write large managed data files. Structured file access is faster and easier to page through, document reads are explicit and bounded, and CSV and Excel writing is more dependable for longer workflows. Private Storage access and background job outcomes are also clearer for operators and low-code applications.
+
+## Highlights
+
+- Read paged NDJSON, JSON, XML, CSV and Excel data through one structured Storage workflow.
+- Retrieve a bounded text, JSON or XML document when a whole small document is the right unit of work.
+- Create and finalize CSV or Excel uploads with a clearer durable session contract.
+- Resolve authorized private Storage files directly by identifier without weakening access control.
+- Receive clear terminal job outcomes when interrupted background work needs operator attention.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Read structured files without loading them all" defaultOpen={true}>
+
+Storage now recognizes NDJSON, JSON arrays and XML alongside CSV and Excel for structured reads. Applications can ask for the records they need, select columns, choose a page size and continue from the returned cursor. XML reads name the record path explicitly, so the result is predictable even when a document has several nested collections.
+
+```js
+const page = await storage.getFileData('<storageEntryId>', {
+  recordPath: 'Orders/Order',
+  columns: [
+    { source: 'id', type: 'string' },
+    { source: 'total', type: 'number' },
+  ],
+  limit: 500,
+});
+if (typeof page === 'string' || Array.isArray(page)) return page;
+return { rows: page.rows, nextCursor: page.nextCursor };
+```
+
+Use the cursor only with the same file and read options. It continues the structured result rather than requiring the application to download, parse and retain the full source file itself.
+
+  </Accordion>
+  <Accordion title="Choose the right document read">
+
+For a small document that should be handled as one value, `storage.getDocument` provides an explicit bounded read. Automatic format selection recognizes JSON and XML from the stored file type or name; text reads can also use a byte range. Larger record-oriented files remain a fit for the paged `getFileData` workflow.
+
+```js
+const document = await storage.getDocument('<storageEntryId>', {
+  format: 'auto',
+});
+return document.document ?? document.content;
+```
+
+The returned result identifies the file and the source range used for the read. This keeps document handling deliberate and makes a large-file workflow visibly different from a small configuration or payload read.
+
+  </Accordion>
+  <Accordion title="Keep data writes and recovery understandable">
+
+CSV and Excel upload sessions retain a clear create, append and finalize flow for independent requests. A staged session remains the normal choice when writes can be retried or completed later. Files may be addressed by their authorized identifier, including private files, while the existing Storage access rules continue to decide who can read or change them.
+
+```js
+const upload = await storage.createUploadSession({
+  name: 'orders.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental',
+  sheets: [{ name: 'Orders', table: { columns: [
+    { key: 'orderId', header: 'Order ID' },
+    { key: 'total', header: 'Total', type: 'number' },
+  ] } }],
+});
+await storage.uploadPart(upload.session.storageUploadSessionId, {
+  rows: [{ orderId: 'O-1001', total: 199.95 }],
+});
+const result = await storage.finalizeUploadSession(upload.session.storageUploadSessionId);
+return result.entry;
+```
+
+When background execution stops before completion, the job finishes with a consistent actionable error instead of remaining indefinitely ambiguous. Re-execution remains a deliberate operator or application decision, protecting workflows whose external effects cannot safely be repeated automatically.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+[Storage](/operate/storage) · [Files](/operate/files) · [Low-code runtime](/low-code/overview) · [Automation](/operate/automation)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.1](/changelog/1.5.1)

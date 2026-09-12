@@ -11,7 +11,7 @@ export const publicOpenApiPath = join(root, 'api-reference', 'openapi.json');
 const HTTP_METHODS = new Set(['get', 'put', 'post', 'delete', 'patch', 'options', 'head']);
 const PUBLIC_PATH_PREFIX = '/api/v1/';
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
-const PUBLIC_JOB_MEMORY_MAX_MIB = 4096;
+const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
 const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier']);
 const PUBLIC_STANDALONE_SCHEMA_NAMES = new Set([
   'JobTemplateRequestDto',
@@ -624,7 +624,7 @@ export function enrichPlatformOpenApi(source) {
   }
   if (jobMemory) {
     jobMemory.maximum = PUBLIC_JOB_MEMORY_MAX_MIB;
-    jobMemory.description = 'Job execution memory budget in MiB. The effective limit comes from the instance jobMemory quota, up to 4096 MiB (4 GiB).';
+    jobMemory.description = 'Job execution memory budget in MiB, up to 2048 MiB (2 GiB).';
   }
 
   return output;

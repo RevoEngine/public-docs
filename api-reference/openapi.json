@@ -5649,6 +5649,36 @@
               "example": false,
               "type": "boolean"
             }
+          },
+          {
+            "name": "groups",
+            "required": false,
+            "in": "query",
+            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
+            "schema": {
+              "example": [
+                "22222222-2222-4222-8222-222222222222"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "users",
+            "required": false,
+            "in": "query",
+            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
+            "schema": {
+              "example": [
+                "33333333-3333-4333-8333-333333333333"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -7437,6 +7467,36 @@
               "default": true,
               "example": false,
               "type": "boolean"
+            }
+          },
+          {
+            "name": "groups",
+            "required": false,
+            "in": "query",
+            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
+            "schema": {
+              "example": [
+                "22222222-2222-4222-8222-222222222222"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "users",
+            "required": false,
+            "in": "query",
+            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
+            "schema": {
+              "example": [
+                "33333333-3333-4333-8333-333333333333"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -21180,7 +21240,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21521,7 +21581,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.1"
+            "example": "What’s new in RevoEngine 1.5.2"
           },
           "highlights": {
             "example": [
@@ -21536,7 +21596,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.1",
+            "example": "https://docs.revoengine.com/changelog/1.5.2",
             "format": "uri"
           }
         },
@@ -21553,7 +21613,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.1"
+            "example": "1.5.2"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -23454,6 +23514,26 @@
             "description": "Whether the exported storage entry is restricted. Defaults to true. Restricted ancestors still apply when exporting into a folder.",
             "example": false,
             "default": true
+          },
+          "groups": {
+            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
+            "example": [
+              "22222222-2222-4222-8222-222222222222"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "users": {
+            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
+            "example": [
+              "33333333-3333-4333-8333-333333333333"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -25250,7 +25330,11 @@
           },
           "serviceTier": {
             "type": "string",
-            "example": "priority",
+            "description": "Display tier for separately reported Fast usage. Standard and internal RevoShield tiers are returned as null.",
+            "enum": [
+              "fast"
+            ],
+            "example": "fast",
             "nullable": true
           },
           "billingOwner": {
@@ -25978,7 +26062,7 @@
           },
           "type": {
             "type": "string",
-            "description": "Logical value type retained in XLSX fileStats and used by typed row producers.",
+            "description": "Logical value type retained in XLSX fileStats and used by typed row producers and getFileData reads. Without a declared type, imported XLSX values remain strings; styles never infer a type.",
             "enum": [
               "string",
               "number",
@@ -25997,7 +26081,7 @@
           },
           "style": {
             "type": "object",
-            "description": "ExcelJS-compatible declarative column style."
+            "description": "Declarative column style for XLSX output."
           }
         },
         "required": [
@@ -26155,7 +26239,7 @@
           },
           "writeMode": {
             "type": "string",
-            "description": "Structured file materialization mode. Use \"direct\" for a predeclared CSV/XLSX layout and one-pass finalization. For direct XLSX, declare every worksheet and its table.columns before the first append, and send row-only parts. The default \"staged\" mode preserves inferred columns, sparse cells, formulas, dynamic worksheets, and existing integration behavior.",
+            "description": "Structured file write mode. Use \"direct\" for a predeclared CSV/XLSX layout with row-only XLSX parts. Use the default \"staged\" mode for independent requests that may be retried, replaced, reordered, or use inferred columns, sparse cells, formulas, or dynamic worksheets. For direct XLSX, declare every worksheet and its table.columns before the first append.",
             "enum": [
               "staged",
               "direct"
@@ -26467,7 +26551,7 @@
           },
           "style": {
             "type": "object",
-            "description": "ExcelJS-compatible declarative cell style."
+            "description": "Declarative cell style for XLSX output."
           }
         },
         "required": [
@@ -26483,7 +26567,7 @@
           },
           "rows": {
             "type": "array",
-            "description": "Rows represented as keyed objects or positional value arrays. In writeMode \"direct\", append row-only payloads to worksheets declared at session creation.",
+            "description": "Rows represented as keyed objects or positional value arrays. In writeMode \"direct\", append row-only payloads to worksheets declared at session creation. In writeMode \"staged\", row payloads remain independently retryable until finalize.",
             "maxItems": 100000,
             "items": {
               "oneOf": [
@@ -26539,7 +26623,7 @@
           },
           "rows": {
             "type": "array",
-            "description": "Rows represented as keyed objects or positional value arrays for a single-sheet CSV or XLSX session. The target sheet is inferred.",
+            "description": "Rows represented as keyed objects or positional value arrays for a single-sheet CSV or XLSX session. The target sheet is inferred. Direct XLSX sessions require the declared row schema; staged sessions support retryable independent requests.",
             "maxItems": 100000,
             "items": {
               "oneOf": [
@@ -26555,7 +26639,7 @@
             }
           },
           "sheets": {
-            "description": "Rows and optional sparse cells for one or more declared XLSX worksheets. In writeMode \"direct\", each worksheet must have configured table.columns and every part must be row-only.",
+            "description": "Rows and optional sparse cells for one or more declared XLSX worksheets. In writeMode \"direct\", each worksheet must have configured table.columns and every part must be row-only; staged mode supports sparse cells and replacement or out-of-order parts.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StorageSheetDataPartDto"
@@ -27176,9 +27260,9 @@
           },
           "memory": {
             "type": "number",
-            "description": "Job execution memory budget in MiB. The effective limit comes from the instance jobMemory quota, up to 4096 MiB (4 GiB).",
+            "description": "Job execution memory budget in MiB, up to 2048 MiB (2 GiB).",
             "example": 512,
-            "maximum": 4096
+            "maximum": 2048
           },
           "concurrency": {
             "description": "Optional execution concurrency policy.",

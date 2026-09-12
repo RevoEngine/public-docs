@@ -238,6 +238,7 @@
               {
                 "group": "1.5.x",
                 "pages": [
+                  "changelog/1.5.2",
                   "changelog/1.5.1",
                   "changelog/1.5.0"
                 ]

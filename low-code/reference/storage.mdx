@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **22 methods**. Search the docs for an exact method name, or use this index:
+This page contains **23 methods**. Search the docs for an exact method name, or use this index:
 
 - [`storage.explore()`](#storage-explore)
 - [`storage.resolveFolderPath()`](#storage-resolveFolderPath)
@@ -32,6 +32,7 @@ This page contains **22 methods**. Search the docs for an exact method name, or 
 - [`storage.deleteEntry()`](#storage-deleteEntry)
 - [`storage.getDownload()`](#storage-getDownload)
 - [`storage.getText()`](#storage-getText)
+- [`storage.getDocument()`](#storage-getDocument)
 
 <span id="storage-explore" aria-hidden="true"></span>
 
@@ -103,7 +104,8 @@ const folder = await storage.ensureFolderPath('exports/daily', {
 
 ## `storage.getFile()`
 
-Returns metadata for a file entry in the default `explorer` namespace.
+Returns metadata for a file entry. Without an explicit namespace the entry
+is resolved by its globally unique id, matching the REST Storage API.
 
 ### Signature
 
@@ -175,7 +177,8 @@ const stats = await storage.getFileStats(storageEntryId, {
 
 ## `storage.getEntry()`
 
-Returns metadata for any storage entry in the default `explorer` namespace.
+Returns metadata for any storage entry. Without an explicit namespace the
+entry is resolved by its globally unique id, matching the REST Storage API.
 
 ### Signature
 
@@ -252,10 +255,57 @@ Notes:
   default. The compatibility `staged` XLSX path may still persist its
   reusable index when `none` is explicit; `direct` with `none` skips it.
   Both default to `writeMode: 'staged'`.
-  Use `writeMode: 'direct'` for configured CSV/XLSX row exports. For XLSX,
-  declare every worksheet with a non-empty `table.columns` before appending;
-  direct XLSX parts are row-only and cannot contain `cells`.
+- Set `restricted: true` with explicit `users` and/or `groups` to define
+  the finalized entry ACL. These relations may be changed later with
+  `storage.updateEntry(...)`; `restricted: false` clears them.
+  Use `writeMode: 'direct'` for configured CSV/XLSX row exports with a
+  declared schema. For XLSX, declare every worksheet
+  with a non-empty `table.columns` before appending; direct XLSX parts are
+  row-only and cannot contain `cells`. Use the default `staged` mode when
+  append requests can be retried, replaced, reordered, or need inferred
+  columns, sparse cells, formulas, or dynamic worksheets.
   A single `sheets` part can append rows to multiple declared worksheets.
+  Staged mode is the durable default for independent requests that may be
+  retried, replaced, reordered, or use inferred columns, sparse cells,
+  formulas, or dynamic worksheets.
+
+@example direct upload
+const &#123; session, upload &#125; = await storage.createUploadSession(&#123;
+  name: 'notes.txt', contentTypeHint: 'text/plain', uploadMode: 'direct',
+&#125;);
+return &#123; sessionId: session.storageUploadSessionId, upload &#125;;
+
+@example declared-schema XLSX
+const declared = await storage.createUploadSession(&#123;
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental', writeMode: 'direct',
+  sheets: [&#123; name: 'Report', table: &#123; columns: [
+    &#123; key: 'productId', header: 'Product ID' &#125;,
+    &#123; key: 'price', header: 'Price', type: 'number' &#125;,
+  ] &#125; &#125;],
+&#125;);
+await storage.uploadPart(declared.session.storageUploadSessionId, &#123;
+  rows: [&#123; productId: 'P-1', price: 12.5 &#125;],
+&#125;);
+// Append row-only parts according to the declared schema, then finalize.
+const result = await storage.finalizeUploadSession(
+  declared.session.storageUploadSessionId,
+);
+
+Example (server-mediated row parts):
+const upload = await storage.createUploadSession(&#123;
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental',
+  sheets: [&#123; name: 'Report', table: &#123; autoFilter: true &#125; &#125;],
+&#125;);
+await storage.uploadPart(upload.session.storageUploadSessionId, &#123;
+  rows: [&#123; productId: 'P-1', price: 12.5 &#125;],
+&#125;);
+const result = await storage.finalizeUploadSession(
+  upload.session.storageUploadSessionId,
+);
 
 ### Signature
 
@@ -264,22 +314,7 @@ static createUploadSession(
       data: StorageUploadSessionInput,
     ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
 ```
-### Example
-
-```ts
-const upload = await storage.createUploadSession({
-  name: 'report.xlsx',
-  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  uploadMode: 'incremental',
-  sheets: [{ name: 'Report', table: { autoFilter: true } }],
-});
-await storage.uploadPart(upload.session.storageUploadSessionId, {
-  rows: [{ productId: 'P-1', price: 12.5 }],
-});
-const result = await storage.finalizeUploadSession(
-  upload.session.storageUploadSessionId,
-);
-```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
 
 <span id="storage-extendUploadSession" aria-hidden="true"></span>
 
@@ -535,7 +570,8 @@ const entry = await storage.deleteEntry(storageEntryId, { version: currentVersio
 
 ## `storage.getDownload()`
 
-Generates a signed download URL for a storage file.
+Generates a signed download URL for a storage file. Without an explicit
+namespace the entry is resolved by its globally unique id, matching REST.
 
 ### Signature
 
@@ -573,3 +609,29 @@ const excerpt = await storage.getText(storageEntryId, {
   endLine: 50,
 });
 ```
+
+<span id="storage-getDocument" aria-hidden="true"></span>
+
+## `storage.getDocument()`
+
+Reads a bounded Storage document. The source is limited to 10 MiB per
+call; use getFileData for large or record-oriented files.
+
+`format: 'text'` is the default and supports optional byte ranges.
+`format: 'json'` returns `document` from JSON.parse; `format: 'xml'`
+returns an order-preserving XML representation. `format: 'auto'` selects
+JSON/XML from the stored MIME type or file extension.
+
+@example
+const doc = await storage.getDocument(storageEntryId, &#123; format: 'auto' &#125;);
+return doc.document ?? doc.content;
+
+### Signature
+
+```ts
+static getDocument(
+      storageEntryId: string,
+      options?: StorageDocumentReadOptions,
+    ): Promise<StorageDocument>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
