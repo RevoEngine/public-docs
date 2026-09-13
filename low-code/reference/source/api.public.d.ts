@@ -213,6 +213,8 @@ declare class api {
      *
      * Notes:
      * - This is the canonical read API.
+     * - Pass take: null for a bounded 2,000-row page without a warning.
+     * - Omitting take also uses 2,000 rows and logs one warning per execution.
      *
      * Example:
      * const rows = await api.getDatabaseData('customers', {
@@ -224,8 +226,39 @@ declare class api {
      */
   static getDatabaseData<T = any>(
       name: string,
-      request?: SelectInput,
+      request?: DatabaseBoundedReadQuery,
     ): Promise<GetDatabaseDataResponse<T>>;
+
+  /**
+     * Reads one matching row in a single database operation, returning null when absent.
+     * The query supports fields, filter, joins and sort but not take, skip or count.
+     * Specify sort when choosing among multiple matching rows matters.
+     * Example: const customer = await api.getDatabaseDataRow('customers',
+     *   { filter: { field: 'customerId', op: 'eq', value: customerId } });
+     */
+  static getDatabaseDataRow<T = any>(name: string, query: DatabaseRowQuery): Promise<T | null>;
+
+  /** Counts matching rows with one query. Do not use count:true and take:0 for new code. */
+  static countDatabase(name: string, query?: DatabaseCountQuery): Promise<number>;
+
+  /**
+     * Processes a large result in sequential, awaited batches without collecting
+     * all rows in the isolate. Specify query.take or options.fullScan:true.
+     * Every non-final batch has exactly batchSize rows when available.
+     * The callback may await writes; do not accumulate batches in an array.
+     *
+     * Example:
+     * await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },
+     *   async (batch) => {
+     *     await api.upsertDatabaseData('customer_export', batch, { return: false });
+     *   }, { batchSize: 2000 });
+     */
+  static walkDatabaseData<T = any>(
+      name: string,
+      query: SelectInput,
+      callback: (batch: T[], context: { batch: number; processed: number }) => void | Promise<void>,
+      options?: DatabaseWalkOptions,
+    ): Promise<DatabaseWalkResult>;
 
   /**
      * Reads a saved database view by its logical name. The saved view owns its
@@ -608,7 +641,8 @@ declare class api {
     ): Promise<string>;
 
   /**
-     * Returns the current logged user or service account.
+     * Returns the current logged user or service account synchronously.
+     * `avatar` is the Storage entry ID, not a signed download URL.
      *
      * Example:
      * const user = api.currentUser();
@@ -723,11 +757,13 @@ declare class api {
    *
    * Notes:
    * - Supports CODE_JS, CODE_TS, and CUSTOM_NODEJS components.
-   * - CODE_JS and CODE_TS run in a fresh, isolated RevoEngine V8 environment.
+   * - CODE_JS and CODE_TS run in a fresh isolated execution on the current host by default.
+   * - Set options.executionHost to "remote" to use the separate Sandbox host.
    * - CUSTOM_NODEJS runs in its governed RevoEngine component environment.
    * - If timeoutMs is omitted, the child receives the parent execution's remaining timeout budget.
    * - A larger timeoutMs is clamped to that remaining budget.
-   * - At least 1 second of parent budget is required for nested component execution.
+   * - Nesting is limited to five levels across local, remote and custom component calls.
+   * - At least 1 second of parent budget is required for remote Sandbox calls.
    * - Promise.all() starts independent child component executions.
    *
    * Example:
@@ -1408,25 +1444,31 @@ declare class api {
      *
      * @deprecated Prefer util.aesDecrypt() for new code.
      *
+     * Ciphertext: at most 5592464 base64 characters; passphrase: at most 4096 UTF-16 code units.
+     *
      * Example:
-     * const plain = api.aesDecrypt(encrypted, passphrase);
+     * const plain = await api.aesDecrypt(encrypted, passphrase);
      */
-  static aesDecrypt(encrypted: string, passphrase: string): string;
+  static aesDecrypt(encrypted: string, passphrase: string): Promise<string>;
 
   /**
      * AES encrypt helper.
      *
      * @deprecated Prefer util.aesEncrypt() for new code.
      *
+     * Payload: at most 1048576 UTF-16 code units; passphrase: at most 4096.
+     *
      * Example:
-     * const encrypted = api.aesEncrypt('secret', passphrase);
+     * const encrypted = await api.aesEncrypt('secret', passphrase);
      */
-  static aesEncrypt(payload: string, passphrase: string): string;
+  static aesEncrypt(payload: string, passphrase: string): Promise<string>;
 
   /**
      * Compares a value against a password hash.
      *
      * @deprecated Prefer util.compareHash() for new code.
+     *
+     * Password: at most 4096 UTF-16 code units; unsupported scrypt work factors return false.
      *
      * Example:
      * const valid = await api.compareHash(password, hash);
@@ -1470,6 +1512,8 @@ declare class api {
      * Generates a password hash.
      *
      * @deprecated Prefer util.generateHash() for new code.
+     *
+     * Password: at most 4096 UTF-16 code units.
      *
      * Example:
      * const hash = await api.generateHash(password, 10);
@@ -1542,9 +1586,11 @@ declare class api {
   static hashObject(object: any): string;
 
   /**
-     * SHA-1 hash helper.
+     * Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * @deprecated Prefer util.sha1() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = api.sha1('payload');
@@ -1552,9 +1598,11 @@ declare class api {
   static sha1(payload: string): string;
 
   /**
-     * SHA-256 hash helper.
+     * Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * @deprecated Prefer util.sha256() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = api.sha256('payload');
@@ -1562,9 +1610,11 @@ declare class api {
   static sha256(payload: string): string;
 
   /**
-     * MD5 hash helper.
+     * Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * @deprecated Prefer util.md5() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = api.md5('payload');
@@ -1572,9 +1622,11 @@ declare class api {
   static md5(payload: string): string;
 
   /**
-     * Performs a timing-safe comparison.
+     * Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
      *
      * @deprecated Prefer util.timingSafeEqual() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const match = api.timingSafeEqual(a, b);
@@ -1582,9 +1634,11 @@ declare class api {
   static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
 
   /**
-     * Creates an HMAC signature.
+     * Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
      *
      * @deprecated Prefer util.hmac() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const signature = api.hmac('payload', secret, 'sha256', 'hex');
@@ -1597,9 +1651,11 @@ declare class api {
     ): string;
 
   /**
-     * Verifies an HMAC signature.
+     * Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
      *
      * @deprecated Prefer util.verifyHmacSignature() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const ok = api.verifyHmacSignature('payload', signature, secret);
@@ -1633,9 +1689,11 @@ declare class api {
   static base64UrlDecode(input: string): Uint8Array;
 
   /**
-     * Generates random bytes as a string.
+     * Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
      *
      * @deprecated Prefer util.randomBytes() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const bytes = api.randomBytes(16, 'hex');
@@ -1643,9 +1701,12 @@ declare class api {
   static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
 
   /**
-     * Generates a random integer.
+     * Synchronously generates a random integer in the inclusive min..max range.
+     * Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
      *
      * @deprecated Prefer util.randomInt() for new code.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const n = api.randomInt(1000, 9999);
@@ -1657,6 +1718,8 @@ declare class api {
      *
      * @deprecated Prefer util.randomString() for new code.
      *
+     * Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
+     *
      * Example:
      * const token = api.randomString(24);
      */
@@ -1666,6 +1729,8 @@ declare class api {
      * Generates a numeric one-time code.
      *
      * @deprecated Prefer util.otp() for new code.
+     *
+     * Length: integer 0..65536.
      *
      * Example:
      * const code = api.otp(6);
@@ -1774,69 +1839,71 @@ declare class api {
     ): any;
 
   /**
-     * Decrypts with RSA.
+     * Decrypts with RSA-OAEP and SHA-256 asynchronously. PEM import (including passphrase processing) still executes synchronously.
      *
      * @deprecated Prefer util.rsaDecrypt() for new code.
      *
      * Example:
-     * const plain = api.rsaDecrypt(privateKey, encrypted, passphrase);
+     * const plain = await api.rsaDecrypt(privateKey, encrypted, passphrase);
      */
   static rsaDecrypt(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 
   /**
-     * Encrypts with RSA.
+     * Encrypts with RSA-OAEP and SHA-256 asynchronously. PEM import and data encoding still execute synchronously.
      *
      * @deprecated Prefer util.rsaEncrypt() for new code.
      *
      * Example:
-     * const encrypted = api.rsaEncrypt(publicKey, 'hello');
+     * const encrypted = await api.rsaEncrypt(publicKey, 'hello');
      */
-  static rsaEncrypt(publicKey: string, payload: string): string;
+  static rsaEncrypt(publicKey: string, payload: string): Promise<string>;
 
   /**
      * Generates an RSA key pair.
      *
      * @deprecated Prefer util.rsaGeneratePair() for new code.
      *
+     * Asynchronous; modulusLength: multiple of 256 in 1024..4096; passphrase: at most 4096 code units.
+     *
      * Example:
-     * const pair = api.rsaGeneratePair({ modulusLength: 2048 });
+     * const pair = await api.rsaGeneratePair({ modulusLength: 2048 });
      */
   static rsaGeneratePair(config?: {
       modulusLength?: number;
       passphrase?: string;
-    }): { publicKey: string; privateKey: string };
+    }): Promise<{ publicKey: string; privateKey: string }>;
 
   /**
-     * Signs data with RSA.
+     * Signs data with RSA-PSS and SHA-256 asynchronously. PEM import and input conversion can still occupy the event loop.
      *
      * @deprecated Prefer util.rsaSign() for new code.
      *
      * Example:
-     * const signature = api.rsaSign(privateKey, 'hello', passphrase);
+     * const signature = await api.rsaSign(privateKey, 'hello', passphrase);
      */
   static rsaSign(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 
   /**
-     * Verifies an RSA signature.
+     * Verifies an RSA-PSS SHA-256 signature asynchronously, preserving automatic salt-length detection.
      *
      * @deprecated Prefer util.rsaVerify() for new code.
      *
      * Example:
-     * const ok = api.rsaVerify(publicKey, 'hello', signature);
+     * const ok = await api.rsaVerify(publicKey, 'hello', signature);
      */
   static rsaVerify(
       publicKey: string,
       payload: string,
       signature: string,
-    ): boolean;
+    ): Promise<boolean>;
 }
 
 declare class storage {
@@ -1896,10 +1963,10 @@ declare class storage {
      *
      * Notes:
      * - Use this storage API instead of deprecated legacy `api.getFile*` file reads.
-     * - CSV and XLSX are detected from MIME and return a structured page with rows, headers, columns and a cursor.
+     * - CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
      * - Other text file batch reads reuse cached line stats and auto-build them if missing.
      * - Binary reads return a base64 string.
-     * - Direct reads are limited to 10 MB unless you request a ranged buffer.
+     * - Direct binary reads are limited to 10 MiB unless you request a ranged buffer.
      *
      * Example:
      * const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
@@ -2040,6 +2107,7 @@ declare class storage {
      *
      * Notes:
      * - No-op in debug mode.
+     * - uploadPart renews the durable session lease automatically; call this only across idle gaps.
      *
      * Example:
      * const session = await storage.extendUploadSession(storageUploadSessionId);
@@ -2067,6 +2135,8 @@ declare class storage {
      *
      * Notes:
      * - No-op in debug mode.
+     * - Renews the durable session lease before processing and after committing the part.
+     * - Multipart part manifests remain durable independently of Redis.
      *
      * Example:
      * await storage.uploadPart(storageUploadSessionId, 2, {
@@ -2222,8 +2292,9 @@ declare class storage {
     ): Promise<StorageTextContent>;
 
   /**
-     * Reads a bounded Storage document. The source is limited to 10 MiB per
-     * call; use getFileData for large or record-oriented files.
+     * Reads bounded text, JSON, or XML from Storage. This does not parse PDF,
+     * DOCX, or XLSX. The source is limited to 10 MiB per call; use getFileData
+     * for large or record-oriented files.
      *
      * `format: 'text'` is the default and supports optional byte ranges.
      * `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`
@@ -2848,21 +2919,27 @@ declare class util {
   /**
      * AES decrypt helper.
      *
+     * Ciphertext: at most 5592464 base64 characters; passphrase: at most 4096 UTF-16 code units.
+     *
      * Example:
-     * const plain = util.aesDecrypt(encrypted, passphrase);
+     * const plain = await util.aesDecrypt(encrypted, passphrase);
      */
-  static aesDecrypt(encrypted: string, passphrase: string): string;
+  static aesDecrypt(encrypted: string, passphrase: string): Promise<string>;
 
   /**
      * AES encrypt helper.
      *
+     * Payload: at most 1048576 UTF-16 code units; passphrase: at most 4096.
+     *
      * Example:
-     * const encrypted = util.aesEncrypt('secret', passphrase);
+     * const encrypted = await util.aesEncrypt('secret', passphrase);
      */
-  static aesEncrypt(payload: string, passphrase: string): string;
+  static aesEncrypt(payload: string, passphrase: string): Promise<string>;
 
   /**
      * Compares a value against a password hash.
+     *
+     * Password: at most 4096 UTF-16 code units; unsupported scrypt work factors return false.
      *
      * Example:
      * const valid = await util.compareHash(password, hash);
@@ -2898,6 +2975,8 @@ declare class util {
 
   /**
      * Generates a password hash.
+     *
+     * Password: at most 4096 UTF-16 code units.
      *
      * Example:
      * const hash = await util.generateHash(password, 10);
@@ -2962,7 +3041,9 @@ declare class util {
   static hashObject(object: any): string;
 
   /**
-     * SHA-1 hash helper.
+     * Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = util.sha1('payload');
@@ -2970,7 +3051,9 @@ declare class util {
   static sha1(payload: string): string;
 
   /**
-     * SHA-256 hash helper.
+     * Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = util.sha256('payload');
@@ -2978,7 +3061,9 @@ declare class util {
   static sha256(payload: string): string;
 
   /**
-     * MD5 hash helper.
+     * Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const digest = util.md5('payload');
@@ -2986,7 +3071,9 @@ declare class util {
   static md5(payload: string): string;
 
   /**
-     * Performs a timing-safe comparison.
+     * Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const match = util.timingSafeEqual(a, b);
@@ -2994,7 +3081,9 @@ declare class util {
   static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
 
   /**
-     * Creates an HMAC signature.
+     * Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const signature = util.hmac('payload', secret, 'sha256', 'hex');
@@ -3007,7 +3096,9 @@ declare class util {
     ): string;
 
   /**
-     * Verifies an HMAC signature.
+     * Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const ok = util.verifyHmacSignature('payload', signature, secret);
@@ -3037,7 +3128,9 @@ declare class util {
   static base64UrlDecode(input: string): Uint8Array;
 
   /**
-     * Generates random bytes as a string.
+     * Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const bytes = util.randomBytes(16, 'hex');
@@ -3045,7 +3138,10 @@ declare class util {
   static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
 
   /**
-     * Generates a random integer.
+     * Synchronously generates a random integer in the inclusive min..max range.
+     * Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
+     *
+     * Invalid types/options throw TypeError; size/range throws RangeError.
      *
      * Example:
      * const n = util.randomInt(1000, 9999);
@@ -3055,6 +3151,8 @@ declare class util {
   /**
      * Generates a random string.
      *
+     * Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
+     *
      * Example:
      * const token = util.randomString(24);
      */
@@ -3062,6 +3160,8 @@ declare class util {
 
   /**
      * Generates a numeric one-time code.
+     *
+     * Length: integer 0..65536.
      *
      * Example:
      * const code = util.otp(6);
@@ -3072,28 +3172,38 @@ declare class util {
      * Validates a payload with the platform schema validator used by Endpoints.
      *
      * Notes:
-     * - When 'whitelist' is false and 'whitelistErrors' is false, unknown properties are removed from the returned value.
+     * - Prefer enum/const, types, lengths, numeric bounds and supported date/time formats over regex when equivalent.
+     * - Use regex only for a required text pattern; even simple patterns can materially increase Endpoint guard preparation time.
+     * - Use profile: 'strict' for new schemas; omitted profiles retain legacy behavior.
+     * - required controls presence, nullable controls null, and empty controls empty strings and arrays.
+     * - Use additionalProperties: 'allow', 'strip' or 'reject' for unknown fields.
+     * - Legacy whitelist: true retains unknown fields. With whitelist: false, whitelistErrors: false removes them; true reports errors.
+     * - The result contains valid, errors, issues and value. Structured issues expose code, path, message and optional params.
+     * - After success, use value so configured field removal is respected.
+     * - Input, schema and execution limits apply; cyclic data is rejected. Capacity or execution failures can reject the Promise.
      *
      * Example:
-     * const result = util.validate(
+     * const result = await util.validate(
      *   api.input()?.body,
      *   {
-     *     whitelist: false,
-     *     whitelistErrors: false,
+     *     profile: 'strict',
+     *     additionalProperties: 'reject',
      *     schema: {
      *       type: 'object',
      *       required: true,
      *       objectSchema: [
-     *         { property: 'email', schema: { type: 'string', required: true } },
+     *         { property: 'status', schema: { type: 'string', required: true, enum: ['pending', 'ready'] } },
      *       ],
      *     },
      *   },
      * );
+     * if (!result.valid) throw new Error('Invalid request');
+     * const validatedInput = result.value;
      */
   static validate(
       payload: any,
       schema: ValidatorSchemaInput,
-    ): ValidationResult<any>;
+    ): Promise<ValidationResult<any>>;
 
   /**
      * Decodes a JWT without verifying it.
@@ -3191,57 +3301,59 @@ declare class util {
     ): any;
 
   /**
-     * Decrypts with RSA.
+     * Decrypts with RSA-OAEP and SHA-256 asynchronously. PEM import (including passphrase processing) still executes synchronously.
      *
      * Example:
-     * const plain = util.rsaDecrypt(privateKey, encrypted, passphrase);
+     * const plain = await util.rsaDecrypt(privateKey, encrypted, passphrase);
      */
   static rsaDecrypt(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 
   /**
-     * Encrypts with RSA.
+     * Encrypts with RSA-OAEP and SHA-256 asynchronously. PEM import and data encoding still execute synchronously.
      *
      * Example:
-     * const encrypted = util.rsaEncrypt(publicKey, 'hello');
+     * const encrypted = await util.rsaEncrypt(publicKey, 'hello');
      */
-  static rsaEncrypt(publicKey: string, payload: string): string;
+  static rsaEncrypt(publicKey: string, payload: string): Promise<string>;
 
   /**
      * Generates an RSA key pair.
      *
+     * Asynchronous; modulusLength: multiple of 256 in 1024..4096; passphrase: at most 4096 code units.
+     *
      * Example:
-     * const pair = util.rsaGeneratePair({ modulusLength: 2048 });
+     * const pair = await util.rsaGeneratePair({ modulusLength: 2048 });
      */
   static rsaGeneratePair(config?: {
       modulusLength?: number;
       passphrase?: string;
-    }): { publicKey: string; privateKey: string };
+    }): Promise<{ publicKey: string; privateKey: string }>;
 
   /**
-     * Signs data with RSA.
+     * Signs data with RSA-PSS and SHA-256 asynchronously. PEM import and input conversion can still occupy the event loop.
      *
      * Example:
-     * const signature = util.rsaSign(privateKey, 'hello', passphrase);
+     * const signature = await util.rsaSign(privateKey, 'hello', passphrase);
      */
   static rsaSign(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 
   /**
-     * Verifies an RSA signature.
+     * Verifies an RSA-PSS SHA-256 signature asynchronously, preserving automatic salt-length detection.
      *
      * Example:
-     * const ok = util.rsaVerify(publicKey, 'hello', signature);
+     * const ok = await util.rsaVerify(publicKey, 'hello', signature);
      */
   static rsaVerify(
       publicKey: string,
       payload: string,
       signature: string,
-    ): boolean;
+    ): Promise<boolean>;
 }

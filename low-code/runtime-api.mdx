@@ -31,13 +31,15 @@ Use `api.getExecutionId()` to correlate the current execution with traces, logs,
 ```js
 const result = await api.executeComponent({
   componentId: api.input('componentId'),
-  input: { customerId: api.input('customerId') },
+  inputs: { customerId: api.input('customerId') },
 });
 
 return result;
 ```
 
-Nested calls are bounded and inherit the caller's execution deadline. Use a library rather than a nested component when you only need shared in-process business logic.
+Nested calls create a fresh isolated execution on the current host by default, with independent execution state and an Execution ID. They share the caller's host capacity. Use `options: { executionHost: 'remote' }` when the child must run through the separate Sandbox host.
+
+Calls inherit the caller's remaining deadline and nesting is limited to five levels. A local child also receives the caller's cancellation signal. Remote calls require at least one second of remaining time. Use a library when you only need shared business logic within the current execution.
 
 ## Utilities
 
@@ -48,6 +50,31 @@ const signature = util.hmac(encoded, await api.getSecret('SIGNING_SECRET'));
 
 return { id, encoded, signature };
 ```
+
+RSA encrypt/decrypt/sign/verify, AES, password hashing, validation and sleep return
+Promises. Await their results, including deprecated `api.*` aliases.
+
+SHA-1/SHA-256/MD5, HMAC sign/verify, `randomBytes`, `randomInt` and timing-safe
+comparisons return values synchronously. They do not require `await`.
+
+| Helper | Argument limit |
+| --- | --- |
+| SHA-1/SHA-256/MD5 | Payload up to 5 MiB of UTF-8 text |
+| HMAC sign/verify | Payload up to 5 MiB; secret and signature up to 64 KiB each |
+| Timing-safe comparison | Each input up to 64 KiB |
+| `randomBytes` | Integer size 0..65536 bytes before hex/base64 encoding |
+| `randomString` / `otp` | Integer length 0..65536; alphabet 1..65536 UTF-16 code units |
+| `randomInt` | Inclusive safe-integer bounds; `max + 1` must be safe; range size below 2^48 |
+
+String byte limits use UTF-8. Invalid types/options throw `TypeError`; size/range
+violations throw `RangeError`. Unsupported extra arguments are rejected for these
+bounded helpers. Limits apply to individual calls; they do not guarantee a total
+CPU or memory budget for the Component. UUID, JWT and base64 helpers also remain
+synchronous.
+
+Asynchronous crypto can reduce time spent blocking request processing; it does not
+limit CPU consumption. Key import and data conversion still have a cost,
+especially for encrypted private keys or large payloads.
 
 ## Agents
 

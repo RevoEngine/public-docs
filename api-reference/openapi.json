@@ -574,11 +574,11 @@
             "bearer": []
           }
         ],
-        "summary": "Get the current product release for in-app update detection.",
+        "summary": "Get the current product release and complete release-note history.",
         "tags": [
           "Me"
         ],
-        "description": "Get the current product release for in-app update detection. The request acts on the current authenticated identity."
+        "description": "Get the current product release and complete release-note history. The request acts on the current authenticated identity."
       }
     },
     "/api/v1/me/time": {
@@ -8516,6 +8516,70 @@
         "x-revo-safety-tier": "destructive"
       }
     },
+    "/api/v1/preferences/job-notifications": {
+      "get": {
+        "operationId": "PreferencesController_getJobNotifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobNotificationPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current administrator job failure notification opt-in for this instance.",
+        "tags": [
+          "Preferences"
+        ],
+        "description": "Get current administrator job failure notification opt-in for this instance. The request is scoped to preferences accessible to the authenticated caller."
+      },
+      "put": {
+        "operationId": "PreferencesController_setJobNotifications",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobNotificationPreferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobNotificationPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set current administrator job failure notification opt-in for this instance.",
+        "tags": [
+          "Preferences"
+        ],
+        "description": "Set current administrator job failure notification opt-in for this instance. The request is scoped to preferences accessible to the authenticated caller."
+      }
+    },
     "/api/v1/preferences": {
       "get": {
         "description": "\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -10612,6 +10676,175 @@
         "description": "Get upload session state and uploaded parts. The request enforces Storage access, workspace ownership, and entry lifecycle state."
       }
     },
+    "/api/v1/storage/uploads": {
+      "get": {
+        "operationId": "StorageController_listUploadSessions",
+        "parameters": [
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of rows to return. Parsed from a query-string integer. Most QueryWrapper-backed list endpoints default to 100 when omitted.",
+            "schema": {
+              "minimum": 0,
+              "maximum": 10000,
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are logical wrapper fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint wrapper.",
+            "schema": {
+              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
+            "schema": {
+              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "distinct",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper DISTINCT ON logical fields as a JSON array string, indexed array query object, array, or legacy CSV. The wrapper rewrites selected distinct fields into distinct select items.",
+            "schema": {
+              "example": "category,global",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper field projection as a JSON array string, indexed array query object, array, or legacy CSV. String fields must be allowlisted logical wrapper fields. Advanced select items may use field, fn, raw, cast, coalesce, or case expressions when the endpoint enables dynamic projection.",
+            "schema": {
+              "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RESERVED",
+                "UPLOADING",
+                "FINALIZING",
+                "FINALIZED",
+                "FAILED",
+                "ABORTED",
+                "EXPIRED",
+                "SUPERSEDED"
+              ]
+            }
+          },
+          {
+            "name": "namespace",
+            "required": false,
+            "in": "query",
+            "description": "Optional exact namespace filter.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceExecutionId",
+            "required": false,
+            "in": "query",
+            "description": "Optional stable root execution id filter.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive file-name filter.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upload sessions without part payloads."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List upload sessions for Storage administrators.",
+        "tags": [
+          "Storage"
+        ],
+        "description": "List upload sessions for Storage administrators. The request enforces Storage access, workspace ownership, and entry lifecycle state."
+      },
+      "post": {
+        "operationId": "StorageController_createUploadSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorageUploadSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an upload session for direct, chunked, or incremental uploads.",
+        "tags": [
+          "Storage"
+        ],
+        "description": "Create an upload session for direct, chunked, or incremental uploads. The request enforces Storage access, workspace ownership, and entry lifecycle state."
+      }
+    },
     "/api/v1/storage/{storageEntryId}": {
       "get": {
         "operationId": "StorageController_getOne",
@@ -10912,37 +11145,6 @@
           "Storage"
         ],
         "description": "Put an object in one request. The request enforces Storage access, workspace ownership, and entry lifecycle state."
-      }
-    },
-    "/api/v1/storage/uploads": {
-      "post": {
-        "operationId": "StorageController_createUploadSession",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStorageUploadSessionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create an upload session for direct, chunked, or incremental uploads.",
-        "tags": [
-          "Storage"
-        ],
-        "description": "Create an upload session for direct, chunked, or incremental uploads. The request enforces Storage access, workspace ownership, and entry lifecycle state."
       }
     },
     "/api/v1/storage/uploads/{storageUploadSessionId}/parts": {
@@ -15443,18 +15645,56 @@
             }
           },
           {
-            "name": "offset",
-            "required": true,
+            "name": "skip",
+            "required": false,
             "in": "query",
+            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
             "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of webhook delivery attempts to return.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100,
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are logical wrapper fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint wrapper.",
+            "schema": {
+              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
               "type": "string"
             }
           },
           {
-            "name": "limit",
-            "required": true,
+            "name": "sort",
+            "required": false,
             "in": "query",
+            "description": "QueryWrapper sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
             "schema": {
+              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
               "type": "string"
             }
           }
@@ -21240,7 +21480,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21572,7 +21812,7 @@
         "properties": {
           "publishedAt": {
             "type": "string",
-            "example": "2026-09-11T00:00:00.000Z",
+            "example": "2026-09-13T00:00:00.000Z",
             "format": "date-time"
           },
           "showInApp": {
@@ -21581,13 +21821,13 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.2"
+            "example": "What’s new in RevoEngine 1.5.3"
           },
           "highlights": {
             "example": [
-              "RevoShield-1 Auto Review for exact changes and multi-step objectives",
-              "Optional Luna Fast Mode with live Assistant progress",
-              "Atomic 100,000-row Database writes, structured exports and Job Templates by name"
+              "Stricter validation rules with structured issues and compatible defaults",
+              "Opt-in job-failure notifications with direct job references",
+              "Bounded Database walks and more detailed operational Logs"
             ],
             "type": "array",
             "items": {
@@ -21596,7 +21836,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.2",
+            "example": "https://docs.revoengine.com/changelog/1.5.3",
             "format": "uri"
           }
         },
@@ -21608,12 +21848,12 @@
           "url"
         ]
       },
-      "ApplicationReleaseLatestDto": {
+      "ApplicationReleaseVersionDto": {
         "type": "object",
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.2"
+            "example": "1.5.3"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21622,6 +21862,29 @@
         "required": [
           "applicationVersion",
           "release"
+        ]
+      },
+      "ApplicationReleaseLatestDto": {
+        "type": "object",
+        "properties": {
+          "applicationVersion": {
+            "type": "string",
+            "example": "1.5.3"
+          },
+          "release": {
+            "$ref": "#/components/schemas/ApplicationReleaseDto"
+          },
+          "releases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseVersionDto"
+            }
+          }
+        },
+        "required": [
+          "applicationVersion",
+          "release",
+          "releases"
         ]
       },
       "AssistantAppPreferencesDto": {
@@ -21736,17 +21999,35 @@
             "description": "Verification code required when the profile update must confirm ownership.",
             "example": "842915"
           },
-          "metaData": {
+          "metadata": {
             "type": "object",
-            "description": "Custom profile metadata stored with the account. Top-level keys starting with \"__\" are reserved for backend use.",
+            "description": "Custom profile metadata stored with the account. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "locale": "pl-PL",
               "timezone": "Europe/Warsaw"
             }
           },
+          "metaData": {
+            "type": "object",
+            "deprecated": true,
+            "description": "Custom profile metadata stored with the account. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
+            "example": {
+              "locale": "pl-PL",
+              "timezone": "Europe/Warsaw"
+            }
+          },
+          "metadataAdvanced": {
+            "type": "object",
+            "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
+            "example": {
+              "costCenter": "FIN-01",
+              "supportTier": "gold"
+            }
+          },
           "advancedData": {
             "type": "object",
-            "description": "Extended profile settings used by enterprise-specific integrations.",
+            "deprecated": true,
+            "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
             "example": {
               "costCenter": "FIN-01",
               "supportTier": "gold"
@@ -21899,13 +22180,23 @@
             "type": "string",
             "description": "You can provide phone number of the user (must be valid), it should include region e.g. +48..."
           },
+          "metadata": {
+            "type": "object",
+            "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
           "metaData": {
             "type": "object",
-            "description": "Custom account metadata. Top-level keys starting with \"__\" are reserved for backend use."
+            "deprecated": true,
+            "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "metadataAdvanced": {
+            "type": "object",
+            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
-            "description": ""
+            "deprecated": true,
+            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
         "required": [
@@ -21933,13 +22224,23 @@
               "GROUP"
             ]
           },
+          "metadata": {
+            "type": "object",
+            "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
+          },
           "metaData": {
             "type": "object",
-            "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use."
+            "deprecated": true,
+            "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
+          },
+          "metadataAdvanced": {
+            "type": "object",
+            "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
-            "description": ""
+            "deprecated": true,
+            "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
         "required": [
@@ -21979,13 +22280,23 @@
               "GROUP"
             ]
           },
+          "metadata": {
+            "type": "object",
+            "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
           "metaData": {
             "type": "object",
-            "description": "Replacement account metadata. Top-level keys starting with \"__\" are reserved for backend use."
+            "deprecated": true,
+            "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "metadataAdvanced": {
+            "type": "object",
+            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
-            "description": ""
+            "deprecated": true,
+            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "version": {
             "type": "number",
@@ -22037,6 +22348,7 @@
             "enum": [
               "string",
               "number",
+              "integer",
               "boolean",
               "object",
               "array",
@@ -22049,17 +22361,100 @@
             "type": "boolean",
             "description": "Whether this property must be present."
           },
+          "nullable": {
+            "type": "boolean",
+            "description": "Whether null is accepted when the value is present."
+          },
+          "allowEmpty": {
+            "type": "boolean",
+            "description": "Whether an empty string or array is accepted."
+          },
+          "empty": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "reject"
+            ],
+            "description": "Explicit empty value policy."
+          },
           "regex": {
             "type": "string",
-            "description": "Optional regular expression for string values."
+            "description": "String pattern for constraints not expressible with enum, const, type, length or supported format rules. Prefer equivalent explicit rules: even a simple regex can roughly double Endpoint guard preparation time or more for small requests. Actual cost varies; bound string length with max."
+          },
+          "regexFlags": {
+            "type": "string",
+            "description": "Optional distinct JavaScript RegExp flags (d, g, i, m, s, u, v, y). u and v are mutually exclusive; matching resets lastIndex for every value."
           },
           "min": {
             "type": "number",
-            "description": "Optional numeric minimum."
+            "description": "Inclusive numeric minimum, string length minimum, or array item count minimum."
           },
           "max": {
             "type": "number",
-            "description": "Optional numeric maximum."
+            "description": "Inclusive numeric maximum, string length maximum, or array item count maximum. Bound string length when a regex is required."
+          },
+          "exclusiveMin": {
+            "type": "number",
+            "description": "Exclusive numeric lower bound."
+          },
+          "exclusiveMax": {
+            "type": "number",
+            "description": "Exclusive numeric upper bound."
+          },
+          "integer": {
+            "type": "boolean",
+            "description": "Require an integer number."
+          },
+          "finite": {
+            "type": "boolean",
+            "description": "Reject non-finite numbers."
+          },
+          "safeInteger": {
+            "type": "boolean",
+            "description": "Require a safe integer."
+          },
+          "enum": {
+            "type": "array",
+            "items": {},
+            "description": "Allowed exact JSON values, including primitives, arrays, objects, and null. Prefer enum over regex alternatives for a finite set."
+          },
+          "const": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  null
+                ]
+              }
+            ],
+            "description": "Required exact JSON value, including null."
+          },
+          "format": {
+            "type": "string",
+            "description": "Format: date (YYYY-MM-DD), time, date-time, or timezone (Z or an explicit ±HH:MM offset)."
+          },
+          "timezone": {
+            "type": "boolean",
+            "description": "Require an explicit timezone offset for time values."
           },
           "objectSchema": {
             "description": "Object fields expressed as property/schema entries.",
@@ -22075,6 +22470,15 @@
                 "$ref": "#/components/schemas/ValidatorProperty"
               }
             ]
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "strip",
+              "reject"
+            ],
+            "description": "Object unknown-property policy."
           }
         },
         "required": [
@@ -22084,15 +22488,31 @@
       "ValidatorSchema": {
         "type": "object",
         "properties": {
+          "profile": {
+            "type": "string",
+            "enum": [
+              "legacy",
+              "strict"
+            ],
+            "description": "Legacy preserves existing coercion and empty-value semantics; strict opts into finite numbers and exact structural types."
+          },
           "whitelist": {
             "type": "boolean",
-            "default": true,
-            "description": "Reject properties not declared by the schema."
+            "description": "Legacy policy: true retains undeclared properties; false strips them unless whitelistErrors is true. Prefer explicit additionalProperties for new schemas."
           },
           "whitelistErrors": {
             "type": "boolean",
             "default": false,
-            "description": "Return validation errors for rejected properties."
+            "description": "Legacy policy when whitelist is false: true reports undeclared properties and retains them; false removes them. Explicit additionalProperties overrides these legacy flags."
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "strip",
+              "reject"
+            ],
+            "description": "Strict object unknown-property policy."
           },
           "schema": {
             "description": "Root validator property.",
@@ -25565,6 +25985,36 @@
           "secrets"
         ]
       },
+      "JobNotificationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "inAppEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicit opt-in to job failure system messages for this instance."
+          },
+          "emailEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicit opt-in to job failure email for this instance."
+          },
+          "attemptMode": {
+            "type": "string",
+            "enum": [
+              "OFF",
+              "DIGEST",
+              "IMMEDIATE"
+            ],
+            "default": "DIGEST",
+            "description": "How intermediate failed attempts are delivered. Final failures are immediate."
+          }
+        },
+        "required": [
+          "inAppEnabled",
+          "emailEnabled",
+          "attemptMode"
+        ]
+      },
       "CreatePreferenceDto": {
         "type": "object",
         "properties": {
@@ -26650,6 +27100,25 @@
       "FinalizeStorageUploadSessionDto": {
         "type": "object",
         "properties": {
+          "expectedPartCount": {
+            "type": "number",
+            "description": "Expected contiguous multipart count (parts 1..N). Use this to fence distributed uploads against missing parts.",
+            "minimum": 1,
+            "example": 24
+          },
+          "expectedPartNumbers": {
+            "description": "Expected explicit multipart numbers. Use for sparse distributed uploads; cannot be combined with expectedPartCount.",
+            "maxItems": 100000,
+            "example": [
+              1,
+              2,
+              4
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
           "metadata": {
             "type": "object",
             "description": "Optional metadata replacement at finalize time. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",

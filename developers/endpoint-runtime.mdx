@@ -46,6 +46,8 @@ Component code can read request body, query, path values, sanitized headers, and
 
 An Endpoint can validate its input with an inline guard or a JSON-validator component. Configure the failure status/body independently from the successful response. Validate both accepted and rejected payloads before activation.
 
+Prefer equivalent `enum`/`const`, type, length, numeric bounds and supported date/time rules before adding a regex to a guard. Even one simple pattern can roughly double request-preparation time or more for small inputs; this is not a fixed multiplier for total HTTP latency. Preserve required validation semantics and bound string length when a pattern is necessary. See [rule selection and measured examples](/low-code/json-validator#choose-explicit-rules-before-regex).
+
 ## Response modes
 
 An Endpoint may return:

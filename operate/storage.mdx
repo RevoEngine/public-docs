@@ -178,6 +178,12 @@ Bulk archive and delete accept 1–100 `{ storageEntryId, version }` roots. If b
 
 Upload sessions are durable and their `expiresAt` is authoritative. The default service lease is one hour, but deployments can configure it. `extendUploadSession()` renews an active session; it does not revive `FAILED`, `ABORTED`, `EXPIRED`, or `FINALIZED` sessions.
 
+### Inspect upload sessions
+
+Administrators with `FILE_ADMIN` or `INSTANCE_ADMIN` can open **Storage → Upload sessions** to inspect upload progress and lifecycle state without opening file contents. Use this view to distinguish an active or interrupted upload from a finalized Storage entry.
+
+For multipart finalization, supply either `expectedPartCount` or `expectedPartNumbers` when the caller knows the complete part set; do not send both. This lets finalization detect missing or unexpected parts. Keep part identity and content stable across retries: an identical accepted part can be recognized, while conflicting content is rejected. An upload is complete only after the session reaches `FINALIZED`.
+
 ### Native CSV and Excel files
 
 Structured upload sessions let low-code generate CSV files and Excel workbooks from rows instead of assembling a complete file in memory. Excel supports multiple sheets, declared columns, typed values, styles, filters, frozen panes and formulas with optional cached results. CSV supports explicit encoding, delimiters, quoting and BOM settings.

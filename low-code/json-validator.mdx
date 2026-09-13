@@ -23,12 +23,12 @@ Do not validate the raw transport request in application code when a boundary ru
 
 ## Schema shape
 
-The root is always a `ValidatorSchema` object. Its `schema` must be an object with `objectSchema` entries.
+For an Endpoint, the root is a `ValidatorSchema` object whose `schema` is an object with `objectSchema` entries. Use `profile: "strict"` for new contracts. Schemas without a profile preserve legacy behavior; review accepted and rejected values before changing an existing profile.
 
 ```json
 {
-  "whitelist": false,
-  "whitelistErrors": true,
+  "profile": "strict",
+  "additionalProperties": "reject",
   "schema": {
     "type": "object",
     "objectSchema": [
@@ -37,10 +37,39 @@ The root is always a `ValidatorSchema` object. Its `schema` must be an object wi
         "schema": {
           "type": "object",
           "objectSchema": [
-            { "property": "currency", "schema": { "type": "string", "required": true, "regex": "^[A-Z]{3}$" } },
-            { "property": "amount", "schema": { "type": "number", "required": true, "min": 0.01, "max": 100000 } },
-            { "property": "labels", "schema": { "type": "array", "arraySchema": { "type": "string", "max": 32 } } }
-          ]
+            {
+              "property": "currency",
+              "schema": {
+                "type": "string",
+                "required": true,
+                "enum": [
+                  "PLN",
+                  "EUR",
+                  "USD"
+                ]
+              }
+            },
+            {
+              "property": "amount",
+              "schema": {
+                "type": "number",
+                "required": true,
+                "min": 0.01,
+                "max": 100000
+              }
+            },
+            {
+              "property": "labels",
+              "schema": {
+                "type": "array",
+                "arraySchema": {
+                  "type": "string",
+                  "max": 32
+                }
+              }
+            }
+          ],
+          "required": true
         }
       },
       {
@@ -48,8 +77,30 @@ The root is always a `ValidatorSchema` object. Its `schema` must be an object wi
         "schema": {
           "type": "object",
           "objectSchema": [
-            { "property": "orderId", "schema": { "type": "string", "required": true, "regex": "^order-[A-Za-z0-9_-]+$" } }
+            {
+              "property": "orderId",
+              "schema": {
+                "type": "string",
+                "required": true,
+                "min": 1,
+                "max": 64
+              }
+            }
           ]
+        }
+      },
+      {
+        "property": "query",
+        "schema": {
+          "type": "object",
+          "additionalProperties": "allow"
+        }
+      },
+      {
+        "property": "headers",
+        "schema": {
+          "type": "object",
+          "additionalProperties": "allow"
         }
       }
     ]
@@ -63,26 +114,69 @@ At the Endpoint boundary, root properties are `body`, `query`, `headers`, and `p
 
 | Field | Applies to | Meaning |
 | --- | --- | --- |
-| `type` | every property | One of `string`, `number`, `boolean`, `object`, `array`, `date`, or `any`. |
-| `required` | every property | Rejects a missing value. It does not reject an explicitly supplied value solely because it is falsey. |
-| `regex` | string | JavaScript regular-expression source. Validate it before activation. |
-| `min`, `max` | string, number, array | String length, numeric range, or number of array items. |
-| `objectSchema` | object | Array of named child-property schemas. |
-| `arraySchema` | array | Schema applied to each item. |
+| `type` | every property | `string`, `number`, `integer`, `boolean`, `object`, `array`, `date`, or `any`. |
+| `required` | every property | Requires presence; `false`, `0` and an empty string are still present values. |
+| `nullable` | every property | Controls whether an explicitly supplied `null` is allowed, separately from presence. |
+| `empty` | string, array | `allow` or `reject` for empty strings and arrays. |
+| `enum`, `const` | every property | A finite set of exact JSON values, or one exact value. These do not make a missing property required. |
+| `min`, `max` | string, number, integer, array | Inclusive length, numeric range or item-count bounds. |
+| `integer`, `finite`, `safeInteger` | number | Integer, finite-number or safe-integer constraints; `type: "integer"` also requires an integer. |
+| `exclusiveMin`, `exclusiveMax` | number, integer | Exclusive numeric bounds. |
+| `format`, `timezone` | date/time string | Supported formats include `date`, `time` and `date-time`; `timezone: true` requires an explicit offset for time values. |
+| `objectSchema`, `arraySchema` | object, array | Named child-property rules, or the rule applied to each array item. |
+| `additionalProperties` | object | `allow`, `strip` or `reject` for undeclared properties. |
+| `regex`, `regexFlags` | string | A required text pattern and optional JavaScript regex flags. Prefer equivalent explicit rules first. |
 
-`date` accepts a valid JavaScript date value or a value parsable as a date. `any` accepts an already-present value without type checks. An object field missing from the request only fails when that field is `required`.
+In the strict profile, numbers must be finite and `null` requires `nullable: true`. A strict `date` accepts a valid Date value or a supported date/date-time string; legacy date rules also accept values parsable as JavaScript dates. `any` skips type constraints, but presence, nullability and resource limits still apply. Default string length is measured in UTF-16 code units.
+
+Validation has limits on schema size, nesting, input processing and error output. A successful example is not proof that unbounded arrays or arbitrarily complex rules will fit every execution budget.
+
+## Choose explicit rules before regex
+
+Prefer `enum` for known values, `const` for a single value, and type, length, numeric range or supported date/time rules for their respective constraints. Add `regex` only when the contract requires a text pattern those rules cannot express.
+
+A simple regex can roughly double request-preparation time or more, even for small payloads. This adds CPU work and latency; it is not limited to unusually complex patterns. Measure representative requests when introducing a pattern on a frequently called Endpoint.
+
+| Requirement | Preferred rule |
+| --- | --- |
+| One of three warehouse codes | `enum: ["PL01", "PL02", "PL03"]` |
+| Exactly one event name | `const: "order.created"` |
+| Nonempty bounded text | `type: "string"`, `min: 1`, `max: 64` |
+| Positive whole-number quantity | `type: "integer"`, `min: 1` |
+| Timestamp with a timezone | `type: "string"`, `format: "date-time"`, `timezone: true` |
+| An identifier with a required prefix and character pattern | A narrowly scoped `regex` plus a business-appropriate `max` length |
+
+The schema example above explicitly limits currencies to three codes and accepts a nonempty order identifier of up to 64 code units. If your contract requires a specific identifier pattern, retain that requirement and use a regex when necessary. Do not remove a validation constraint to gain speed. Check case sensitivity, whitespace, empty values and trailing newlines when replacing an existing regex.
+
+### Measured scale of the difference
+
+The comparison below uses the same valid requests and the same structural rules. One field accepts exactly `PL01`, `PL02` or `PL03`: one variant uses `enum`, the other uses `regex: "^(PL01|PL02|PL03)$"`. Both require a string with `max: 4`, so a trailing newline is rejected as well. Matching and rejecting examples were checked before timing.
+
+| Request size | Explicit `enum` | One equivalent regex | Relative time |
+| --- | ---: | ---: | ---: |
+| 4 KiB | 0.068 ms | 0.180 ms | 2.6× |
+| 16 KiB | 0.181 ms | 0.321 ms | 1.8× |
+| 32 KiB | 0.312 ms | 0.776 ms | 2.5× |
+| 64 KiB | 0.545 ms | 1.048 ms | 1.9× |
+| 128 KiB | 0.984 ms | 1.977 ms | 2.0× |
+
+These are median Endpoint request-preparation times from a controlled single-CPU benchmark, with 30 measured calls per variant after warmup. Requests contain arrays of records with a nested 30-field object. The measurement includes route resolution, guard validation, request-log preparation and execution-context assembly. It excludes network time, HTTP parsing, authentication, real database access and business execution.
+
+Use the table to understand scale, not as a latency guarantee or a multiplier for the entire HTTP request. The effect depends on the schema, data shape, number and length of strings, concurrency and available capacity. These Endpoint measurements are not timings for every `util.validate()` call.
 
 ## Unknown fields
 
-The current runtime treats the two root flags as follows:
+For new schemas, use `additionalProperties: "allow"`, `"strip"` or `"reject"`. A root policy supplies the default for object rules; an object's own policy overrides it. The strict default is `reject`.
 
-| Setting | Runtime behavior for an undeclared field |
+Existing schemas retain the legacy flag behavior:
+
+| Setting | Behavior for an undeclared field |
 | --- | --- |
-| `whitelist: true` | Leaves the field in the value and does not emit an unknown-field error. |
+| `whitelist: true` | Retains the field without an unknown-field error. |
 | `whitelist: false`, `whitelistErrors: false` | Removes the field from the value passed onward. |
-| `whitelist: false`, `whitelistErrors: true` | Adds an `unexpected property found` validation error. |
+| `whitelist: false`, `whitelistErrors: true` | Retains the field and reports an `unexpected property found` error. |
 
-This behavior is relevant when a validated object is reused later in the same execution. Choose the explicit error mode for public contracts that must reject unknown input; do not rely on stripping alone as a security control.
+An explicit `additionalProperties` policy takes precedence over these legacy flags. Choose `reject` when an API contract must refuse unknown input; choose `strip` deliberately when passing only declared fields onward.
 
 ## Attach a reusable validator to an Endpoint
 
@@ -105,6 +199,8 @@ Use either `guard` or `componentSchemaId` as the source of a contract. A reusabl
 
 For validation inside a Component, use [`util.validate()`](/low-code/reference/util#util-validate). It uses the same schema model but does not replace Endpoint boundary validation: the target Component has already started when it runs.
 
+Call it with `await`. The result contains `valid`, compatible string `errors`, structured `issues` (`code`, `path`, `message`, optional `params`) and the validated `value`. After success, use `value` so configured field removal is respected. Execution or capacity failures can reject the Promise; handle these separately from a normal invalid-data result.
+
 ## Test matrix
 
 Before activation, test at least:
@@ -112,7 +208,8 @@ Before activation, test at least:
 - a valid complete request;
 - every required field missing;
 - a wrong primitive type;
-- minimum, maximum, and regex boundaries;
+- minimum, maximum, enum/const and, when used, regex boundaries;
+- missing versus null and empty values;
 - an invalid array item;
 - an unexpected property in the selected unknown-field mode;
 - missing, empty, and dynamic route parameter cases.

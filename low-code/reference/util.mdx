@@ -67,15 +67,17 @@ await util.sleep(250);
 
 AES decrypt helper.
 
+Ciphertext: at most 5592464 base64 characters; passphrase: at most 4096 UTF-16 code units.
+
 ### Signature
 
 ```ts
-static aesDecrypt(encrypted: string, passphrase: string): string;
+static aesDecrypt(encrypted: string, passphrase: string): Promise<string>;
 ```
 ### Example
 
 ```ts
-const plain = util.aesDecrypt(encrypted, passphrase);
+const plain = await util.aesDecrypt(encrypted, passphrase);
 ```
 
 <span id="util-aesEncrypt" aria-hidden="true"></span>
@@ -84,15 +86,17 @@ const plain = util.aesDecrypt(encrypted, passphrase);
 
 AES encrypt helper.
 
+Payload: at most 1048576 UTF-16 code units; passphrase: at most 4096.
+
 ### Signature
 
 ```ts
-static aesEncrypt(payload: string, passphrase: string): string;
+static aesEncrypt(payload: string, passphrase: string): Promise<string>;
 ```
 ### Example
 
 ```ts
-const encrypted = util.aesEncrypt('secret', passphrase);
+const encrypted = await util.aesEncrypt('secret', passphrase);
 ```
 
 <span id="util-compareHash" aria-hidden="true"></span>
@@ -100,6 +104,8 @@ const encrypted = util.aesEncrypt('secret', passphrase);
 ## `util.compareHash()`
 
 Compares a value against a password hash.
+
+Password: at most 4096 UTF-16 code units; unsupported scrypt work factors return false.
 
 ### Signature
 
@@ -171,6 +177,8 @@ const encoded = util.encodeBase64('hello');
 ## `util.generateHash()`
 
 Generates a password hash.
+
+Password: at most 4096 UTF-16 code units.
 
 ### Signature
 
@@ -260,7 +268,9 @@ const hash = util.hashObject({ customerId: 'c-1' });
 
 ## `util.sha1()`
 
-SHA-1 hash helper.
+Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -277,7 +287,9 @@ const digest = util.sha1('payload');
 
 ## `util.sha256()`
 
-SHA-256 hash helper.
+Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -294,7 +306,9 @@ const digest = util.sha256('payload');
 
 ## `util.md5()`
 
-MD5 hash helper.
+Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -311,7 +325,9 @@ const digest = util.md5('payload');
 
 ## `util.timingSafeEqual()`
 
-Performs a timing-safe comparison.
+Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -328,7 +344,9 @@ const match = util.timingSafeEqual(a, b);
 
 ## `util.hmac()`
 
-Creates an HMAC signature.
+Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -350,7 +368,9 @@ const signature = util.hmac('payload', secret, 'sha256', 'hex');
 
 ## `util.verifyHmacSignature()`
 
-Verifies an HMAC signature.
+Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -407,7 +427,9 @@ const decoded = util.base64UrlDecode(tokenPart);
 
 ## `util.randomBytes()`
 
-Generates random bytes as a string.
+Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -424,7 +446,10 @@ const bytes = util.randomBytes(16, 'hex');
 
 ## `util.randomInt()`
 
-Generates a random integer.
+Synchronously generates a random integer in the inclusive min..max range.
+Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
@@ -443,6 +468,8 @@ const n = util.randomInt(1000, 9999);
 
 Generates a random string.
 
+Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
+
 ### Signature
 
 ```ts
@@ -459,6 +486,8 @@ const token = util.randomString(24);
 ## `util.otp()`
 
 Generates a numeric one-time code.
+
+Length: integer 0..65536.
 
 ### Signature
 
@@ -478,7 +507,15 @@ const code = util.otp(6);
 Validates a payload with the platform schema validator used by Endpoints.
 
 Notes:
-- When 'whitelist' is false and 'whitelistErrors' is false, unknown properties are removed from the returned value.
+- Prefer enum/const, types, lengths, numeric bounds and supported date/time formats over regex when equivalent.
+- Use regex only for a required text pattern; even simple patterns can materially increase Endpoint guard preparation time.
+- Use profile: 'strict' for new schemas; omitted profiles retain legacy behavior.
+- required controls presence, nullable controls null, and empty controls empty strings and arrays.
+- Use additionalProperties: 'allow', 'strip' or 'reject' for unknown fields.
+- Legacy whitelist: true retains unknown fields. With whitelist: false, whitelistErrors: false removes them; true reports errors.
+- The result contains valid, errors, issues and value. Structured issues expose code, path, message and optional params.
+- After success, use value so configured field removal is respected.
+- Input, schema and execution limits apply; cyclic data is rejected. Capacity or execution failures can reject the Promise.
 
 ### Signature
 
@@ -486,25 +523,27 @@ Notes:
 static validate(
       payload: any,
       schema: ValidatorSchemaInput,
-    ): ValidationResult<any>;
+    ): Promise<ValidationResult<any>>;
 ```
 ### Example
 
 ```ts
-const result = util.validate(
+const result = await util.validate(
   api.input()?.body,
   {
-    whitelist: false,
-    whitelistErrors: false,
+    profile: 'strict',
+    additionalProperties: 'reject',
     schema: {
       type: 'object',
       required: true,
       objectSchema: [
-        { property: 'email', schema: { type: 'string', required: true } },
+        { property: 'status', schema: { type: 'string', required: true, enum: ['pending', 'ready'] } },
       ],
     },
   },
 );
+if (!result.valid) throw new Error('Invalid request');
+const validatedInput = result.value;
 ```
 
 <span id="util-jwtDecode" aria-hidden="true"></span>
@@ -633,7 +672,7 @@ const payload = util.jwtVerify(token, secret);
 
 ## `util.rsaDecrypt()`
 
-Decrypts with RSA.
+Decrypts with RSA-OAEP and SHA-256 asynchronously. PEM import (including passphrase processing) still executes synchronously.
 
 ### Signature
 
@@ -642,29 +681,29 @@ static rsaDecrypt(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 ```
 ### Example
 
 ```ts
-const plain = util.rsaDecrypt(privateKey, encrypted, passphrase);
+const plain = await util.rsaDecrypt(privateKey, encrypted, passphrase);
 ```
 
 <span id="util-rsaEncrypt" aria-hidden="true"></span>
 
 ## `util.rsaEncrypt()`
 
-Encrypts with RSA.
+Encrypts with RSA-OAEP and SHA-256 asynchronously. PEM import and data encoding still execute synchronously.
 
 ### Signature
 
 ```ts
-static rsaEncrypt(publicKey: string, payload: string): string;
+static rsaEncrypt(publicKey: string, payload: string): Promise<string>;
 ```
 ### Example
 
 ```ts
-const encrypted = util.rsaEncrypt(publicKey, 'hello');
+const encrypted = await util.rsaEncrypt(publicKey, 'hello');
 ```
 
 <span id="util-rsaGeneratePair" aria-hidden="true"></span>
@@ -673,25 +712,27 @@ const encrypted = util.rsaEncrypt(publicKey, 'hello');
 
 Generates an RSA key pair.
 
+Asynchronous; modulusLength: multiple of 256 in 1024..4096; passphrase: at most 4096 code units.
+
 ### Signature
 
 ```ts
 static rsaGeneratePair(config?: {
       modulusLength?: number;
       passphrase?: string;
-    }): { publicKey: string; privateKey: string };
+    }): Promise<{ publicKey: string; privateKey: string }>;
 ```
 ### Example
 
 ```ts
-const pair = util.rsaGeneratePair({ modulusLength: 2048 });
+const pair = await util.rsaGeneratePair({ modulusLength: 2048 });
 ```
 
 <span id="util-rsaSign" aria-hidden="true"></span>
 
 ## `util.rsaSign()`
 
-Signs data with RSA.
+Signs data with RSA-PSS and SHA-256 asynchronously. PEM import and input conversion can still occupy the event loop.
 
 ### Signature
 
@@ -700,19 +741,19 @@ static rsaSign(
       privateKey: string,
       payload: string,
       passphrase?: string,
-    ): string;
+    ): Promise<string>;
 ```
 ### Example
 
 ```ts
-const signature = util.rsaSign(privateKey, 'hello', passphrase);
+const signature = await util.rsaSign(privateKey, 'hello', passphrase);
 ```
 
 <span id="util-rsaVerify" aria-hidden="true"></span>
 
 ## `util.rsaVerify()`
 
-Verifies an RSA signature.
+Verifies an RSA-PSS SHA-256 signature asynchronously, preserving automatic salt-length detection.
 
 ### Signature
 
@@ -721,10 +762,10 @@ static rsaVerify(
       publicKey: string,
       payload: string,
       signature: string,
-    ): boolean;
+    ): Promise<boolean>;
 ```
 ### Example
 
 ```ts
-const ok = util.rsaVerify(publicKey, 'hello', signature);
+const ok = await util.rsaVerify(publicKey, 'hello', signature);
 ```

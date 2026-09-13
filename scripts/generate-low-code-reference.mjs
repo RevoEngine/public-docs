@@ -73,11 +73,13 @@ Executes another active component in the managed RevoEngine runtime and returns 
 
 Notes:
 - Supports CODE_JS, CODE_TS, and CUSTOM_NODEJS components.
-- CODE_JS and CODE_TS run in a fresh, isolated RevoEngine V8 environment.
+- CODE_JS and CODE_TS run in a fresh isolated execution on the current host by default.
+- Set options.executionHost to "remote" to use the separate Sandbox host.
 - CUSTOM_NODEJS runs in its governed RevoEngine component environment.
 - If timeoutMs is omitted, the child receives the parent execution's remaining timeout budget.
 - A larger timeoutMs is clamped to that remaining budget.
-- At least 1 second of parent budget is required for nested component execution.
+- Nesting is limited to five levels across local, remote and custom component calls.
+- At least 1 second of parent budget is required for remote Sandbox calls.
 - Promise.all() starts independent child component executions.
 
 Example:

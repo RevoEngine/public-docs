@@ -40,5 +40,7 @@ test('publishes stable runtime behavior without carrying method implementation p
   assert.match(sanitized, /managed RevoEngine runtime/);
   assert.match(sanitized, /current execution context/);
   assert.match(sanitized, /static executeComponent/);
+  assert.match(sanitized, /options.executionHost/);
+  assert.match(sanitized, /required for remote Sandbox calls/);
   assert.match(sanitized, /static getContext/);
 });

@@ -42,6 +42,8 @@ This reference describes the public Endpoint definition managed through the UI o
 | `legacyResults` | Enables legacy response envelopes. Do not use for new contracts. |
 | `memory` | Execution memory budget in MiB, up to 1024. |
 
+Prefer equivalent `enum`/`const`, type, length, numeric bounds and supported date/time rules before adding a regex to a guard. Even one simple pattern can roughly double request-preparation time or more for small inputs; this is not a fixed multiplier for total HTTP latency. Preserve required validation semantics and bound string length when a pattern is necessary. See [rule selection and measured examples](/low-code/json-validator#choose-explicit-rules-before-regex).
+
 ## A component-backed example
 
 ```json

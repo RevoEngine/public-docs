@@ -24,7 +24,44 @@ const response = await api.getDatabaseData('orders', {
 return { rows: response.data, next: response.next };
 ```
 
-Prefer a narrow field projection and bounded `take`. Follow the returned cursor or next-page contract instead of loading an unbounded table.
+Prefer a narrow field projection. `getDatabaseData()` accepts an explicit non-negative `take` (maximum 100,000) or `take: null` for a bounded 2,000-row page. Omitting `take` (or the query) also defaults to 2,000 rows and logs one warning per execution; specify `take` deliberately. Use `walkDatabaseData()` with `fullScan: true` for a complete scan. Do not page through a large table with `skip += 200`.
+
+For one matching record, use `getDatabaseDataRow(name, query)`. It returns the row or `null` in one database operation, without a collection wrapper. Omit `take`, `skip` and `count`; add `sort` when several rows match and the chosen row matters. `tx.getDatabaseDataRow()` supports row locks within a transaction.
+
+```js
+const customer = await api.getDatabaseDataRow('customers', {
+  filter: { field: 'customerId', op: 'eq', value: customerId },
+});
+if (!customer) api.throw(404, { message: 'Customer not found' });
+```
+
+## Process large results
+
+Use `walkDatabaseData()` for a Job that processes many rows. Specify either a non-negative `take` or `fullScan: true`; a missing `take` does not silently scan the whole table. The default `batchSize` is 2,000 (accepted range: 2,000–10,000). Each non-final callback receives exactly that many rows if available, and callbacks are awaited sequentially.
+
+```js
+const result = await api.walkDatabaseData(
+  'orders',
+  { fields: ['orderId', 'status'], filter: { field: 'status', op: 'eq', value: 'NEW' }, take: 100000 },
+  async (batch) => {
+    await api.upsertDatabaseData('order_export', batch, { return: false });
+  },
+);
+
+return result; // { processed, batches }
+```
+
+Process each batch before the next one arrives; do not accumulate every row in an array. Use `fullScan: true` only when processing until the end is intentional. A single wide row can still be expensive: select only the columns needed. Jobs remain subject to their timeout and resource limits. The walker targets PostgreSQL-backed databases. For complex sorting or joins, it uses a cursor; its `auto` strategy chooses keyset pagination only when the query shape is safe for it. There is usually no need to select a strategy manually.
+
+For a count without loading rows, use one call:
+
+```js
+const total = await api.countDatabase('orders', {
+  filter: { field: 'status', op: 'eq', value: 'NEW' },
+});
+```
+
+Database operations beyond 1,000 calls in one execution are logged and throttled; prefer bulk writes and the walker over repeated small reads. Direct `getSecret()` / `getSecrets()`, Storage, Files, Agent and orchestration calls are outside this database throttle. Database-backed `getInstanceData()` sources are included.
 
 ## Mutate rows
 

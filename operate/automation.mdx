@@ -92,6 +92,26 @@ Cancellation, success, expiration, and handled operator stops do not create auto
   Retry only Components whose external effects are idempotent. Store an idempotency key before calling a payment, messaging, or provisioning API.
 </Tip>
 
+## Job failure notifications
+
+Open **Settings → Preferences → Job failure notifications** to choose notifications for your account in the current instance. This section requires `INSTANCE_ADMIN` or `AUTOMATION_ADMIN`; it does not subscribe other administrators automatically.
+
+1. Enable **System messages**, **Email**, or both. Both channels are off by default.
+2. Choose how **Intermediate attempts** should be delivered.
+3. Save the preferences.
+
+| Intermediate attempts | Delivery when a channel is enabled |
+| --- | --- |
+| Final failure only | Skip failed attempts that already have a retry child; notify on final failure. |
+| Group for 15 minutes | Group intermediate failures into a delayed digest; notify on final failure immediately. |
+| Every failed attempt | Queue each failed attempt immediately, including the final failure. |
+
+Grouping is the default attempt preference, but it sends nothing until a channel is enabled. Immediate delivery means queued without the digest delay, not a guaranteed arrival time. Delivery retries do not rerun the Job or change its result.
+
+A system message links to the relevant Job. Open it to inspect the attempt, error, processing time and retry lineage before running it again. Email contains a bounded failure summary without copying Job inputs. After an interrupted worker, processing time may be labeled as an estimate based on its last observed activity; missing timing is shown as not measured.
+
+Recipients must remain active human accounts with platform access and a qualifying administrator role. Turning a channel off suppresses its queued notifications when eligibility is checked again.
+
 ## Job lifecycle
 
 ```text

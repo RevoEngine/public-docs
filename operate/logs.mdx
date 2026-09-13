@@ -1,0 +1,72 @@
+---
+title: Search instance logs
+description: Find requests, MCP tool calls, executions, users, and failures in Security Admin Logs.
+icon: magnifying-glass
+---
+
+Use **Security Admin → Logs** to investigate activity in the current instance. Start with a time window, then search a grid column or open **Advanced filter** to combine conditions. This guide covers the Logs screen and its [Platform API operation](/api-reference/config/get-instance-logs), `GET /api/v1/config/logs`.
+
+## Find a log entry
+
+1. Select a time range that covers the event. Logs start with a recent window; widen it only when needed.
+2. Search a visible grid column when you know one value, such as an Endpoint name or HTTP method.
+3. For several conditions, open **Advanced filter → Builder**. Add a group, choose **All conditions (AND)** or **Any condition (OR)**, then add conditions or nested groups.
+4. Select **Apply filter**. Use **Clear filter** on the Logs toolbar to return to the time-only view.
+5. Open a matching row to inspect its details. Use its Trace ID to follow the wider operation in [Trace](/operate/traces).
+
+The **Search guide** tab in the filter dialog contains a short example table. The full field and scenario tables below cover more investigations.
+
+## Which field should I use?
+
+| What you know | Search field | Example |
+| --- | --- | --- |
+| When it happened | Timeframe picker | Last 24 hours or a custom range around the incident. |
+| HTTP route and method | Request path, HTTP method | **Contains** `/orders` and **Equals** `POST`. |
+| MCP operation | RPC method | **Equals** `tools/call` for tool calls. |
+| MCP tool | Tool name | **Contains** `search`, or use the exact name shown in a known log row. |
+| Endpoint | Endpoint | Search its name in the grid column, or filter by its ID in Builder. |
+| Automation definition | Job Template | Search its name in the grid column, or filter by its ID in Builder. |
+| One runtime execution | Execution ID | **Equals** the ID shown in execution history. |
+| A distributed operation | Trace ID | **Equals** the Operation ID captured from the response or Trace. |
+| Account | User | **Equals** the account ID shown in the log or account details. |
+| Result | Status, Error, Severity | **Greater or equal** `500`, **Is not null** on Error, or a severity visible in a known row. |
+| Latency | Duration (ms) | **Greater than** `1000` for entries taking over one second. |
+| Client | Client IP | **Equals** an IP from an authorized incident report. |
+| Application detail | Message, Args (JSON) | **Contains** `timeout` in Message, or search an application-defined Args field. |
+
+## Ready-to-use searches
+
+Each row describes conditions to enter in **Builder**. The timeframe picker applies to every search.
+
+| Question | Conditions | Group |
+| --- | --- | --- |
+| Which HTTP calls hit an Endpoint route? | Request path **Contains** `/orders`; HTTP method **Equals** `POST`. | All (AND) |
+| Which calls to an Endpoint failed? | Endpoint **Equals** its ID; Status **Greater or equal** `500`. | All (AND) |
+| Which requests were rejected? | Status **Equals** `401`; Status **Equals** `403`. | Any (OR) |
+| Which MCP requests reached the server? | Request path **Contains** `/mcp`. | Single condition |
+| Which MCP tool calls happened? | RPC method **Equals** `tools/call`. | Single condition |
+| Which calls used a search tool? | RPC method **Equals** `tools/call`; Tool name **Contains** `search`. | All (AND) |
+| What did one account do through MCP? | User **Equals** its account ID; RPC method **Equals** `tools/call`. | All (AND) |
+| What happened in one distributed request? | Trace ID **Equals** its Operation ID. | Single condition |
+| What happened in one execution? | Execution ID **Equals** its ID. | Single condition |
+| What happened for one Job Template? | Job Template **Equals** its ID. | Single condition |
+| Which calls were slow? | Duration (ms) **Greater than** `1000`. | Single condition |
+| Which slow calls also failed? | Duration (ms) **Greater than** `1000`; Status **Greater or equal** `500`. | All (AND) |
+| Where did a timeout appear? | Error **Contains** `timeout`; Message **Contains** `timeout`. | Any (OR) |
+| Which requests came from one client? | Client IP **Equals** the IP from the incident. | Single condition |
+
+For a field your application writes into **Args (JSON)**, choose that field's path in Builder and compare it with a value. For example, if your application logs an `orderId` field, search path `orderId` with **Equals** `order-123`. The fields available in Args depend on what that application logged.
+
+<Note>
+  Not every field is present on every log entry. A request can have an HTTP method without an RPC method; a discovery request can have an RPC method without a tool name. A blank field does not by itself mean that the request failed.
+</Note>
+
+## When a search returns nothing
+
+- Confirm the selected time range and the instance you are viewing.
+- Remove one condition at a time to find which value is too narrow.
+- Use **Contains** for a partial path, tool name, message, or error; use **Equals** for IDs and exact methods.
+- Open a related row and copy its exact Trace ID, Execution ID, or resource ID into Builder.
+- For Endpoint and Job Template names, use the searchable grid column. Builder compares their IDs.
+
+Logs are operational evidence, not a complete resource-change history. Use [Activity and observability](/operate/observability) for changes, [Trace](/operate/traces) for cross-service timing, and Job History for durable automation state.

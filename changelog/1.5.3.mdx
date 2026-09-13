@@ -1,0 +1,130 @@
+---
+title: "1.5.3 — Safer validation, actionable job failures and more predictable large-data work"
+sidebarTitle: "1.5.3"
+icon: "tag"
+description: "13 September 2026"
+---
+
+RevoEngine 1.5.3 gives builders more precise validation rules and bounded ways to work with large Databases. Operators gain opt-in job-failure notifications and richer Logs, while the Endpoint runtime, Storage uploads and Assistant source reading become more resilient. This release also clarifies account metadata and the low-code cryptography contract.
+
+## Highlights
+
+- Define stricter validation rules with structured issues while preserving existing schema behavior by default.
+- Choose job-failure system messages, email and retry-attempt timing in Settings, with a direct job reference.
+- Read large Databases in bounded batches, with explicit count and single-row operations.
+- Filter Logs by HTTP and tool activity, and inspect linked Endpoints or Job Templates.
+- Resume long Storage uploads more reliably and handle tenant maintenance without losing a request.
+- Let the Assistant inspect several selected source regions together, and use asynchronous RSA operations in low-code.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Express validation rules without changing existing schemas" defaultOpen={true}>
+
+Validation schemas can now state whether a value must be present, whether null or an empty value is allowed, and which numeric, enum, constant or date/time values are valid. New schemas can opt into a strict profile, including rules for unknown properties. Validation returns structured issues as well as the familiar error strings, so an editor or application can point to a specific failing field.
+
+Existing unversioned schemas retain their previous behavior. Low-code `util.validate` now returns a Promise, so callers must await the result before using its `valid`, `issues` or normalized `value`. The managed V8 runtime bounds schema compilation, traversal and error collection, which makes expensive or malformed inputs fail with a clear resource boundary instead of consuming unbounded work. Builder guidance now favors direct type, enum and range rules when they express the same requirement as a regular expression.
+
+```js
+const result = await util.validate(api.input()?.body, {
+  profile: 'strict',
+  additionalProperties: 'reject',
+  schema: {
+    type: 'object',
+    required: true,
+    objectSchema: [
+      { property: 'status', schema: { type: 'string', required: true, enum: ['pending', 'ready'] } },
+    ],
+  },
+});
+if (!result.valid) throw new Error(result.issues[0]?.message ?? 'Invalid request');
+return result.value;
+```
+
+  </Accordion>
+  <Accordion title="Act on job failures from the right place">
+
+In Settings, instance and automation administrators can enable job-failure system messages, email, or both independently; both channels are off by default. A separate choice controls intermediate failed attempts: final failure only, a 15-minute digest, or a message for every failed attempt. When a channel is enabled, final failures are queued for immediate delivery regardless of that choice. Notifications identify the job and summarize the attempt, reason, processing time when known, and retry context without copying job inputs into an email. The in-app reference opens the relevant job, where an operator can inspect the execution or ask the Assistant for help before deciding whether to run it again.
+
+Jobs that fail without an ordinary error-log entry now still reach a terminal error state. When a worker disappears, recovery records the last observed processing activity where available and labels the duration as an estimate. A missing observation is shown as not measured rather than as zero. Notification delivery has bounded retries, so a transient delivery problem does not change the job's own result.
+
+  </Accordion>
+  <Accordion title="Read and process Databases in bounded units">
+
+Low-code Database reads now make their size explicit: omitting `take` selects at most 2,000 rows and emits a warning, while `take: null` deliberately requests that bounded default without a warning. A larger explicit page remains bounded. Three new methods cover common access patterns: `api.countDatabase` returns a count without fetching rows, `api.getDatabaseDataRow` resolves one matching row, and `api.walkDatabaseData` sends a long scan in awaited batches to a callback. The walker requires either an explicit total `take` or `fullScan: true`; batch size is controlled separately, so scripts need not retain the entire table in memory. PostgreSQL transaction callbacks also gain `countDatabase`, bounded `getDatabaseData` and `getDatabaseDataRow`, including row-lock options for the latter two reads.
+
+Database operations within one low-code execution now have a concurrency bound. Scripts that issue more than 1,000 individual Database calls receive a warning and are progressively throttled, with a stronger delay after 2,000 calls. Bulk operations or `api.walkDatabaseData` are a better fit than an unbounded fan-out of single-row requests.
+
+The Endpoint runtime also reuses prepared route, component and Database metadata within bounded caches and invalidates affected entries after changes. Database query preparation is shared across validation and execution, while authorization still runs for each call. These changes reduce repeated work without changing the Endpoint response contract or promising one latency figure for every workload.
+
+```js
+let processed = 0;
+const walk = await api.walkDatabaseData('customers', {
+  take: 100000,
+  sort: ['customerId'],
+}, async (batch) => {
+  processed += batch.length;
+}, { batchSize: 2000 });
+return { processed, batches: walk.batches };
+```
+
+For a summary or an exact lookup, avoid walking the table:
+
+```js
+const total = await api.countDatabase('customers', {
+  filter: { field: 'status', op: 'eq', value: 'ACTIVE' },
+});
+const customer = await api.getDatabaseDataRow('customers', {
+  filter: { field: 'customerId', op: 'eq', value: 'customer-1' },
+});
+return { total, customer };
+```
+
+  </Accordion>
+  <Accordion title="Resume Storage uploads and make completion explicit">
+
+Long CSV and Excel uploads have clearer recovery boundaries after a failed append or interrupted worker. Upload sessions can recognize an identical retry, reject a conflicting part and require the expected part set before finalization. This lets a caller resume its own staged upload without mistaking an incomplete file for a finished one. Administrators can inspect upload-session state without reading the uploaded data.
+
+Excel writing also supports a declared direct mode for workflows that can provide the final shape at creation. The staged mode remains the choice when separate requests, retries or later finalization are needed. Structured file reads introduced in 1.5.2 remain available; this release strengthens their stream handling and upload lifecycle.
+
+  </Accordion>
+  <Accordion title="Investigate requests and resources in Logs">
+
+Logs can now be filtered by HTTP method and path, RPC method, tool name and advanced structured conditions. Nested JSON fields can be selected for focused investigation, while plain text and incomplete log bodies remain readable. Endpoint and Job Template references are identified separately, so an operator can move from an execution log to the resource that actually ran.
+
+The Assistant's operational investigation guidance uses bounded log and execution evidence, including redacted previews. Public MCP discovery and health requests no longer depend on tenant session initialization before authentication; protected MCP operations keep their existing access checks.
+
+  </Accordion>
+  <Accordion title="Keep account and tenant changes consistent">
+
+Accounts now expose `metadata` and `metadataAdvanced` consistently across the Platform API, low-code current-user data and the user-management interface. Each field has an independent size and key-count limit. Existing legacy names remain accepted during migration, while conflicting values are rejected instead of silently choosing one. Operators can edit and filter these fields in account views; low-code `api.getInstanceData('Users')` supports both field names and structured metadata filters. In low-code, `api.currentUser().avatar` is the Storage entry ID; `/me` separately supplies a signed download URL when a client needs one.
+
+When a tenant schema upgrade is already running, updated services return a temporary maintenance response rather than starting a competing migration. The frontend retries that response and clears its loading state after a successful request. This supports rolling service updates without making users interpret a brief migration overlap as a permanent application failure.
+
+  </Accordion>
+  <Accordion title="Inspect source together and await cryptographic work">
+
+The Assistant can read several Component source targets in one operation, select multiple ranges or searches for each target, and keep their references distinct in the activity view. Source output remains bounded, making a focused review easier than repeatedly loading whole Components.
+
+Low-code RSA key generation, encryption, decryption, signing and verification now return Promises and must be awaited. AES operations also use asynchronous execution, while documented hash, HMAC and bounded random helpers remain synchronous. Updated declarations and examples make the distinction explicit, so existing scripts that call the affected RSA or AES methods need the corresponding `await`.
+
+  </Accordion>
+  <Accordion title="Choose where a child Component runs">
+
+For low-code `api.executeComponent`, CODE_JS and CODE_TS children now run in a fresh isolate on the same host by default. Set `options.executionHost: 'remote'` to use the independent Sandbox service for a child that needs it. CUSTOM_NODEJS Components continue through their existing runner; the child execution remains constrained by the parent's remaining timeout budget.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Primary data grids can preserve validated filters and sorting in a shareable URL; Logs keeps list state when a detail view closes.
+- Storage and Database fixes improve default legacy calls, batched mutations and walker sort handling.
+
+## Related guides
+
+[Validation](/low-code/json-validator) · [Database](/low-code/database) · [Automation](/operate/automation) · [Logs](/operate/logs) · [Storage](/operate/storage) · [Low-code runtime](/low-code/runtime-api)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.2](/changelog/1.5.2)

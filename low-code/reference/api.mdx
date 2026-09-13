@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **73 methods**. Search the docs for an exact method name, or use this index:
+This page contains **76 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
@@ -20,6 +20,9 @@ This page contains **73 methods**. Search the docs for an exact method name, or 
 - [`api.truncateDatabase()`](#api-truncateDatabase)
 - [`api.transactionDatabase()`](#api-transactionDatabase)
 - [`api.getDatabaseData()`](#api-getDatabaseData)
+- [`api.getDatabaseDataRow()`](#api-getDatabaseDataRow)
+- [`api.countDatabase()`](#api-countDatabase)
+- [`api.walkDatabaseData()`](#api-walkDatabaseData)
 - [`api.getDatabaseViewData()`](#api-getDatabaseViewData)
 - [`api.getDatabaseAudit()`](#api-getDatabaseAudit)
 - [`api.insertDatabaseData()`](#api-insertDatabaseData)
@@ -370,13 +373,15 @@ Reads database rows using the structured query shape.
 
 Notes:
 - This is the canonical read API.
+- Pass take: null for a bounded 2,000-row page without a warning.
+- Omitting take also uses 2,000 rows and logs one warning per execution.
 
 ### Signature
 
 ```ts
 static getDatabaseData<T = any>(
       name: string,
-      request?: SelectInput,
+      request?: DatabaseBoundedReadQuery,
     ): Promise<GetDatabaseDataResponse<T>>;
 ```
 ### Example
@@ -388,6 +393,64 @@ const rows = await api.getDatabaseData('customers', {
   sort: { name: 'ASC' },
   take: 100,
 });
+```
+
+<span id="api-getDatabaseDataRow" aria-hidden="true"></span>
+
+## `api.getDatabaseDataRow()`
+
+Reads one matching row in a single database operation, returning null when absent.
+The query supports fields, filter, joins and sort but not take, skip or count.
+Specify sort when choosing among multiple matching rows matters.
+Example: const customer = await api.getDatabaseDataRow('customers',
+  &#123; filter: &#123; field: 'customerId', op: 'eq', value: customerId &#125; &#125;);
+
+### Signature
+
+```ts
+static getDatabaseDataRow<T = any>(name: string, query: DatabaseRowQuery): Promise<T | null>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="api-countDatabase" aria-hidden="true"></span>
+
+## `api.countDatabase()`
+
+Counts matching rows with one query. Do not use count:true and take:0 for new code.
+
+### Signature
+
+```ts
+static countDatabase(name: string, query?: DatabaseCountQuery): Promise<number>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
+
+<span id="api-walkDatabaseData" aria-hidden="true"></span>
+
+## `api.walkDatabaseData()`
+
+Processes a large result in sequential, awaited batches without collecting
+all rows in the isolate. Specify query.take or options.fullScan:true.
+Every non-final batch has exactly batchSize rows when available.
+The callback may await writes; do not accumulate batches in an array.
+
+### Signature
+
+```ts
+static walkDatabaseData<T = any>(
+      name: string,
+      query: SelectInput,
+      callback: (batch: T[], context: { batch: number; processed: number }) => void | Promise<void>,
+      options?: DatabaseWalkOptions,
+    ): Promise<DatabaseWalkResult>;
+```
+### Example
+
+```ts
+await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },
+  async (batch) => {
+    await api.upsertDatabaseData('customer_export', batch, { return: false });
+  }, { batchSize: 2000 });
 ```
 
 <span id="api-getDatabaseViewData" aria-hidden="true"></span>
@@ -625,7 +688,8 @@ const rows = await api.queryDatabase('SELECT NOW() AS now');
 
 ## `api.currentUser()`
 
-Returns the current logged user or service account.
+Returns the current logged user or service account synchronously.
+`avatar` is the Storage entry ID, not a signed download URL.
 
 ### Signature
 
@@ -838,11 +902,13 @@ Executes another active component in the managed RevoEngine runtime and returns 
 
 Notes:
 - Supports CODE_JS, CODE_TS, and CUSTOM_NODEJS components.
-- CODE_JS and CODE_TS run in a fresh, isolated RevoEngine V8 environment.
+- CODE_JS and CODE_TS run in a fresh isolated execution on the current host by default.
+- Set options.executionHost to "remote" to use the separate Sandbox host.
 - CUSTOM_NODEJS runs in its governed RevoEngine component environment.
 - If timeoutMs is omitted, the child receives the parent execution's remaining timeout budget.
 - A larger timeoutMs is clamped to that remaining budget.
-- At least 1 second of parent budget is required for nested component execution.
+- Nesting is limited to five levels across local, remote and custom component calls.
+- At least 1 second of parent budget is required for remote Sandbox calls.
 - Promise.all() starts independent child component executions.
 
 ### Signature

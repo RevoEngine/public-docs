@@ -128,10 +128,10 @@ const file = await storage.getFile(storageEntryId);
 Reads storage file content.
 
 Notes:
-- CSV and XLSX are detected from MIME and return a structured page with rows, headers, columns and a cursor.
+- CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
 - Other text file batch reads reuse cached line stats and auto-build them if missing.
 - Binary reads return a base64 string.
-- Direct reads are limited to 10 MB unless you request a ranged buffer.
+- Direct binary reads are limited to 10 MiB unless you request a ranged buffer.
 
 ### Signature
 
@@ -324,6 +324,7 @@ Extends the TTL for an active upload session.
 
 Notes:
 - No-op in debug mode.
+- uploadPart renews the durable session lease automatically; call this only across idle gaps.
 
 ### Signature
 
@@ -369,6 +370,8 @@ Uploads one part into an active multipart upload session.
 
 Notes:
 - No-op in debug mode.
+- Renews the durable session lease before processing and after committing the part.
+- Multipart part manifests remain durable independently of Redis.
 
 ### Signature
 
@@ -614,8 +617,9 @@ const excerpt = await storage.getText(storageEntryId, {
 
 ## `storage.getDocument()`
 
-Reads a bounded Storage document. The source is limited to 10 MiB per
-call; use getFileData for large or record-oriented files.
+Reads bounded text, JSON, or XML from Storage. This does not parse PDF,
+DOCX, or XLSX. The source is limited to 10 MiB per call; use getFileData
+for large or record-oriented files.
 
 `format: 'text'` is the default and supports optional byte ranges.
 `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`
