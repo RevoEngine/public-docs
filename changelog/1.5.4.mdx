@@ -1,0 +1,109 @@
+---
+title: "1.5.4 — Reusable Assistant files, streaming file processing and clearer recovery"
+sidebarTitle: "1.5.4"
+icon: "tag"
+description: "14 September 2026"
+---
+
+RevoEngine 1.5.4 brings Assistant files into the shared Storage workflow, adds native PDF and DOCX text reading, and lets low-code scripts process complete structured files in awaited batches. It also improves operation recovery, repairs validation for large service payloads, and brings notification preferences together with more resilient email delivery.
+
+## Highlights
+
+- Upload files to Storage and reuse them in Assistant conversations with access checked whenever they are read.
+- Read PDF and DOCX text directly, and use the original document when visual interpretation is needed.
+- Process whole structured files with configurable read and callback sizes, without manually following cursors.
+- Follow corrections and outcomes as one Assistant operation, with clearer handling of uncertain writes.
+- Control chat and system-message email separately from administrator job-failure notifications.
+- Open application views and dialogs on demand, reducing work during initial loading.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Work with reusable files in Assistant" defaultOpen={true}>
+
+Assistant messages now link finalized Storage entries. Files can be uploaded before sending a message and reused without creating another conversation-specific copy. Personal file access remains scoped to the user, and permission checks apply both when linking a file and when reading it later.
+
+The Assistant can read structured rows and document text through Storage. PDF and DOCX gain native text extraction; when extracted text is incomplete or visual evidence is required, the Assistant can load the supported original file. Loading is a separate model decision, not an automatic fallback. DOCX text extraction does not imply access to its embedded images, and scanned PDFs can still require visual reading.
+
+For low-code document processing, inspect the returned content and truncation information before treating a read as complete. The Storage examples below assume an Endpoint request body containing `storageEntryId` for an existing file:
+
+```js
+const document = await storage.getDocument(api.input().body.storageEntryId, { format: 'text' });
+return { text: document.content, truncated: document.extraction?.truncated ?? document.truncated ?? false };
+```
+
+For integrations, this release replaces the old conversation draft-upload flow with finalized Storage uploads and `storageEntryIds` on the Assistant message request. Clients using the removed draft creation and thread-upload operations must move to that flow. Existing Storage upload finalization remains the publication boundary.
+
+  </Accordion>
+  <Accordion title="Process complete files in bounded callback batches">
+
+`storage.walkFileData` traverses CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays and record-oriented XML. Omitting `take` scans the complete selected file or worksheet. An explicit non-negative `take` caps the total; `fullScan: true` is optional, while `fullScan: false` requires `take`.
+
+`batchSize` controls rows delivered to the callback and defaults to 2,000. `readBatchSize` controls the source read window and defaults to 100,000. Both accept 1–100,000. Each callback is awaited, and its batch can span read windows. XLSX uses the first visible worksheet unless `sheet` is provided; XML requires `recordPath`.
+
+```js
+let processed = 0;
+const result = await storage.walkFileData(api.input().body.storageEntryId, {}, async rows => {
+  processed += rows.length;
+}, { batchSize: 2000, readBatchSize: 100000 });
+return { processed, batches: result.batches };
+```
+
+The walker streams existing indexed data without collecting the full read window in the backend. It stops on callback errors or source-version changes and closes active row streams on cancellation. It does not retry failed callbacks; imports that may be restarted should make writes idempotent. Keep aggregates rather than collecting all rows. This callback API runs in low-code; external SDK callers can invoke a low-code script.
+
+Text files also gain line windows through `storage.getDocument`:
+
+```js
+const document = await storage.getDocument(api.input().body.storageEntryId, {
+  format: 'text', startLine: 1, endLine: 50, maxChars: 8000,
+});
+return { text: document.content, truncated: document.truncated };
+```
+
+Line windows apply to text files, not PDF/DOCX, and cannot be combined with byte ranges or JSON/XML parsing. Use `storage.getDocument` for new document and text-window workflows.
+
+  </Accordion>
+  <Accordion title="Understand corrections and uncertain operations">
+
+The Assistant groups an operation's review, corrections and outcome into one activity. Safe transient reads can be retried within a bounded recovery budget. When a write's result is uncertain, the Assistant checks the outcome where possible and asks for clarification when verification cannot settle it, instead of blindly repeating the write. Approval batches stop subsequent writes after an uncertain result.
+
+These changes improve recovery visibility without making external writes transactional or guaranteeing that a cancelled operation had no effect. MCP plugin connections also retain their negotiated session across discovery and later calls, improving compatibility with servers that require a session.
+
+  </Accordion>
+  <Accordion title="Manage email and notification preferences">
+
+Settings groups notification controls in a dedicated view. Chat and system-message email can be disabled independently of the existing per-instance administrator choices for job-failure system messages, email and intermediate-attempt timing. Chat email is enabled by default; job-failure channels retain their opt-in defaults.
+
+System messages, transactional email, job alerts and unread-chat digests now use persistent delivery tracking and retry handling. Digest selection excludes read messages and muted or archived conversations. Job alerts avoid generating an additional email through the system-message channel. Acceptance by the mail provider is not proof of delivery to the recipient's inbox.
+
+  </Accordion>
+  <Accordion title="Keep validation and application loading predictable">
+
+Low-code `util.validate` remains asynchronous: await its result before reading `valid`, `issues` or `value`. Service input validation now follows its ordinary validation path even for large pass-through payloads, so Storage uploads no longer depend on the low-code validation runtime merely because their content is large. The execution services also initialize the validation runtime explicitly.
+
+```js
+const result = await util.validate({ status: 'ready' }, {
+  schema: {
+    type: 'object',
+    objectSchema: [{ property: 'status', schema: { type: 'string', required: true } }],
+  },
+});
+if (!result.valid) throw new Error(result.issues[0]?.message ?? 'Invalid request');
+return result.value;
+```
+
+Application views, search, Settings and table dialogs load their heavier dependencies when needed. Dialog actions wait for their tables to become ready, and repeated low-code library initialization reuses prepared code. These changes reduce repeated startup work without promising a fixed latency across workloads.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Storage and complete file processing](/operate/storage)
+- [Low-code Storage reference](/low-code/reference/storage)
+- [Low-code utility reference](/low-code/reference/util)
+- [Platform API](/developers/platform-api)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.3](/changelog/1.5.3)

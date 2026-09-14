@@ -1977,6 +1977,26 @@ declare class storage {
     ): Promise<StorageStructuredFileDataPage | string[] | string>;
 
   /**
+     * Streams records into awaited callbacks. Omitted take scans all rows.
+     * XLSX: first visible sheet by default. XML: recordPath required.
+     * Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
+     * Source changes or callback errors stop the scan. Keep only aggregates.
+     *
+     * @example
+     * let processed = 0;
+     * await storage.walkFileData(storageEntryId, {}, async (rows) => {
+     *   processed += rows.length;
+     * }, { fullScan: true });
+     * return { processed };
+     */
+  static walkFileData<T = any>(
+      storageEntryId: string,
+      read: StorageWalkReadOptions,
+      callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
+      options?: StorageWalkOptions,
+    ): Promise<StorageWalkResult>;
+
+  /**
      * Builds reusable record or worksheet indexes and returns file statistics.
      *
      * Notes:
@@ -2278,7 +2298,8 @@ declare class storage {
     ): Promise<StorageDownload>;
 
   /**
-     * Reads a text window from a storage file.
+     * @deprecated Use storage.getDocument(storageEntryId, { format: "text", startLine, endLine, maxChars }).
+     * Delegates to the document reader and preserves the original text-window result.
      *
      * Example:
      * const excerpt = await storage.getText(storageEntryId, {
@@ -2291,12 +2312,22 @@ declare class storage {
       options?: StorageTextReadOptions,
     ): Promise<StorageTextContent>;
 
+  /** @deprecated Use storage.getDocument with text line options. */
+  static getText(
+      namespace: string,
+      storageEntryId: string,
+      options?: StorageTextReadOptions,
+    ): Promise<StorageTextContent>;
+
   /**
-     * Reads bounded text, JSON, or XML from Storage. This does not parse PDF,
-     * DOCX, or XLSX. The source is limited to 10 MiB per call; use getFileData
-     * for large or record-oriented files.
+     * Reads bounded text, JSON, XML, or PDF/DOCX text from Storage. PDF/DOCX
+     * extraction is text-only, capped at 40,000 characters and 100 PDF pages,
+     * with explicit extraction/truncation and possible-OCR metadata. Source input
+     * is limited to 10 MiB; use getFileData for XLSX or record-oriented files.
      *
      * `format: 'text'` is the default and supports optional byte ranges.
+     * For text line windows pass startLine/endLine/maxChars; the result contains
+     * line metadata instead of byte offsets. Do not mix line and byte ranges.
      * `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`
      * returns an order-preserving XML representation. `format: 'auto'` selects
      * JSON/XML from the stored MIME type or file extension.

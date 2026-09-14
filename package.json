@@ -2,7 +2,7 @@
   "name": "revoengine-public-docs",
   "private": true,
   "scripts": {
-    "dev": "mint dev",
+    "dev": "node -e \"const server = require('node:net').createServer(); server.once('error', error => { console.error('Port 3010 is unavailable:', error.code); process.exit(1); }); server.listen(3010, () => server.close());\" && mint dev --port 3010",
     "validate": "mint validate",
     "check:links": "mint broken-links --check-anchors --check-redirects",
     "check:a11y": "mint a11y",

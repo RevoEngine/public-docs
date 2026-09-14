@@ -44,7 +44,7 @@ return result.value;
   </Accordion>
   <Accordion title="Act on job failures from the right place">
 
-In Settings, instance and automation administrators can enable job-failure system messages, email, or both independently; both channels are off by default. A separate choice controls intermediate failed attempts: final failure only, a 15-minute digest, or a message for every failed attempt. When a channel is enabled, final failures are queued for immediate delivery regardless of that choice. Notifications identify the job and summarize the attempt, reason, processing time when known, and retry context without copying job inputs into an email. The in-app reference opens the relevant job, where an operator can inspect the execution or ask the Assistant for help before deciding whether to run it again.
+In Settings, instance administrators can enable job-failure system messages, email, or both independently; both channels are off by default. A separate choice controls intermediate failed attempts: final failure only, a 15-minute digest, or a message for every failed attempt. When a channel is enabled, final failures are queued for immediate delivery regardless of that choice. Notifications identify the job and summarize the attempt, reason, processing time when known, and retry context without copying job inputs into an email. The in-app reference opens the relevant job, where an operator can inspect the execution or ask the Assistant for help before deciding whether to run it again.
 
 Jobs that fail without an ordinary error-log entry now still reach a terminal error state. When a worker disappears, recovery records the last observed processing activity where available and labels the duration as an estimate. A missing observation is shown as not measured rather than as zero. Notification delivery has bounded retries, so a transient delivery problem does not change the job's own result.
 
@@ -127,4 +127,4 @@ For low-code `api.executeComponent`, CODE_JS and CODE_TS children now run in a f
 
 ## Continue through the releases
 
-[All releases](/releases/changelog) · [Earlier: 1.5.2](/changelog/1.5.2)
+[Newer: 1.5.4](/changelog/1.5.4) · [All releases](/releases/changelog) · [Earlier: 1.5.2](/changelog/1.5.2)

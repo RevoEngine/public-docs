@@ -246,7 +246,7 @@ Finalization is idempotent for an already finalized session. Concurrent finaliza
 Stored statistics contain `lineCount`, `separator`, `encoding`, `batchSize`, `batches`, and a byte-offset `map`. The default line batch size is 100,000 unless the caller requests another positive size. Replacing file bytes invalidates derived metadata so stale offsets are not reused.
 
 <Note>
-  Storage computes line-oriented text statistics. It does not publish a word-count or character-count contract. `getText()` uses `maxChars` only to bound the returned window.
+  Storage computes line-oriented text statistics. It does not publish a word-count or character-count contract. `getDocument()` uses `maxChars` only to bound the returned window.
 </Note>
 
 ### Read one text batch
@@ -264,7 +264,7 @@ for (let batchNumber = 1; batchNumber <= (stats.batches ?? 0); batchNumber += 1)
 For a human-readable excerpt, use a line window:
 
 ```js
-const excerpt = await storage.getText(api.input('storageEntryId'), {
+const excerpt = await storage.getDocument(api.input('storageEntryId'), {
   startLine: 1,
   endLine: 200,
   maxChars: 8_000,
@@ -276,6 +276,36 @@ return {
   truncated: excerpt.truncated,
 };
 ```
+
+### Process a complete structured file
+
+Use `storage.walkFileData()` for CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, or
+record-oriented XML. The walker follows cursors for you and awaits each callback.
+Omit `take` to scan all rows in the selected file or worksheet; `fullScan: true`
+is optional. Specify a non-negative `take` to cap the scan. `fullScan: false`
+requires `take`.
+
+```js
+let processed = 0;
+await storage.walkFileData(api.input('storageEntryId'), {}, async (rows) => {
+  // Validate and persist this batch before processing the next one.
+  processed += rows.length;
+}, { batchSize: 2000, readBatchSize: 100000 });
+return { processed };
+```
+
+`batchSize` controls callback rows (default 2,000); `readBatchSize` controls the
+source cursor window (default 100,000). Both accept 1–100,000 in the final options
+argument. The source uses the existing streaming iterator and small transfers;
+it does not collect the whole window before invoking callbacks. Callback batches
+can span source windows, and cancellation or callback failure closes active streams.
+For XLSX, pass `sheet` in the read
+options; otherwise the first visible worksheet is used. For XML, pass `recordPath`.
+Select `columns` when only part of each record is needed. Source replacement
+fails the walk, and callback errors are propagated without automatic retries.
+Keep only aggregates in memory. A restarted import should use idempotent writes.
+This callback API runs inside low-code; external SDK callers can execute a
+low-code script rather than serialize a callback through runtime-call.
 
 Binary `getFileData()` returns base64. Direct binary reads are limited to 10 MiB. For a larger object, request `buffer: true` with byte `start`/`end` ranges of at most 10 MiB, use `getDownload()`, or stream the entry to HTTP.
 

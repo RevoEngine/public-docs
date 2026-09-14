@@ -7,10 +7,11 @@ This repository contains the public RevoEngine documentation built with the curr
 Requirements: Node.js 20 or newer.
 
 ```bash
-npx mint@latest dev
+npm run dev
 ```
 
-The preview is available at `http://localhost:3000`.
+The preview is available at `http://localhost:3010`. If port 3010 is occupied,
+the command exits instead of starting on another port.
 
 ## Quality checks
 

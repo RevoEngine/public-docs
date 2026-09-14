@@ -16819,40 +16819,6 @@
         ]
       }
     },
-    "/api/v1/assistant/threads/preflight": {
-      "post": {
-        "description": "Create an empty assistant thread and hidden draft user message for direct attachment uploads before final send.",
-        "operationId": "AssistantController_createThreadPreflight",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateThreadPreflightDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Draft thread and hidden draft message created."
-          },
-          "403": {
-            "description": "Forbidden."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create attachment preflight thread.",
-        "tags": [
-          "Assistant"
-        ]
-      }
-    },
     "/api/v1/assistant/threads/stream": {
       "post": {
         "description": "Create a new thread and stream assistant output as server-sent events.",
@@ -17121,158 +17087,6 @@
           }
         ],
         "summary": "Send message to a thread.",
-        "tags": [
-          "Assistant"
-        ]
-      }
-    },
-    "/api/v1/assistant/threads/{id}/messages/preflight": {
-      "post": {
-        "description": "Create a hidden draft user message for direct attachment uploads before final send.",
-        "operationId": "AssistantController_createMessagePreflight",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Hidden draft message created."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "Thread not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create attachment preflight message.",
-        "tags": [
-          "Assistant"
-        ]
-      }
-    },
-    "/api/v1/assistant/threads/{id}/upload": {
-      "post": {
-        "description": "Upload to the canonical hidden draft message for a DRAFT assistant thread. V1 accepts only png, jpeg, and webp images up to 10MB.",
-        "operationId": "AssistantController_uploadThreadAttachment",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "description": "Assistant message attachment upload.",
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "file"
-                ],
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "Image file payload sent as multipart form-data."
-                  },
-                  "detail": {
-                    "type": "string",
-                    "enum": [
-                      "auto",
-                      "low",
-                      "high"
-                    ],
-                    "description": "Optional image processing detail hint."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Attachment uploaded."
-          },
-          "400": {
-            "description": "Unsupported mime type, oversized file, or invalid draft state."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "Thread or draft message not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Upload assistant thread draft attachment.",
-        "tags": [
-          "Assistant"
-        ]
-      }
-    },
-    "/api/v1/assistant/threads/{id}/upload/{storageEntryId}": {
-      "delete": {
-        "description": "Remove an attachment from the canonical hidden draft message for a DRAFT assistant thread and delete the hidden storage entry.",
-        "operationId": "AssistantController_deleteThreadAttachment",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "storageEntryId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Attachment removed."
-          },
-          "400": {
-            "description": "Attachment cannot be removed from a non-draft thread."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "Thread, draft message, or attachment not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Remove assistant thread draft attachment.",
         "tags": [
           "Assistant"
         ]
@@ -20955,7 +20769,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.3",
+    "version": "1.5.4",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21094,7 +20908,7 @@
         "properties": {
           "publishedAt": {
             "type": "string",
-            "example": "2026-09-13T00:00:00.000Z",
+            "example": "2026-09-14T00:00:00.000Z",
             "format": "date-time"
           },
           "showInApp": {
@@ -21103,13 +20917,13 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.3"
+            "example": "What’s new in RevoEngine 1.5.4"
           },
           "highlights": {
             "example": [
-              "Stricter validation rules with structured issues and compatible defaults",
-              "Opt-in job-failure notifications with direct job references",
-              "Bounded Database walks and more detailed operational Logs"
+              "Reusable Assistant files and native PDF/DOCX text reading",
+              "Streaming full-file processing with configurable batches",
+              "Clearer operation recovery and notification preferences"
             ],
             "type": "array",
             "items": {
@@ -21118,7 +20932,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.3",
+            "example": "https://docs.revoengine.com/changelog/1.5.4",
             "format": "uri"
           }
         },
@@ -21135,7 +20949,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.3"
+            "example": "1.5.4"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21151,7 +20965,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.3"
+            "example": "1.5.4"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21240,6 +21054,11 @@
             "type": "string",
             "description": "Stores the preferred application appearance theme identifier.",
             "example": "system"
+          },
+          "chatEmailEnabled": {
+            "type": "boolean",
+            "description": "Enables email delivery for System messages and unread chat digests.",
+            "example": true
           },
           "assistant": {
             "description": "Assistant-specific UI preferences stored on the global account.",
@@ -28174,94 +27993,6 @@
           "content"
         ]
       },
-      "CreateThreadPreflightDto": {
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "description": "Optional assistant runtime selector. v2 routes the draft thread through agent-gateway. v1 is expired and rejected.",
-            "enum": [
-              "v1",
-              "v2"
-            ],
-            "default": "v2"
-          },
-          "model": {
-            "type": "string",
-            "description": "Optional execution model identifier enabled for this instance."
-          },
-          "fastMode": {
-            "type": "boolean",
-            "description": "Optional GPT-5.6 Luna Fast mode for the draft thread. The backend rejects enabling it for any other model.",
-            "default": false
-          },
-          "reasoningEffort": {
-            "type": "string",
-            "description": "Optional assistant reasoning effort for the draft thread: low, medium, high, or xhigh. Defaults to low.",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "xhigh"
-            ]
-          },
-          "reasoning": {
-            "type": "string",
-            "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "xhigh"
-            ]
-          },
-          "executionMode": {
-            "type": "string",
-            "description": "Execution mode to persist on the draft thread.",
-            "enum": [
-              "interactive",
-              "execute",
-              "background",
-              "automation"
-            ],
-            "default": "interactive"
-          },
-          "planningPolicy": {
-            "type": "string",
-            "description": "Planning policy to persist on the draft thread.",
-            "enum": [
-              "standard",
-              "review_required"
-            ],
-            "default": "standard"
-          },
-          "permissions": {
-            "type": "string",
-            "description": "Per-turn approval policy for the eventual first turn. default requires approval for side-effecting tool calls, auto_review uses conditional safe auto-review, and full skips normal approval gates.",
-            "enum": [
-              "default",
-              "auto_review",
-              "full"
-            ],
-            "default": "default"
-          },
-          "toolNames": {
-            "description": "Optional allowlist of operational tool names for the eventual first turn. Omit to allow the gateway default surface; pass an empty array to admit no tools for direct-answer turns.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pluginIds": {
-            "description": "Optional registry plugin ids attached to the draft thread and inherited by the first send when omitted there.",
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        }
-      },
       "CreateMessageDto": {
         "type": "object",
         "properties": {
@@ -28436,6 +28167,15 @@
       "ResolveActionRequiredDto": {
         "type": "object",
         "properties": {
+          "storageEntryIds": {
+            "maxItems": 8,
+            "description": "Finalized Storage files linked to this action response.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
           "actionVersion": {
             "type": "number",
             "description": "Optimistic action version used as the idempotency key together with the action id.",
