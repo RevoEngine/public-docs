@@ -239,6 +239,7 @@
               {
                 "group": "1.5.x",
                 "pages": [
+                  "changelog/1.5.5",
                   "changelog/1.5.4",
                   "changelog/1.5.3",
                   "changelog/1.5.2",
