@@ -1095,12 +1095,19 @@ declare class api {
   static getIdempotencyKey(key: string): Promise<any>;
 
   /**
-     * Releases an idempotency key.
+     * Deletes an idempotency key unconditionally, allowing another attempt to acquire it.
      *
      * Notes:
+     * - This does not roll back business effects and does not check an ownership token.
+     * - Release for retry only when no business effect occurred (or rollback is confirmed),
+     *   and the key still belongs to this attempt. Retain it when the outcome is uncertain.
+     * - Never release in a generic catch/finally merely because processing threw or timed out:
+     *   a partial effect or committed operation could then be executed twice.
+     * - A late cleanup after TTL expiry may delete a key acquired by another worker.
      * - No-op in debug mode.
      *
      * Example:
+     * // This attempt acquired the key, no business operation started, and the key has not expired.
      * await api.releaseIdempotencyKey('orders:123');
      */
   static releaseIdempotencyKey(key: string): Promise<void>;
@@ -1109,6 +1116,10 @@ declare class api {
      * Acquires an instance-scoped concurrency token.
      *
      * Notes:
+     * - Returns whether admission succeeded; ttl is in seconds.
+     * - Each successful admission acquires one slot. Release it exactly once with releaseConcurrencyLimit.
+     * - TTL applies to the shared counter and is refreshed on successful admission; it is not a per-worker lease.
+     *   Processing must finish before expiry. There is no ownership token to protect against late cleanup.
      * - No-op in debug mode.
      *
      * Example:
@@ -1132,7 +1143,7 @@ declare class api {
   static rateLimit(key: string, limit: number, ttl: number): Promise<boolean>;
 
   /**
-     * Releases a rate-limit key.
+     * Resets the entire rate-limit key, including all consumed tokens.
      *
      * Notes:
      * - No-op in debug mode.
@@ -1143,12 +1154,17 @@ declare class api {
   static releaseRateLimit(key: string): Promise<void>;
 
   /**
-     * Releases a concurrency-limit key.
+     * Atomically releases one acquired concurrency slot, preserving slots held by other workers.
      *
      * Notes:
+     * - Decrements the counter by one and deletes the key only when no slots remain. A missing key is a no-op.
+     * - Call exactly once after a successful admission; do not release after admission returned false.
+     * - This key-only API has no ownership token. Duplicate release or cleanup after expiry/reacquisition
+     *   can release another worker's slot. It does not provide an ownership-safe lease.
      * - No-op in debug mode.
      *
      * Example:
+     * // Once, for this worker's successful admission, before the counter expires.
      * await api.releaseConcurrencyLimit('sync:customers');
      */
   static releaseConcurrencyLimit(key: string): Promise<void>;
