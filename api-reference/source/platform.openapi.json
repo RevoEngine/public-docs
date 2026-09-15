@@ -5734,6 +5734,276 @@
             }
           }
         ],
+        "requestBody": {
+          "required": false,
+          "description": "Structured database read request. The server supplies the base from relation, so do not send from. All fields are optional. Input must be JSON-serializable and at most 8388608 UTF-8 bytes. Nested expression/filter validation depends on the selected database schema and cannot be fully represented by static OpenAPI. For view joins, provide a non-empty definition for every joined relation.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "description": "Selected fields and computed expressions. Each entry is a field string or a structured SelectItem (for example { field, as, castAs, distinct }, { fn, args, as }, { jsonValue, as }, { cast, asType, as }, { coalesce, as }, or { case, as }). Field and expression validity is checked against the selected database at runtime.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      ]
+                    },
+                    "example": [
+                      "status",
+                      {
+                        "field": "total",
+                        "as": "amount"
+                      }
+                    ]
+                  },
+                  "joins": {
+                    "type": "array",
+                    "description": "Join clauses and ON predicates. Provide table and on. For a direct database read, the server resolves the joined database definition and checks access; client-supplied definition is ignored. For a view read, a non-empty definition is required in each join. Predicates accept a left/op/right comparison, an array of comparisons, or nested and/or/not groups.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "table",
+                        "on",
+                        "definition"
+                      ],
+                      "properties": {
+                        "table": {
+                          "type": "string",
+                          "description": "Accessible joined database name."
+                        },
+                        "alias": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "inner"
+                          ]
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "sourceFields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "definition": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/DatabaseDefinition"
+                          }
+                        },
+                        "on": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": true
+                            },
+                            {
+                              "type": "array",
+                              "items": {}
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    "example": [
+                      {
+                        "table": "customers",
+                        "alias": "c",
+                        "type": "left",
+                        "on": {
+                          "left": "orders.customer_id",
+                          "op": "=",
+                          "right": "c.id"
+                        }
+                      }
+                    ]
+                  },
+                  "filter": {
+                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Query limits: 16 levels, 1000 nodes, 100000 array values.",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      {
+                        "type": "array",
+                        "items": {}
+                      }
+                    ],
+                    "example": {
+                      "and": [
+                        {
+                          "field": "status",
+                          "op": "eq",
+                          "value": "OPEN"
+                        },
+                        {
+                          "field": "total",
+                          "op": "gte",
+                          "value": 100
+                        }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "description": "Sort by field name. Use an object mapping field names to ASC/DESC (case-insensitive) or an array of field names, prefixing descending fields with \"-\"; field names and aliases are validated at runtime.",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string",
+                          "enum": [
+                            "ASC",
+                            "DESC",
+                            "asc",
+                            "desc"
+                          ]
+                        }
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "example": {
+                      "createdAt": "DESC"
+                    }
+                  },
+                  "groupBy": {
+                    "type": "array",
+                    "description": "Field references or selected aliases used for grouping; validated against the query projection.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "status"
+                    ]
+                  },
+                  "cast": {
+                    "type": "object",
+                    "description": "Per-field database type overrides. Keys are field references; values are DatabaseDefinitionType constants.",
+                    "additionalProperties": {
+                      "type": "string",
+                      "enum": [
+                        "SMALLINT",
+                        "INTEGER",
+                        "BIGINT",
+                        "REAL",
+                        "DOUBLE PRECISION",
+                        "NUMERIC",
+                        "JSON",
+                        "JSONB",
+                        "TEXT",
+                        "UUID",
+                        "DATE",
+                        "TIME",
+                        "TIMETZ",
+                        "TIMESTAMP",
+                        "TIMESTAMPTZ",
+                        "BOOLEAN"
+                      ]
+                    },
+                    "example": {
+                      "total": "NUMERIC"
+                    }
+                  },
+                  "take": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Maximum returned rows. Non-negative integer; zero or omission means no SQL LIMIT, not a default page size.",
+                    "example": 100
+                  },
+                  "skip": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of rows to skip. Non-negative integer.",
+                    "example": 0
+                  },
+                  "count": {
+                    "type": "boolean",
+                    "description": "Include a count with query results. With take=0, the query may use count-only mode.",
+                    "example": false
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Request query debug information when available to the caller.",
+                    "example": false
+                  },
+                  "with": {
+                    "type": "array",
+                    "description": "Common table expressions. Each entry needs a name and a full query with its own from definition; nested CTE references and query fields are validated at runtime.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "query"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "query": {
+                          "type": "object",
+                          "required": [
+                            "from"
+                          ],
+                          "additionalProperties": true
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  },
+                  "rawWhere": {
+                    "type": "array",
+                    "description": "Advanced raw SQL WHERE fragments. Each fragment requires SQL text; {0}, {1}, etc. bind values from params. The SQL text itself is not structurally validated by the SelectInput DSL validator; use only trusted SQL and never interpolate untrusted values.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "sql"
+                      ],
+                      "properties": {
+                        "sql": {
+                          "type": "string"
+                        },
+                        "params": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  },
+                  "dialect": {
+                    "type": "string",
+                    "enum": [
+                      "postgres",
+                      "bigquery"
+                    ],
+                    "description": "Query dialect supported by the selected backend; the runtime determines whether the requested dialect is available."
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -7144,6 +7414,275 @@
             }
           }
         ],
+        "requestBody": {
+          "required": false,
+          "description": "Structured database read request. The server supplies the base from relation, so do not send from. All fields are optional. Input must be JSON-serializable and at most 8388608 UTF-8 bytes. Nested expression/filter validation depends on the selected database schema and cannot be fully represented by static OpenAPI.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "description": "Selected fields and computed expressions. Each entry is a field string or a structured SelectItem (for example { field, as, castAs, distinct }, { fn, args, as }, { jsonValue, as }, { cast, asType, as }, { coalesce, as }, or { case, as }). Field and expression validity is checked against the selected database at runtime.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      ]
+                    },
+                    "example": [
+                      "status",
+                      {
+                        "field": "total",
+                        "as": "amount"
+                      }
+                    ]
+                  },
+                  "joins": {
+                    "type": "array",
+                    "description": "Join clauses and ON predicates. Provide table and on. For a direct database read, the server resolves the joined database definition and checks access; client-supplied definition is ignored. For a view read, a non-empty definition is required in each join. Predicates accept a left/op/right comparison, an array of comparisons, or nested and/or/not groups.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "table",
+                        "on"
+                      ],
+                      "properties": {
+                        "table": {
+                          "type": "string",
+                          "description": "Accessible joined database name."
+                        },
+                        "alias": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "inner"
+                          ]
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "sourceFields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "definition": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/DatabaseDefinition"
+                          }
+                        },
+                        "on": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": true
+                            },
+                            {
+                              "type": "array",
+                              "items": {}
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    "example": [
+                      {
+                        "table": "customers",
+                        "alias": "c",
+                        "type": "left",
+                        "on": {
+                          "left": "orders.customer_id",
+                          "op": "=",
+                          "right": "c.id"
+                        }
+                      }
+                    ]
+                  },
+                  "filter": {
+                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Query limits: 16 levels, 1000 nodes, 100000 array values.",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": true
+                      },
+                      {
+                        "type": "array",
+                        "items": {}
+                      }
+                    ],
+                    "example": {
+                      "and": [
+                        {
+                          "field": "status",
+                          "op": "eq",
+                          "value": "OPEN"
+                        },
+                        {
+                          "field": "total",
+                          "op": "gte",
+                          "value": 100
+                        }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "description": "Sort by field name. Use an object mapping field names to ASC/DESC (case-insensitive) or an array of field names, prefixing descending fields with \"-\"; field names and aliases are validated at runtime.",
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string",
+                          "enum": [
+                            "ASC",
+                            "DESC",
+                            "asc",
+                            "desc"
+                          ]
+                        }
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "example": {
+                      "createdAt": "DESC"
+                    }
+                  },
+                  "groupBy": {
+                    "type": "array",
+                    "description": "Field references or selected aliases used for grouping; validated against the query projection.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "status"
+                    ]
+                  },
+                  "cast": {
+                    "type": "object",
+                    "description": "Per-field database type overrides. Keys are field references; values are DatabaseDefinitionType constants.",
+                    "additionalProperties": {
+                      "type": "string",
+                      "enum": [
+                        "SMALLINT",
+                        "INTEGER",
+                        "BIGINT",
+                        "REAL",
+                        "DOUBLE PRECISION",
+                        "NUMERIC",
+                        "JSON",
+                        "JSONB",
+                        "TEXT",
+                        "UUID",
+                        "DATE",
+                        "TIME",
+                        "TIMETZ",
+                        "TIMESTAMP",
+                        "TIMESTAMPTZ",
+                        "BOOLEAN"
+                      ]
+                    },
+                    "example": {
+                      "total": "NUMERIC"
+                    }
+                  },
+                  "take": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Maximum returned rows. Non-negative integer; zero or omission means no SQL LIMIT, not a default page size.",
+                    "example": 100
+                  },
+                  "skip": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of rows to skip. Non-negative integer.",
+                    "example": 0
+                  },
+                  "count": {
+                    "type": "boolean",
+                    "description": "Include a count with query results. With take=0, the query may use count-only mode.",
+                    "example": false
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Request query debug information when available to the caller.",
+                    "example": false
+                  },
+                  "with": {
+                    "type": "array",
+                    "description": "Common table expressions. Each entry needs a name and a full query with its own from definition; nested CTE references and query fields are validated at runtime.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "query"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "query": {
+                          "type": "object",
+                          "required": [
+                            "from"
+                          ],
+                          "additionalProperties": true
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  },
+                  "rawWhere": {
+                    "type": "array",
+                    "description": "Advanced raw SQL WHERE fragments. Each fragment requires SQL text; {0}, {1}, etc. bind values from params. The SQL text itself is not structurally validated by the SelectInput DSL validator; use only trusted SQL and never interpolate untrusted values.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "sql"
+                      ],
+                      "properties": {
+                        "sql": {
+                          "type": "string"
+                        },
+                        "params": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  },
+                  "dialect": {
+                    "type": "string",
+                    "enum": [
+                      "postgres",
+                      "bigquery"
+                    ],
+                    "description": "Query dialect supported by the selected backend; the runtime determines whether the requested dialect is available."
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -8106,6 +8645,9 @@
                   "ai.plugins.default": {
                     "pluginIds": [],
                     "instructions": "Prefer governed tenant plugins when they match the request."
+                  },
+                  "ai.feature.flags": {
+                    "enabled": []
                   },
                   "ai.memory.policy": {
                     "enabled": true,
@@ -20675,6 +21217,138 @@
         ]
       }
     },
+    "/api/v1/agent/plugins/{agentPluginId}/icon-url": {
+      "patch": {
+        "operationId": "AgentPluginController_setIconUrl",
+        "parameters": [
+          {
+            "name": "agentPluginId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentPluginIconUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set a public HTTPS icon URL for an agent plugin or package.",
+        "tags": [
+          "Agent Plugins"
+        ]
+      }
+    },
+    "/api/v1/agent/plugins/{agentPluginId}/upload-icon": {
+      "post": {
+        "description": "Upload an image up to 5 MiB and replace the plugin icon using its current version.",
+        "operationId": "AgentPluginController_uploadIcon",
+        "parameters": [
+          {
+            "name": "agentPluginId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "version"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload an agent plugin icon.",
+        "tags": [
+          "Agent Plugins"
+        ]
+      }
+    },
+    "/api/v1/agent/plugins/{agentPluginId}/clear-icon": {
+      "post": {
+        "operationId": "AgentPluginController_clearIcon",
+        "parameters": [
+          {
+            "name": "agentPluginId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentPluginIconClearDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear an agent plugin icon.",
+        "tags": [
+          "Agent Plugins"
+        ]
+      }
+    },
     "/api/v1/agent/plugins/{agentPluginId}/test": {
       "post": {
         "description": "Runs provider-specific validation for an agent plugin without enabling it for normal runtime use.",
@@ -20769,7 +21443,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.4",
+    "version": "1.5.5",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -20917,13 +21591,13 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.4"
+            "example": "What’s new in RevoEngine 1.5.5"
           },
           "highlights": {
             "example": [
-              "Reusable Assistant files and native PDF/DOCX text reading",
-              "Streaming full-file processing with configurable batches",
-              "Clearer operation recovery and notification preferences"
+              "Clearer Assistant activity, approvals and resumable conversations",
+              "Governed plugins with icons and explicit side-effect policies",
+              "Low-code streaming and clearer execution outcomes"
             ],
             "type": "array",
             "items": {
@@ -20932,7 +21606,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.4",
+            "example": "https://docs.revoengine.com/changelog/1.5.5",
             "format": "uri"
           }
         },
@@ -20949,7 +21623,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.4"
+            "example": "1.5.5"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -20965,7 +21639,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.4"
+            "example": "1.5.5"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21802,7 +22476,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional component binding mode: omit to follow the latest active low-code component version, or set an exact integer to pin a stable rollout. For a new endpoint, choose this behavior explicitly. CUSTOM_NODEJS endpoints always execute the component active runtime revision and must omit this field."
+            "description": "The optional componentVersion field remains available. A new endpoint defaults to the latest active low-code component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin. CUSTOM_NODEJS endpoints always execute the component active runtime revision and must omit this field."
           },
           "timeout": {
             "type": "number",
@@ -21875,7 +22549,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional component binding mode: omit to follow the latest active component version, or set an exact integer to retain or introduce a deliberate pin. Do not change an existing binding mode without an explicit compatibility decision."
+            "description": "Omit componentVersion on update to preserve the existing latest or pinned binding. Set an exact non-negative integer only when the user explicitly requests a pinned version."
           },
           "timeout": {
             "type": "number",
@@ -22052,7 +22726,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name is only used for the presentation.",
+            "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). At most one active, non-deleted library of either type may have this name; inspect existing active libraries before creating an active one. Inactive libraries may share a name.",
             "minLength": 1,
             "maxLength": 60
           },
@@ -22075,7 +22749,7 @@
           },
           "active": {
             "type": "boolean",
-            "description": "Activate upon creation."
+            "description": "Activate upon creation. If type is CODE_JS_LIB or CODE_TS_LIB and active is true, no other active, non-deleted library of either library type may have the same name."
           },
           "async": {
             "type": "boolean",
@@ -22100,7 +22774,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name is only used for the presentation.",
+            "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). An active, non-deleted library cannot be renamed to the name of another active, non-deleted library of either library type; inactive libraries may share a name.",
             "minLength": 1,
             "maxLength": 60
           },
@@ -22119,7 +22793,7 @@
           },
           "version": {
             "type": "number",
-            "description": "Version."
+            "description": "Current component version for optimistic concurrency; fetch the component before updating and send the version returned by the API."
           }
         },
         "required": [
@@ -22628,7 +23302,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Label is only used for the presentation.",
+            "description": "Globally unique group name within the instance, including soft-deleted groups, whose names remain reserved. It cannot be a UUID; check for an existing group with this exact name before creation.",
             "example": "Operations"
           },
           "category": {
@@ -22661,12 +23335,12 @@
           },
           "ownerId": {
             "type": "string",
-            "description": "Owning user or group id that governs this group.",
+            "description": "Owning user or group id that governs this group. Must identify an existing owner of the type given by ownerType; provide both fields together.",
             "example": "22222222-2222-4222-8222-222222222222"
           },
           "ownerType": {
             "type": "string",
-            "description": "Owner principal type for the governing `ownerId`.",
+            "description": "Owner principal type for the governing ownerId. Provide a matching existing ownerId.",
             "example": "USER",
             "enum": [
               "USER",
@@ -22685,7 +23359,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Updated group display name.",
+            "description": "Updated group name. Names are globally unique within the instance, including soft-deleted groups, whose names remain reserved, and cannot be UUIDs; check whether another group already has the requested name.",
             "example": "Operations"
           },
           "category": {
@@ -22712,17 +23386,181 @@
           },
           "ownerId": {
             "type": "string",
-            "description": "Replacement owner id for the group.",
+            "description": "Replacement owner id. If changing the owner, provide an existing owner; ownerId and ownerType are interpreted together, with an omitted field retaining its current value.",
             "example": "33333333-3333-4333-8333-333333333333"
           },
           "ownerType": {
             "type": "string",
-            "description": "Replacement owner principal type.",
+            "description": "Replacement owner principal type. ownerId and ownerType are interpreted together, with an omitted field retaining its current value.",
             "example": "USER"
           }
         },
         "required": [
           "version"
+        ]
+      },
+      "DatabaseDefinitionForeignReference": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": "Column.",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "targetDatabase": {
+            "type": "string",
+            "description": "Target database.",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "targetColumn": {
+            "type": "string",
+            "description": "Target column.",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "column",
+          "targetDatabase",
+          "targetColumn"
+        ]
+      },
+      "DatabaseDefinitionForeignReferences": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "description": "You need to specify reference type [SMALLINT,INTEGER,BIGINT,REAL,DOUBLE PRECISION,NUMERIC,JSON,JSONB,TEXT,UUID,DATE,TIME,TIMETZ,TIMESTAMP,TIMESTAMPTZ,BOOLEAN].",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseDefinitionForeignReference"
+            }
+          },
+          "onUpdate": {
+            "type": "string",
+            "description": "You need to specify what happen on update of referenced table data, \"none\" will raise an error if there are records existing in this table that reference it.",
+            "enum": [
+              "none",
+              "cascade",
+              "restrict"
+            ]
+          },
+          "onDelete": {
+            "type": "string",
+            "description": "You need to specify what happen on update of referenced table data, \"none\" will raise an error if there are records existing in this table that reference it.",
+            "enum": [
+              "none",
+              "cascade",
+              "restrict",
+              "default",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "reference",
+          "onUpdate",
+          "onDelete"
+        ]
+      },
+      "DatabaseDefinition": {
+        "type": "object",
+        "properties": {
+          "databaseDefinitionId": {
+            "type": "string",
+            "description": "Column id, required only for update."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name.",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "desc": {
+            "type": "string",
+            "description": "Description.",
+            "nullable": true,
+            "maxLength": 200
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Optional column metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "type": {
+            "type": "string",
+            "description": "You need to specify type [SMALLINT,INTEGER,BIGINT,REAL,DOUBLE PRECISION,NUMERIC,JSON,JSONB,TEXT,UUID,DATE,TIME,TIMETZ,TIMESTAMP,TIMESTAMPTZ,BOOLEAN].",
+            "enum": [
+              "SMALLINT",
+              "INTEGER",
+              "BIGINT",
+              "REAL",
+              "DOUBLE PRECISION",
+              "NUMERIC",
+              "JSON",
+              "JSONB",
+              "TEXT",
+              "UUID",
+              "DATE",
+              "TIME",
+              "TIMETZ",
+              "TIMESTAMP",
+              "TIMESTAMPTZ",
+              "BOOLEAN"
+            ]
+          },
+          "isPrimaryKey": {
+            "type": "boolean",
+            "description": "Provide if this column is primary key."
+          },
+          "isArray": {
+            "type": "boolean",
+            "description": "Provide if this column is array of provided type, primary keys cannot be arrays."
+          },
+          "isUnique": {
+            "type": "boolean",
+            "description": "Provide if this column should contain only unique values for entire table."
+          },
+          "isNullable": {
+            "type": "boolean",
+            "description": "Provide if this column should can contain NULL values or not."
+          },
+          "isIndex": {
+            "type": "boolean",
+            "description": "Provide if this column should should be index."
+          },
+          "default": {
+            "description": "Default: boolean, number, string",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "nullable": true
+          },
+          "foreignReferences": {
+            "description": "Foreign references to other database definitions.",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseDefinitionForeignReferences"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "isPrimaryKey",
+          "isArray",
+          "isUnique",
+          "isNullable",
+          "isIndex"
         ]
       },
       "DatabaseViewPreviewDto": {
@@ -23454,170 +24292,6 @@
         },
         "required": [
           "data"
-        ]
-      },
-      "DatabaseDefinitionForeignReference": {
-        "type": "object",
-        "properties": {
-          "column": {
-            "type": "string",
-            "description": "Column.",
-            "minLength": 1,
-            "maxLength": 63
-          },
-          "targetDatabase": {
-            "type": "string",
-            "description": "Target database.",
-            "minLength": 1,
-            "maxLength": 63
-          },
-          "targetColumn": {
-            "type": "string",
-            "description": "Target column.",
-            "minLength": 1,
-            "maxLength": 63
-          }
-        },
-        "required": [
-          "column",
-          "targetDatabase",
-          "targetColumn"
-        ]
-      },
-      "DatabaseDefinitionForeignReferences": {
-        "type": "object",
-        "properties": {
-          "reference": {
-            "description": "You need to specify reference type [SMALLINT,INTEGER,BIGINT,REAL,DOUBLE PRECISION,NUMERIC,JSON,JSONB,TEXT,UUID,DATE,TIME,TIMETZ,TIMESTAMP,TIMESTAMPTZ,BOOLEAN].",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DatabaseDefinitionForeignReference"
-            }
-          },
-          "onUpdate": {
-            "type": "string",
-            "description": "You need to specify what happen on update of referenced table data, \"none\" will raise an error if there are records existing in this table that reference it.",
-            "enum": [
-              "none",
-              "cascade",
-              "restrict"
-            ]
-          },
-          "onDelete": {
-            "type": "string",
-            "description": "You need to specify what happen on update of referenced table data, \"none\" will raise an error if there are records existing in this table that reference it.",
-            "enum": [
-              "none",
-              "cascade",
-              "restrict",
-              "default",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "reference",
-          "onUpdate",
-          "onDelete"
-        ]
-      },
-      "DatabaseDefinition": {
-        "type": "object",
-        "properties": {
-          "databaseDefinitionId": {
-            "type": "string",
-            "description": "Column id, required only for update."
-          },
-          "name": {
-            "type": "string",
-            "description": "Name.",
-            "minLength": 1,
-            "maxLength": 63
-          },
-          "desc": {
-            "type": "string",
-            "description": "Description.",
-            "nullable": true,
-            "maxLength": 200
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Optional column metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
-          },
-          "type": {
-            "type": "string",
-            "description": "You need to specify type [SMALLINT,INTEGER,BIGINT,REAL,DOUBLE PRECISION,NUMERIC,JSON,JSONB,TEXT,UUID,DATE,TIME,TIMETZ,TIMESTAMP,TIMESTAMPTZ,BOOLEAN].",
-            "enum": [
-              "SMALLINT",
-              "INTEGER",
-              "BIGINT",
-              "REAL",
-              "DOUBLE PRECISION",
-              "NUMERIC",
-              "JSON",
-              "JSONB",
-              "TEXT",
-              "UUID",
-              "DATE",
-              "TIME",
-              "TIMETZ",
-              "TIMESTAMP",
-              "TIMESTAMPTZ",
-              "BOOLEAN"
-            ]
-          },
-          "isPrimaryKey": {
-            "type": "boolean",
-            "description": "Provide if this column is primary key."
-          },
-          "isArray": {
-            "type": "boolean",
-            "description": "Provide if this column is array of provided type, primary keys cannot be arrays."
-          },
-          "isUnique": {
-            "type": "boolean",
-            "description": "Provide if this column should contain only unique values for entire table."
-          },
-          "isNullable": {
-            "type": "boolean",
-            "description": "Provide if this column should can contain NULL values or not."
-          },
-          "isIndex": {
-            "type": "boolean",
-            "description": "Provide if this column should should be index."
-          },
-          "default": {
-            "description": "Default: boolean, number, string",
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "nullable": true
-          },
-          "foreignReferences": {
-            "description": "Foreign references to other database definitions.",
-            "nullable": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DatabaseDefinitionForeignReferences"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "type",
-          "isPrimaryKey",
-          "isArray",
-          "isUnique",
-          "isNullable",
-          "isIndex"
         ]
       },
       "DatabaseReadDto": {
@@ -26747,6 +27421,13 @@
             "example": 120,
             "minimum": 1,
             "maximum": 86400
+          },
+          "retryDelaySeconds": {
+            "type": "number",
+            "description": "Delay in seconds before retrying a job waiting for a concurrency slot. Defaults to 30.",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 3600
           }
         }
       },
@@ -26871,7 +27552,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Unique display name of the job template. Direct triggers may resolve the template by this exact name.",
+            "description": "Globally unique job-template name within the instance. Check for an existing template with this exact name before creation; direct triggers may also resolve the template by name.",
             "example": "Nightly sync"
           },
           "category": {
@@ -26898,7 +27579,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional component binding mode: omit to follow the latest active version, or set an exact integer to pin a stable rollout. For a new template, choose this behavior explicitly.",
+            "description": "The optional componentVersion field remains available. A new template defaults to the latest active component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin.",
             "example": 3
           },
           "timeout": {
@@ -26985,7 +27666,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Unique display name. Direct triggers may resolve the template by this exact name."
+            "description": "Globally unique job-template name within the instance. Check for another template with this exact name before renaming; direct triggers may also resolve the template by name."
           },
           "category": {
             "type": "string",
@@ -27005,7 +27686,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional component binding mode: omit to follow the latest active version, or set an exact integer to retain or introduce a deliberate pin. Do not change an existing binding mode without an explicit compatibility decision."
+            "description": "Omit componentVersion on update to preserve the existing latest or pinned binding. Set an exact non-negative integer only when the user explicitly requests a pinned version."
           },
           "timeout": {
             "type": "number",
@@ -28157,6 +28838,11 @@
       "AssistantStreamOptionsDto": {
         "type": "object",
         "properties": {
+          "resume": {
+            "type": "boolean",
+            "default": false,
+            "description": "On message retry routes, resume the unfinished conversation without hiding previous results or replaying completed effects."
+          },
           "backgroundProcessing": {
             "type": "boolean",
             "description": "Allow the Assistant turn to continue after the client disconnects. Defaults to false unless the operation states otherwise.",
@@ -28645,6 +29331,11 @@
               "external",
               "execute"
             ]
+          },
+          "condition": {
+            "type": "string",
+            "description": "Required for conditional mode: a verifiable constraint RevoShield must confirm in addition to user authorization.",
+            "maxLength": 2000
           }
         }
       },
@@ -30855,6 +31546,11 @@
               "external",
               "execute"
             ]
+          },
+          "condition": {
+            "type": "string",
+            "description": "Required for conditional mode: a verifiable constraint RevoShield must confirm in addition to user authorization.",
+            "maxLength": 2000
           }
         }
       },
@@ -30924,7 +31620,7 @@
           },
           "componentVersion": {
             "type": "number",
-            "description": "Optional component binding mode for tools plugins: omit to follow the latest active component version, or set an exact integer to pin a stable rollout. Choose this behavior explicitly for a new tool. Forbidden for MCP server plugins.",
+            "description": "The optional componentVersion field remains available for tools plugins. A new tool defaults to the latest active component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin. Forbidden for MCP server plugins.",
             "minimum": 0
           },
           "componentToolset": {
@@ -31080,6 +31776,11 @@
               "external",
               "execute"
             ]
+          },
+          "condition": {
+            "type": "string",
+            "description": "Required for conditional mode: a verifiable constraint RevoShield must confirm in addition to user authorization.",
+            "maxLength": 2000
           }
         }
       },
@@ -31276,6 +31977,38 @@
             "description": "Updated active flag used to gate runtime attachment."
           }
         }
+      },
+      "AgentPluginIconUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTPS image URL. Browser-only; the API does not fetch it.",
+            "format": "uri"
+          },
+          "version": {
+            "type": "number",
+            "description": "Current plugin version.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "url",
+          "version"
+        ]
+      },
+      "AgentPluginIconClearDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "description": "Current plugin version.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "version"
+        ]
       }
     }
   },

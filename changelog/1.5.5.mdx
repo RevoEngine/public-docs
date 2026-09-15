@@ -35,7 +35,7 @@ Tools can declare their mutation intent, reversibility, target scope and side-ef
   </Accordion>
   <Accordion title="Extend low-code integration workflows">
 
-Enhanced low-code capabilities add read-only declaration discovery for the editor's available APIs. Discovery can be requested in bounded batches, keeps command output compact and does not expose declaration tooling as ordinary Assistant conversation content. The capability is controlled by the instance's AI feature settings, so administrators can keep the existing behavior when the enhanced workflow is not wanted.
+Enhanced low-code capabilities add read-only declaration discovery for the editor's available APIs. Discovery can be requested in bounded batches, keeps command output compact and does not expose declaration tooling as ordinary Assistant conversation content. The command-based experiment is disabled by default and can be enabled explicitly in the instance AI feature settings. The standard declaration tool has improved typed-symbol indexing and search, with full private audit evidence and no declaration-tool activity in the visible conversation.
 
 Low-code HTTP calls can also consume incremental responses as byte streams or server-sent events, while existing JSON, text, binary and Storage response modes remain available. These modes are intended for workflows that can process data progressively; applications should still define their own completion, retry and idempotency behavior when an upstream operation has an uncertain result.
 
