@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **76 methods**. Search the docs for an exact method name, or use this index:
+This page contains **73 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
@@ -83,9 +83,6 @@ This page contains **76 methods**. Search the docs for an exact method name, or 
 - [`api.httpCall()`](#api-httpCall)
 - [`api.httpCall()`](#api-httpCall)
 - [`api.httpCall()`](#api-httpCall)
-- [`api.sftpExec()`](#api-sftpExec)
-- [`api.sftpPut()`](#api-sftpPut)
-- [`api.sftpGet()`](#api-sftpGet)
 
 <span id="api-createDatabase" aria-hidden="true"></span>
 
@@ -1773,6 +1770,7 @@ static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterfa
 Performs an outbound HTTP request.
 
 Notes:
+- No-op in debug mode and returns `null`; call `api.disableDebug()` only when this external side effect is intentionally allowed.
 - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
 - Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
@@ -1885,85 +1883,4 @@ await api.httpCall(
     target: { name: 'converted.pdf', contentTypeHint: 'application/pdf' },
   },
 );
-```
-
-<span id="api-sftpExec" aria-hidden="true"></span>
-
-## `api.sftpExec()`
-
-Executes multiple SFTP commands in order.
-
-Notes:
-- No-op in debug mode.
-
-### Signature
-
-```ts
-static sftpExec(commands: any[], config: SFTPClient): Promise<any>;
-```
-### Example
-
-```ts
-await api.sftpExec([['mkdir', '/archive']], connection);
-```
-
-<span id="api-sftpPut" aria-hidden="true"></span>
-
-## `api.sftpPut()`
-
-Streams an Explorer Storage entry directly to SFTP without loading file bytes into low-code memory.
-
-Notes:
-- No-op in debug mode.
-- Prefer &#123; storageEntryId &#125; for Explorer Storage files. String inputs are legacy fileIds.
-- SFTP references use Explorer Storage; namespace is not part of this API.
-
-### Signature
-
-```ts
-static sftpPut(
-      source: SFTPFileSourceRef,
-      path: string,
-      config: SFTPClient,
-    ): Promise<void>;
-```
-### Example
-
-```ts
-await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);
-```
-
-<span id="api-sftpGet" aria-hidden="true"></span>
-
-## `api.sftpGet()`
-
-Streams an SFTP file directly into Explorer Storage and returns the finalized Storage entry.
-
-Notes:
-- No-op in debug mode.
-- Use &#123; storage: ... &#125; to create an entry or &#123; storageEntryId, replace: true &#125; to replace one.
-- Repeated finalization signals are idempotent.
-- For text files, computeStats: 'sync' makes line statistics available immediately.
-
-### Signature
-
-```ts
-static sftpGet(
-      target: SFTPFileTargetRef,
-      path: string,
-      config: SFTPClient,
-    ): Promise<void | { session: StorageUploadSession; entry: StorageEntryView }>;
-```
-### Example
-
-```ts
-const result = await api.sftpGet({
-  storage: {
-    name: 'daily.csv',
-    parentStorageEntryId: folderId,
-    contentTypeHint: 'text/csv',
-    computeStats: 'sync',
-    retention: { ttlSeconds: 604800 },
-  },
-}, '/incoming/report.csv', connection);
 ```

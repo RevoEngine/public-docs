@@ -21443,7 +21443,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.5",
+    "version": "1.5.6",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21591,7 +21591,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.5"
+            "example": "What’s new in RevoEngine 1.5.6"
           },
           "highlights": {
             "example": [
@@ -21606,7 +21606,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.5",
+            "example": "https://docs.revoengine.com/changelog/1.5.6",
             "format": "uri"
           }
         },
@@ -21623,7 +21623,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.5"
+            "example": "1.5.6"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21639,7 +21639,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.5"
+            "example": "1.5.6"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21662,8 +21662,9 @@
         "properties": {
           "hideReasoning": {
             "type": "boolean",
-            "description": "Hides assistant reasoning traces in supported UI surfaces.",
-            "example": true
+            "deprecated": true,
+            "description": "Legacy inverse alias for showProgress. New clients should use showProgress.",
+            "example": false
           },
           "reasoning": {
             "type": "string",
@@ -21734,10 +21735,21 @@
             "description": "Enables email delivery for System messages and unread chat digests.",
             "example": true
           },
+          "notificationEmailAttachmentsEnabled": {
+            "type": "boolean",
+            "description": "Includes downloadable Storage files in notification emails.",
+            "example": true
+          },
+          "notificationEmailAttachmentAvailabilityDays": {
+            "type": "number",
+            "description": "Number of days for which email attachments remain available for download.",
+            "example": 7,
+            "minimum": 1,
+            "maximum": 7
+          },
           "assistant": {
             "description": "Assistant-specific UI preferences stored on the global account.",
             "example": {
-              "hideReasoning": true,
               "reasoning": "medium",
               "workMode": "balanced",
               "persona": "",
@@ -21812,7 +21824,7 @@
             "description": "Partial global app-preferences patch stored on the account and merged with existing values.",
             "example": {
               "assistant": {
-                "hideReasoning": true
+                "showProgress": true
               }
             },
             "allOf": [

@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **51 methods**. Search the docs for an exact method name, or use this index:
+This page contains **46 methods**. Search the docs for an exact method name, or use this index:
 
 - [`agent.list()`](#agent-list)
 - [`agent.get()`](#agent-get)
@@ -34,11 +34,6 @@ This page contains **51 methods**. Search the docs for an exact method name, or 
 - [`agent.listThreads()`](#agent-listThreads)
 - [`agent.getThread()`](#agent-getThread)
 - [`agent.getThreadState()`](#agent-getThreadState)
-- [`agent.getThreadGoal()`](#agent-getThreadGoal)
-- [`agent.setThreadGoal()`](#agent-setThreadGoal)
-- [`agent.pauseThreadGoal()`](#agent-pauseThreadGoal)
-- [`agent.resumeThreadGoal()`](#agent-resumeThreadGoal)
-- [`agent.clearThreadGoal()`](#agent-clearThreadGoal)
 - [`agent.getThreadShare()`](#agent-getThreadShare)
 - [`agent.enableThreadShare()`](#agent-enableThreadShare)
 - [`agent.disableThreadShare()`](#agent-disableThreadShare)
@@ -540,82 +535,6 @@ static getThreadState(
 ```ts
 const state = await agent.getThreadState(assistantThreadId);
 ```
-
-<span id="agent-getThreadGoal" aria-hidden="true"></span>
-
-## `agent.getThreadGoal()`
-
-Returns the current durable goal for a thread, if one exists.
-
-### Signature
-
-```ts
-static getThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal | null>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="agent-setThreadGoal" aria-hidden="true"></span>
-
-## `agent.setThreadGoal()`
-
-Sets or replaces the durable thread goal without appending a user message.
-
-### Signature
-
-```ts
-static setThreadGoal(
-      assistantThreadId: string,
-      data: AssistantThreadGoalInput,
-    ): Promise<AssistantThreadGoal>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="agent-pauseThreadGoal" aria-hidden="true"></span>
-
-## `agent.pauseThreadGoal()`
-
-Pauses goal validation while preserving the objective.
-
-### Signature
-
-```ts
-static pauseThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="agent-resumeThreadGoal" aria-hidden="true"></span>
-
-## `agent.resumeThreadGoal()`
-
-Resumes goal validation for the current objective.
-
-### Signature
-
-```ts
-static resumeThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="agent-clearThreadGoal" aria-hidden="true"></span>
-
-## `agent.clearThreadGoal()`
-
-Clears the current durable goal without changing visible messages.
-
-### Signature
-
-```ts
-static clearThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
 
 <span id="agent-getThreadShare" aria-hidden="true"></span>
 

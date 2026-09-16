@@ -1,0 +1,82 @@
+---
+title: transport reference
+description: Storage-only protocol adapters with Secret-backed connections.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **3 methods**. Search the docs for an exact method name, or use this index:
+
+- [`transport.sftpImport()`](#transport-sftpImport)
+- [`transport.sftpExport()`](#transport-sftpExport)
+- [`transport.sftpCommands()`](#transport-sftpCommands)
+
+<span id="transport-sftpImport" aria-hidden="true"></span>
+
+## `transport.sftpImport()`
+
+Streams a remote path into Storage, then finalizes it using storage.* namespace/ACL rules.
+Uses `transport` Secret formats and optional host-key pinning.
+Automatic execution.log: details.source identifies the call;
+details.error carries code/retryable/resource/reference/statusCode.
+runtimeError may expose the same failure/source metadata.
+
+### Signature
+
+```ts
+static sftpImport(
+      path: string,
+      storage: SFTPImportStorage,
+      secretNameOrId: string,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView }>;
+```
+### Example
+
+```ts
+const imported = await transport.sftpImport('/incoming/daily.csv', {
+  name: 'daily.csv', parentStorageEntryId: folderId, computeStats: 'sync',
+}, 'SFTP_PRODUCTION');
+```
+
+<span id="transport-sftpExport" aria-hidden="true"></span>
+
+## `transport.sftpExport()`
+
+Streams Storage to a remote path using storage.* namespace/ACL rules.
+Automatic execution.log includes details.source, details.error and telemetry.transfer.
+
+### Signature
+
+```ts
+static sftpExport(
+      path: string,
+      storage: SFTPExportStorage,
+      secretNameOrId: string,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await transport.sftpExport('/outgoing/daily.csv', { storageEntryId }, 'SFTP_PRODUCTION');
+```
+
+<span id="transport-sftpCommands" aria-hidden="true"></span>
+
+## `transport.sftpCommands()`
+
+Runs allowed file commands in one leased SFTP session, without a remote shell.
+Automatic execution.log identifies the call in details.source.
+Inspect command errors even when batch HTTP succeeds.
+
+### Signature
+
+```ts
+static sftpCommands(
+      commands: any[],
+      secretNameOrId: string,
+    ): Promise<any>;
+```
+<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>

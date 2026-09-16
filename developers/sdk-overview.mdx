@@ -8,13 +8,14 @@ icon: node-js
 
 - `api` for platform-backed runtime operations;
 - `storage` for folders, objects, upload sessions, and retrieval;
+- `transport` for Secret-backed SFTP imports, exports, and commands;
 - `agents` for Agent and related AI operations permitted by the caller;
 - `utils` for local encoding, hashing, identifiers, and other pure helpers;
 - `execute(code, options)` for transient low-code execution with active `lib.Category.Name.ElementKey.X` exports;
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk
+npm install @revoengine/sdk@1.5.6
 ```
 
 ## Choose a runtime mode
@@ -69,9 +70,11 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 ## Contract behavior
 
-SDK 2.0 requires a platform deployment compatible with its versioned contract. Keep SDK 1.0.1 for older deployments until the platform is upgraded; installing a newer SDK does not update hosted Component package pins.
+SDK 1.5.6 matches the RevoEngine 1.5.6 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
-When migrating to 2.0, use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls. The [SDK 2.0 release notes](/changelog/1.4.3) explain the migration with an HTTP-to-Storage example.
+Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
+
+Use `transport.sftpImport`, `transport.sftpExport`, and `transport.sftpCommands` for new SFTP code. Both hosted and standalone clients expose these methods with generated types. Legacy SFTP aliases and the removed thread-goal methods are excluded from the current SDK. See [Storage transfers](/build/transport) and the [1.5.6 release notes](/changelog/1.5.6).
 
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
 

@@ -375,6 +375,7 @@ Returns the current upload session state together with uploaded part manifests.
 
 Notes:
 - No-op in debug mode.
+- Compatibility behavior: this read-only session lookup remains disabled in debug mode because it belongs to the upload-session lifecycle surface.
 - Multipart sessions expose uploaded parts with computed byte ranges.
 
 ### Signature

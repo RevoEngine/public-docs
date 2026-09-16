@@ -1,0 +1,86 @@
+---
+title: "1.5.6 — Clearer Assistant progress, dependable attachments and typed transfers"
+sidebarTitle: "1.5.6"
+icon: "tag"
+description: "16 September 2026"
+---
+
+RevoEngine 1.5.6 improves everyday Assistant work, file delivery and integration authoring. Plans follow review feedback without requiring matching wording, files keep their normal access rules across workspaces, and notification emails share a consistent layout with direct download actions.
+
+## Highlights
+
+- Follow Assistant progress and plan state with a simpler conversation layout and a persistent Show progress preference.
+- Send accessible Storage files with Chat messages and receive email download links valid for a selected period of one to seven days.
+- Create new Assistant files in Private by default and update an explicitly selected file under its existing access rules.
+- Use typed SFTP imports, exports and commands through the transport namespace with governed Secret references.
+- Investigate Events and execution failures with reliable filters and structured error details.
+- Use Node.js SDK 1.5.6 with the matching platform contract and generated types.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Review plans and follow the work" defaultOpen={true}>
+
+Assistant plan review accepts feedback expressed in your own words. A revised plan still follows its required review and approval flow; satisfying a structural request such as a shorter plan does not depend on repeating the same words. Recoverable plan conflicts preserve the current plan so work can continue from the latest state.
+
+The conversation presents progress, references, plans and final responses more consistently. Show progress controls the visibility of intermediate activity and defaults to enabled when no preference exists. Existing explicit preferences are preserved. The former thread-goal commands and low-code goal methods are removed from the supported public surface; use the conversation request and execution plan to describe the intended outcome.
+
+  </Accordion>
+  <Accordion title="Deliver files with clear access and download actions">
+
+The Assistant can attach any Storage file the current execution identity is permitted to read, including files outside its own workspace. New files created by an interactive Assistant default to Private; autonomous Agents retain their own workspace default. Selecting an existing file for an update keeps that file's access boundary.
+
+Chat delivery and email delivery are separate outcomes. Eligible email notifications include file type, size, expiration and a download action. Attachment links support a validity of one to seven days. Notification emails use a shared header, workspace actions and preference footer while retaining content appropriate to a system message, Chat digest or Job update. A failed attachment-link operation is retried before sending rather than silently omitting the attachment.
+
+  </Accordion>
+  <Accordion title="Integrate through typed Storage transfers">
+
+Use `transport.sftpImport`, `transport.sftpExport` and `transport.sftpCommands` for SFTP workflows. The methods resolve an active Secret by name or ID, accept the supported structured connection value or SFTP URL, and apply the same Storage namespace and access rules as other file operations. Optional host-key fingerprint configuration pins the expected server key.
+
+Node.js SDK 1.5.6 exposes the transport namespace in hosted and standalone modes and refreshes its public types from the platform contract. Legacy SFTP helpers remain identified as deprecated in low-code documentation. Removed thread-goal methods are excluded from the active SDK contract. Existing deployed Components retain their recorded SDK version; newly created Components use the release's exact SDK version.
+
+Import a partner file into governed Storage:
+
+```js
+return await transport.sftpImport('/incoming/daily.csv', {
+  name: 'daily.csv', computeStats: 'sync',
+}, 'PARTNER_SFTP');
+```
+
+Export a file selected by the caller:
+
+```js
+await transport.sftpExport('/outgoing/daily.csv', {
+  storageEntryId: api.input().body.storageEntryId,
+}, 'PARTNER_SFTP');
+return { exported: true };
+```
+
+Inspect a partner directory without retrieving its file contents:
+
+```js
+return await transport.sftpCommands([
+  ['ls', '/incoming'],
+], 'PARTNER_SFTP');
+```
+
+  </Accordion>
+  <Accordion title="Investigate operations with usable evidence">
+
+Event investigation applies structured filters without invalid SQL aliases, including filters over event data. Integration failures preserve structured error metadata in execution evidence so the Assistant and operators can distinguish a failed operation from an empty result. Secret values remain outside normal diagnostics.
+
+Maintenance recovery also handles previously stored mail and Agent inbox schema variants. Notification retries preserve uncertain delivery outcomes instead of assuming that a missing delivery confirmation makes another send safe.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Assistant workflows](/ai/assistant)
+- [Chat and notifications](/operate/chat)
+- [Storage transfers](/build/transport)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.5](/changelog/1.5.5)

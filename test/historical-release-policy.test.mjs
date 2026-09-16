@@ -14,3 +14,11 @@ test('historical exception never permits deprecated APIs in current guides or ot
   assert.equal(permitsHistoricalMethod('changelog/1.5.0.mdx', 'api.transactionDatabaseData', note), false);
   assert.equal(permitsHistoricalMethod('changelog/1.0.3.mdx', 'api.getJobId', note), false);
 });
+
+test('permits the historical SFTP import example only with its current replacement', () => {
+  const note = 'This historical example uses the method name available in 1.3.2. For new code, use `transport.sftpImport()` with a Secret-backed connection; the older name is now deprecated.';
+
+  assert.equal(permitsHistoricalMethod('changelog/1.3.2.mdx', 'api.sftpGet', note), true);
+  assert.equal(permitsHistoricalMethod('changelog/1.3.2.mdx', 'api.sftpGet', ''), false);
+  assert.equal(permitsHistoricalMethod('changelog/1.3.2.mdx', 'api.sftpPut', note), false);
+});

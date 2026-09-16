@@ -4,7 +4,7 @@ description: Stream requests and responses between governed Storage and external
 icon: cloud-arrow-up
 ---
 
-`api.httpCall()` is the egress boundary for outbound HTTP. `storage.*` owns durable files, folders, ACLs, retention, upload sessions, text statistics, and lifecycle. Together they let a Component move large payloads without turning them into JSON or holding the complete object in the low-code isolate.
+`api.httpCall()` is the egress boundary for outbound HTTP. `storage.*` owns durable files, folders, ACLs, retention, upload sessions, text statistics, and lifecycle. Together they let a Component move large payloads without turning them into JSON or holding the complete object in the low-code isolate. HTTP Storage references accept optional `namespace`, evaluated by the same Storage policy and ACL path as `storage.*` and `transport.sftp*`.
 
 <CardGroup cols={2}>
   <Card title="HTTP response → Storage" icon="download">
@@ -87,7 +87,7 @@ When a response is stored, `response.data` is `undefined`. The durable result is
 
 ## Send Storage as the HTTP body
 
-`source` streams bytes from an existing Explorer Storage file. The caller must be allowed to read the entry through its effective ACL, including every restricted ancestor folder.
+`source` streams bytes from an existing Storage file. The caller must be allowed to read the entry through its effective ACL, including every restricted ancestor folder. Add `namespace` beside `storageEntryId` when the file is outside Explorer.
 
 ```js
 const response = await api.httpCall(

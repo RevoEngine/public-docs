@@ -10,6 +10,7 @@ const snapshot = join(referenceRoot, 'source', 'api.public.d.ts');
 const surfaces = [
   ['api', 'api reference', 'Execution, platform, Database, HTTP, automation, and compatibility methods.'],
   ['storage', 'storage reference', 'Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.'],
+  ['transport', 'transport reference', 'Storage-only protocol adapters with Secret-backed connections.'],
   ['agent', 'agent reference', 'Durable Agent, inbox, run, plugin, and Assistant-thread methods.'],
   ['util', 'util reference', 'Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers.'],
 ];
@@ -20,6 +21,7 @@ function replaceMethodDocumentation(source, methodName, documentation) {
   const docsStart = source.lastIndexOf('/**', signatureStart);
   const docsEnd = source.indexOf('*/', docsStart);
   if (docsStart === -1 || docsEnd === -1 || docsEnd > signatureStart) return source;
+  if (/@deprecated\b/i.test(source.slice(docsStart, docsEnd))) return source;
   const formatted = documentation
     .trim()
     .split('\n')
@@ -254,7 +256,7 @@ icon: book-open
 The low-code runtime is an isolated execution environment, not Node.js or a browser. This reference is generated from the same canonical declaration source used to create Monaco editor types. It contains only supported public methods, with their current signature, behavior notes, and declaration-provided usage example.
 
 <Tip>
-  Search this documentation for an exact method, for example \`api.httpCall\`, \`storage.putObject\`, \`agent.startRun\`, or \`util.validate\`.
+  Search this documentation for an exact method, for example \`api.httpCall\`, \`storage.putObject\`, \`transport.sftpImport\`, \`agent.startRun\`, or \`util.validate\`.
 </Tip>
 
 | Global | Methods | Use it for |
@@ -265,6 +267,7 @@ ${rows}
 
 - \`api\` is the main execution and platform surface. Only active methods are published.
 - \`storage\` is the canonical Explorer Storage surface for files and objects.
+- \`transport\` owns Storage-only protocol adapters. Its SFTP methods resolve connection details from an active Secret reference, so credentials never enter low-code source.
 - \`agent\` owns Agent, inbox, run, plugin, and Assistant lifecycle operations. Availability depends on instance policy.
 - \`util\` owns validation and security helpers, including hashing, cryptography, encoding, and identifiers.
 - Active library declarations are resolved through \`lib.Category.Name.ElementKey.X\`, where \`X\` is an exported function, class, constant, or other public symbol. \`inject()\` reads an earlier element in the same ordered component.

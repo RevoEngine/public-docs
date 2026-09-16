@@ -64,13 +64,20 @@ A thread preserves the visible conversation and the runtime state needed to cont
 
 - rename, search, delete, and restore threads;
 - continue a completed thread with new instructions;
-- keep a durable goal across several turns without requiring a visible plan;
-- pause, resume, update, or clear that goal;
+- refine the requested outcome through follow-up messages and reviewable execution plans;
 - share a read-only thread view;
 - fork from a selected message to explore another direction without rewriting the source thread;
 - inspect message-level execution details and retained artifacts.
 
 Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store.
+
+## Progress and files
+
+**Show progress** controls intermediate activity in the conversation and defaults to enabled when no preference has been saved. It does not change reasoning effort or approval policy. Revised plans use your feedback without requiring the same wording; review-required plans still wait for approval.
+
+New files created by the interactive Assistant default to **Private**. Updating a selected existing file follows its current access rules. Autonomous Agents keep their own workspace default. The Assistant can read and attach files from other workspaces when its execution identity has access; a workspace name alone does not grant permission.
+
+A successful Chat send confirms the message and its attachments in Chat. Email notification delivery is tracked separately and follows the recipient's settings. The Assistant must not report email receipt merely because a Chat message was created.
 
 ## Give the Assistant concrete context
 

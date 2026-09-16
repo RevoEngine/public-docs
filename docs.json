@@ -93,8 +93,15 @@
               "low-code/reference/index",
               "low-code/reference/api",
               "low-code/reference/storage",
+              "low-code/reference/transport",
               "low-code/reference/agent",
               "low-code/reference/util"
+            ]
+          },
+          {
+            "group": "Transport",
+            "pages": [
+              "build/transport"
             ]
           }
         ]
@@ -239,6 +246,7 @@
               {
                 "group": "1.5.x",
                 "pages": [
+                  "changelog/1.5.6",
                   "changelog/1.5.5",
                   "changelog/1.5.4",
                   "changelog/1.5.3",

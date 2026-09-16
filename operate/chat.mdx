@@ -58,6 +58,14 @@ Downloads, previews, and thumbnails use short-lived authorized URLs. Do not copy
   Chat is not a secret manager. Do not send API keys, passwords, private keys, or production credentials as text or attachments.
 </Warning>
 
+## Files in notification emails
+
+Eligible notification emails include download cards for attached Storage files, with the file type, size, expiration time and a download action. Choose a link validity from **one to seven days**. Email links expire independently of the file's retention policy. Treat a download link as sensitive access information and avoid forwarding it beyond the intended recipients.
+
+System messages, unread Chat digests and Job notifications share the same header, workspace actions and preference footer, with different content for each message type. If an attachment link cannot be created, the delivery is retried before sending instead of silently removing its card.
+
+Chat persistence, provider acceptance and confirmed email delivery are separate states. If the provider outcome is uncertain, reconcile it before retrying a send to avoid duplicates.
+
 ## Search and mentions
 
 Search returns accessible message matches with the owning thread and an excerpt. A hit with no text can use its attachment summary. Open the result to restore the exact conversation context rather than acting on an excerpt alone.

@@ -64,7 +64,7 @@ Every successfully created Agent has a workspace root. You can use:
 - **Managed** — RevoEngine creates and owns a new restricted workspace for the Agent.
 - **Existing** — an operator links an authorized Explorer folder as the Agent root.
 
-The workspace root is an enforced storage boundary. Agent workspace operations can list folders, search names, read files, create folders, upload files, and write generated deliverables only within that root. The root itself is protected from mutation.
+The workspace root is the default destination for Agent-generated files and is protected from mutation. Workspace-scoped operations stay within that root. Explicitly selected files elsewhere remain available through normal Storage access checks; reading or attaching such a file requires permission from the execution identity. Interactive Assistants create new files in Private by default.
 
 Agents can use authorized guidance and files within the workspace root. Keep durable instructions concise and clearly named, and store large reference material as separate reviewable files.
 

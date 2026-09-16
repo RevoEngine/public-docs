@@ -1293,6 +1293,7 @@ declare class api {
      * Performs an outbound HTTP request.
      *
      * Notes:
+     * - No-op in debug mode and returns `null`; call `api.disableDebug()` only when this external side effect is intentionally allowed.
      * - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
      * - Use `source: { storageEntryId }` when streaming an Explorer Storage file into an HTTP request.
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
@@ -1403,6 +1404,7 @@ declare class api {
 
   /**
      * Executes multiple SFTP commands in order.
+     * @deprecated Legacy. Use transport.sftpCommands(commands, secretNameOrId) for new code.
      *
      * Notes:
      * - No-op in debug mode.
@@ -1413,16 +1415,22 @@ declare class api {
   static sftpExec(commands: any[], config: SFTPClient): Promise<any>;
 
   /**
-   * Streams an Explorer Storage entry directly to SFTP without loading file bytes into low-code memory.
-   *
-   * Notes:
-   * - No-op in debug mode.
-   * - Prefer { storageEntryId } for Explorer Storage files. String inputs are legacy fileIds.
-   * - SFTP references use Explorer Storage; namespace is not part of this API.
-   *
-   * Example:
-   * await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);
-   */
+     * Streams a Storage entry to SFTP through a short-lived signed
+     * download URL. The SFTP bridge reads the URL and writes directly to the
+     * remote path; file bytes do not pass through low-code memory.
+     * @deprecated Legacy. Use transport.sftpExport(path, { storageEntryId }, secretNameOrId) for new code.
+     *
+     * Notes:
+     * - No-op in debug mode.
+     * - Prefer `{ storageEntryId, namespace? }` for Storage files. String inputs are legacy fileIds.
+     * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
+     *
+     * Legacy example:
+     * await api.sftpPut(fileId, '/outbound/report.csv', connection);
+     *
+     * Storage example:
+     * await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);
+     */
   static sftpPut(
       source: SFTPFileSourceRef,
       path: string,
@@ -1430,25 +1438,32 @@ declare class api {
     ): Promise<void>;
 
   /**
-   * Streams an SFTP file directly into Explorer Storage and returns the finalized Storage entry.
-   *
-   * Notes:
-   * - No-op in debug mode.
-   * - Use { storage: ... } to create an entry or { storageEntryId, replace: true } to replace one.
-   * - Repeated finalization signals are idempotent.
-   * - For text files, computeStats: 'sync' makes line statistics available immediately.
-   *
-   * Example:
-   * const result = await api.sftpGet({
-   *   storage: {
-   *     name: 'daily.csv',
-   *     parentStorageEntryId: folderId,
-   *     contentTypeHint: 'text/csv',
-   *     computeStats: 'sync',
-   *     retention: { ttlSeconds: 604800 },
-   *   },
-   * }, '/incoming/report.csv', connection);
-   */
+     * Streams an SFTP file directly into Explorer Storage through a signed
+     * provider upload URL and returns the finalized Storage entry.
+     * @deprecated Legacy. Use transport.sftpImport(path, storage, secretNameOrId) for new code.
+     *
+     * Notes:
+     * - No-op in debug mode.
+     * - Prefer `{ storage: ... }` to create a Storage entry in one call or `{ storageEntryId, replace: true }` to replace one. String inputs are legacy fileIds.
+     * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
+     * - New Storage targets accept the create-upload fields except `uploadMode` and `replaceStorageEntryId`; SFTP always uses a native direct upload.
+     * - The bridge finalizes the uploaded object synchronously after provider verification. A later provider finalize event is idempotent.
+     * - For text files, prefer `computeStats: 'sync'` so line stats are immediately available after finalize.
+     *
+     * Legacy example:
+     * await api.sftpGet(fileId, '/incoming/report.csv', connection);
+     *
+     * Storage example:
+     * const result = await api.sftpGet({
+     *   storage: {
+     *     name: 'daily.csv',
+     *     parentStorageEntryId: folderId,
+     *     contentTypeHint: 'text/csv',
+     *     computeStats: 'sync',
+     *     retention: { ttlSeconds: 604800 },
+     *   },
+     * }, '/incoming/daily.csv', connection);
+     */
   static sftpGet(
       target: SFTPFileTargetRef,
       path: string,
@@ -2157,6 +2172,7 @@ declare class storage {
      *
      * Notes:
      * - No-op in debug mode.
+     * - Compatibility behavior: this read-only session lookup remains disabled in debug mode because it belongs to the upload-session lifecycle surface.
      * - Multipart sessions expose uploaded parts with computed byte ranges.
      *
      * Example:
@@ -2356,6 +2372,49 @@ declare class storage {
       storageEntryId: string,
       options?: StorageDocumentReadOptions,
     ): Promise<StorageDocument>;
+}
+
+declare class transport {
+  /**
+     * Streams a remote path into Storage, then finalizes it using storage.* namespace/ACL rules.
+     * Uses `transport` Secret formats and optional host-key pinning.
+     * Automatic execution.log: details.source identifies the call;
+     * details.error carries code/retryable/resource/reference/statusCode.
+     * runtimeError may expose the same failure/source metadata.
+     *
+     * Example:
+     * const imported = await transport.sftpImport('/incoming/daily.csv', {
+     *   name: 'daily.csv', parentStorageEntryId: folderId, computeStats: 'sync',
+     * }, 'SFTP_PRODUCTION');
+     */
+  static sftpImport(
+      path: string,
+      storage: SFTPImportStorage,
+      secretNameOrId: string,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView }>;
+
+  /**
+     * Streams Storage to a remote path using storage.* namespace/ACL rules.
+     * Automatic execution.log includes details.source, details.error and telemetry.transfer.
+     *
+     * Example:
+     * await transport.sftpExport('/outgoing/daily.csv', { storageEntryId }, 'SFTP_PRODUCTION');
+     */
+  static sftpExport(
+      path: string,
+      storage: SFTPExportStorage,
+      secretNameOrId: string,
+    ): Promise<void>;
+
+  /**
+     * Runs allowed file commands in one leased SFTP session, without a remote shell.
+     * Automatic execution.log identifies the call in details.source.
+     * Inspect command errors even when batch HTTP succeeds.
+     */
+  static sftpCommands(
+      commands: any[],
+      secretNameOrId: string,
+    ): Promise<any>;
 }
 
 declare class agent {
@@ -2621,42 +2680,6 @@ declare class agent {
   static getThreadState(
       assistantThreadId: string,
     ): Promise<AssistantThreadState>;
-
-  /**
-     * Returns the current durable goal for a thread, if one exists.
-     */
-  static getThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal | null>;
-
-  /**
-     * Sets or replaces the durable thread goal without appending a user message.
-     */
-  static setThreadGoal(
-      assistantThreadId: string,
-      data: AssistantThreadGoalInput,
-    ): Promise<AssistantThreadGoal>;
-
-  /**
-     * Pauses goal validation while preserving the objective.
-     */
-  static pauseThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
-
-  /**
-     * Resumes goal validation for the current objective.
-     */
-  static resumeThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
-
-  /**
-     * Clears the current durable goal without changing visible messages.
-     */
-  static clearThreadGoal(
-      assistantThreadId: string,
-    ): Promise<AssistantThreadGoal>;
 
   /**
      * Returns the current share state for a thread owned by the current user.

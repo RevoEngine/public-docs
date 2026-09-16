@@ -13,7 +13,7 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = join(root, 'platform-contracts.json');
 const lowCodeSnapshotPath = join(root, 'low-code', 'reference', 'source', 'api.public.d.ts');
-const lowCodeGeneratedPaths = ['index', 'api', 'storage', 'agent', 'util']
+const lowCodeGeneratedPaths = ['index', 'api', 'storage', 'transport', 'agent', 'util']
   .map((name) => join(root, 'low-code', 'reference', `${name}.mdx`));
 const args = new Set(process.argv.slice(2));
 
