@@ -188,6 +188,7 @@ const TAG_DESCRIPTIONS = Object.freeze({
   'Role Groups': 'Role groups, members, assigned roles, and lifecycle.',
   Roles: 'Available platform roles and role details.',
   Search: 'Cross-domain search over objects visible to the caller.',
+  Share: 'Short-lived authenticated links to supported application routes and grid state.',
   Secrets: 'Secret definitions, revisions, activation, reveal, disable, and destruction.',
   Storage: 'Storage workspaces, folders, objects, upload sessions, signed access, and lifecycle.',
 });
@@ -215,6 +216,7 @@ const TAG_GUIDES = Object.freeze({
   'Role Groups': ['Permissions guide', '/operate/permissions'],
   Roles: ['Permissions guide', '/operate/permissions'],
   Search: ['Search and discovery guide', '/platform/search'],
+  Share: ['Platform API share-link guide', '/developers/platform-api#share-application-context'],
   Secrets: ['Secrets guide', '/operate/secrets'],
   Storage: ['Storage guide', '/operate/storage'],
 });

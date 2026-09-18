@@ -83,6 +83,12 @@ curl "https://api.revoengine.com/api/v1/endpoints/$ENDPOINT_ID/activate" \
 
 Invocation then goes to the instance's [Endpoint runtime](/developers/endpoint-runtime), not the Platform API origin.
 
+## Share application context
+
+Use the `Share` API to create a short-lived link to a supported route in the authenticated instance. The route may include supported table filters, sorting, and deleted-row state. The API validates and stores only relative RevoEngine routes; it does not create anonymous access or bypass the recipient's normal authentication and resource permissions.
+
+Create a link with `POST /api/v1/share`, then build the application URL with the returned identifier. Resolve it with `GET /api/v1/share/{shareId}` after authentication. Links expire after seven days. Keep reference tokens as the canonical way to identify resources in Assistant and Agent requests; Share links are intended for human navigation context.
+
 ## Asynchronous work
 
 Some operations schedule work and return before execution finishes. Keep the returned job, deployment, operation, run, thread, or upload-session identifier and use the related history/status surface. Do not infer completion from the HTTP request being accepted.

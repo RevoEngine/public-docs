@@ -1,0 +1,110 @@
+---
+title: "1.5.7 — Database views, shareable workspaces and scalable exports"
+sidebarTitle: "1.5.7"
+icon: "tag"
+description: "18 September 2026"
+---
+
+RevoEngine 1.5.7 adds database views as governed application resources and connects them to dashboards, exports, schedules and low-code workflows. It also introduces short-lived links for sharing the current authenticated workspace state, expands database index management, and improves the reliability and throughput of large exports.
+
+## Highlights
+
+- Build live Database Views and stored Database Materialized Views from structured definitions or governed read-only SQL.
+- Edit individual rows in structured views from their Details panel with source-aware validation and automatic materialized-view refresh.
+- Use Database Views and Database Materialized Views as dashboard data sources and export them natively to CSV or XLSX.
+- Create and manage multi-column, unique and partial database indexes with validation against the current database definition.
+- Share the current authenticated workspace, including supported table filters and sorting, through a short-lived link.
+- Configure, rename and remove dashboard widgets in the global side panel with immediate dashboard updates.
+- See whether realtime updates are connected, connecting, reconnecting or disconnected directly on the existing profile avatar.
+- Run Job Templates by ID or by their unique name and use Node.js SDK 1.5.7 with the matching platform contract.
+- Open up to 10 concurrent MCP sessions as an instance administrator, or up to 5 as a regular user.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build on live and materialized database views" defaultOpen={true}>
+
+Database Views are now first-class resources with their own definitions, permissions, history and dependencies. A live view evaluates its sources when it is queried. A Database Materialized View stores its output and can be refreshed on demand or through Schedule, making it suitable for repeated reporting and dashboard workloads where the source query is more expensive.
+
+Builders can use structured definitions for joins, common table expressions, projections, grouping, filters and calculated output, or enable governed raw SQL for administrators who need an advanced read-only query. Raw SQL accepts a single read-only query and validates every referenced resource. Function calls follow a read-only allowlist, while mutation, locking, volatile, custom and cross-schema operations are rejected. Materialized views can declare unique output keys and managed indexes for concurrent refresh and predictable reads.
+
+An individual result row from a structured view can now be edited directly from its Details panel when the projected field has direct source lineage and the complete source primary key is present. The editor reuses native Database validators, explains invalid changed fields on the Save action and refreshes a materialized view after a successful source update. Calculated projections, incomplete source keys and all raw SQL view rows remain read-only.
+
+Saved views participate in reference tokens, snapshots, history, comparison, search and dependency checks. The Platform API exposes their lifecycle and data operations through generated OpenAPI contracts, while the low-code runtime can read the saved output without redefining the underlying joins or SQL:
+
+```js
+const result = await api.getDatabaseViewData('high_value_customers', {
+  fields: ['customerId', 'totalIncome'],
+  filter: { field: 'totalIncome', op: 'gt', value: 100000 },
+  sort: ['-totalIncome'],
+  take: 100,
+});
+return result.data;
+```
+
+  </Accordion>
+  <Accordion title="Connect views to dashboards and native exports">
+
+Dashboard widgets can now select a Database View or Database Materialized View as their source in addition to a database table. Widget configuration uses the same side workspace as other management flows: changes replace the displayed widget definition immediately, while Remove deletes the complete tile and closes only that widget's side panel. Header actions also reclaim the available space when the global side workspace is open, keeping primary dashboard controls aligned.
+
+Views and materialized views use the native database export workflow. CSV remains the default and XLSX preserves typed values. Callers can wait for completion or request asynchronous kickoff for larger work. Completed asynchronous exports appear through the existing notification workflow rather than requiring the browser to keep the request open.
+
+```js
+const exportResult = await api.exportDatabaseView('monthly_revenue', {
+  format: 'xlsx',
+  async: true,
+});
+return { exportId: exportResult.exportId };
+```
+
+Large database exports now use bounded indexed reads when the selected relation and sort order support them. Serialization avoids reparsing generated CSV content, and multipart Storage uploads perform less repeated work while retaining integrity checks and bounded retry behavior. Export admission is bounded per instance, protects synchronous work from background saturation, and can recover an interrupted background execution without publishing a partial result.
+
+  </Accordion>
+  <Accordion title="Manage indexes and automation by stable names">
+
+Database management adds a unified index editor for tables and materialized views. Builders can define ordered columns, uniqueness and supported partial-index conditions without writing raw index SQL. The backend validates names, fields, ordering and compatibility with the current definition before applying a change. Index metadata is normalized consistently so management views, snapshots and runtime operations observe the same saved shape.
+
+Automation can now resolve a Job Template by its unique name as well as by ID. This makes low-code and integration calls easier to read while preserving a stable ID path for existing consumers. Materialized-view refresh is available as a Schedule target and records its normal execution history, so operators can monitor recurring refreshes alongside other scheduled work.
+
+```js
+const jobId = await api.triggerJob('refresh-customer-rollups', {
+  region: 'eu',
+});
+return { jobId };
+```
+
+  </Accordion>
+  <Accordion title="Share authenticated workspace state">
+
+The Share action in the application header creates a short-lived link for the current instance route. Supported grid filters, sorting and deleted-row state are preserved, allowing a colleague to open the same management context without rebuilding the table view manually. Links expire after seven days, remain scoped to the instance and do not bypass authentication or resource permissions.
+
+The public Platform API includes typed create and resolve contracts for clients that need to implement the same workflow. Share remains a navigation feature rather than a preferred Agent action: reference tokens continue to be the canonical way to identify resources in Assistant and Agent requests. Copy actions in management headers and the Share action now confirm successful clipboard writes with a concise Copied tooltip.
+
+  </Accordion>
+  <Accordion title="See realtime connection health without another toolbar item">
+
+The existing profile avatar now carries realtime connection state without taking another header slot. A compact signal icon uses the neutral application color when connected and sits on a background-matched cutout so it does not cover the avatar with a colored badge. Connecting and reconnecting use an orange pulse. After three consecutive failed reconnect attempts the icon becomes red while the application continues retrying; a manually disconnected state remains muted. Hovering or focusing the profile action shows the exact state in a tooltip, and reduced-motion preferences disable the pulse animation.
+
+This makes unexpected grid refreshes and temporarily stale application data easier to explain. The indicator follows the actual shared WebSocket lifecycle used by dashboards, database workspaces, Jobs, Storage, Chat and Agent views; it does not infer health from individual page activity.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- MCP Streamable HTTP session capacity defaults to 10 active sessions for instance administrators and 5 for regular users, with independent instance configuration for both limits.
+- Database and view management gains clearer workspace navigation, preview details and history-aware comparison flows.
+- Component comparison uses a dedicated diff workspace for a more consistent review experience.
+- Public API, low-code declarations, generated editor contracts and Node.js SDK 1.5.7 are aligned to the same release surface.
+
+## Related guides
+
+- [Database views](/operate/database-views)
+- [Dashboards](/operate/dashboards)
+- [Low-code API reference](/low-code/reference/api)
+- [Platform API](/developers/platform-api)
+- [MCP](/developers/mcp-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.6](/changelog/1.5.6)

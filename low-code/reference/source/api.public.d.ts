@@ -792,6 +792,15 @@ declare class api {
   /**
      * Adds a log entry.
      *
+     * Limits:
+     * - Endpoint executions accept at most 100 `api.log` calls per execution.
+     * - Processor and non-streaming Sandbox executions accept at most 10,000 calls.
+     * - Streaming Sandbox executions emit logs only to the active SSE stream; this
+     *   count limit is not applied there, but the stream remains protected by its
+     *   backpressure queue limit.
+     * - Calls after the applicable limit are ignored. Other API methods do not
+     *   consume this limit.
+     *
      * Example:
      * api.log(
      *   { message: 'Call finished', args: { status: 200 } },

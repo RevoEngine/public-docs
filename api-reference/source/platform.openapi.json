@@ -5323,6 +5323,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "includeDeleted",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -5371,6 +5379,36 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Database Views"
+        ]
+      }
+    },
+    "/api/v1/databases/views/{databaseViewId}/stats": {
+      "get": {
+        "description": "Returns current statistics for an accessible live or materialized Database View.",
+        "operationId": "DatabaseViewController_getStats",
+        "parameters": [
+          {
+            "name": "databaseViewId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get Database View storage and row statistics.",
         "tags": [
           "Database Views"
         ]
@@ -7229,6 +7267,38 @@
         "tags": [
           "Databases"
         ]
+      }
+    },
+    "/api/v1/databases/delete": {
+      "post": {
+        "description": "Soft-deletes the accessible databases selected by their identifiers.",
+        "operationId": "DatabaseController_deleteMany",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdDataDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete databases in bulk.",
+        "tags": [
+          "Databases"
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/databases/{databaseId}/getData": {
@@ -13932,6 +14002,9 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "Platform operations cannot be cancelled."
           }
         },
         "security": [
@@ -21438,12 +21511,90 @@
           "Agent Plugins"
         ]
       }
+    },
+    "/api/v1/share": {
+      "post": {
+        "description": "Stores a validated relative application route for seven days without bypassing authentication or resource permissions.",
+        "operationId": "ShareController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShareDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateShareResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a short-lived share link for the current instance.",
+        "tags": [
+          "Share"
+        ]
+      }
+    },
+    "/api/v1/share/{shareId}": {
+      "get": {
+        "description": "Returns the validated relative application route when the link exists for the authenticated instance.",
+        "operationId": "ShareController_resolve",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolveShareResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Share link not found or expired."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resolve a share link for the current instance.",
+        "tags": [
+          "Share"
+        ]
+      }
     }
   },
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.6",
+    "version": "1.5.7",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21591,7 +21742,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.6"
+            "example": "What’s new in RevoEngine 1.5.7"
           },
           "highlights": {
             "example": [
@@ -21606,7 +21757,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.6",
+            "example": "https://docs.revoengine.com/changelog/1.5.7",
             "format": "uri"
           }
         },
@@ -21623,7 +21774,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.6"
+            "example": "1.5.7"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21639,7 +21790,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.6"
+            "example": "1.5.7"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21788,6 +21939,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Custom profile metadata stored with the account. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "locale": "pl-PL",
@@ -21796,6 +21948,7 @@
           },
           "metaData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Custom profile metadata stored with the account. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
@@ -21805,6 +21958,7 @@
           },
           "metadataAdvanced": {
             "type": "object",
+            "nullable": true,
             "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
             "example": {
               "costCenter": "FIN-01",
@@ -21813,6 +21967,7 @@
           },
           "advancedData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
             "example": {
@@ -21864,7 +22019,12 @@
             "type": "string",
             "description": "You need to provide IP, IP (10.0.8.0)/MASK(10.0.8.0/18)/RANGE(10.0.8.0-10.0.8.255)."
           }
-        }
+        },
+        "required": [
+          "name",
+          "type",
+          "value"
+        ]
       },
       "CreateKeyDto": {
         "type": "object",
@@ -21875,6 +22035,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "restricted": {
@@ -21882,7 +22043,7 @@
             "description": "You can provide if key should be whitelisted."
           },
           "whitelist": {
-            "description": "In case when restricted, this should be filled also.",
+            "description": "Required only when restricted is true; omit it when unrestricted. Every supplied entry requires name, type, and value.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserKeyWhitelistDto"
@@ -21891,13 +22052,12 @@
           "expireAt": {
             "format": "date-time",
             "type": "string",
-            "description": "Aggregation period from."
+            "description": "Optional API key expiration timestamp. When provided, it must be at least four hours in the future."
           }
         },
         "required": [
           "name",
-          "restricted",
-          "expireAt"
+          "restricted"
         ]
       },
       "UpdateKeyDto": {
@@ -21909,6 +22069,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "restricted": {
@@ -21916,11 +22077,22 @@
             "description": "You can provide if key should be whitelisted."
           },
           "whitelist": {
-            "description": "In case when restricted, this should be filled also.",
+            "description": "Required when this update sets restricted to true. Omit it when the restriction mode is unchanged or disabled.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserKeyWhitelistDto"
             }
+          },
+          "version": {
+            "type": "number",
+            "description": "Current API key version used for optimistic concurrency control.",
+            "minimum": 0
+          },
+          "code": {
+            "type": "string",
+            "description": "Optional six-character confirmation code when required by the account policy.",
+            "minLength": 6,
+            "maxLength": 6
           },
           "expireAt": {
             "format": "date-time",
@@ -21929,8 +22101,7 @@
           }
         },
         "required": [
-          "name",
-          "restricted"
+          "version"
         ]
       },
       "CodeRequiredDto": {
@@ -21969,27 +22140,30 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "metaData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "metadataAdvanced": {
             "type": "object",
+            "nullable": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
         "required": [
           "name",
-          "mail",
-          "phone"
+          "mail"
         ]
       },
       "CreateServiceAccountDto": {
@@ -22001,11 +22175,11 @@
           },
           "ownerId": {
             "type": "string",
-            "description": "You can provide owner of the group, required if ownerType is assigned."
+            "description": "Optional owner id. When provided, ownerType is required as well."
           },
           "ownerType": {
             "type": "string",
-            "description": "Owner type.",
+            "description": "Optional owner type. When provided, ownerId is required as well.",
             "enum": [
               "USER",
               "GROUP"
@@ -22013,27 +22187,29 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "metaData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "metadataAdvanced": {
             "type": "object",
+            "nullable": true,
             "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
         "required": [
-          "name",
-          "ownerId",
-          "ownerType"
+          "name"
         ]
       },
       "UpdateUserDto": {
@@ -22069,19 +22245,23 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "metaData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "metadataAdvanced": {
             "type": "object",
+            "nullable": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "advancedData": {
             "type": "object",
+            "nullable": true,
             "deprecated": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
@@ -22480,6 +22660,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "componentId": {
@@ -22553,6 +22734,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "componentId": {
@@ -22700,7 +22882,8 @@
         "properties": {
           "componentElementId": {
             "type": "string",
-            "description": "Durable component element identifier. Preserved across exports, imports, reverts, and key renames."
+            "nullable": true,
+            "description": "Existing durable element identifier. Omit it on component create because the server assigns/regenerates the id; preserve it for updates, imports, reverts, and key renames."
           },
           "key": {
             "type": "string",
@@ -22710,16 +22893,18 @@
           },
           "desc": {
             "type": "string",
-            "description": "Representation description e.g. swagger spec details.",
+            "nullable": true,
+            "description": "Optional representation description, for example Swagger details. Pass null to leave it empty.",
             "maxLength": 1000
           },
           "details": {
             "type": "string",
-            "description": "Details."
+            "description": "Element source/body. Required whenever an explicit element is supplied."
           },
           "hidden": {
             "type": "boolean",
-            "description": "Element hidden from results."
+            "nullable": true,
+            "description": "Hide supporting or large-output elements from normal result projection. Omit or pass null to default to false."
           },
           "order": {
             "type": "number",
@@ -22729,7 +22914,6 @@
         "required": [
           "key",
           "details",
-          "hidden",
           "order"
         ]
       },
@@ -22744,15 +22928,18 @@
           },
           "category": {
             "type": "string",
-            "description": "Category.",
+            "nullable": true,
+            "description": "Optional category appropriate for the selected component type. Pass null to leave it empty.",
             "maxLength": 32
           },
           "desc": {
             "type": "string",
-            "description": "Description."
+            "nullable": true,
+            "description": "Optional component description. Pass null to leave it empty."
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "type": {
@@ -22765,10 +22952,12 @@
           },
           "async": {
             "type": "boolean",
-            "description": "Wait for custom component to be deployed."
+            "nullable": true,
+            "description": "For CUSTOM_NODEJS, wait for deployment. Omit or pass null to use the default behavior."
           },
           "elements": {
-            "description": "Initial component elements. Server regenerates componentElementId values on create. When omitted, the component is created with the default starter content.",
+            "nullable": true,
+            "description": "Initial component elements. Server ignores/regenerates componentElementId values on create. Omit or pass null to create the default starter content.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ComponentElementsDto"
@@ -22792,15 +22981,18 @@
           },
           "category": {
             "type": "string",
-            "description": "Category.",
+            "nullable": true,
+            "description": "Replacement category. Pass null to clear it.",
             "maxLength": 32
           },
           "desc": {
             "type": "string",
-            "description": "Description."
+            "nullable": true,
+            "description": "Replacement description. Pass null to clear it."
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement component metadata object. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "version": {
@@ -23185,6 +23377,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -23270,6 +23463,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "platform"
@@ -23329,6 +23523,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -23386,6 +23581,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "platform"
@@ -23497,6 +23693,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional column metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "type": {
@@ -23606,6 +23803,123 @@
           "definitionMode"
         ]
       },
+      "DatabaseIndexExpressionDto": {
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "string",
+            "description": "Column reference."
+          },
+          "fn": {
+            "type": "string",
+            "description": "Safe function name."
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseIndexExpressionDto"
+            }
+          },
+          "cast": {
+            "type": "string"
+          },
+          "literal": {
+            "type": "object"
+          }
+        }
+      },
+      "DatabaseIndexColumnDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "expression": {
+            "description": "function(col) / cast / expression are not raw SQL; only safe structured input is allowed",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseIndexExpressionDto"
+              }
+            ]
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "ASC",
+              "DESC"
+            ]
+          },
+          "nulls": {
+            "type": "string",
+            "enum": [
+              "FIRST",
+              "LAST"
+            ]
+          },
+          "collation": {
+            "type": "string"
+          },
+          "opclass": {
+            "type": "string"
+          }
+        }
+      },
+      "DatabaseIndexPredicateDto": {
+        "type": "object",
+        "properties": {
+          "and": {
+            "description": "Logical AND.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "or": {
+            "description": "Logical OR.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "not": {
+            "description": "Logical NOT.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
+              }
+            ]
+          },
+          "column": {
+            "type": "string"
+          },
+          "op": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "ne",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "like",
+              "ilike",
+              "in",
+              "between",
+              "isnull",
+              "notnull"
+            ]
+          },
+          "value": {
+            "type": "object"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "DatabaseViewIndexDto": {
         "type": "object",
         "properties": {
@@ -23613,16 +23927,35 @@
             "type": "string",
             "description": "Database View index name. A stable name is generated when omitted."
           },
+          "using": {
+            "type": "string",
+            "enum": [
+              "btree",
+              "hash",
+              "gist",
+              "spgist",
+              "gin",
+              "brin"
+            ],
+            "default": "btree"
+          },
           "columns": {
-            "description": "Materialized-view output columns.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseIndexColumnDto"
+            }
+          },
+          "where": {
+            "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
+          },
+          "include": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
           "unique": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         },
         "required": [
@@ -23666,6 +23999,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -23700,7 +24034,7 @@
             }
           },
           "indexes": {
-            "description": "Structured btree indexes created on materialized output.",
+            "description": "Structured composite, expression, covering, or partial indexes created on materialized output.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DatabaseViewIndexDto"
@@ -23945,6 +24279,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -23979,7 +24314,7 @@
             }
           },
           "indexes": {
-            "description": "Structured btree indexes created on materialized output.",
+            "description": "Structured composite, expression, covering, or partial indexes created on materialized output.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DatabaseViewIndexDto"
@@ -24802,14 +25137,50 @@
             }
           },
           "from": {
-            "type": "object",
             "description": "For RANGE partitioning: starting value (use \"MINVALUE\" for unbounded start).",
-            "example": "2024-01-01"
+            "example": "2024-01-01",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
           },
           "to": {
-            "type": "object",
             "description": "For RANGE partitioning: ending value (use \"MAXVALUE\" for unbounded end).",
-            "example": "2024-12-31"
+            "example": "2024-12-31",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
           },
           "modulus": {
             "type": "number",
@@ -24822,6 +25193,58 @@
             "description": "\n      The remainder value for a HASH partition. \n      Required only when the partition type is HASH. \n      This value must be between 0 and (modulus - 1). \n      Determines which partition a row will belong to within the hash partitions.\n    ",
             "example": 0,
             "minimum": 0
+          }
+        }
+      },
+      "DatabaseIndexDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "using": {
+            "type": "string",
+            "enum": [
+              "btree",
+              "hash",
+              "gist",
+              "spgist",
+              "gin",
+              "brin"
+            ],
+            "default": "btree"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseIndexColumnDto"
+            }
+          },
+          "where": {
+            "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unique": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "columns"
+        ]
+      },
+      "DatabaseOptionsDto": {
+        "type": "object",
+        "properties": {
+          "indexes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatabaseIndexDefinitionDto"
+            }
           }
         }
       },
@@ -24849,6 +25272,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "restricted": {
@@ -24894,11 +25318,18 @@
                 "$ref": "#/components/schemas/PartitionDefinition"
               }
             ]
+          },
+          "options": {
+            "description": "Advanced structured table options, including composite, expression, covering, and partial indexes.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseOptionsDto"
+              }
+            ]
           }
         },
         "required": [
-          "name",
-          "restricted"
+          "name"
         ]
       },
       "UpdateDatabaseDto": {
@@ -24926,7 +25357,16 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "options": {
+            "description": "Replacement advanced structured table options.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseOptionsDto"
+              }
+            ]
           },
           "restricted": {
             "type": "boolean",
@@ -24987,11 +25427,13 @@
             "description": "Data limited to 32mb and 100,000 rows.",
             "type": "array",
             "items": {
-              "type": "array"
+              "type": "object"
             }
           }
         },
         "required": [
+          "upsert",
+          "return",
           "data"
         ]
       },
@@ -25013,7 +25455,8 @@
         },
         "required": [
           "old",
-          "new"
+          "new",
+          "return"
         ]
       },
       "UpdateDatabaseRequestDto": {
@@ -25179,7 +25622,7 @@
             "description": "Data limited to 32mb and 100,000 rows.",
             "type": "array",
             "items": {
-              "type": "array"
+              "type": "object"
             }
           }
         },
@@ -25192,47 +25635,57 @@
         "properties": {
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement user metadata for the root clone only. Omit to inherit source metadata; pass {} to clear user metadata. Maximum 16 KiB and 64 top-level keys. Keys starting with \"__\" are reserved for backend use."
           },
           "audit": {
             "type": "boolean",
+            "nullable": true,
             "description": "Optional audit override. Defaults to the source logical table setting."
           },
           "name": {
             "type": "string",
+            "nullable": true,
             "description": "Optional target root database name. Defaults to the source database name with \"_Clone\" suffix.",
             "minLength": 1,
             "maxLength": 60
           },
           "suffix": {
             "type": "string",
+            "nullable": true,
             "description": "Suffix used for automatically generated clone names. Defaults to \"Clone\".",
             "minLength": 1,
             "maxLength": 30
           },
           "includeItems": {
             "type": "boolean",
+            "nullable": true,
             "description": "Whether to copy existing rows/items into the clone. Defaults to false."
           },
           "includeData": {
             "type": "boolean",
+            "nullable": true,
             "description": "Alias for includeItems. Defaults to false."
           },
           "includePartitions": {
             "type": "boolean",
+            "nullable": true,
             "description": "Whether to clone connected table partitions. Defaults to true."
           },
           "category": {
             "type": "string",
+            "nullable": true,
             "description": "Optional cloned database category override.",
             "maxLength": 30
           },
           "desc": {
             "type": "string",
+            "nullable": true,
             "description": "Optional cloned database description override.",
             "maxLength": 1000
           },
           "tags": {
+            "nullable": true,
             "description": "Optional cloned database tags override.",
             "type": "array",
             "items": {
@@ -25241,9 +25694,11 @@
           },
           "restricted": {
             "type": "boolean",
+            "nullable": true,
             "description": "Optional cloned database restricted flag override."
           },
           "groups": {
+            "nullable": true,
             "description": "Optional cloned database group access override.",
             "type": "array",
             "items": {
@@ -25251,6 +25706,7 @@
             }
           },
           "users": {
+            "nullable": true,
             "description": "Optional cloned database user access override.",
             "type": "array",
             "items": {
@@ -25832,6 +26288,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "layout": "support"
@@ -25870,7 +26327,6 @@
         "required": [
           "name",
           "type",
-          "referenceType",
           "data"
         ]
       },
@@ -25899,6 +26355,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "layout": "support"
@@ -25960,6 +26417,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "secret": {
@@ -25998,6 +26456,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "version": {
@@ -26204,6 +26663,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Folder metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "refId": {
@@ -26501,6 +26961,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "File metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "scope": "integration",
@@ -26705,6 +27166,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Entry metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "scope": "integration",
@@ -26908,6 +27370,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional metadata replacement at finalize time. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "scope": "integration",
@@ -26979,6 +27442,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Metadata replacement. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "restricted": {
@@ -27004,7 +27468,10 @@
             "description": "Current entity version.",
             "minimum": 0
           }
-        }
+        },
+        "required": [
+          "version"
+        ]
       },
       "MoveStorageEntryDto": {
         "type": "object",
@@ -27022,7 +27489,10 @@
             "description": "Current entity version.",
             "minimum": 0
           }
-        }
+        },
+        "required": [
+          "version"
+        ]
       },
       "RestoreStorageEntryDto": {
         "type": "object",
@@ -27119,6 +27589,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Additional application metadata persisted with the message. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "source": "system",
@@ -27159,6 +27630,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Additional application metadata persisted with the message. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "source": "system",
@@ -27221,6 +27693,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "File metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "source": "chat-composer"
@@ -27579,6 +28052,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -27690,6 +28164,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "componentId": {
@@ -27757,6 +28232,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -27825,6 +28301,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "cron": {
@@ -27857,8 +28334,16 @@
             "type": "string",
             "description": "IANA timezone for this schedule. Use canonical names like Europe/Warsaw or UTC. Abbreviations like CET or EST are rejected because they break DST handling.",
             "example": "Europe/Warsaw"
+          },
+          "version": {
+            "type": "number",
+            "description": "Current schedule version used for optimistic concurrency control.",
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "version"
+        ]
       },
       "ReplayEventHistoryItemResponseDto": {
         "type": "object",
@@ -27929,6 +28414,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "targetType": {
@@ -27995,7 +28481,9 @@
         "required": [
           "name",
           "targetType",
-          "targetId"
+          "targetId",
+          "active",
+          "type"
         ]
       },
       "TriggerJobEventRequestDto": {
@@ -28020,6 +28508,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional searchable event metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           }
         },
@@ -28044,6 +28533,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "targetType": {
@@ -28155,6 +28645,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional key/value metadata for grouping and querying webhooks. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "category": "billing",
@@ -28474,6 +28965,7 @@
               "SECRETS",
               "REVISIONS",
               "DATABASES",
+              "DATABASE_VIEWS",
               "DATA",
               "DATA_ITEMS",
               "ENDPOINTS",
@@ -29491,7 +29983,10 @@
             "type": "string",
             "description": "Optional static prefix added before the resolved secret value, for example `Bearer `."
           }
-        }
+        },
+        "required": [
+          "name"
+        ]
       },
       "AgentPluginMcpConfigDto": {
         "type": "object",
@@ -29565,7 +30060,11 @@
               "$ref": "#/components/schemas/AgentPluginMcpHeaderBindingDto"
             }
           }
-        }
+        },
+        "required": [
+          "transport",
+          "url"
+        ]
       },
       "AgentPluginMcpToolConfigDto": {
         "type": "object",
@@ -29675,7 +30174,10 @@
             "minimum": 256,
             "maximum": 64000
           }
-        }
+        },
+        "required": [
+          "content"
+        ]
       },
       "AgentPluginPackageMetadataDto": {
         "type": "object",
@@ -29790,7 +30292,8 @@
           }
         },
         "required": [
-          "externalId"
+          "externalId",
+          "content"
         ]
       },
       "AgentPluginConfigDto": {
@@ -29972,7 +30475,11 @@
             "description": "Whether the plugin is enabled for execution.",
             "default": true
           }
-        }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "AgentConfigDto": {
         "type": "object",
@@ -30242,6 +30749,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -31431,6 +31939,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "platform"
@@ -31608,6 +32117,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "ops"
@@ -31832,6 +32342,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "description": "Replacement resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
             "example": {
               "costCenter": "platform"
@@ -32020,6 +32531,49 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "CreateShareDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Relative RevoEngine route for the current instance, including supported grid filters.",
+            "example": "/instance-id/resources/databases?v=2&f.status=ACTIVE",
+            "maxLength": 8192
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "CreateShareResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Short-lived share identifier.",
+            "example": "V1StGXR8_Z5j",
+            "minLength": 12,
+            "maxLength": 12
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ResolveShareResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Validated relative RevoEngine route stored by the share link.",
+            "example": "/instance-id/resources/databases?v=2&f.status=ACTIVE",
+            "maxLength": 8192
+          }
+        },
+        "required": [
+          "url"
         ]
       }
     }
