@@ -70,6 +70,16 @@ A RevoEngine skill describes how to approach a product workflow, what evidence t
 
 This separation lets a client load detailed domain guidance without expanding its execution authority.
 
+### Select a workflow before loading its instructions
+
+The version 2 skill catalogue provides complete selection descriptions, resource URIs, relevant capability names, and optional `requires` identifiers for prerequisite guidance. Select the narrow workflow first: querying Database rows, changing a Database definition, importing data, exporting a file, investigating one failure, and reporting execution statistics are separate tasks.
+
+Resource and investigation responses may include `relatedSkills`. These are optional recommendations, not loaded instructions, additional permissions, or a requirement to read every related workflow. Resolve selected identifiers through the catalogue and read their resources together with any missing prerequisites. Reuse complete guidance already present in the client context; routine metadata reads do not require loading an entire dependency tree.
+
+Discovery returns canonical identifiers. Retired skill identifiers remain readable compatibility aliases, so existing saved resource links can still resolve.
+
+Direct MCP calls use the authenticated client's platform authority. They do not pause for Assistant approval; clients must not assume that an approval step described in an Assistant workflow protects an MCP mutation.
+
 ## Reusable prompts
 
 Use `prompts/list` to discover the current prompt catalogue. The present workflow families include:

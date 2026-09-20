@@ -6,6 +6,11 @@ icon: brackets-curly
 
 Use the smallest namespace that fits the operation. Platform state and external I/O belong to `api` or `storage`; pure transformation belongs to `util`; reusable domain behavior is addressed through `lib.Category.Name.ElementKey.X`.
 
+Use `lib` for new shared-library calls. The older `libs` alias is deprecated and
+is marked accordingly in editor hints. Existing calls and exported type references
+remain supported; the alias resolves to the same library members.
+
+
 <Tip>
 Use the generated [Low-code runtime reference](/low-code/reference/index) when you need an exact signature or editor-provided example. It is organized by `api`, `storage`, `agent`, and `util`, and is synchronized from the declaration source that feeds Monaco.
 </Tip>

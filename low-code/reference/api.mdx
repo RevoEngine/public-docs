@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **73 methods**. Search the docs for an exact method name, or use this index:
+This page contains **71 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
@@ -40,9 +40,7 @@ This page contains **73 methods**. Search the docs for an exact method name, or 
 - [`api.setCache()`](#api-setCache)
 - [`api.getContext()`](#api-getContext)
 - [`api.getErrors()`](#api-getErrors)
-- [`api.getWarnings()`](#api-getWarnings)
 - [`api.getExecutionId()`](#api-getExecutionId)
-- [`api.getLogs()`](#api-getLogs)
 - [`api.getOperationId()`](#api-getOperationId)
 - [`api.executeComponent()`](#api-executeComponent)
 - [`api.input()`](#api-input)
@@ -807,7 +805,8 @@ const ctx = api.getContext();
 
 ## `api.getErrors()`
 
-Returns collected error logs.
+Returns a snapshot of error logs collected so far in this execution.
+Each call reads the current host collection; modifying the returned array does not clear host errors.
 
 ### Signature
 
@@ -818,23 +817,6 @@ static getErrors(): ProcessLog[];
 
 ```ts
 const errors = api.getErrors();
-```
-
-<span id="api-getWarnings" aria-hidden="true"></span>
-
-## `api.getWarnings()`
-
-Returns collected warning logs.
-
-### Signature
-
-```ts
-static getWarnings(): ProcessLog[];
-```
-### Example
-
-```ts
-const warnings = api.getWarnings();
 ```
 
 <span id="api-getExecutionId" aria-hidden="true"></span>
@@ -855,23 +837,6 @@ static getExecutionId(): string;
 
 ```ts
 const executionId = api.getExecutionId();
-```
-
-<span id="api-getLogs" aria-hidden="true"></span>
-
-## `api.getLogs()`
-
-Returns collected info logs.
-
-### Signature
-
-```ts
-static getLogs(): LooseObject<any>[];
-```
-### Example
-
-```ts
-const logs = api.getLogs();
 ```
 
 <span id="api-getOperationId" aria-hidden="true"></span>
@@ -1591,6 +1556,8 @@ await api.releaseConcurrencyLimit('sync:customers');
 ## `api.triggerEvent()`
 
 Schedules a custom event.
+Matches active definitions by `custom: true` and the uppercase event type.
+No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
 
 Notes:
 - Use the options object's `scheduleFor`; legacy delay properties are ignored.
@@ -1767,6 +1734,7 @@ Stores only 2xx bodies and returns after finalization; other statuses return bou
 ```ts
 static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
       status: number; statusText: string; time: number; headers: LooseObject<string>;
+      revo?: HttpRevoResponseScope;
       request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
     } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
 ```
@@ -1789,6 +1757,10 @@ Notes:
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
 - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
+- Revo responses expose `revo.sameInstance`. The runtime compares
+  SHA-256("revo-instance:v1:" + current instance id) internally; `x-revo-oid`
+  is returned only when `revo.sameInstance` is true. Cross-instance or
+  unconfirmed Revo headers are removed from the public response.
 - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
 - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
 - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
@@ -1807,6 +1779,7 @@ static httpCall(
       statusText: string;
       time: number;
       headers: LooseObject<string>;
+      revo?: HttpRevoResponseScope;
       data: any;
       storage?: { session: StorageUploadSession; entry: StorageEntryView };
       request: {

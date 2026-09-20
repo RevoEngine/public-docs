@@ -15,7 +15,7 @@ icon: node-js
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk@1.5.6
+npm install @revoengine/sdk@1.5.8
 ```
 
 ## Choose a runtime mode
@@ -70,11 +70,11 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 ## Contract behavior
 
-SDK 1.5.6 matches the RevoEngine 1.5.6 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+SDK 1.5.8 matches the RevoEngine 1.5.8 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 
-Use `transport.sftpImport`, `transport.sftpExport`, and `transport.sftpCommands` for new SFTP code. Both hosted and standalone clients expose these methods with generated types. Legacy SFTP aliases and the removed thread-goal methods are excluded from the current SDK. See [Storage transfers](/build/transport) and the [1.5.6 release notes](/changelog/1.5.6).
+Use `transport.sftpImport`, `transport.sftpExport`, and `transport.sftpCommands` for new SFTP code. Both hosted and standalone clients expose these methods with generated types. Legacy SFTP aliases and the removed thread-goal methods are excluded from the current SDK. See [Storage transfers](/build/transport) and the [1.5.8 release notes](/changelog/1.5.8).
 
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
 

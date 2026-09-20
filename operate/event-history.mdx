@@ -6,6 +6,8 @@ icon: clock-rotate-left
 
 Event History is the durable evidence that an event was accepted and evaluated. Use it to answer three different questions: **what arrived**, **which definitions matched**, and **what execution was scheduled**.
 
+The API exposes `type` and `custom` on each occurrence. Custom and native events both support replay from saved history; only custom definitions accept a new user-provided message. New occurrences retain causal origin when available, and `replayOfEventHistoryId` identifies the original occurrence for a replay. Older evidence can have an unavailable origin.
+
 ## Read the history grid
 
 Open **Jobs → Event History**. List rows include the event name, creator and creation time, payload size, metadata, and lifecycle state. Large messages are omitted from list projections so the grid remains responsive; open a row to load the complete message.

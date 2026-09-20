@@ -1,0 +1,86 @@
+---
+title: "1.5.8 — Safer component changes and clearer operational evidence"
+sidebarTitle: "1.5.8"
+icon: "tag"
+description: "20 September 2026"
+---
+
+RevoEngine 1.5.8 catches more low-code problems before a change is saved, keeps large database operations complete inside their original transaction and connects operational failures to clearer evidence. It also strengthens Assistant change review and makes busy Jobs and Trace views more useful without adding noise to the main workflow.
+
+## Highlights
+
+- Catch JavaScript and TypeScript problems before saving Components with Monaco diagnostics backed by bounded server analysis.
+- Insert, upsert or delete up to 100,000 database rows through one logical low-code operation while preserving its transaction and complete result.
+- Investigate failed Events, Schedules, Components and Jobs through one evidence flow with linked Trace navigation and stable continuation.
+- Let RevoShield Auto Review assess code quality and the exact effect of supported Component lifecycle changes before they run.
+- Work with leaner Jobs grids, clearer Assistant tool progress and request-weighted P50, P95 and average endpoint performance cards.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Catch low-code problems before they are persisted" defaultOpen={true}>
+
+Component JavaScript and TypeScript now pass bounded server analysis before a change is accepted. The analysis derives qualified library dependencies, records source identity and returns diagnostics against the original source. A concurrent edit made after analysis is rejected instead of saving a result for an older revision.
+
+Monaco presents the same problems directly in the editor and keeps saved-source markers aligned with the active revision. Runtime failures can navigate back to original JavaScript or TypeScript locations when valid source information is available; stale source is rejected instead of opening an approximate line. Existing Components remain compatible and are enriched without rewriting customer source or historical revisions.
+
+  </Accordion>
+  <Accordion title="Keep large database changes inside one operation">
+
+Large low-code insert, upsert and delete requests now transfer their input and result in bounded chunks while retaining one logical execution admission and the caller's outer transaction. This removes the earlier boundary where a request could be accepted by the low-code runtime but lose the complete host result once the payload crossed the direct bridge limit.
+
+The supported bulk path covers up to 100,000 rows, including partial final batches, and keeps existing response controls. Timeout reporting now identifies the low-code execution deadline and active source location when available, rather than surfacing an unrelated abandoned-promise message. Binary HTTP and Storage transfers also avoid unnecessary text conversion when the caller is already working with bytes.
+
+```js
+return api.insertDatabaseData('orders', [
+  { orderId: 'ord-1001', status: 'NEW' },
+], { return: false });
+```
+
+```js
+return api.upsertDatabaseData('customers', [
+  { customerId: 'cus-42', status: 'ACTIVE' },
+], { onlyKeys: true });
+```
+
+```js
+return api.deleteDatabaseDataRequest('temporary_imports', {
+  filter: { field: 'status', op: 'eq', value: 'EXPIRED' },
+}, { return: false });
+```
+
+  </Accordion>
+  <Accordion title="Follow a failure from its trigger to its evidence">
+
+Operational investigation can start from an Event, Schedule, Component execution, operation or Job and retain that anchor while it follows the selected failure. New execution identities connect related work directly, with compatibility discovery available for older records. Compact results preserve exact references and continuation cursors so operators can open full evidence without repeating broad searches.
+
+Trace navigation now resolves linked resources consistently and keeps filters aligned with the selected execution. Custom Events have a distinct contract across configuration, history and queued messages, while native Events remain replayable without pretending to accept user-defined payloads. Job history reads also avoid loading large inputs and outputs until the details view requests them.
+
+  </Accordion>
+  <Accordion title="Review the effect of Assistant changes">
+
+RevoShield Auto Review now evaluates the actual contract, technical quality and expected effect of supported resource mutations. Code review checks behavior preservation, callers, duplication and performance, and can return a correctable quality finding instead of treating every valid payload as ready to apply.
+
+Supported Component activation, restore, disable, delete and revert operations use guarded previews and current effect tokens. Changes that do not provide the evidence required for their review class still stop for human approval. Assistant activity also groups active tool work more clearly and exposes useful details without duplicating the final response.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Jobs list queries fetch execution inputs, outputs and totals only when the caller explicitly needs them, with indexes aligned to active-row status and scheduling filters.
+- MCP Streamable HTTP uses a stateless request lifecycle and lets older clients retire cached sessions idempotently while preserving existing principal rate limits.
+- Endpoint summaries show request-weighted P50, P95 and average latency and distinguish unavailable measurements from a real zero value.
+- Node.js SDK 1.5.8, generated low-code declarations, Monaco contracts and the Platform API schema describe the same supported release surface.
+
+## Related guides
+
+- [Low-code runtime](/low-code/runtime-api)
+- [Low-code API reference](/low-code/reference/api)
+- [Traces](/operate/traces)
+- [Event history](/operate/event-history)
+- [Jobs](/operate/jobs)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.5.7](/changelog/1.5.7)

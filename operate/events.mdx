@@ -17,7 +17,7 @@ Use an Event when work should begin because state changed, not because a person 
 | Process a finalized Storage upload | `STORAGE_CREATED` → validation Job |
 | Generate a preview after a Storage write | `STORAGE_CREATED` → rendering Job |
 | Reconcile access after an identity change | `USER_UPDATED` → governance Job |
-| React to a domain signal | `CUSTOM` with `customType` such as `CUSTOM_ORDER_APPROVED` |
+| React to a domain signal | `CUSTOM` with `customType` such as `ORDER_APPROVED` |
 
 <Tip>
   Publish small event envelopes and let the target load authoritative data by ID. Event metadata is searchable, but it is not a replacement for a Table or Storage object.
@@ -53,7 +53,7 @@ Open a row to review the effective target, delivery mode, metadata, and filter b
 | --- | --- |
 | **Activate** | Starts matching future messages after target configuration and instance quotas are revalidated. |
 | **Disable** | Stops future matches; existing Event History and already scheduled targets remain. |
-| **Run** | Publishes a controlled test message under this definition's stored type. |
+| **Run** | Custom definitions only: publishes a message under the stored type. Native lifecycle events are replayed from Event History. |
 | **Update** | Replaces editable configuration with optimistic version checking. A stale editor is rejected. |
 | **Delete** | Soft-deletes and disables the definition. |
 | **Restore** | Makes a deleted definition available again; review target and filter before activation. |
@@ -62,9 +62,9 @@ Instance settings govern the total and active Event-definition quotas. An active
 
 ## Create a custom business event
 
-Choose **Type → Custom** when the signal belongs to your application rather than a RevoEngine resource lifecycle. In the **Custom type** field enter the business suffix, for example `ORDER_APPROVED`; the durable/API type becomes `CUSTOM_ORDER_APPROVED`.
+Choose **Type → Custom** when the signal belongs to your application rather than a RevoEngine resource lifecycle. In the **Custom type** field enter the event type, for example `ORDER_APPROVED`. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added.
 
-Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `CUSTOM_SEND_EMAIL_NOW`.
+Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `SEND_EMAIL_NOW`.
 
 ### Example: approved high-value order
 
@@ -78,7 +78,8 @@ curl --request POST "$REVO_API_URL/api/v1/automation/event" \
     "name": "High-value approved orders",
     "category": "Order assurance",
     "desc": "Checks balance, persists a transaction, and notifies the risk provider.",
-    "type": "CUSTOM_ORDER_APPROVED",
+    "type": "ORDER_APPROVED",
+    "custom": true,
     "targetType": "JOB_TEMPLATE",
     "targetId": "'"$JOB_TEMPLATE_ID"'",
     "active": true,
@@ -160,7 +161,7 @@ The visual builder supports up to six safe message-path segments and deliberatel
     { "field": "metadata.source", "op": "eq", "value": "checkout" },
     {
       "and": [
-        { "field": "type", "op": "eq", "value": "CUSTOM_ORDER_APPROVED" },
+        { "field": "type", "op": "eq", "value": "ORDER_APPROVED" },
         { "field": "message.order.region", "op": "in", "value": ["eu", "uk"] }
       ]
     }
@@ -174,7 +175,7 @@ The visual builder supports up to six safe message-path segments and deliberatel
 
 ## Trigger a controlled test
 
-Saved active Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`.
+Saved active custom Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`.
 
 1. Open the Event and select **Run**.
 2. Enter a JSON `message` representative of production traffic.
@@ -238,7 +239,7 @@ The current catalogue includes lifecycle events for:
 - User and Service Account create, update, activate, deactivate, restore, and delete;
 - account API-key create, update, and delete.
 
-Use `CUSTOM_*` events for business vocabulary owned by your application. Do not reuse an identity or Storage event to carry an unrelated domain message. The selector presents `CUSTOM` plus a suffix field, while the stored and API-visible type is the combined `CUSTOM_<SUFFIX>` value.
+The `custom` boolean is the only classifier. `custom: true` permits a dynamic business message; `custom: false` selects a supported platform lifecycle event and can only be replayed from existing history. Matching uses both `type` and `custom`, so identical names in different classes do not collide. The UI's Custom selector is only a presentation control.
 
 ### Storage lifecycle cookbook
 
@@ -310,13 +311,13 @@ Event delivery can be repeated by infrastructure or by an operator replay. Targe
     Continue in Job History or the Agent run. Event History owns admission and fan-out, while target history owns execution, permissions, retries, and result.
   </Accordion>
   <Accordion title="A custom event matches too many definitions">
-    Use a more specific `CUSTOM_*` type or add message/metadata filters. Keep each definition responsible for one target so unwanted fan-out can be disabled independently.
+    Use a more specific business event type or add message/metadata filters. Keep each definition responsible for one target so unwanted fan-out can be disabled independently.
   </Accordion>
 </AccordionGroup>
 
 ## Production checklist
 
-- Give custom types stable `CUSTOM_*` names.
+- Give custom types stable names and set `custom: true`.
 - Filter before starting expensive work.
 - Validate the payload again inside the target.
 - Use a dedicated service account on Job templates.

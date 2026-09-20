@@ -219,6 +219,27 @@
         "operationId": "ActivityController_getAll",
         "parameters": [
           {
+            "name": "actions",
+            "required": false,
+            "in": "query",
+            "description": "Resource activity actions. Excludes derived component-element activity; applied before pagination.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "created",
+                  "updated",
+                  "deleted",
+                  "restored",
+                  "revoked",
+                  "enabled",
+                  "disabled"
+                ]
+              }
+            }
+          },
+          {
             "name": "refTypes",
             "required": false,
             "in": "query",
@@ -695,7 +716,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -1026,7 +1047,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -1635,7 +1656,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -1998,7 +2019,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -2603,7 +2624,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -2906,6 +2927,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3171,6 +3200,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3204,6 +3241,14 @@
             "name": "componentId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -3241,6 +3286,14 @@
             "name": "componentId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-revo-mutation-review",
+            "required": true,
+            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -3628,7 +3681,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -3938,7 +3991,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -4387,7 +4440,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -4697,7 +4750,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -5071,7 +5124,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -5453,7 +5506,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -6499,7 +6552,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -6720,7 +6773,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -7342,7 +7395,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -7810,7 +7863,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -8537,7 +8590,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -8745,6 +8798,47 @@
           }
         ],
         "summary": "Update instance configuration.",
+        "tags": [
+          "Config"
+        ]
+      }
+    },
+    "/api/v1/config/instance/slug": {
+      "put": {
+        "description": "\n    Atomically reserves the requested slug, checks for collisions and updates\n    the global instance configuration using optimistic version control.\n    Real changes are limited to one every 30 days and append an immutable audit\n    event in the same transaction.\n    Only activeUrl returned by this operation is the canonical working frontend\n    link. Earlier slugs remain reserved for this instance but are not aliases.\n\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "operationId": "ConfigController_updateInstanceSlug",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstanceSlugDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateInstanceSlugResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The slug is reserved by another instance, the supplied version is stale or the 30-day cooldown is active."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the globally unique frontend path slug.",
         "tags": [
           "Config"
         ]
@@ -9168,7 +9262,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -9469,7 +9563,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -9782,7 +9876,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -10166,7 +10260,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -11250,7 +11344,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -13582,7 +13676,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -13777,7 +13871,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -14128,7 +14222,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -14520,7 +14614,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -14978,7 +15072,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -15289,7 +15383,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -15753,7 +15847,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -15927,7 +16021,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -16157,7 +16251,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -16464,7 +16558,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -17097,7 +17191,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -17544,7 +17638,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -18635,7 +18729,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -18919,7 +19013,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -19683,7 +19777,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -19995,7 +20089,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -20793,7 +20887,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -21012,7 +21106,7 @@
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
               "example": true,
               "type": "boolean"
@@ -21594,7 +21688,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.7",
+    "version": "1.5.8",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21742,7 +21836,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.7"
+            "example": "What’s new in RevoEngine 1.5.8"
           },
           "highlights": {
             "example": [
@@ -21757,7 +21851,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.7",
+            "example": "https://docs.revoengine.com/changelog/1.5.8",
             "format": "uri"
           }
         },
@@ -21774,7 +21868,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.7"
+            "example": "1.5.8"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21790,7 +21884,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.7"
+            "example": "1.5.8"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -22017,7 +22111,7 @@
           },
           "value": {
             "type": "string",
-            "description": "You need to provide IP, IP (10.0.8.0)/MASK(10.0.8.0/18)/RANGE(10.0.8.0-10.0.8.255)."
+            "description": "Provide a single address, a CIDR network or an address range."
           }
         },
         "required": [
@@ -22043,7 +22137,8 @@
             "description": "You can provide if key should be whitelisted."
           },
           "whitelist": {
-            "description": "Required only when restricted is true; omit it when unrestricted. Every supplied entry requires name, type, and value.",
+            "nullable": true,
+            "description": "Use an empty array or null when restricted is false; provide at least one complete entry when restricted is true.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserKeyWhitelistDto"
@@ -22077,7 +22172,8 @@
             "description": "You can provide if key should be whitelisted."
           },
           "whitelist": {
-            "description": "Required when this update sets restricted to true. Omit it when the restriction mode is unchanged or disabled.",
+            "nullable": true,
+            "description": "Use an empty array or null when restricted is false; provide at least one complete entry when setting restricted to true.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserKeyWhitelistDto"
@@ -22175,11 +22271,11 @@
           },
           "ownerId": {
             "type": "string",
-            "description": "Optional owner id. When provided, ownerType is required as well."
+            "description": "Owner user or group id. Must be provided together with ownerType."
           },
           "ownerType": {
             "type": "string",
-            "description": "Optional owner type. When provided, ownerId is required as well.",
+            "description": "Owner principal type. Must be provided together with ownerId.",
             "enum": [
               "USER",
               "GROUP"
@@ -22209,7 +22305,9 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "ownerId",
+          "ownerType"
         ]
       },
       "UpdateUserDto": {
@@ -22880,6 +22978,15 @@
       "ComponentElementsDto": {
         "type": "object",
         "properties": {
+          "libs": {
+            "nullable": true,
+            "readOnly": true,
+            "description": "Server-derived qualified library element dependencies. Null means not analyzed; supplied values are ignored.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "componentElementId": {
             "type": "string",
             "nullable": true,
@@ -23413,6 +23520,7 @@
                 "RESOURCE_ADMIN",
                 "FILE_READ",
                 "FILE_ADMIN",
+                "STORAGE_ADMIN",
                 "COMPONENT_READ",
                 "COMPONENT_WRITE",
                 "COMPONENT_ADMIN",
@@ -24068,7 +24176,7 @@
         "properties": {
           "count": {
             "type": "boolean",
-            "description": "Include the total count in the response envelope. Accepts boolean query values such as true or false.",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "example": true
           },
           "filter": {
@@ -25777,6 +25885,92 @@
         "required": [
           "details",
           "config"
+        ]
+      },
+      "UpdateInstanceSlugDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "New globally unique frontend path identifier. The returned activeUrl is the only canonical link after the update. Previously used slugs remain reserved for this instance but are not active aliases. After activation, another change is blocked for 30 days.",
+            "example": "tenant-production",
+            "minLength": 6,
+            "maxLength": 30,
+            "pattern": "^[a-z][a-z0-9-]{4,28}[a-z0-9]$"
+          },
+          "acknowledgeUrlChange": {
+            "type": "boolean",
+            "description": "Must be true to confirm that earlier slug links will stop resolving and another real slug change will be blocked for 30 days.",
+            "example": true,
+            "enum": [
+              true
+            ]
+          },
+          "version": {
+            "type": "number",
+            "description": "Current global instance configuration version used for optimistic concurrency control.",
+            "example": 12,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "slug",
+          "acknowledgeUrlChange",
+          "version"
+        ]
+      },
+      "UpdateInstanceSlugResponseDto": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "description": "Internal instance UUID. API authorization and backend state continue to use this identifier.",
+            "example": "159836b3-a831-4c8c-bb7d-c9b91b455a7c"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Current frontend path identifier after the transaction commits.",
+            "example": "tenant-production"
+          },
+          "previousSlug": {
+            "type": "string",
+            "description": "Previous active slug, or null when the instance did not have one.",
+            "example": "tenant-stage",
+            "nullable": true
+          },
+          "activeUrl": {
+            "type": "string",
+            "description": "Canonical frontend link that is active after the update. Earlier slug links are not aliases and stop resolving.",
+            "example": "https://app.revoengine.com/tenant-production"
+          },
+          "slugChangedAt": {
+            "type": "string",
+            "description": "Timestamp when this slug became active, or null when an unchanged legacy slug has no recorded activation time.",
+            "example": "2026-09-18T10:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "nextSlugChangeAt": {
+            "type": "string",
+            "description": "Earliest timestamp at which another slug change is allowed, or null when no cooldown has started.",
+            "example": "2026-10-18T10:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "version": {
+            "type": "number",
+            "description": "Global instance configuration version after the update.",
+            "example": 13
+          }
+        },
+        "required": [
+          "instanceId",
+          "slug",
+          "previousSlug",
+          "activeUrl",
+          "slugChangedAt",
+          "nextSlugChangeAt",
+          "version"
         ]
       },
       "InstanceUsageCountDto": {
@@ -28400,6 +28594,10 @@
       "JobEventRequestDto": {
         "type": "object",
         "properties": {
+          "custom": {
+            "type": "boolean",
+            "description": "true: user-triggerable custom event; false: native platform event, replayable only from history."
+          },
           "name": {
             "type": "string",
             "description": "Provide name of trigger."
@@ -28448,37 +28646,11 @@
           },
           "type": {
             "type": "string",
-            "description": "Type must be one of FILE_DELETED,FILE_FINALIZED,FILE_ARCHIVED,FILE_UPDATED,STORAGE_CREATED,STORAGE_UPDATED,STORAGE_SYNCHRONIZED,STORAGE_ARCHIVED,STORAGE_RESTORED,STORAGE_DELETED,SERVICE_ACCOUNT_CREATED,SERVICE_ACCOUNT_UPDATED,SERVICE_ACCOUNT_ACTIVATED,SERVICE_ACCOUNT_DEACTIVATED,SERVICE_ACCOUNT_RESTORED,SERVICE_ACCOUNT_DELETED,USER_CREATED,USER_UPDATED,USER_ACTIVATED,USER_DEACTIVATED,USER_RESTORED,USER_DELETED,ACCOUNT_API_KEY_CREATED,ACCOUNT_API_KEY_UPDATED,ACCOUNT_API_KEY_DELETED or starts with CUSTOM_*",
-            "enum": [
-              "FILE_DELETED",
-              "FILE_FINALIZED",
-              "FILE_ARCHIVED",
-              "FILE_UPDATED",
-              "STORAGE_CREATED",
-              "STORAGE_UPDATED",
-              "STORAGE_SYNCHRONIZED",
-              "STORAGE_ARCHIVED",
-              "STORAGE_RESTORED",
-              "STORAGE_DELETED",
-              "SERVICE_ACCOUNT_CREATED",
-              "SERVICE_ACCOUNT_UPDATED",
-              "SERVICE_ACCOUNT_ACTIVATED",
-              "SERVICE_ACCOUNT_DEACTIVATED",
-              "SERVICE_ACCOUNT_RESTORED",
-              "SERVICE_ACCOUNT_DELETED",
-              "USER_CREATED",
-              "USER_UPDATED",
-              "USER_ACTIVATED",
-              "USER_DEACTIVATED",
-              "USER_RESTORED",
-              "USER_DELETED",
-              "ACCOUNT_API_KEY_CREATED",
-              "ACCOUNT_API_KEY_UPDATED",
-              "ACCOUNT_API_KEY_DELETED"
-            ]
+            "description": "Event routing name without an implicit prefix. Native types use the platform event catalogue; custom types use a user-defined name."
           }
         },
         "required": [
+          "custom",
           "name",
           "targetType",
           "targetId",
@@ -28519,6 +28691,10 @@
       "UpdateJobEventRequestDto": {
         "type": "object",
         "properties": {
+          "custom": {
+            "type": "boolean",
+            "description": "Whether this is a user-triggerable custom event."
+          },
           "name": {
             "type": "string",
             "description": "Provide name of trigger."
@@ -28563,34 +28739,7 @@
           },
           "type": {
             "type": "string",
-            "description": "Type must be one of FILE_DELETED,FILE_FINALIZED,FILE_ARCHIVED,FILE_UPDATED,STORAGE_CREATED,STORAGE_UPDATED,STORAGE_SYNCHRONIZED,STORAGE_ARCHIVED,STORAGE_RESTORED,STORAGE_DELETED,SERVICE_ACCOUNT_CREATED,SERVICE_ACCOUNT_UPDATED,SERVICE_ACCOUNT_ACTIVATED,SERVICE_ACCOUNT_DEACTIVATED,SERVICE_ACCOUNT_RESTORED,SERVICE_ACCOUNT_DELETED,USER_CREATED,USER_UPDATED,USER_ACTIVATED,USER_DEACTIVATED,USER_RESTORED,USER_DELETED,ACCOUNT_API_KEY_CREATED,ACCOUNT_API_KEY_UPDATED,ACCOUNT_API_KEY_DELETED or starts with CUSTOM_*",
-            "enum": [
-              "FILE_DELETED",
-              "FILE_FINALIZED",
-              "FILE_ARCHIVED",
-              "FILE_UPDATED",
-              "STORAGE_CREATED",
-              "STORAGE_UPDATED",
-              "STORAGE_SYNCHRONIZED",
-              "STORAGE_ARCHIVED",
-              "STORAGE_RESTORED",
-              "STORAGE_DELETED",
-              "SERVICE_ACCOUNT_CREATED",
-              "SERVICE_ACCOUNT_UPDATED",
-              "SERVICE_ACCOUNT_ACTIVATED",
-              "SERVICE_ACCOUNT_DEACTIVATED",
-              "SERVICE_ACCOUNT_RESTORED",
-              "SERVICE_ACCOUNT_DELETED",
-              "USER_CREATED",
-              "USER_UPDATED",
-              "USER_ACTIVATED",
-              "USER_DEACTIVATED",
-              "USER_RESTORED",
-              "USER_DELETED",
-              "ACCOUNT_API_KEY_CREATED",
-              "ACCOUNT_API_KEY_UPDATED",
-              "ACCOUNT_API_KEY_DELETED"
-            ]
+            "description": "Event routing name without an implicit prefix."
           },
           "version": {
             "type": "number",

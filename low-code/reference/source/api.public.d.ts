@@ -700,20 +700,13 @@ declare class api {
   static getContext(): Context;
 
   /**
-     * Returns collected error logs.
+     * Returns a snapshot of error logs collected so far in this execution.
+     * Each call reads the current host collection; modifying the returned array does not clear host errors.
      *
      * Example:
      * const errors = api.getErrors();
      */
   static getErrors(): ProcessLog[];
-
-  /**
-     * Returns collected warning logs.
-     *
-     * Example:
-     * const warnings = api.getWarnings();
-     */
-  static getWarnings(): ProcessLog[];
 
   /**
      * Returns the UUID that identifies the current low-code execution.
@@ -735,14 +728,6 @@ declare class api {
      * const id = api.getJobId();
      */
   static getJobId(): string;
-
-  /**
-     * Returns collected info logs.
-     *
-     * Example:
-     * const logs = api.getLogs();
-     */
-  static getLogs(): LooseObject<any>[];
 
   /**
      * Returns the current operation id.
@@ -1180,6 +1165,8 @@ declare class api {
 
   /**
      * Schedules a custom event.
+     * Matches active definitions by `custom: true` and the uppercase event type.
+     * No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
      *
      * Notes:
      * - Use the options object's `scheduleFor`; legacy delay properties are ignored.
@@ -1295,6 +1282,7 @@ declare class api {
   /** Stores only 2xx bodies and returns after finalization; other statuses return bounded diagnostic text. */
   static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
       status: number; statusText: string; time: number; headers: LooseObject<string>;
+      revo?: HttpRevoResponseScope;
       request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
     } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
 
@@ -1312,6 +1300,10 @@ declare class api {
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
      * - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
+     * - Revo responses expose `revo.sameInstance`. The runtime compares
+     *   SHA-256("revo-instance:v1:" + current instance id) internally; `x-revo-oid`
+     *   is returned only when `revo.sameInstance` is true. Cross-instance or
+     *   unconfirmed Revo headers are removed from the public response.
      * - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
      * - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
      * - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
@@ -1400,6 +1392,7 @@ declare class api {
       statusText: string;
       time: number;
       headers: LooseObject<string>;
+      revo?: HttpRevoResponseScope;
       data: any;
       storage?: { session: StorageUploadSession; entry: StorageEntryView };
       request: {
@@ -2091,7 +2084,7 @@ declare class storage {
      *   computeStats: 'sync',
      * });
      */
-  static putObject(data: StoragePutObjectInput): Promise<StorageEntryView>;
+  static putObject(data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
 
   /**
      * Opens an upload session for a file in the default `explorer` namespace.
@@ -2219,8 +2212,8 @@ declare class storage {
      */
   static uploadPart(
       storageUploadSessionId: string,
-      partNumber: number | StorageUploadPartInput,
-      data?: StorageUploadPartInput,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
     ): Promise<StorageUploadPartResult>;
 
   /**

@@ -254,7 +254,7 @@ Notes:
 ### Signature
 
 ```ts
-static putObject(data: StoragePutObjectInput): Promise<StorageEntryView>;
+static putObject(data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
 ```
 ### Example
 
@@ -407,8 +407,8 @@ Notes:
 ```ts
 static uploadPart(
       storageUploadSessionId: string,
-      partNumber: number | StorageUploadPartInput,
-      data?: StorageUploadPartInput,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
     ): Promise<StorageUploadPartResult>;
 ```
 ### Example

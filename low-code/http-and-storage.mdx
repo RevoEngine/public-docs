@@ -38,6 +38,20 @@ return response.data;
 
 Never log the request headers or the resolved secret. An HTTP success code confirms the remote response, not the business effect; keep and reconcile the remote operation identifier when the provider exposes one.
 
+## Work with binary data in a Component
+
+Use `requestType: 'buffer'` to send an existing `Buffer` or `Uint8Array` and
+`responseType: 'buffer'` to receive a `Buffer`. The existing `base64buffer` option
+continues to return a base64 string. Keep ordinary JSON as JSON rather than
+converting it to a buffer solely for transport.
+
+`storage.putObject` accepts text, arrays of text, `Buffer`, and `Uint8Array`.
+`storage.uploadPart` also accepts bytes directly, without base64 encoding. The
+runtime snapshots bytes when the operation starts; later changes to your buffer
+do not alter that upload. A large upload still creates one logical object or part.
+For files already in Storage, prefer `source`/`target` streaming so the Component
+does not need to hold the complete payload.
+
 ## Import an HTTP response into Storage
 
 Create the destination folder first, then make it the parent of the streamed target. The runtime writes the response through managed Storage streaming and finalizes the entry automatically.
