@@ -63,7 +63,7 @@ return customer.data[0] ?? null;
 
 For custom Node.js, saving source and making it executable are separate states. The deployment must become ready before it can be activated; a failed deployment does not silently execute unverified source.
 
-For field-level metadata, element-key rules, type-specific configuration, and version behavior, see [Component configuration](/build/component-configuration).
+For an exact deployment binding, select a Component content digest from revision history. The digest identifies executable content across instances even when local version numbers differ; leaving the digest unset follows the latest active revision. Element metadata is editable, while reserved revision fields are managed by RevoEngine. For field-level metadata, element-key rules, type-specific configuration, and version behavior, see [Component configuration](/build/component-configuration).
 
 ## A useful first Component
 
@@ -91,6 +91,22 @@ That Component can later be reused by an Endpoint, a Job template, an Event targ
 - Expose a component through an Endpoint for synchronous HTTP.
 - Attach it to a job template for background execution.
 - Publish selected components as governed Agent plugins.
+
+## Components as Agent capabilities
+
+A Component becomes especially valuable when the same business rule must serve people, APIs, automation, and Agents. Publish the reviewed Component through an Agent plugin instead of asking a model to reproduce the logic in a prompt.
+
+This gives the Agent a narrow capability with:
+
+- a stable input and output contract;
+- the same versioned business rule used elsewhere in the application;
+- platform authorization and approval classification;
+- observable executions and errors;
+- independent testing and rollout.
+
+For example, a pricing Component can power an Endpoint, a scheduled recalculation Job, and an Agent action without creating three implementations of the pricing rule. The Agent decides when the capability is relevant; the Component remains the deterministic execution boundary.
+
+See [Tools, skills, and loading](/ai/tools-and-skills) for the difference between executable tools, workflow guidance, and packages.
 
 <Warning>
   Do not place API keys or passwords in source or component metadata. Store them in Secrets and resolve them only when needed at runtime.

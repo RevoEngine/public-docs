@@ -47,7 +47,6 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
   "name": "Nightly CRM synchronization",
   "category": "Integrations",
   "componentId": "4d3390ac-2c06-4eb0-8cd4-0b69c3aa531a",
-  "componentVersion": 12,
   "triggerUser": "a6e96a8a-0f13-4865-bb07-64260c3de208",
   "timeout": 1800,
   "options": {
@@ -67,7 +66,7 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 }
 ```
 
-`componentVersion` pins a known low-code version for a controlled release. Omit it only when the task should intentionally resolve the latest active version; make that choice explicitly for a new Job Template. When repairing its Component, preserve each existing Template binding unless the operator explicitly approves a migration. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
+A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
 
 The platform rejects retry backoff above 30 days before queueing. If an absolute requested run time becomes due while the request is being processed, the Job is dispatched immediately; the queue is never given a timestamp in the past.
 

@@ -4,11 +4,15 @@ description: Build and run your first RevoEngine endpoint.
 icon: rocket
 ---
 
-This walkthrough creates a component, tests it in the Sandbox, and exposes it as an HTTP endpoint.
+This walkthrough creates a Component, validates it in the Sandbox, and exposes it as an HTTP Endpoint. You will finish with one versioned unit of logic and one callable interface rather than code hidden inside a route.
+
+## Before you start
+
+You need permission to create Components and Endpoints in the target instance. Use Sandbox or a non-production environment for the first run. Keep any credential in Secrets; this example does not require one.
 
 <Steps>
   <Step title="Create a component">
-    Open **Components**, create a JavaScript or TypeScript component, and add a logic element.
+    Open **Build → Components**, create a JavaScript Component, and add one code element. Name it so its business purpose remains clear when it is later reused by a Job, Event, or Agent plugin.
 
     ```js
     const name = api.input('name') ?? 'world';
@@ -25,10 +29,10 @@ This walkthrough creates a component, tests it in the Sandbox, and exposes it as
     { "name": "RevoEngine" }
     ```
 
-    Inspect the result, logs, execution ID, and timing before publishing the component.
+    Expect a result shaped like `{ "message": "Hello, RevoEngine!", "executionId": "…" }`. Inspect the result, logs, execution ID, and timing before saving the version.
   </Step>
   <Step title="Create an endpoint">
-    Open **Endpoints**, select the component, choose an HTTP method and route, then configure input validation and a timeout. Activate the endpoint only after the validation preview succeeds.
+    Open **Build → Endpoints**, select the Component, choose `POST` and a route such as `/hello`, then configure input validation and a bounded timeout. Activate the Endpoint only after the validation preview succeeds.
   </Step>
   <Step title="Call the endpoint">
     Use the endpoint URL shown by the platform. Authentication and the exact base URL depend on the endpoint policy configured for your instance.
@@ -41,6 +45,17 @@ This walkthrough creates a component, tests it in the Sandbox, and exposes it as
     ```
   </Step>
 </Steps>
+
+## Verify the result
+
+Confirm all four conditions before treating the quickstart as complete:
+
+- the Endpoint returns `2xx` for the valid request;
+- the JSON response contains the submitted name and an execution identifier;
+- the Component execution is visible in operational evidence;
+- an invalid request follows the configured validation contract instead of failing as an unstructured runtime error.
+
+If the call returns `401` or `403`, check the Endpoint authentication policy and caller identity. If it returns `404`, verify the active route and environment. If it returns `5xx`, use the returned execution identifier to inspect logs and trace evidence rather than retrying blindly.
 
 ## Continue with your preferred workflow
 

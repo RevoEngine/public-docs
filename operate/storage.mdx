@@ -1,317 +1,25 @@
 ---
 title: Storage
-description: Govern files, folders, uploads, retention, access, and event-driven processing.
-icon: folder-open
+description: Store, transfer, read, govern, and retire files through one durable RevoEngine contract.
+icon: hard-drive
 ---
 
-Storage is RevoEngine's governed object workspace. It combines managed object bytes with durable entries, hierarchical ACLs, optimistic versioning, retention, resumable uploads, derived text statistics, lifecycle events, and product-owned workspaces.
+Storage is RevoEngine's durable file and folder system. Use it for uploaded source files, generated reports, integration payloads, attachments, Agent artifacts, and operational evidence that must remain addressable by a stable `storageEntryId`.
 
-<Note>
-  **Storage → Files** is the current Explorer workspace. The separate **Files** navigation item is a legacy API and data model. Use Storage for every new workflow.
-</Note>
+Storage owns more than bytes. A file entry also carries its location, version, content type, metadata, effective access, retention, archive state, and any derived index used for bounded reads.
 
-## What Storage governs
+## The four objects to distinguish
 
-| Layer | Durable contract |
-| --- | --- |
-| Entry | A file or folder with a stable `storageEntryId`, status, version, metadata, actor timestamps, references, and access policy. |
-| Object | Managed bytes referenced by a file entry. Applications use the Storage entry ID, never an internal object locator, as identity. |
-| Folder | A hierarchy and ACL boundary. Storage placement is inherited from the parent. |
-| Upload session | A durable reservation with a mode, target, expiry, progress manifest, and terminal state. |
-| Retention | An optional file expiration time. Expiry makes content unavailable and maintenance archives it for recovery. |
-| Workspace | A product-scoped view over one or more Storage namespaces with its own allowed actions. |
-
-The durable entry is authoritative for identity, access, lifecycle, and audit. Uploaded bytes without a finalized Storage entry are not a consumable application artifact.
-
-## Navigate the UI
-
-Open **Storage**. The workspace tabs and available actions are calculated by the API for the current principal.
-
-| Workspace | What it contains | Operator boundary |
+| Object | Meaning | Stable after upload? |
 | --- | --- | --- |
-| Files | General-purpose Explorer files and folders | Full create, upload, update, move, archive, restore, delete, selection, and ACL actions for authorized operators. |
-| Private | Per-user private namespaces | The root is virtual and read-only. Users write below their own root; Instance Admins can inspect other user roots. |
-| Agents | Managed Agent workspace roots | Select an Agent root before writing. Content cannot be moved between Agents or outside its owning root. |
-| Attachments | Conversation and Assistant attachments | Product-managed. Entries can be inspected and lifecycle-managed, but folders, uploads, moves, and ACLs are controlled by the owning product. |
-| Media | Platform-managed media | Read-only and visible to Instance Admins. |
-| Reports | Support diagnostics | Read-only and visible only to support operators. |
+| Workspace | An authorized view of a Storage area, such as Explorer, Private, an Agent workspace, or another managed product area | Yes |
+| Folder entry | A hierarchy and access boundary | Yes |
+| File entry | A published, readable file identified by `storageEntryId` | Yes |
+| Upload session | A temporary control record for transferring or assembling one file | No |
 
-The grid supports folder navigation, breadcrumbs, name search, paging, sorting, archive views, and server-side filters. Entry details expose status, version, tier, MIME type, extension, size, ACL state, retention, metadata, references, creator, updater, archive reason, and text-analysis status when present.
+An upload session is **not** a file. It reserves the intended target and records upload progress, lease, access, retention, metadata, schema, and compute policy. It cannot be read with `getFileData()` and must not be used as a `storageEntryId`.
 
-### Create a folder
-
-Select **Create folder** and configure:
-
-| Field | Meaning |
-| --- | --- |
-| Name | Required, up to 255 characters in the UI; `/` and `\` are rejected. |
-| Restricted | Enables explicit User and Group access. |
-| Users / Groups | ACL subjects. Each API list accepts at most 200 IDs. |
-| Metadata | A JSON object for business classification. Platform keys beginning with `__` are reserved. |
-
-When no ACL fields are sent and the parent is restricted, the backend copies the parent's ACL to the new folder. Regardless of the child's own flag, every restricted ancestor remains an effective read boundary.
-
-### Upload a file
-
-The advanced upload panel exposes:
-
-- file selection and final name;
-- content type hint;
-- lifecycle tier: `HOT`, `WARM`, `COLD`, or `FROZEN`;
-- optional text analysis;
-- retention: keep the default, never expire, TTL, or absolute expiration;
-- User and Group ACLs;
-- user metadata.
-
-The browser creates a `direct` upload session, transfers bytes to the returned resumable URL, then waits until the session becomes `FINALIZED`. For text-like files, **Analyze text content** requests background analysis. The UI displays **Processing**, **Ready**, or **Processing failed** from durable metadata.
-
-If a file with the same normalized name already exists, the UI asks whether to overwrite it. Replacement keeps the stable `storageEntryId`, requires the version observed during confirmation, and produces a new entry version.
-
-## Portable folder paths
-
-Do not copy folder UUIDs between development, staging, and production. Resolve an exact root-relative path once per execution, or ensure it idempotently.
-
-```js
-const folder = await storage.ensureFolderPath('imports/bank/daily', {
-  restricted: true,
-  groups: [api.input('financeGroupId')],
-});
-```
-
-`resolveFolderPath()` and `ensureFolderPath()`:
-
-- match each segment case-insensitively under its parent;
-- accept optional leading and trailing `/`;
-- reject backslashes, empty or dot segments, paths over 1,024 characters, and more than 32 named segments;
-- fail when a segment is inaccessible, archived, deleted, or a file;
-- never mutate ACL or provider settings on existing folders;
-- apply ensure options only to segments created by that call.
-
-<Warning>
-  `ensureFolderPath()` is idempotent, not an ACL reconciliation operation. Verify `effectiveRestricted` when a security boundary depends on a pre-existing folder.
-</Warning>
-
-## Hierarchical access control
-
-Storage evaluates authorization in layers:
-
-1. The caller needs `FILE_READ` or `FILE_ADMIN` to enter the public Storage API.
-2. Restricted entries admit their creator, explicitly assigned Users, assigned Groups, and supported Group-owner relationships.
-3. A restricted ancestor must also admit the caller.
-4. The workspace may further remove actions or require an owning product boundary.
-
-`restricted`, `restrictedByAncestor`, and `effectiveRestricted` let the UI show why an entry is protected. Making a child unrestricted never bypasses a restricted parent.
-
-| Action | Public authorization |
-| --- | --- |
-| Explore, inspect, preview, thumbnail, download | `FILE_READ` or `FILE_ADMIN`, then effective entry ACL. |
-| Create folder or object, open/upload/finalize a session | `FILE_ADMIN`, then parent/workspace access. |
-| Rename, metadata or retention update, move, archive, restore, delete | Entry creator or Storage administrator, plus the workspace boundary. |
-| Change ACL | `FILE_ADMIN` or `INSTANCE_ADMIN`; product-managed namespaces keep ACL ownership in their product. |
-| Configure backing provider | `INSTANCE_ADMIN`. |
-
-For a restricted file-processing pipeline, grant the Job template's service account access to the destination folder before activating the Event. A developer's interactive access does not transfer to the unattended principal.
-
-## Retention and expiration
-
-Files accept exactly one of the following retention intents:
-
-```js
-// Relative lifetime, counted from successful finalization.
-{ retention: { ttlSeconds: 7 * 24 * 60 * 60 } }
-
-// Absolute future instant.
-{ retention: { expiresAt: '2026-12-31T23:59:59.000Z' } }
-
-// Explicitly no expiration.
-{ retention: null }
-```
-
-Omitting `retention` preserves the current/default policy. `ttlSeconds` must be a positive integer, `expiresAt` must be a future ISO 8601 timestamp, and the two fields are mutually exclusive. Folders do not accept retention.
-
-For an upload session, TTL starts when the file is finalized—not when the session is created. Before `expiresAt`, download URLs are capped so that they cannot outlive the file. At expiration, reads and mutations fail immediately even if maintenance has not yet changed the database status.
-
-Instance maintenance then transitions the file to `ARCHIVED` with `archiveReason: TTL_EXPIRED`. Restoring it requires either new retention or `retention: null`. Archived-entry purge follows the instance garbage-collection retention window; after permanent deletion, Storage does not offer restore.
-
-| Current state | Trigger | Next state |
-| --- | --- | --- |
-| `ACTIVE` | Manual archive or elapsed TTL | `ARCHIVED` |
-| `ARCHIVED` | Restore with valid retention | `ACTIVE` |
-| `ARCHIVED` | Permanent delete | `DELETED` |
-
-## Entry lifecycle and version safety
-
-Every consequential mutation carries the current entry `version`.
-
-```js
-const current = await storage.getEntry(api.input('storageEntryId'));
-
-const renamed = await storage.updateEntry(current.storageEntryId, {
-  version: current.version,
-  name: 'transactions-validated.csv',
-  metadata: {
-    documentType: 'transaction-import',
-    processingState: 'validated',
-  },
-});
-```
-
-| Operation | Important semantics |
-| --- | --- |
-| Update | Active entries only. Metadata is replaced at the user layer while reserved backend metadata is preserved. Retention updates apply to files only. |
-| Move | Active entries only. Folders cannot move into themselves or descendants. Cross-provider moves are rejected; copy and delete instead. Descendant breadcrumbs are rewritten. |
-| Archive | Active entry or complete selected folder subtree becomes recoverable `ARCHIVED`. Folder sizes and linked thumbnails are reconciled. |
-| Restore | Archived, not permanently deleted. Name conflicts are rejected. A manually archived folder restores descendants archived in the same operation, excluding files whose TTL has already elapsed. |
-| Delete | Public bulk deletion requires an archived root and no active descendant. Provider objects and thumbnails are removed and the entry becomes a tombstone. |
-
-Bulk archive and delete accept 1–100 `{ storageEntryId, version }` roots. If both a folder and its descendant are selected, the backend processes the topmost root once.
-
-## Choose an upload path
-
-| Path | Use it for | Completion rule |
-| --- | --- | --- |
-| `storage.putObject()` | Bounded UTF-8 or base64 content already in runtime memory | Returns a finalized entry. |
-| `direct` session | Browser/client upload through a temporary managed URL and high-volume streaming helpers | Managed completion verifies the object and finalizes the entry. Poll the session until `FINALIZED`. |
-| `chunked` session | Explicit numbered parts, parallel preparation, or repairing a known part | Every part number is caller-selected; call finalize. |
-| `incremental` session | Append-style generation and sequential chunks | Server assigns the next number when omitted; call finalize. |
-| `api.httpCall()` stream target | Large egress response written directly to Storage | Runtime creates, streams, verifies, and finalizes the session. |
-
-Upload sessions are durable and their `expiresAt` is authoritative. The default service lease is one hour, but deployments can configure it. `extendUploadSession()` renews an active session; it does not revive `FAILED`, `ABORTED`, `EXPIRED`, or `FINALIZED` sessions.
-
-### Inspect upload sessions
-
-Administrators with `FILE_ADMIN` or `INSTANCE_ADMIN` can open **Storage → Upload sessions** to inspect upload progress and lifecycle state without opening file contents. Use this view to distinguish an active or interrupted upload from a finalized Storage entry.
-
-For multipart finalization, supply either `expectedPartCount` or `expectedPartNumbers` when the caller knows the complete part set; do not send both. This lets finalization detect missing or unexpected parts. Keep part identity and content stable across retries: an identical accepted part can be recognized, while conflicting content is rejected. An upload is complete only after the session reaches `FINALIZED`.
-
-### Native CSV and Excel files
-
-Structured upload sessions let low-code generate CSV files and Excel workbooks from rows instead of assembling a complete file in memory. Excel supports multiple sheets, declared columns, typed values, styles, filters, frozen panes and formulas with optional cached results. CSV supports explicit encoding, delimiters, quoting and BOM settings.
-
-Use staged writing when the layout needs inference or sparse cells and formulas. Use direct writing for a known column layout with row-only appends. Both modes use the normal session finalization and access lifecycle.
-
-Read structured data in bounded pages using column selection, row limits and continuation cursors. Excel reads can select a worksheet. Finalization can compute supported statistics synchronously, asynchronously or not at all; synchronous statistics make the supported generated file ready for indexed reading when finalization completes.
-
-Precision-sensitive numbers are preserved as text when necessary for Excel. Formula-like CSV values are escaped by default. File details expose available worksheet and row statistics.
-
-See the [Storage runtime reference](/low-code/reference/storage) for current session, part, finalization and file-data contracts, and [1.5.0](/changelog/1.5.0) for the release overview.
-
-### Incremental upload from low-code
-
-```js
-const folder = await storage.ensureFolderPath('exports/reconciliation');
-const { session } = await storage.createUploadSession({
-  parentStorageEntryId: folder.storageEntryId,
-  name: `reconciliation-${api.getOperationId()}.csv`,
-  contentTypeHint: 'text/csv',
-  uploadMode: 'incremental',
-  computeStats: 'sync',
-  retention: { ttlSeconds: 30 * 24 * 60 * 60 },
-  metadata: { documentType: 'reconciliation-result' },
-});
-
-try {
-  await storage.uploadPart(session.storageUploadSessionId, {
-    data: 'transactionId,status\n',
-    dataEncoding: 'utf8',
-  });
-  await storage.uploadPart(session.storageUploadSessionId, {
-    data: ['txn_1001,accepted\n', 'txn_1002,rejected\n'],
-    dataEncoding: 'utf8',
-  });
-
-  const finalized = await storage.finalizeUploadSession(
-    session.storageUploadSessionId,
-    { computeStats: 'sync' },
-  );
-  return { storageEntryId: finalized.entry.storageEntryId };
-} catch (error) {
-  await storage.abortUploadSession(session.storageUploadSessionId).catch(() => undefined);
-  throw error;
-}
-```
-
-Finalization is idempotent for an already finalized session. Concurrent finalization is claimed once; callers should inspect the session instead of starting a duplicate upload. Name and replacement reservations prevent two active uploads from silently writing the same logical target.
-
-## Text analysis, stats, and bounded reads
-
-`computeStats` controls derived metadata for readable text files:
-
-| Mode | Behavior at write/finalize |
-| --- | --- |
-| `none` | No eager analysis. The first text batch/read can compute and cache stats on demand. |
-| `sync` | Detect encoding and separator, count lines, and build the batch byte-offset map before returning the finalized entry. |
-| `async` | Finalize first with processing status, queue analysis, then publish `STORAGE_SYNCHRONIZED` when stats are durable. |
-
-Stored statistics contain `lineCount`, `separator`, `encoding`, `batchSize`, `batches`, and a byte-offset `map`. The default line batch size is 100,000 unless the caller requests another positive size. Replacing file bytes invalidates derived metadata so stale offsets are not reused.
-
-<Note>
-  Storage computes line-oriented text statistics. It does not publish a word-count or character-count contract. `getDocument()` uses `maxChars` only to bound the returned window.
-</Note>
-
-### Read one text batch
-
-```js
-const storageEntryId = api.input('storageEntryId');
-const stats = await storage.getFileStats(storageEntryId);
-
-for (let batchNumber = 1; batchNumber <= (stats.batches ?? 0); batchNumber += 1) {
-  const lines = await storage.getFileData(storageEntryId, { batchNumber });
-  // Validate and persist one bounded batch before reading the next one.
-}
-```
-
-For a human-readable excerpt, use a line window:
-
-```js
-const excerpt = await storage.getDocument(api.input('storageEntryId'), {
-  startLine: 1,
-  endLine: 200,
-  maxChars: 8_000,
-});
-
-return {
-  content: excerpt.content,
-  totalLines: excerpt.totalLines,
-  truncated: excerpt.truncated,
-};
-```
-
-### Process a complete structured file
-
-Use `storage.walkFileData()` for CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, or
-record-oriented XML. The walker follows cursors for you and awaits each callback.
-Omit `take` to scan all rows in the selected file or worksheet; `fullScan: true`
-is optional. Specify a non-negative `take` to cap the scan. `fullScan: false`
-requires `take`.
-
-```js
-let processed = 0;
-await storage.walkFileData(api.input('storageEntryId'), {}, async (rows) => {
-  // Validate and persist this batch before processing the next one.
-  processed += rows.length;
-}, { batchSize: 2000, readBatchSize: 100000 });
-return { processed };
-```
-
-`batchSize` controls callback rows (default 2,000); `readBatchSize` controls the
-source cursor window (default 100,000). Both accept 1–100,000 in the final options
-argument. The source uses the existing streaming iterator and small transfers;
-it does not collect the whole window before invoking callbacks. Callback batches
-can span source windows, and cancellation or callback failure closes active streams.
-For XLSX, pass `sheet` in the read
-options; otherwise the first visible worksheet is used. For XML, pass `recordPath`.
-Select `columns` when only part of each record is needed. Source replacement
-fails the walk, and callback errors are propagated without automatic retries.
-Keep only aggregates in memory. A restarted import should use idempotent writes.
-This callback API runs inside low-code; external SDK callers can execute a
-low-code script rather than serialize a callback through runtime-call.
-
-Binary `getFileData()` returns base64. Direct binary reads are limited to 10 MiB. For a larger object, request `buffer: true` with byte `start`/`end` ranges of at most 10 MiB, use `getDownload()`, or stream the entry to HTTP.
-
-The UI previews text up to 5 MiB and supported raster images up to 20 MiB. HTML and SVG are intentionally excluded from inline preview. These are preview limits, not download limits.
-
-## Finalization is the publication boundary
+The file becomes durable and readable only when the session reaches `FINALIZED`.
 
 ```text
 RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
@@ -320,170 +28,124 @@ RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
                   +-> EXPIRED
 ```
 
-Do not trigger downstream processing when a signed URL was issued or when the last byte was sent. A finalized entry proves that Storage reconciled upload metadata, persisted size/checksum/version, applied ACL and retention, and established the stable entry ID.
+Treat `FINALIZED` as the publication boundary. Issuing an upload URL, accepting one part, or completing a byte-transfer request is not enough to trigger downstream processing.
 
-For default direct browser uploads, the managed completion flow owns this boundary. The UI uploads and polls the session rather than assuming the transfer response is enough. Runtime HTTP/SFTP streaming returns the entry only after platform verification. Chunked and incremental callers explicitly finalize.
+## Choose the write path
 
-## Incoming file → Event → Job → output
-
-This pattern turns an uploaded CSV into a governed processing pipeline.
-
-<Steps>
-  <Step title="Prepare governed folders">
-    Create `imports/bank/incoming` and `imports/bank/processed`. Restrict both to the operations group and the Job service account.
-  </Step>
-  <Step title="Configure upload">
-    Upload into `incoming` with metadata such as `documentType: bank-transactions` and choose synchronous stats if the first Job must see line counts immediately.
-  </Step>
-  <Step title="Create the Event">
-    Subscribe a Job template to `STORAGE_CREATED`. In the UI, filter message properties `kind = FILE`, `metadata.documentType = bank-transactions`, and optionally `mimeType = text/csv`. The builder adds the persisted `message.` prefix automatically.
-  </Step>
-  <Step title="Process by stable ID">
-    The Job receives `{ type, metadata, message }`. Read `message.storageEntryId`, reload the authoritative entry under the Job principal, process bounded batches, and write a new Storage result.
-  </Step>
-  <Step title="Operate the run">
-    Correlate Event History, Job History, `operationId`, input entry ID, and output entry ID. Make retries safe by recording a deterministic source-version/idempotency key.
-  </Step>
-</Steps>
-
-```js
-const event = api.input();
-const operationId = api.getOperationId();
-const sourceId = event?.message?.storageEntryId;
-
-if (event?.type !== 'STORAGE_CREATED' || typeof sourceId !== 'string') {
-  api.throw(400, { message: 'Expected a STORAGE_CREATED input', operationId });
-}
-
-const source = await storage.getFile(sourceId);
-const sourceVersion = source.version;
-const stats = await storage.getFileStats(source.storageEntryId);
-let accepted = 0;
-let rejected = 0;
-
-for (let batchNumber = 1; batchNumber <= (stats.batches ?? 0); batchNumber += 1) {
-  const lines = await storage.getFileData(source.storageEntryId, { batchNumber });
-  for (const line of lines) {
-    // Replace this bounded validation with your domain parser.
-    line.includes(',') ? accepted += 1 : rejected += 1;
-  }
-}
-
-const outputFolder = await storage.resolveFolderPath('imports/bank/processed');
-const output = await storage.putObject({
-  parentStorageEntryId: outputFolder.storageEntryId,
-  name: `result-${source.storageEntryId}-v${sourceVersion}.json`,
-  data: JSON.stringify({
-    operationId,
-    sourceStorageEntryId: source.storageEntryId,
-    sourceVersion,
-    accepted,
-    rejected,
-  }, null, 2),
-  mimeType: 'application/json',
-  computeStats: 'sync',
-  retention: { ttlSeconds: 90 * 24 * 60 * 60 },
-  metadata: {
-    documentType: 'bank-transaction-result',
-    sourceStorageEntryId: source.storageEntryId,
-    sourceVersion,
-    operationId,
-  },
-});
-
-api.log({
-  message: 'Storage import processed',
-  args: {
-    operationId,
-    sourceStorageEntryId: source.storageEntryId,
-    sourceVersion,
-    outputStorageEntryId: output.storageEntryId,
-    accepted,
-    rejected,
-  },
-}, 'INFO');
-
-return {
-  operationId,
-  sourceStorageEntryId: source.storageEntryId,
-  outputStorageEntryId: output.storageEntryId,
-  accepted,
-  rejected,
-};
-```
-
-If upload analysis uses `async` and the Job depends on ready offsets, target `STORAGE_SYNCHRONIZED` instead of `STORAGE_CREATED`. Do not subscribe the same non-idempotent workflow to both topics.
-
-## Storage lifecycle events
-
-| Topic | Emitted when |
-| --- | --- |
-| `STORAGE_CREATED` | A folder or finalized file entry is created. |
-| `STORAGE_UPDATED` | Entry fields, retention, hierarchy, or finalized replacement changes. |
-| `STORAGE_SYNCHRONIZED` | Asynchronous text statistics become durable. |
-| `STORAGE_ARCHIVED` | An operator or TTL maintenance archives the entry. The payload can include a reason. |
-| `STORAGE_RESTORED` | An archived entry becomes active again. |
-| `STORAGE_DELETED` | The entry is permanently deleted. |
-
-Lifecycle messages carry the public entry projection, including the stable ID and version. Reports namespaces deliberately suppress these events. Event acceptance and file finalization are separate from target Job success—follow [Event History](/operate/event-history) and [Jobs](/operate/jobs) for downstream evidence.
-
-## Failure and recovery semantics
-
-- If byte transfer fails before completion, abort the session. Do not treat partial bytes as a file.
-- If confirmation is uncertain, query `getUploadSession()` before retrying. `FINALIZED` is success; `FAILED`, `ABORTED`, or `EXPIRED` requires a new session.
-- A version conflict means another actor changed the entry. Reload and deliberately reapply the change.
-- An upload-name conflict can represent a completed existing file or an active reservation. Choose replacement only after comparing the existing entry and version.
-- Async text-analysis failure does not roll back the finalized file. The entry remains readable; the UI exposes failure and a later `getFileStats({ reloadStats: true })` can recompute.
-- Lifecycle event enqueue failure is logged after the Storage commit; the finalized entry remains authoritative. Reconciliation must start from Storage state, not from an assumed event.
-- Signed preview and download URLs are temporary credentials. Request a fresh URL, and never persist or log one.
-
-## Legacy Files versus Storage
-
-| Capability | Storage Explorer | Files (legacy) |
+| Need | Recommended path | Who finalizes? |
 | --- | --- | --- |
-| Identity | Stable `storageEntryId` plus optimistic `version` | Stable `fileId`; path-oriented legacy record |
-| Hierarchy | Entry parent IDs and breadcrumbs | Separate `path` and `fileName` strings |
-| Access | Entry and ancestor ACLs | Role gate only |
-| Upload | Direct, chunked, incremental, small object, explicit durable session | Create record, receive signed upload URL, upload directly |
-| Replace | Stable entry ID with expected-version conflict protection | `force` can replace a conflicting path/name |
-| Lifecycle | Active, archive, restore, permanent delete | Public surface exposes soft delete but not current move/archive/restore parity |
-| Retention | TTL or absolute expiry with archive/purge lifecycle | No equivalent public retention contract |
-| Derived data | Sync/async text stats, batch offsets, `STORAGE_SYNCHRONIZED` | Legacy file helpers only |
-| Workspaces | Files, Private, Agents, Attachments, Media, Reports | One integration resource explorer |
+| Complete small text or binary payload is already in the caller | `storage.putObject()` or `POST /storage/objects` | The call |
+| Browser or frontend uploads one complete file | Direct upload session and returned temporary target | Storage automatically after confirming the transfer |
+| One producer generates ordered parts | Incremental upload session | Caller |
+| Concurrent, out-of-order, or repairable parts | Chunked upload session | Caller |
+| External HTTP response should become a file | `api.httpCall(..., { responseType: 'storage', target })` | Runtime bridge |
+| Existing file should become an HTTP request body | `api.httpCall(..., { requestType: 'storage', source })` | No new entry unless a target is also supplied |
+| SFTP import or export | `transport.sftpImport()` / `transport.sftpExport()` | Runtime bridge for imports |
 
-See [Files (legacy)](/operate/files) before maintaining an existing `fileId` integration.
+Do not create an upload session for every write. A session is useful when bytes arrive outside the current call, the payload is large, parts must be retried, or a structured file is assembled over several calls.
 
-## Production checklist
+## Two independent session settings
 
-- Resolve logical folder paths at runtime; do not deploy folder UUIDs across instances.
-- Put confidential data below a restricted folder and test with the actual service account.
-- Select retention explicitly for transient inputs, exports, attachments, and evidence.
-- Treat `FINALIZED` as the only upload success boundary.
-- Use `computeStats: 'sync'` when the immediate event target requires stats; otherwise use async and react to `STORAGE_SYNCHRONIZED`.
-- Process large text files by `batchNumber`; use byte ranges or streams for large binary files.
-- Preserve entry IDs and versions, never signed URLs or internal object paths.
-- Make Event replay and Job retry idempotent against source entry ID and version.
-- Archive before permanent deletion and understand the instance purge window.
+`uploadMode` and `writeMode` answer different questions.
 
-## Related guides
+| Setting | Values | Controls |
+| --- | --- | --- |
+| `uploadMode` | `direct`, `chunked`, `incremental` | How bytes or parts reach Storage |
+| `writeMode` | `staged`, `direct` | How structured CSV/XLSX row parts are materialized |
+
+`writeMode: 'direct'` does not mean “return an upload URL.” It is a structured-writer optimization for a fixed, declared CSV/XLSX layout. Ordinary browser uploads choose `uploadMode: 'direct'` and normally leave `writeMode` at its default.
+
+See [Upload sessions](/operate/storage-uploads) for the complete lifecycle and [Structured files](/operate/storage-structured-files) for schemas, types, and parser behavior.
+
+## Read by format
+
+Use the narrowest reader that matches the file:
+
+| Content | Low-code API |
+| --- | --- |
+| File or folder metadata | `storage.getEntry()` / `storage.getFile()` |
+| Bounded text or extracted document text | `storage.getDocument()` |
+| CSV, TSV, XLSX, NDJSON, JSON array, or record-oriented XML | `storage.getFileData()` |
+| Full structured scan without collecting every row | `storage.walkFileData()` |
+| Reusable row, worksheet, or line index | `storage.getFileStats()` |
+| Temporary download or preview | `storage.getDownload()` |
+
+Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `nextCursor`. Copy the cursor exactly and keep pages bounded. For XML, provide `recordPath`; for a specific Excel worksheet, provide `sheet`.
+
+Do not parse CSV by splitting on commas or newlines. Quoted separators, escaped quotes, and multiline records are valid CSV.
+
+## Workspaces and access
+
+The Platform API exposes the Storage workspaces available to the current identity. A workspace is a governed view, not a separate file format or upload protocol. Its policy decides whether the caller may list, read, create folders, or upload.
+
+Access is evaluated from the entry and its ancestors:
+
+- `restricted: false` uses the workspace's normal visibility rules;
+- `restricted: true` limits access to authorized users, groups, owners, or administrators;
+- a restricted ancestor remains effective even if a child is not marked restricted;
+- a namespace, folder ID, or signed URL never grants access by itself.
+
+Resolve logical paths at runtime instead of copying folder UUIDs between instances. Use `resolveFolderPath()` when the path must already exist and `ensureFolderPath()` when authorized code may create missing segments.
+
+## Retention and lifecycle
+
+Upload-session expiry and file retention are separate:
+
+- session `expiresAt` limits how long the unfinished upload can remain active;
+- `retention.ttlSeconds` starts only after finalization;
+- `retention.expiresAt` sets an absolute file expiry;
+- `retention: null` means no expiry;
+- omitting retention uses the destination's default on create and preserves it on update.
+
+An expired file becomes unavailable and is archived with `TTL_EXPIRED` before later cleanup. Manual archive is recoverable while the entry remains archived; permanent delete is a distinct, destructive operation. Use optimistic `version` checks for update, move, archive, restore, delete, and replacement flows.
+
+## Compute policy
+
+`computeStats` controls when Storage builds reusable text or structured-file indexes:
+
+| Value | Behavior |
+| --- | --- |
+| `sync` | Build during finalization; completion waits for the result |
+| `async` | Publish the file, then build in the background |
+| `none` | Defer work until a later `getFileStats()` or structured read needs it |
+
+CSV, TSV, XLSX, and text uploads default to synchronous computation. Other binary uploads default to `none`. Choose `sync` when the next operation immediately needs rows, worksheet metadata, or line ranges. Choose `async` when file availability matters more than immediate indexing.
+
+## Failure and retry rules
+
+- If a direct transfer returns successfully but confirmation is uncertain, read the session. Continue only after `FINALIZED`.
+- If a part call times out, read the manifest before sending data again. Incremental retries can otherwise create an additional part.
+- A fresh matching target can return `STORAGE_UPLOAD_IN_PROGRESS`; inspect or recover the existing session instead of creating parallel writers.
+- Abort abandoned active sessions as best-effort cleanup.
+- A version conflict means the target changed. Reload the entry before deciding whether to replace it.
+- Temporary upload and download URLs are credentials. Never persist or log them.
+- Make downstream Event and Job processing idempotent against the source entry ID and version.
+
+## Storage versus legacy Files
+
+Use Storage for all new work. The legacy Files API uses `fileId` and a different lifecycle. Do not mix `fileId`, `storageUploadSessionId`, and `storageEntryId`.
+
+Maintain the legacy API only when an existing integration explicitly depends on it. See [Files (legacy)](/operate/files).
+
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="HTTP and Storage" icon="arrow-right-arrow-left" href="/low-code/http-and-storage">
-    Stream remote requests, responses, and conversions without buffering file bytes.
+  <Card title="Upload sessions" icon="cloud-arrow-up" href="/operate/storage-uploads">
+    Implement direct, incremental, and chunked uploads with the correct completion boundary.
+  </Card>
+  <Card title="Structured files" icon="table" href="/operate/storage-structured-files">
+    Declare one CSV/TSV/XLSX schema and choose fallback or strict validation.
+  </Card>
+  <Card title="HTTP integrations" icon="arrow-right-arrow-left" href="/low-code/http">
+    Stream Storage sources and targets through external HTTP calls.
   </Card>
   <Card title="SDK storage and batching" icon="boxes-stacked" href="/developers/sdk-storage-and-batching">
-    Use runtime batching, upload sessions, and bounded reads from Node.js.
+    Use sessions and bounded reads from Node.js.
   </Card>
   <Card title="Storage low-code reference" icon="brackets-curly" href="/low-code/reference/storage">
-    Search every current, non-deprecated `storage.*` method and signature.
+    Inspect the current `storage.*` signatures.
   </Card>
-  <Card title="Events" icon="bolt" href="/operate/events">
-    Filter Storage messages and route them to governed Jobs or Agents.
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Inspect Explorer, upload-session, lifecycle, workspace, and provider-config operations.
-  </Card>
-  <Card title="Files (legacy)" icon="file" href="/operate/files">
-    Understand the compatibility surface and plan migration from `fileId`.
+  <Card title="Platform API reference" icon="code" href="/api-reference/introduction">
+    Inspect exact HTTP operations and DTOs.
   </Card>
 </CardGroup>

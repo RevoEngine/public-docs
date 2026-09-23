@@ -42,6 +42,8 @@ const result = await api.getDatabaseViewData('high_value_customers', {
 return result.data;
 ```
 
+This historical example uses the method name available in 1.5.7. For new code, use `api.getDatabaseData()` with a View name; the older name is now deprecated.
+
   </Accordion>
   <Accordion title="Connect views to dashboards and native exports">
 

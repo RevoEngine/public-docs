@@ -44,6 +44,22 @@ function fixture() {
           responses: { 201: { description: 'Created' } },
         },
       },
+      '/api/v1/storage/provider-configs': {
+        post: {
+          operationId: 'StorageController_createProviderConfig',
+          tags: ['Storage'],
+          summary: 'Create storage provider config',
+          security: [{ bearer: [] }],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreateStorageProviderConfigDto' },
+              },
+            },
+          },
+          responses: { 200: { description: 'OK' } },
+        },
+      },
       '/internal/maintenance': {
         post: {
           operationId: 'InternalController_run',
@@ -63,6 +79,12 @@ function fixture() {
         JobTemplateRequestDto: { properties: { timeout: { type: 'number' } } },
         UpdateJobTemplate: { properties: { timeout: { type: 'number' } } },
         JobOptionsDto: { properties: { memory: { type: 'number' } } },
+        CreateStorageProviderConfigDto: {
+          properties: {
+            providerType: { type: 'string', enum: ['GCS'] },
+            bucket: { type: 'string' },
+          },
+        },
       },
     },
   };
@@ -77,6 +99,9 @@ test('enriches protected Agent operations and removes non-public paths', () => {
   assert.match(operation.description, /Agent roles/);
   assert.deepEqual(operation.security, [{ bearer: [] }]);
   assert.equal(output.paths['/internal/maintenance'], undefined);
+  assert.equal(output.paths['/api/v1/storage/provider-configs'], undefined);
+  assert.equal(output.components.schemas.CreateStorageProviderConfigDto, undefined);
+  assert.doesNotMatch(JSON.stringify(output), /GCS/);
   assert.deepEqual(publicOperationKeys(output), publicOperationKeys(source));
   assert.equal(output.components.schemas.JobTemplateRequestDto.properties.timeout.maximum, 3540);
   assert.equal(output.components.schemas.UpdateJobTemplate.properties.timeout.maximum, 3540);

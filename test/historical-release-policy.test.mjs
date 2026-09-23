@@ -22,3 +22,12 @@ test('permits the historical SFTP import example only with its current replaceme
   assert.equal(permitsHistoricalMethod('changelog/1.3.2.mdx', 'api.sftpGet', ''), false);
   assert.equal(permitsHistoricalMethod('changelog/1.3.2.mdx', 'api.sftpPut', note), false);
 });
+
+test('View-read historical examples require a canonical replacement note', () => {
+  for (const version of ['1.3.1', '1.5.7']) {
+    const note = 'This historical example uses the method name available in ' + version + '. For new code, use `api.getDatabaseData()` with a View name; the older name is now deprecated.';
+    assert.equal(permitsHistoricalMethod(`changelog/${version}.mdx`, 'api.getDatabaseViewData', note), true);
+    assert.equal(permitsHistoricalMethod(`changelog/${version}.mdx`, 'api.getDatabaseViewData', ''), false);
+    assert.equal(permitsHistoricalMethod('low-code/database.mdx', 'api.getDatabaseViewData', note), false);
+  }
+});

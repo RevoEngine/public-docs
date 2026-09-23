@@ -70,6 +70,8 @@ A RevoEngine skill describes how to approach a product workflow, what evidence t
 
 This separation lets a client load detailed domain guidance without expanding its execution authority.
 
+Only skills explicitly classified for the public MCP catalogue are listed. Internal Harness guidance, private prompts, source-reference pointers, capability-routing policy, and model-only diagnostic material are not published through this resource. A public skill explains the supported product contract and safe usage; it is not a copy of RevoEngine's internal execution design.
+
 ### Select a workflow before loading its instructions
 
 The version 2 skill catalogue provides complete selection descriptions, resource URIs, relevant capability names, and optional `requires` identifiers for prerequisite guidance. Select the narrow workflow first: querying Database rows, changing a Database definition, importing data, exporting a file, investigating one failure, and reporting execution statistics are separate tasks.
@@ -78,7 +80,7 @@ Resource and investigation responses may include `relatedSkills`. These are opti
 
 Discovery returns canonical identifiers. Retired skill identifiers remain readable compatibility aliases, so existing saved resource links can still resolve.
 
-Direct MCP calls use the authenticated client's platform authority. They do not pause for Assistant approval; clients must not assume that an approval step described in an Assistant workflow protects an MCP mutation.
+Direct MCP calls use the authenticated client's platform authority. They do not pause for Interactive Agent approval; clients must not assume that an approval step described in an Agent workflow protects an MCP mutation.
 
 ## Reusable prompts
 

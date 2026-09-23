@@ -2,7 +2,7 @@
 
 This repository contains the public RevoEngine documentation built with the current Mintlify `docs.json` format.
 
-Current product documentation: **RevoEngine 1.5.8**, including Node.js SDK **1.5.8**.
+Current product documentation: **RevoEngine 1.5.9**, including Node.js SDK **1.5.9**.
 
 ## Local preview
 
@@ -99,3 +99,35 @@ gate.
 `npm run check:content` rejects empty MDX pages, incomplete or invalid navigation,
 duplicate navigation entries, and the retired `Run API` product name in published
 content or the generated OpenAPI reference.
+
+## Product knowledge ownership
+
+The product summary, responsibilities, capability map, and decision guide share one
+platform-owned public contract. Run `npm run sync:product-knowledge` from a release
+workspace with the sibling platform checkout. This updates the public snapshot,
+`platform/product-model.mdx`, and the marked summary sections in Introduction and
+Platform overview. Keep the surrounding authored explanations and domain guides.
+Do not hand-edit generated sections. The normal contract gate checks snapshot-to-page
+parity; `npm run check:platform-contracts:source` additionally requires canonical source
+parity before publication. Exact API and low-code declarations keep their existing owners.
+
+A product change needs the owning implementation, exact API/runtime contract where
+applicable, the corresponding workflow skill, the public domain guide, and a focused
+behavior check. Change the shared product contract only when purpose, responsibility,
+capability relationships, or design choices change. A new DTO field alone does not
+belong in the always-loaded product summary.
+
+## Verify after publication
+
+After Mintlify reports a successful publication, run `npm run check:docs-live`, or
+trigger the Published documentation freshness workflow (manual dispatch or the
+`docs-published` repository event). It compares the released product snapshot with
+live Markdown, the documentation index, MCP retrieval, search, and tool schemas.
+It deliberately fails before the matching documentation is published. It does not
+submit feedback, change content, or notify external search engines. Repository dispatch
+must be connected to the publication completion event by the release operator.
+
+Public search engines have independent crawl schedules. Submit the sitemap through
+verified Google Search Console and Bing Webmaster Tools properties; use their inspection
+tools for important changed URLs. Keep per-page titles, canonical URLs, and migration
+redirects valid. Search recrawl requests do not replace the direct Docs integration.

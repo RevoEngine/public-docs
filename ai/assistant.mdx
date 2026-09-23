@@ -1,16 +1,16 @@
 ---
-title: Assistant
-description: Work with the RevoEngine Assistant in persistent, platform-aware threads.
+title: Interactive Agents
+description: Work with the RevoEngine Interactive Agent in persistent, platform-aware threads, currently labeled Assistant in the UI and API.
 icon: messages
 ---
 
-The RevoEngine Assistant is an interactive workspace for platform questions and supervised execution. It can explain a contract, find an object by name, investigate a failed run, review code, build an implementation plan, or perform an approved platform operation.
+The RevoEngine **Interactive Agent** is a workspace for platform questions and supervised execution. The current UI and API label this surface **Assistant**. It can explain a contract, find an object by name, investigate a failed run, review code, build an implementation plan, or perform an approved platform operation.
 
-Unlike a generic chatbot, the Assistant works through authorized RevoEngine capabilities and keeps the conversation, execution state, and artifacts connected to one thread.
+Unlike a generic chatbot, the Interactive Agent works through the RevoEngine Agent Harness and keeps the conversation, execution state, and artifacts connected to one thread.
 
-## Where the Assistant is strong
+## Where the Interactive Agent is strong
 
-The Assistant is designed for platform-aware engineering and operations work: it can connect an intent to the exact RevoEngine objects, their selected versions, dependencies, execution evidence, and governed change path. That is a materially different capability from a general-purpose chat model with only pasted context.
+The Interactive Agent is designed for platform-aware engineering and operations work: it can connect an intent to the exact RevoEngine objects, their selected versions, dependencies, execution evidence, and governed change path. That is a materially different capability from a general-purpose chat model with only pasted context.
 
 It is especially effective for:
 
@@ -20,11 +20,11 @@ It is especially effective for:
 - producing a plan, validation sequence, and rollback boundary before a production mutation;
 - using permitted platform and plugin capabilities without handing credentials to a model prompt.
 
-Its differentiation is **grounded context plus governed action**: it can inspect and, when admitted, change the actual application model rather than merely suggest text or code in isolation.
+Its differentiation is **grounded context plus governed action**: it can inspect and, when admitted, change the actual application model rather than merely suggest text or code in isolation. Read [Agent Harness](/ai/agent-harness) for the runtime contract around the model.
 
 ## Capability and access boundary
 
-The Assistant can have broad access to your *authorized* platform surface, but it never receives blanket administrator access just because it is an Assistant. Every turn is constrained by the current identity, thread configuration, instance policy, enabled tools, target ACLs, and approval policy.
+The Interactive Agent can have broad access to your *authorized* platform surface, but it never receives blanket administrator access because it is AI-driven. Every turn is constrained by the current identity, thread configuration, instance policy, enabled capabilities, target ACLs, and approval policy.
 
 | Area | It can do when admitted | Boundary |
 | --- | --- | --- |
@@ -36,7 +36,9 @@ The Assistant can have broad access to your *authorized* platform surface, but i
 | Integrations | Call an attached, governed plugin | Plugin status, operation policy, arguments, and approval rules apply independently. |
 | Mutations | Submit permitted Platform API operations, Storage writes, plugin actions, or handoffs | Read-only and write-capable calls are classified separately; a required approval pauses execution. |
 
-It cannot reveal Secret values merely by being asked, bypass role checks or tenant isolation, access private RevoEngine control-plane implementation, run arbitrary host shell commands, or silently perform a blocked/destructive/external change. A tool shown in the activity timeline is evidence of a governed attempt, not proof of unlimited capability.
+It cannot reveal Secret values merely by being asked, bypass role checks or tenant isolation, access private RevoEngine control-plane implementation, run arbitrary host shell commands, or silently perform a blocked, destructive, or external change. A capability shown in the activity timeline is evidence of a governed attempt, not proof of unlimited access.
+
+For broad repository and terminal work, compare the current boundary in [RevoEngine and coding agents](/ai/compare-coding-agents).
 
 ## Start a productive thread
 
@@ -101,11 +103,10 @@ The models available to the Assistant are controlled by the current RevoEngine r
 
 | Model | Interactive Assistant | Autonomous Agents | Fast Mode |
 | --- | --- | --- | --- |
-| **GPT-5.6 Sol** | Supported | Supported | Not available |
-| **GPT-5.6 Terra** | Supported | Supported | Not available |
-| **GPT-5.6 Luna** | Supported | Supported | Optional for interactive Assistant work |
+| **GPT-6 Sol** | Supported | Supported | Optional for interactive Assistant work |
+| **GPT-6 Luna** | Supported | Supported | Optional for interactive Assistant work |
 
-Select Luna's lightning control when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected, and the option is not shown for other models. Autonomous Agent runs use Standard processing. Usage analytics distinguishes the actual Standard and Fast execution used by each Assistant call.
+Select Fast Mode for either GPT-6 model when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected. Autonomous Agent runs use Standard processing. Existing active GPT-5.6 Sol choices migrate to GPT-6 Sol; Terra and Luna choices migrate to GPT-6 Luna. Historical messages and usage keep their actual model identity.
 
 Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
 

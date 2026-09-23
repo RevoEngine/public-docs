@@ -4,7 +4,7 @@ description: Extend RevoEngine AI with governed tools, MCP servers, skills, and 
 icon: plug
 ---
 
-Plugins extend the Assistant and autonomous Agents without changing the built-in runtime. A plugin can expose a RevoEngine component as a tool, connect an MCP server, add specialized guidance, or group related capabilities into one product package.
+Plugins extend Interactive and Autonomous Agents without changing the built-in runtime. A plugin can expose a RevoEngine Component as a tool, connect an MCP server, add specialized guidance, or group related capabilities into one product package.
 
 Every plugin remains subject to tenant access, attachment rules, capability policy, safety classification, and approval policy.
 
@@ -35,7 +35,7 @@ Skills and packages guide the runtime; they are not executable tools. A componen
     Sync component or MCP metadata. RevoEngine stores the discovered capability state so operators can inspect drift and keep the last known good MCP manifest when a refresh fails.
   </Step>
   <Step title="Attach and validate">
-    Attach the plugin to an Assistant thread, Agent configuration, Agent policy, or individual run. Start with a read-only validation before enabling writes.
+    Attach the plugin to an interactive thread, Agent configuration, Agent policy, or individual run. Start with a read-only validation before enabling writes.
   </Step>
   <Step title="Operate the lifecycle">
     Update, re-sync, disable, restore, or delete the plugin as its provider changes. Soft-deleted definitions preserve historical metadata.
@@ -44,13 +44,28 @@ Skills and packages guide the runtime; they are not executable tools. A componen
 
 ## Availability and attachment
 
-Plugins can be attached to instance defaults, an Assistant thread, an Agent definition or policy, or an individual run. Discovery settings can make an active plugin available for appropriate work, but discovery is not an authorization grant. Disabled, deleted, or policy-blocked plugins cannot execute.
+Plugins can be attached to instance defaults, an interactive thread, an Agent definition or policy, or an individual run. Discovery settings can make an active plugin available for appropriate work, but discovery is not an authorization grant. Disabled, deleted, or policy-blocked plugins cannot execute.
 
 Keep plugin availability narrow. Attach only the capabilities needed for the responsibility and validate read and write behavior separately.
 
+## How plugins enter Agent context
+
+Plugin installation, attachment, loading, and execution are separate decisions:
+
+1. **Installed** — the tenant has a reviewed plugin definition.
+2. **Enabled** — the definition can participate in discovery.
+3. **Attached or discoverable** — the current Interactive or Autonomous Agent can see a compact capability summary.
+4. **Loaded** — the selected tool schema or skill/package guidance is available to the model for the current work.
+5. **Admitted** — current identity and policy allow the exact operation to be proposed.
+6. **Executed** — validation and any required approval succeeded for the concrete arguments and target.
+
+An auto-discovered plugin is deferred by default: the model can recognize when it may be relevant without receiving every complete schema up front. Explicit attachment makes the plugin part of the current working context, but it still does not authorize a call.
+
+Full skill and package guidance can be loaded on demand. Executable component and MCP tools are exposed with their reviewed local contracts only when selected and admitted. Credentials remain in Secrets and are never supplied as model-visible plugin context.
+
 ## Component tools
 
-A component tool maps a stable plugin operation to a versioned RevoEngine component. Define a concise input schema and output schema, keep execution bounded, and expose only the component operations the AI should call.
+A component tool maps a stable plugin operation to a versioned RevoEngine Component. Define a concise input schema and output schema, keep execution bounded, and expose only the Component operations the AI should call. New tools follow the latest active revision unless a verified `componentDigest` is selected. The digest provides a portable pin across instances with different local version numbers.
 
 Use component tools when business behavior already lives in RevoEngine or should share the platform's normal versioning, execution, and observability.
 
@@ -69,6 +84,8 @@ When an MCP refresh fails, inspect the plugin status and last synchronization er
 A plugin skill should describe one focused workflow, its success conditions, preferred tools, and safety boundaries. It can depend on exact plugin capabilities without duplicating their credentials or schemas.
 
 A package is the top-level aggregation boundary for a coherent offering. Keep dependencies acyclic and shallow, and avoid nesting packages inside packages. This makes review and lifecycle management predictable.
+
+Skill and package guidance has a configurable prompt token budget (10,000 tokens by default). RevoEngine rejects content that exceeds its selected budget before it is loaded into Agent context. Keep guidance focused and put large reference material in resources the Agent can open when needed.
 
 ## Safety model
 

@@ -2200,6 +2200,43 @@
         ]
       }
     },
+    "/api/v1/endpoints/performance": {
+      "get": {
+        "operationId": "EndpointController_dailyPerformance",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Daily endpoint performance by UTC day, with an overall series and per-endpoint series.",
+        "tags": [
+          "Endpoints"
+        ]
+      }
+    },
     "/api/v1/endpoints/openapi": {
       "get": {
         "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -2773,6 +2810,159 @@
           }
         ],
         "summary": "Create component.",
+        "tags": [
+          "Components"
+        ]
+      }
+    },
+    "/api/v1/component/digest/{componentDigest}": {
+      "get": {
+        "description": "Returns local component ids and revisions whose canonical content matches the digest. Local version numbers may differ between instances.\n\nROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_getByDigest",
+        "parameters": [
+          {
+            "name": "componentDigest",
+            "required": true,
+            "in": "path",
+            "description": "Canonical portable component content digest.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exact component content matches."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resolve component revisions by portable content digest.",
+        "tags": [
+          "Components"
+        ]
+      }
+    },
+    "/api/v1/component/digests/search": {
+      "get": {
+        "description": "Searches current and historical component revisions by the start of their SHA-256 hex digest, optionally within one component. Returns the latest local revision for each (digest, componentId) pair. Repeat with the returned cursor until it is null.\n\nROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_searchDigests",
+        "parameters": [
+          {
+            "name": "prefix",
+            "required": false,
+            "in": "query",
+            "description": "SHA-256 hex prefix. Empty or 1-64 characters within a selected component; at least 4 characters for instance-wide search.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "componentId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict results to a local component. Omit for instance-wide search.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum matches returned per page (default 20, maximum 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "afterVersion",
+            "required": false,
+            "in": "query",
+            "description": "Local version from the previous page cursor; provide with afterDigest and afterComponentId.",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "afterDigest",
+            "required": false,
+            "in": "query",
+            "description": "Digest from the previous page cursor; provide with afterVersion and afterComponentId.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterComponentId",
+            "required": false,
+            "in": "query",
+            "description": "Component ID from the previous page cursor; provide with afterVersion and afterDigest.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prefix-matched local component digests and an optional continuation cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchComponentDigestsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search portable component digests by prefix.",
+        "tags": [
+          "Components"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/component/{componentId}/revisions": {
+      "get": {
+        "description": "The digest is the portable revision identity; version is the local instance revision number.\n\nROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_getRevisions",
+        "parameters": [
+          {
+            "name": "componentId",
+            "required": true,
+            "in": "path",
+            "description": "Component id whose revision digests should be listed.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Component revision identities."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List component revisions with portable content digests.",
         "tags": [
           "Components"
         ]
@@ -5467,351 +5657,6 @@
         ]
       }
     },
-    "/api/v1/databases/views/{databaseViewId}/exportData": {
-      "get": {
-        "operationId": "DatabaseViewController_exportData",
-        "parameters": [
-          {
-            "name": "databaseViewId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
-            "schema": {
-              "minimum": 0,
-              "example": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of rows to return. Parsed from a query-string integer. Most QueryWrapper-backed list endpoints default to 100 when omitted.",
-            "schema": {
-              "minimum": 0,
-              "maximum": 10000,
-              "example": 100,
-              "type": "number"
-            }
-          },
-          {
-            "name": "count",
-            "required": false,
-            "in": "query",
-            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "filter",
-            "required": false,
-            "in": "query",
-            "description": "QueryWrapper filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are logical wrapper fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint wrapper.",
-            "schema": {
-              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "description": "QueryWrapper sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
-            "schema": {
-              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "distinct",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper DISTINCT ON logical fields as a JSON array string, indexed array query object, array, or legacy CSV. The wrapper rewrites selected distinct fields into distinct select items.",
-            "schema": {
-              "example": "category,global",
-              "type": "string"
-            }
-          },
-          {
-            "name": "fields",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper field projection as a JSON array string, indexed array query object, array, or legacy CSV. String fields must be allowlisted logical wrapper fields. Advanced select items may use field, fn, raw, cast, coalesce, or case expressions when the endpoint enables dynamic projection.",
-            "schema": {
-              "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "joins",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper join definitions as a JSON string or bracket-style query object. This is only honored by endpoints that explicitly enable dynamic joins, such as dynamic database data reads. Each join has table, alias, type (left or inner), and an on condition.",
-            "schema": {
-              "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "groupBy",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper groupBy logical fields as a JSON array string, indexed array query object, array, or legacy CSV. Only honored when the endpoint enables dynamic grouping or already has grouped defaults.",
-            "schema": {
-              "example": "[\"category\",\"global\"]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "cast",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper cast mapping as a JSON string or bracket-style query object. Keys are selected aliases or logical fields; values are database definition types such as TEXT, INTEGER, BIGINT, NUMERIC, BOOLEAN, DATE, TIMESTAMP, TIMESTAMPTZ, JSON, JSONB, or UUID where supported.",
-            "schema": {
-              "example": "{\"userCount\":\"INTEGER\"}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "with",
-            "required": false,
-            "in": "query",
-            "description": "Optional QueryWrapper CTE definitions as a JSON string or bracket-style query object. Only honored by endpoints that explicitly enable dynamic CTEs.",
-            "schema": {
-              "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "debug",
-            "required": false,
-            "in": "query",
-            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
-            "schema": {
-              "example": false,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "join",
-            "required": false,
-            "in": "query",
-            "description": "Legacy dynamic database join map as a JSON string or bracket-style query object. Keys are related logical database names or database IDs. Values must be [rootColumn, joinedColumn, joinType], where joinType is left or inner. Prefer the newer joins array for new integrations.",
-            "schema": {
-              "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "format",
-            "required": false,
-            "in": "query",
-            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
-            "schema": {
-              "default": "csv",
-              "example": "xlsx",
-              "type": "string",
-              "enum": [
-                "csv",
-                "xlsx"
-              ]
-            }
-          },
-          {
-            "name": "retention",
-            "required": false,
-            "in": "query",
-            "description": "Export file retention. Omit for the destination default, set null for no expiration, or provide exactly one of ttlSeconds and expiresAt.",
-            "schema": {
-              "nullable": true,
-              "example": {
-                "ttlSeconds": 604800
-              },
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/StorageRetentionDto"
-                }
-              ]
-            }
-          },
-          {
-            "name": "delimiter",
-            "required": false,
-            "in": "query",
-            "description": "CSV field delimiter. Defaults to a comma and must contain fewer than 10 characters.",
-            "schema": {
-              "example": "|",
-              "type": "string"
-            }
-          },
-          {
-            "name": "boolType",
-            "required": false,
-            "in": "query",
-            "description": "CSV boolean representation.",
-            "schema": {
-              "example": "boolean",
-              "type": "string",
-              "enum": [
-                "emoji",
-                "number",
-                "boolean"
-              ]
-            }
-          },
-          {
-            "name": "emptyNull",
-            "required": false,
-            "in": "query",
-            "description": "Write null values as empty CSV fields instead of the string null.",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "encodedJson",
-            "required": false,
-            "in": "query",
-            "description": "Base64-encode JSON and JSONB values in the CSV output.",
-            "schema": {
-              "example": false,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "storageDestination",
-            "required": false,
-            "in": "query",
-            "description": "Optional storage destination. Omit to retain the private per-user export namespace, use ROOT for the explorer root, or provide an accessible explorer folder storageEntryId.",
-            "schema": {
-              "example": "ROOT",
-              "type": "string"
-            }
-          },
-          {
-            "name": "fileName",
-            "required": false,
-            "in": "query",
-            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
-            "schema": {
-              "example": "contracts-full.xlsx",
-              "type": "string"
-            }
-          },
-          {
-            "name": "restricted",
-            "required": false,
-            "in": "query",
-            "description": "Whether the exported storage entry is restricted. Defaults to true. Restricted ancestors still apply when exporting into a folder.",
-            "schema": {
-              "default": true,
-              "example": false,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "groups",
-            "required": false,
-            "in": "query",
-            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
-            "schema": {
-              "example": [
-                "22222222-2222-4222-8222-222222222222"
-              ],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "name": "users",
-            "required": false,
-            "in": "query",
-            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
-            "schema": {
-              "example": [
-                "33333333-3333-4333-8333-333333333333"
-              ],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Database Views"
-        ],
-        "x-revo-safety-tier": "write"
-      },
-      "post": {
-        "operationId": "DatabaseViewController_exportDataRequest",
-        "parameters": [
-          {
-            "name": "databaseViewId",
-            "required": true,
-            "in": "path",
-            "description": "Provide databaseViewId.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DatabaseExportBodyRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Export accepted."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "Not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Start a full database view export from a structured request.",
-        "tags": [
-          "Database Views"
-        ],
-        "x-revo-safety-tier": "write"
-      }
-    },
     "/api/v1/databases/views/{databaseViewId}/data": {
       "post": {
         "operationId": "DatabaseViewController_getData",
@@ -6709,6 +6554,49 @@
           }
         ],
         "summary": "Create database.",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/relations/name-availability": {
+      "get": {
+        "description": "\n    Checks the namespace shared by tables, views, and materialized views.\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "operationId": "DatabaseController_getRelationNameAvailability",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "query",
+            "description": "Logical table, view, or materialized-view name.",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 60,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseRelationNameAvailabilityDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Check a logical table or database-view name.",
         "tags": [
           "Databases"
         ]
@@ -7831,7 +7719,7 @@
             "name": "databaseId",
             "required": true,
             "in": "path",
-            "description": "Provide databaseId.",
+            "description": "Provide a database, view, or materialized-view resource ID.",
             "schema": {
               "type": "string"
             }
@@ -8106,11 +7994,24 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "async",
+            "required": false,
+            "in": "query",
+            "description": "Run asynchronously and return after queue admission. Set false to keep the HTTP request open until the Storage entry is finalized.",
+            "schema": {
+              "default": true,
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
+          "200": {
+            "description": "Export completed."
+          },
           "202": {
-            "description": "Export accepted."
+            "description": "Asynchronous export accepted."
           },
           "403": {
             "description": "Forbidden."
@@ -8124,7 +8025,7 @@
             "bearer": []
           }
         ],
-        "summary": "Export database data to CSV or XLSX.",
+        "summary": "Export table, view, or materialized-view data to CSV or XLSX.",
         "tags": [
           "Databases"
         ],
@@ -8138,7 +8039,7 @@
             "name": "databaseId",
             "required": true,
             "in": "path",
-            "description": "Provide databaseId.",
+            "description": "Provide a database, view, or materialized-view resource ID.",
             "schema": {
               "type": "string"
             }
@@ -8149,14 +8050,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DatabaseExportBodyRequestDto"
+                "$ref": "#/components/schemas/RestDatabaseExportBodyRequestDto"
               }
             }
           }
         },
         "responses": {
+          "200": {
+            "description": "Export completed."
+          },
           "202": {
-            "description": "Export accepted."
+            "description": "Asynchronous export accepted."
           },
           "403": {
             "description": "Forbidden."
@@ -8170,7 +8074,7 @@
             "bearer": []
           }
         ],
-        "summary": "Start a full database export from a structured request.",
+        "summary": "Run a full readable-relation export from a structured request.",
         "tags": [
           "Databases"
         ],
@@ -8766,8 +8670,7 @@
                     "maxOutputTokens": 32000
                   },
                   "ai.plugins.default": {
-                    "pluginIds": [],
-                    "instructions": "Prefer governed tenant plugins when they match the request."
+                    "pluginIds": []
                   },
                   "ai.feature.flags": {
                     "enabled": []
@@ -8891,6 +8794,54 @@
           }
         ],
         "summary": "Retrieve instance usage analytics.",
+        "tags": [
+          "Config"
+        ]
+      }
+    },
+    "/api/v1/config/instance/usage/activity": {
+      "get": {
+        "operationId": "ConfigController_usageActivity",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Inclusive lower UTC timestamp for assistant usage analytics. Defaults to the start of the current UTC month.",
+            "schema": {
+              "example": "2026-08-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Exclusive upper UTC timestamp for assistant usage analytics. Defaults to the current time.",
+            "schema": {
+              "example": "2026-09-01T00:00:00.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstanceUsageActivityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retrieve on-demand Assistant tool, skill, and plugin activity for the selected UTC period.",
         "tags": [
           "Config"
         ]
@@ -10524,230 +10475,6 @@
           "Files"
         ],
         "x-revo-safety-tier": "destructive"
-      }
-    },
-    "/api/v1/storage/provider-configs": {
-      "get": {
-        "operationId": "StorageController_listProviderConfigs",
-        "parameters": [
-          {
-            "name": "namespace",
-            "required": false,
-            "in": "query",
-            "description": "Optional namespace filter. Empty means instance default configs.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "providerType",
-            "required": false,
-            "in": "query",
-            "description": "Optional provider type filter.",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "GCS",
-                "S3"
-              ]
-            }
-          },
-          {
-            "name": "active",
-            "required": false,
-            "in": "query",
-            "description": "Optional active-state filter.",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "includeDeleted",
-            "required": false,
-            "in": "query",
-            "description": "Include soft-deleted configs.",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Result offset.",
-            "schema": {
-              "minimum": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Result page size.",
-            "schema": {
-              "minimum": 1,
-              "maximum": 200,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List storage provider configs.",
-        "tags": [
-          "Storage"
-        ]
-      },
-      "post": {
-        "operationId": "StorageController_createProviderConfig",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStorageProviderConfigDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create storage provider config.",
-        "tags": [
-          "Storage"
-        ]
-      }
-    },
-    "/api/v1/storage/provider-configs/{storageProviderConfigId}": {
-      "get": {
-        "operationId": "StorageController_getProviderConfig",
-        "parameters": [
-          {
-            "name": "storageProviderConfigId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Optional storage scope for root exploration. Omit to include every configured storage, pass an empty value for managed default storage, or pass a configured storage id."
-          },
-          {
-            "name": "includeDeleted",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get storage provider config.",
-        "tags": [
-          "Storage"
-        ]
-      },
-      "put": {
-        "operationId": "StorageController_updateProviderConfig",
-        "parameters": [
-          {
-            "name": "storageProviderConfigId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Optional storage scope for root exploration. Omit to include every configured storage, pass an empty value for managed default storage, or pass a configured storage id."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateStorageProviderConfigDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update storage provider config.",
-        "tags": [
-          "Storage"
-        ]
-      },
-      "delete": {
-        "operationId": "StorageController_deleteProviderConfig",
-        "parameters": [
-          {
-            "name": "storageProviderConfigId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Optional storage scope for root exploration. Omit to include every configured storage, pass an empty value for managed default storage, or pass a configured storage id."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StorageVersionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete storage provider config.",
-        "tags": [
-          "Storage"
-        ]
       }
     },
     "/api/v1/storage/workspaces": {
@@ -14371,6 +14098,88 @@
           }
         ],
         "summary": "Create templates.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/performance/jobs": {
+      "get": {
+        "operationId": "AutomationController_dailyJobPerformance",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Daily job performance by UTC day and job template.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/template/{jobTemplateId}/performance": {
+      "get": {
+        "operationId": "AutomationController_dailyTemplatePerformance",
+        "parameters": [
+          {
+            "name": "jobTemplateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Daily performance for one job template.",
         "tags": [
           "Automation"
         ]
@@ -21518,7 +21327,7 @@
     },
     "/api/v1/agent/plugins/{agentPluginId}/test": {
       "post": {
-        "description": "Runs provider-specific validation for an agent plugin without enabling it for normal runtime use.",
+        "description": "Runs provider-specific validation. Local skill/component tests refresh the durable capability snapshot to the exact tested state but do not execute component source or an external tool action. MCP tests check connectivity without synchronizing the remote manifest.",
         "operationId": "AgentPluginController_testPlugin",
         "parameters": [
           {
@@ -21548,7 +21357,7 @@
     },
     "/api/v1/agent/plugins/{agentPluginId}/sync": {
       "post": {
-        "description": "Synchronizes provider-specific agent plugin metadata such as component snapshots, skill metadata, or MCP tool manifests.",
+        "description": "Synchronizes the remote manifest for an MCP server plugin. Component and skill plugins refresh local capability state during create, update, and test and cannot be manually synced.",
         "operationId": "AgentPluginController_syncPlugin",
         "parameters": [
           {
@@ -21688,7 +21497,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.8",
+    "version": "1.5.9",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -21836,7 +21645,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.8"
+            "example": "What’s new in RevoEngine 1.5.9"
           },
           "highlights": {
             "example": [
@@ -21851,7 +21660,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.8",
+            "example": "https://docs.revoengine.com/changelog/1.5.9",
             "format": "uri"
           }
         },
@@ -21868,7 +21677,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.8"
+            "example": "1.5.9"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -21884,7 +21693,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.8"
+            "example": "1.5.9"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -22444,7 +22253,7 @@
           },
           "regex": {
             "type": "string",
-            "description": "String pattern for constraints not expressible with enum, const, type, length or supported format rules. Prefer equivalent explicit rules: even a simple regex can roughly double Endpoint guard preparation time or more for small requests. Actual cost varies; bound string length with max."
+            "description": "String pattern for constraints not expressible with enum, const, type, length or supported format rules. Prefer equivalent explicit rules: even a simple regex can roughly double Validator preparation time or more for small requests. Actual cost varies; bound string length with max."
           },
           "regexFlags": {
             "type": "string",
@@ -22722,7 +22531,7 @@
           },
           "componentSchemaId": {
             "type": "string",
-            "description": "Validate endpoint input with a JSON validator schema component."
+            "description": "Validate endpoint input with a Validator component."
           },
           "componentSchemaElement": {
             "type": "string",
@@ -22730,9 +22539,9 @@
             "minLength": 1,
             "maxLength": 32
           },
-          "componentSchemaVersion": {
-            "type": "number",
-            "description": "Schema component version. If omitted, the latest active schema component version is used."
+          "componentSchemaDigest": {
+            "type": "string",
+            "description": "Portable exact schema component revision identity. If omitted, the latest active schema revision is used."
           }
         }
       },
@@ -22765,9 +22574,9 @@
             "type": "string",
             "description": "Component identifier."
           },
-          "componentVersion": {
-            "type": "number",
-            "description": "The optional componentVersion field remains available. A new endpoint defaults to the latest active low-code component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin. CUSTOM_NODEJS endpoints always execute the component active runtime revision and must omit this field."
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable exact component revision identity. Omit it to follow the latest active revision. CUSTOM_NODEJS endpoints must omit it."
           },
           "timeout": {
             "type": "number",
@@ -22839,9 +22648,9 @@
             "type": "string",
             "description": "Component identifier."
           },
-          "componentVersion": {
-            "type": "number",
-            "description": "Omit componentVersion on update to preserve the existing latest or pinned binding. Set an exact non-negative integer only when the user explicitly requests a pinned version."
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable exact component revision identity. Set null to follow latest."
           },
           "timeout": {
             "type": "number",
@@ -22975,18 +22784,90 @@
           "method"
         ]
       },
+      "ComponentDigestMatchDto": {
+        "type": "object",
+        "properties": {
+          "componentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "componentId",
+          "digest",
+          "name",
+          "type",
+          "version",
+          "current",
+          "createdAt"
+        ]
+      },
+      "ComponentDigestCursorDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "componentId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "version",
+          "digest",
+          "componentId"
+        ]
+      },
+      "SearchComponentDigestsResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentDigestMatchDto"
+            }
+          },
+          "nextCursor": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentDigestCursorDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "nextCursor"
+        ]
+      },
       "ComponentElementsDto": {
         "type": "object",
         "properties": {
-          "libs": {
-            "nullable": true,
-            "readOnly": true,
-            "description": "Server-derived qualified library element dependencies. Null means not analyzed; supplied values are ignored.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "componentElementId": {
             "type": "string",
             "nullable": true,
@@ -23007,6 +22888,11 @@
           "details": {
             "type": "string",
             "description": "Element source/body. Required whenever an explicit element is supplied."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional element metadata. Top-level keys starting with \"__\" are reserved for backend use."
           },
           "hidden": {
             "type": "boolean",
@@ -24156,200 +24042,6 @@
           "restricted"
         ]
       },
-      "StorageRetentionDto": {
-        "type": "object",
-        "properties": {
-          "ttlSeconds": {
-            "type": "number",
-            "description": "Positive lifetime in seconds. The lifetime starts when the file is finalized.",
-            "minimum": 1
-          },
-          "expiresAt": {
-            "type": "string",
-            "description": "Absolute future expiration timestamp in ISO 8601 format.",
-            "example": "2026-08-01T12:00:00.000Z"
-          }
-        }
-      },
-      "DatabaseExportBodyRequestDto": {
-        "type": "object",
-        "properties": {
-          "count": {
-            "type": "boolean",
-            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
-            "example": true
-          },
-          "filter": {
-            "type": "object",
-            "description": "Structured QueryWrapper filter tree.",
-            "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}"
-          },
-          "sort": {
-            "description": "Structured sort definition or ordered sort fields.",
-            "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
-            "oneOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            ]
-          },
-          "distinct": {
-            "type": "array",
-            "description": "Structured distinct field selection.",
-            "example": "category,global",
-            "items": {
-              "type": "string"
-            }
-          },
-          "fields": {
-            "type": "array",
-            "description": "Selected plain or computed QueryWrapper fields.",
-            "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              ]
-            }
-          },
-          "joins": {
-            "type": "array",
-            "description": "Structured dynamic database joins.",
-            "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          },
-          "groupBy": {
-            "type": "array",
-            "description": "Structured group-by field selection.",
-            "example": "[\"category\",\"global\"]",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cast": {
-            "type": "object",
-            "description": "Structured selected-field cast mapping.",
-            "example": "{\"userCount\":\"INTEGER\"}"
-          },
-          "with": {
-            "type": "array",
-            "description": "Structured CTE definitions when the export source permits them.",
-            "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          },
-          "debug": {
-            "type": "boolean",
-            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
-            "example": false
-          },
-          "join": {
-            "type": "object",
-            "description": "Legacy dynamic database join map.",
-            "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}"
-          },
-          "format": {
-            "type": "string",
-            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
-            "enum": [
-              "csv",
-              "xlsx"
-            ],
-            "example": "xlsx",
-            "default": "csv"
-          },
-          "retention": {
-            "description": "Export file retention. Omit for the destination default, set null for no expiration, or provide exactly one of ttlSeconds and expiresAt.",
-            "nullable": true,
-            "example": {
-              "ttlSeconds": 604800
-            },
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/StorageRetentionDto"
-              }
-            ]
-          },
-          "delimiter": {
-            "type": "string",
-            "description": "CSV field delimiter. Defaults to a comma and must contain fewer than 10 characters.",
-            "example": "|"
-          },
-          "boolType": {
-            "type": "string",
-            "description": "CSV boolean representation.",
-            "example": "boolean",
-            "enum": [
-              "emoji",
-              "number",
-              "boolean"
-            ]
-          },
-          "emptyNull": {
-            "type": "boolean",
-            "description": "Write null values as empty CSV fields instead of the string null.",
-            "example": true
-          },
-          "encodedJson": {
-            "type": "boolean",
-            "description": "Base64-encode JSON and JSONB values in the CSV output.",
-            "example": false
-          },
-          "storageDestination": {
-            "type": "string",
-            "description": "Optional storage destination. Omit to retain the private per-user export namespace, use ROOT for the explorer root, or provide an accessible explorer folder storageEntryId.",
-            "example": "ROOT"
-          },
-          "fileName": {
-            "type": "string",
-            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
-            "example": "contracts-full.xlsx"
-          },
-          "restricted": {
-            "type": "boolean",
-            "description": "Whether the exported storage entry is restricted. Defaults to true. Restricted ancestors still apply when exporting into a folder.",
-            "example": false,
-            "default": true
-          },
-          "groups": {
-            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
-            "example": [
-              "22222222-2222-4222-8222-222222222222"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "users": {
-            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
-            "example": [
-              "33333333-3333-4333-8333-333333333333"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "UpdateDatabaseViewDto": {
         "type": "object",
         "properties": {
@@ -24897,6 +24589,17 @@
         "required": [
           "data",
           "results"
+        ]
+      },
+      "DatabaseRelationNameAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "available"
         ]
       },
       "DatabaseAuditGridListItemDto": {
@@ -25511,6 +25214,205 @@
         "required": [
           "version"
         ]
+      },
+      "StorageRetentionDto": {
+        "type": "object",
+        "properties": {
+          "ttlSeconds": {
+            "type": "number",
+            "description": "Positive lifetime in seconds. The lifetime starts when the file is finalized.",
+            "minimum": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Absolute future expiration timestamp in ISO 8601 format.",
+            "example": "2026-08-01T12:00:00.000Z"
+          }
+        }
+      },
+      "RestDatabaseExportBodyRequestDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "boolean",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
+            "example": true
+          },
+          "filter": {
+            "type": "object",
+            "description": "Structured QueryWrapper filter tree.",
+            "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}"
+          },
+          "sort": {
+            "description": "Structured sort definition or ordered sort fields.",
+            "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "distinct": {
+            "type": "array",
+            "description": "Structured distinct field selection.",
+            "example": "category,global",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fields": {
+            "type": "array",
+            "description": "Selected plain or computed QueryWrapper fields.",
+            "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ]
+            }
+          },
+          "joins": {
+            "type": "array",
+            "description": "Structured dynamic database joins.",
+            "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "groupBy": {
+            "type": "array",
+            "description": "Structured group-by field selection.",
+            "example": "[\"category\",\"global\"]",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cast": {
+            "type": "object",
+            "description": "Structured selected-field cast mapping.",
+            "example": "{\"userCount\":\"INTEGER\"}"
+          },
+          "with": {
+            "type": "array",
+            "description": "Structured CTE definitions when the export source permits them.",
+            "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
+            "example": false
+          },
+          "join": {
+            "type": "object",
+            "description": "Legacy dynamic database join map.",
+            "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}"
+          },
+          "format": {
+            "type": "string",
+            "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
+            "enum": [
+              "csv",
+              "xlsx"
+            ],
+            "example": "xlsx",
+            "default": "csv"
+          },
+          "retention": {
+            "description": "Export file retention. Omit for the destination default, set null for no expiration, or provide exactly one of ttlSeconds and expiresAt.",
+            "nullable": true,
+            "example": {
+              "ttlSeconds": 604800
+            },
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageRetentionDto"
+              }
+            ]
+          },
+          "delimiter": {
+            "type": "string",
+            "description": "CSV field delimiter. Defaults to a comma and must contain fewer than 10 characters.",
+            "example": "|"
+          },
+          "boolType": {
+            "type": "string",
+            "description": "CSV boolean representation.",
+            "example": "boolean",
+            "enum": [
+              "emoji",
+              "number",
+              "boolean"
+            ]
+          },
+          "emptyNull": {
+            "type": "boolean",
+            "description": "Write null values as empty CSV fields instead of the string null.",
+            "example": true
+          },
+          "encodedJson": {
+            "type": "boolean",
+            "description": "Base64-encode JSON and JSONB values in the CSV output.",
+            "example": false
+          },
+          "storageDestination": {
+            "type": "string",
+            "description": "Optional storage destination. Omit to retain the private per-user export namespace, use ROOT for the explorer root, or provide an accessible explorer folder storageEntryId.",
+            "example": "ROOT"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Dedicated export file name. Path separators are not allowed. Omit to generate a database-and-timestamp name with the selected format extension.",
+            "example": "contracts-full.xlsx"
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "Whether the exported storage entry is restricted. Defaults to true. Restricted ancestors still apply when exporting into a folder.",
+            "example": false,
+            "default": true
+          },
+          "groups": {
+            "description": "Explicit allowed group ids for the exported storage entry when restricted is true.",
+            "example": [
+              "22222222-2222-4222-8222-222222222222"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "users": {
+            "description": "Explicit allowed user ids for the exported storage entry when restricted is true.",
+            "example": [
+              "33333333-3333-4333-8333-333333333333"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "async": {
+            "type": "boolean",
+            "description": "Run asynchronously and return after queue admission. Set false to keep the HTTP request open until the Storage entry is finalized.",
+            "default": true
+          }
+        }
       },
       "InsertDatabaseDataDto": {
         "type": "object",
@@ -26334,6 +26236,9 @@
           "tokenUsageSelectedPeriod": {
             "$ref": "#/components/schemas/InstanceUsageTokenBreakdownDto"
           },
+          "tokenUsagePreviousSelectedPeriod": {
+            "$ref": "#/components/schemas/InstanceUsageTokenBreakdownDto"
+          },
           "tokenUsageByModel": {
             "type": "array",
             "items": {
@@ -26365,6 +26270,7 @@
           "tokenUsagePreviousBillingPeriod",
           "tokenUsageTotal",
           "tokenUsageSelectedPeriod",
+          "tokenUsagePreviousSelectedPeriod",
           "tokenUsageByModel",
           "tokenUsageByAccount",
           "tokenUsageSeries",
@@ -26420,6 +26326,103 @@
           "materializedViewSize",
           "databaseAuditSize",
           "secrets"
+        ]
+      },
+      "InstanceUsageActivityRowDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ref_describe"
+          },
+          "name": {
+            "type": "string",
+            "example": "ref_describe",
+            "description": "Current plugin display name when available; otherwise the stable ID."
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Short current description when the source still exists."
+          },
+          "pluginId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Current or soft-deleted plugin identity, when it still exists."
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Safe HTTPS icon URL of the current or soft-deleted plugin."
+          },
+          "refToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Clickable plugin reference token; null after permanent deletion."
+          },
+          "calls": {
+            "type": "number",
+            "example": 42
+          },
+          "loads": {
+            "type": "number",
+            "example": 12,
+            "description": "Successful skill or plugin loads."
+          },
+          "failures": {
+            "type": "number",
+            "example": 2
+          },
+          "threads": {
+            "type": "number",
+            "example": 18
+          },
+          "averageDurationMs": {
+            "type": "number",
+            "example": 375,
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "calls",
+          "loads",
+          "failures",
+          "threads"
+        ]
+      },
+      "InstanceUsageActivityResponseDto": {
+        "type": "object",
+        "properties": {
+          "selectedPeriod": {
+            "$ref": "#/components/schemas/InstanceUsageSelectedPeriodDto"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceUsageActivityRowDto"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceUsageActivityRowDto"
+            }
+          },
+          "plugins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceUsageActivityRowDto"
+            }
+          }
+        },
+        "required": [
+          "selectedPeriod",
+          "tools",
+          "skills",
+          "plugins"
         ]
       },
       "JobNotificationPreferenceDto": {
@@ -26727,106 +26730,6 @@
           "size"
         ]
       },
-      "CreateStorageProviderConfigDto": {
-        "type": "object",
-        "properties": {
-          "namespace": {
-            "type": "string",
-            "description": "Optional namespace override. Omit or pass null for the instance default."
-          },
-          "name": {
-            "type": "string",
-            "description": "Display name for the provider configuration."
-          },
-          "providerType": {
-            "type": "string",
-            "description": "Storage provider type.",
-            "enum": [
-              "GCS",
-              "S3"
-            ]
-          },
-          "bucket": {
-            "type": "string",
-            "description": "Provider bucket/container name."
-          },
-          "basePath": {
-            "type": "string",
-            "description": "Optional base object prefix within the bucket."
-          },
-          "publicBaseUrl": {
-            "type": "string",
-            "description": "Optional public base URL used by downstream delivery layers."
-          },
-          "active": {
-            "type": "boolean",
-            "description": "Whether this config is active for its namespace.",
-            "default": true
-          },
-          "settings": {
-            "type": "object",
-            "description": "Provider-specific settings payload."
-          }
-        },
-        "required": [
-          "name",
-          "providerType",
-          "bucket"
-        ]
-      },
-      "UpdateStorageProviderConfigDto": {
-        "type": "object",
-        "properties": {
-          "namespace": {
-            "type": "string",
-            "description": "Optional namespace override. Omit or pass null for the instance default."
-          },
-          "name": {
-            "type": "string",
-            "description": "Display name for the provider configuration."
-          },
-          "providerType": {
-            "type": "string",
-            "description": "Storage provider type.",
-            "enum": [
-              "GCS",
-              "S3"
-            ]
-          },
-          "bucket": {
-            "type": "string",
-            "description": "Provider bucket/container name."
-          },
-          "basePath": {
-            "type": "string",
-            "description": "Optional base object prefix within the bucket."
-          },
-          "publicBaseUrl": {
-            "type": "string",
-            "description": "Optional public base URL used by downstream delivery layers."
-          },
-          "active": {
-            "type": "boolean",
-            "description": "Whether this config is active for its namespace.",
-            "default": true
-          },
-          "settings": {
-            "type": "object",
-            "description": "Provider-specific settings payload."
-          },
-          "version": {
-            "type": "number",
-            "description": "Current config version.",
-            "minimum": 0
-          }
-        },
-        "required": [
-          "name",
-          "providerType",
-          "bucket",
-          "version"
-        ]
-      },
       "StorageVersionDto": {
         "type": "object",
         "properties": {
@@ -26953,12 +26856,13 @@
           },
           "type": {
             "type": "string",
-            "description": "Logical value type retained in XLSX fileStats and used by typed row producers and getFileData reads. Without a declared type, imported XLSX values remain strings; styles never infer a type.",
+            "description": "Logical value type retained in XLSX/CSV/TSV fileStats and used by typed row producers and getFileData reads. Object parses a JSON object or array from text. Without a declared type, imported tabular values remain strings; XLSX styles never infer a type.",
             "enum": [
               "string",
               "number",
               "boolean",
-              "date"
+              "date",
+              "object"
             ]
           },
           "width": {
@@ -26999,7 +26903,7 @@
             "default": false
           },
           "columns": {
-            "description": "Stable column order. Required for every worksheet in writeMode \"direct\"; optional in \"staged\" mode, where keys may be inferred from appended rows.",
+            "description": "Stable XLSX/CSV/TSV column order, keys, headers, and logical types. Required for every logical sheet in writeMode \"direct\"; optional in \"staged\" mode, where keys may be inferred from appended rows.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StorageSheetColumnDto"
@@ -27110,7 +27014,7 @@
           },
           "uploadMode": {
             "type": "string",
-            "description": "Upload mode. Use \"direct\" for provider resumable uploads, \"chunked\" for explicit numbered parts, and \"incremental\" for server-assigned part numbering by default. Incremental sessions can still re-upload a specific part number when repairing an upload.",
+            "description": "Byte-transfer mode. Use \"direct\" when the client sends the complete file to the returned temporary upload target, \"chunked\" for explicit numbered parts, and \"incremental\" for server-assigned part numbering by default. Incremental sessions can still re-upload a specific part number when repairing an upload.",
             "enum": [
               "direct",
               "chunked",
@@ -27128,6 +27032,15 @@
             ],
             "example": "sync"
           },
+          "schemaPolicy": {
+            "type": "string",
+            "description": "How an uploaded XLSX, CSV, or TSV is handled when its declared sheets, columns, or value types do not match the file. \"fallback\" preserves the file, applies every valid declared type, and keeps each incompatible whole column as string with diagnostics in fileStats. \"strict\" preserves the raw file but fails structured indexing with STORAGE_TABULAR_SCHEMA_MISMATCH. Defaults to \"fallback\".",
+            "enum": [
+              "fallback",
+              "strict"
+            ],
+            "default": "fallback"
+          },
           "writeMode": {
             "type": "string",
             "description": "Structured file write mode. Use \"direct\" for a predeclared CSV/XLSX layout with row-only XLSX parts. Use the default \"staged\" mode for independent requests that may be retried, replaced, reordered, or use inferred columns, sparse cells, formulas, or dynamic worksheets. For direct XLSX, declare every worksheet and its table.columns before the first append.",
@@ -27139,7 +27052,7 @@
             "default": "staged"
           },
           "csv": {
-            "description": "CSV dialect used when row payloads are appended to a text/csv session.",
+            "description": "CSV/TSV dialect used when row payloads are appended or direct uploaded bytes are indexed.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/StorageCsvOptionsDto"
@@ -27147,7 +27060,7 @@
             ]
           },
           "sheets": {
-            "description": "Workbook worksheet layout. XLSX is inferred from contentTypeHint. In writeMode \"direct\", declare every worksheet here and configure table.columns for each one.",
+            "description": "Shared tabular layout. XLSX accepts multiple worksheets; CSV/TSV accepts one logical sheet used for column keys, types, and schema diagnostics. In writeMode \"direct\", configure table.columns for every declared sheet.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StorageSheetOptionsDto"
@@ -27247,7 +27160,7 @@
           },
           "contentVersion": {
             "type": "string",
-            "description": "Immutable provider generation returned by read_text. Metadata version alone is insufficient."
+            "description": "Immutable content version returned by the text read operation. Metadata version alone is insufficient."
           }
         },
         "required": [
@@ -27276,7 +27189,7 @@
           },
           "storageProviderConfigId": {
             "type": "string",
-            "description": "Optional provider config id for root-level writes.",
+            "description": "Optional configured storage id for root-level writes. Omit for managed default storage.",
             "example": "00000000-0000-4000-8000-000000000001"
           },
           "replaceStorageEntryId": {
@@ -28257,10 +28170,10 @@
             "description": "Component identifier executed by this job template.",
             "example": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
           },
-          "componentVersion": {
-            "type": "number",
-            "description": "The optional componentVersion field remains available. A new template defaults to the latest active component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin.",
-            "example": 3
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable exact component revision identity. Omit it to follow the latest active revision.",
+            "example": "v1:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           },
           "timeout": {
             "type": "number",
@@ -28365,9 +28278,9 @@
             "type": "string",
             "description": "Component identifier."
           },
-          "componentVersion": {
-            "type": "number",
-            "description": "Omit componentVersion on update to preserve the existing latest or pinned binding. Set an exact non-negative integer only when the user explicitly requests a pinned version."
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable exact component revision identity. Set null to follow latest."
           },
           "timeout": {
             "type": "number",
@@ -28996,8 +28909,9 @@
           },
           "reasoningEffort": {
             "type": "string",
-            "description": "Optional assistant reasoning effort override: low, medium, high, or xhigh. Defaults to low.",
+            "description": "Optional assistant reasoning effort override: none, low, medium, high, or xhigh. Defaults to medium.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29008,6 +28922,7 @@
             "type": "string",
             "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29211,8 +29126,9 @@
           },
           "reasoningEffort": {
             "type": "string",
-            "description": "Optional assistant reasoning effort override: low, medium, high, or xhigh. Defaults to low.",
+            "description": "Optional assistant reasoning effort override: none, low, medium, high, or xhigh. Defaults to medium.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29223,6 +29139,7 @@
             "type": "string",
             "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29346,8 +29263,9 @@
           },
           "reasoningEffort": {
             "type": "string",
-            "description": "Optional assistant reasoning effort override: low, medium, high, or xhigh. Defaults to low.",
+            "description": "Optional assistant reasoning effort override: none, low, medium, high, or xhigh. Defaults to medium.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29358,6 +29276,7 @@
             "type": "string",
             "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29554,12 +29473,13 @@
           },
           "fastMode": {
             "type": "boolean",
-            "description": "Optional GPT-5.6 Luna Fast-mode override for the resumed turn. The backend rejects enabling it for any other model."
+            "description": "Optional Fast-mode override for the resumed turn. Available on GPT-6 Sol and Luna."
           },
           "reasoningEffort": {
             "type": "string",
-            "description": "Optional assistant reasoning effort override for the resumed turn: low, medium, high, or xhigh.",
+            "description": "Optional assistant reasoning effort override for the resumed turn: none, low, medium, high, or xhigh.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -29570,6 +29490,7 @@
             "type": "string",
             "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -30001,7 +29922,7 @@
           },
           "deferLoading": {
             "type": "boolean",
-            "description": "Whether this component-backed tool is deferred behind discovery instead of eagerly exposed."
+            "description": "Whether this exact expanded component action is deferred behind plugin discovery/loading instead of eagerly exposed."
           },
           "alias": {
             "type": "string",
@@ -30032,7 +29953,7 @@
           },
           "inputSchema": {
             "type": "object",
-            "description": "Strict structured input schema exposed for this tool. The component receives matching arguments under api.input().agentTool.args. Must be an object schema with additionalProperties=false and descriptions on every declared property."
+            "description": "Strict model-facing input schema for this exact action. The component receives matching arguments under api.input().agentTool.args and must explicitly translate them when a downstream provider uses a different wire shape. Must be an object schema with additionalProperties=false and descriptions on every declared property."
           },
           "outputSchema": {
             "type": "object",
@@ -30102,7 +30023,7 @@
           },
           "tools": {
             "type": "object",
-            "description": "Component-backed tools keyed by stable capability name."
+            "description": "Component-backed actions keyed by stable capability name. Every entry expands into a separate executable tool; alias is its exact local model-visible action name when set."
           }
         }
       },
@@ -30224,7 +30145,7 @@
           },
           "deferLoading": {
             "type": "boolean",
-            "description": "Whether the tool is deferred behind discovery instead of eagerly exposed."
+            "description": "Whether the remote tool schema is deferred behind plugin discovery/loading instead of eagerly exposed. The manifest tool remains known by remote name; alias changes only its local exposed name."
           },
           "alias": {
             "type": "string",
@@ -30288,7 +30209,7 @@
           },
           "configs": {
             "type": "object",
-            "description": "Per-remote-tool overrides keyed by remote tool name."
+            "description": "Per-remote-tool overrides keyed by exact remote manifest tool name, never by local alias or plugin registry id."
           }
         }
       },
@@ -30310,18 +30231,18 @@
             "minLength": 1
           },
           "pluginIds": {
-            "description": "Registry plugin ids declared as one-level skill dependencies.",
+            "description": "Exact registry plugin UUIDs exposed lazily when this skill is loaded. Dependencies may be skill, tools, or MCP plugins, never packages.",
             "type": "array",
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
-          "maxPromptChars": {
+          "maxPromptTokens": {
             "type": "number",
-            "description": "Maximum number of skill content characters allowed into one prompt.",
+            "description": "Maximum number of skill content tokens allowed into one prompt. Defaults to 10000.",
             "minimum": 256,
-            "maximum": 64000
+            "maximum": 32000
           }
         },
         "required": [
@@ -30416,7 +30337,7 @@
             "minLength": 1
           },
           "pluginIds": {
-            "description": "Registry plugin ids declared as package dependencies.",
+            "description": "Exact direct registry plugin UUIDs exposed lazily when this package is loaded. Dependencies may be skill, tools, or MCP plugins, never packages.",
             "type": "array",
             "items": {
               "type": "string",
@@ -30433,11 +30354,11 @@
               }
             ]
           },
-          "maxPromptChars": {
+          "maxPromptTokens": {
             "type": "number",
-            "description": "Maximum number of package content characters allowed into one prompt.",
+            "description": "Maximum number of package content tokens allowed into one prompt. Defaults to 10000.",
             "minimum": 256,
-            "maximum": 64000
+            "maximum": 32000
           }
         },
         "required": [
@@ -30500,6 +30421,11 @@
             "type": "string",
             "description": "Component id executed when this plugin runs.",
             "minLength": 1
+          },
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable component revision digest.",
+            "pattern": "^v1:sha256:[a-f0-9]{64}$"
           },
           "componentVersion": {
             "type": "number",
@@ -30642,6 +30568,7 @@
             "type": "string",
             "description": "Reasoning effort passed to assistant threads.",
             "enum": [
+              "none",
               "low",
               "medium",
               "high",
@@ -32289,13 +32216,17 @@
             "description": "Component id executed when this tool plugin runs. Required for tools plugins and forbidden for MCP server plugins.",
             "minLength": 1
           },
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable SHA-256 digest of the component revision to execute. Omit to follow latest. Forbidden for non-tools plugins."
+          },
           "componentVersion": {
             "type": "number",
-            "description": "The optional componentVersion field remains available for tools plugins. A new tool defaults to the latest active component binding (stored as null); leave this field out of the create request to encode that choice. Set an exact non-negative integer when the user requests or confirms a pin. Forbidden for MCP server plugins.",
+            "description": "Legacy local revision number. New cross-instance pins should use componentDigest.",
             "minimum": 0
           },
           "componentToolset": {
-            "description": "Multiple governed tool contracts backed by the same component implementation. Forbidden for MCP server and skill plugins.",
+            "description": "Multiple governed tool contracts backed by the same component. Every componentToolset.tools key expands into a separately discoverable executable action; its alias is the exact local tool name when provided. Forbidden for MCP server, skill, and package plugins.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentPluginComponentToolsetDto"
@@ -32311,7 +32242,7 @@
             ]
           },
           "mcpToolset": {
-            "description": "Per-tool MCP governance and loading configuration used for MCP server plugins. Forbidden for tools plugins.",
+            "description": "Default and per-remote-tool MCP governance/loading configuration. mcpToolset.configs keys are remote manifest tool names, while alias controls the local exposed name. Forbidden for tools, skill, and package plugins.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentPluginMcpToolsetDto"
@@ -32319,7 +32250,7 @@
             ]
           },
           "skill": {
-            "description": "Markdown skill configuration. Required for skill plugins and forbidden for tools or MCP plugins.",
+            "description": "Markdown instructions plus lazy dependency plugin UUIDs. Required for skill plugins; the content guides the model but does not execute dependencies or prove their results. Forbidden for tools, MCP, and package plugins.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentPluginSkillConfigDto"
@@ -32327,7 +32258,7 @@
             ]
           },
           "package": {
-            "description": "Markdown package manifest. Required for package plugins and forbidden for tools, MCP, and skill plugins.",
+            "description": "Product-level Markdown routing plus direct lazy dependency plugin UUIDs. Required for package plugins; packages are not executable and cannot depend on packages. Forbidden for tools, MCP, and skill plugins.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentPluginPackageConfigDto"
@@ -32412,7 +32343,7 @@
           },
           "autoDiscovery": {
             "type": "boolean",
-            "description": "Whether the plugin should be surfaced as summary-only discovery context for agents and assistant threads before explicit attachment."
+            "description": "Whether compact routing metadata should appear in available_plugins before explicit attachment. This does not eagerly load skill content, component tool schemas, MCP manifests, or execute the provider."
           },
           "active": {
             "type": "boolean",
@@ -32518,6 +32449,10 @@
             "type": "string",
             "description": "Replacement component id. Required when `kind` is explicitly set to `tools`, and forbidden for MCP server patches.",
             "minLength": 1
+          },
+          "componentDigest": {
+            "type": "string",
+            "description": "Portable SHA-256 component revision digest. Omit to retain the current binding; use null to follow latest."
           },
           "componentVersion": {
             "type": "number",

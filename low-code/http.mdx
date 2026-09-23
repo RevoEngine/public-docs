@@ -1,0 +1,324 @@
+---
+title: HTTP integrations
+description: Call external APIs, consume SSE and byte streams, submit multipart forms, move Storage objects, and receive callbacks through governed Endpoints.
+icon: globe
+---
+
+Use `api.httpCall()` for an outbound request that belongs to the current Component execution. It supports ordinary JSON and text responses, binary payloads, multipart forms, live byte or SSE iterators, and direct transfers between HTTP and Storage.
+
+Inbound HTTP is a different boundary. Publish an [Endpoint](/operate/endpoints) when another system must call RevoEngine; use a durable [outbound Webhook](/operate/webhooks) when RevoEngine should deliver a retried notification without holding the current execution open.
+
+## Choose the right HTTP boundary
+
+| Need | Use | Completion means |
+| --- | --- | --- |
+| Call an API and use its response now | `api.httpCall()` | The remote HTTP response was received |
+| Consume a provider byte stream or SSE feed during this Component run | `api.httpCall(..., { responseType: 'stream' })` | Your iterator reached EOF, was closed, or failed |
+| Store a large response without buffering it in low-code memory | `responseType: 'storage'` with `target` | Storage finalized the new or replaced entry |
+| Deliver a durable outbound notification with attempts and history | Webhook | The configured delivery lifecycle reached its current state |
+| Receive a callback or business event from another system | Authenticated Endpoint | The Endpoint validated and accepted the request |
+
+`api.httpCall()` is outbound and synchronous with the current execution. It does not publish an inbound route, create a durable retry queue, or prove that a successful remote response completed the provider's business operation.
+
+## Request and response formats
+
+Request and response formats are independent:
+
+| Direction | Supported formats | Result |
+| --- | --- | --- |
+| Request | `json`, `text`, `buffer`, `base64buffer`, `form-data`, `storage` | Encodes `data`, `formData`, or a Storage `source` |
+| Response | `json`, `text`, `buffer`, `base64buffer`, `document`, `storage`, `stream` | Returns bounded data, a finalized Storage entry, or a local async iterator |
+
+JSON is the default. Set formats explicitly when they are part of the integration contract. `requestType: 'json'` is valid for every supported method, including bodyless requests; non-JSON request types require a method that accepts a body.
+
+## Call a JSON API
+
+Keep credentials in Secrets and send query parameters through `params` rather than string concatenation.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://crm.example.com/v2/customers',
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${await api.getSecret('CRM_API_TOKEN')}`,
+      Accept: 'application/json',
+    },
+    params: [
+      { key: 'externalId', value: api.input('externalCustomerId') },
+      { key: 'include', value: 'contacts' },
+    ],
+  },
+  {
+    requestType: 'json',
+    responseType: 'json',
+    timeout: 15000,
+  },
+);
+
+if (response.status === 404) return null;
+if (response.status < 200 || response.status >= 300) {
+  api.throw(502, { message: 'CRM request failed', upstreamStatus: response.status });
+}
+
+return response.data;
+```
+
+Do not return the upstream error body blindly. It can contain credentials, personal data, or implementation details. Map expected failures to your own bounded response and keep safe correlation identifiers for investigation.
+
+## Make external mutations retry-safe
+
+A timeout is ambiguous: the provider may have committed the operation before the connection failed. Generate or load a stable business idempotency key before the first attempt and reuse it for every retry.
+
+```js
+const operationId = api.getOperationId();
+const paymentKey = `invoice:${api.input('invoiceId')}:collect:v1`;
+
+const response = await api.httpCall(
+  {
+    url: 'https://payments.example.com/v1/collections',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${await api.getSecret('PAYMENTS_TOKEN')}`,
+      'Idempotency-Key': paymentKey,
+    },
+    data: {
+      invoiceId: api.input('invoiceId'),
+      amount: api.input('amount'),
+      correlationId: operationId,
+    },
+  },
+  { requestType: 'json', responseType: 'json', timeout: 20000 },
+);
+
+if (response.status < 200 || response.status >= 300) {
+  api.throw(502, { message: 'Collection was not confirmed', operationId });
+}
+
+return { operationId, providerOperationId: response.data.id };
+```
+
+Use a Job when the operation needs durable retry, reconciliation, or a longer execution budget. HTTP transport retry and business retry are different decisions.
+
+## Submit multipart form data
+
+Put `formData` on the first request argument. For one Storage-backed binary part, leave that part's value empty and provide `source` in options.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://kyc.example.com/v1/reviews',
+    method: 'POST',
+    formData: [
+      { key: 'customerId', value: api.input('customerId') },
+      { key: 'document' },
+    ],
+  },
+  {
+    requestType: 'form-data',
+    responseType: 'json',
+    source: { storageEntryId: api.input('identityDocumentId') },
+  },
+);
+
+return response.data;
+```
+
+Reference each Storage entry directly when the request contains several files:
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://archive.example.com/v1/packages',
+    method: 'POST',
+    formData: [
+      { key: 'caseId', value: api.input('caseId') },
+      { key: 'contract', storageEntryId: api.input('contractId') },
+      {
+        key: 'attachments',
+        storageEntryId: api.input('attachmentArchiveId'),
+        options: { filename: 'attachments.zip' },
+      },
+    ],
+  },
+  { requestType: 'form-data', responseType: 'json' },
+);
+```
+
+The runtime creates the MIME boundary. Do not set a manual multipart `Content-Type` header without the matching generated boundary.
+
+## Consume a byte stream
+
+Live response iterators are available inside the local low-code V8 runtime. The initial `await` resolves after response headers; each iterator step then waits for data, EOF, or an error with backpressure.
+
+```js
+const response = await api.httpCall(
+  { url: 'https://telemetry.example.com/v1/export', method: 'GET' },
+  { responseType: 'stream', streamFormat: 'bytes', timeout: 120000 },
+);
+
+let bytes = 0;
+try {
+  if (response.status < 200 || response.status >= 300) {
+    return { status: response.status, bytes: 0 };
+  }
+
+  for await (const chunk of response.data) {
+    bytes += chunk.byteLength;
+    // Process bounded chunks. Do not collect an unbounded stream in an array.
+  }
+} finally {
+  await response.close();
+}
+
+return { status: response.status, bytes };
+```
+
+Chunks are transport fragments, not application records or multipart boundaries. The runtime limits concurrent streams, chunk size, buffered data, and total execution time. Closing, breaking iteration, cancellation, failure, or Component completion releases the upstream request.
+
+Use a Storage target instead when the goal is to retain the complete response. It avoids exposing transport chunks to application code.
+
+## Consume Server-Sent Events
+
+Set `streamFormat: 'sse'` for an upstream `text/event-stream` response.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://ai.example.com/v1/runs',
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await api.getSecret('AI_PROVIDER_TOKEN')}` },
+    data: { task: api.input('task'), stream: true },
+  },
+  {
+    requestType: 'json',
+    responseType: 'stream',
+    streamFormat: 'sse',
+    timeout: 180000,
+  },
+);
+
+const messages = [];
+const maxMessages = 100;
+let truncated = false;
+try {
+  if (response.status < 200 || response.status >= 300) {
+    return { status: response.status, messages };
+  }
+
+  for await (const event of response.data) {
+    if (event.event === 'message') {
+      if (messages.length >= maxMessages) {
+        truncated = true;
+        break;
+      }
+      messages.push(JSON.parse(event.data));
+    }
+    if (event.event === 'completed') break;
+  }
+} finally {
+  await response.close();
+}
+
+return { status: response.status, messages, truncated };
+```
+
+Each item has `{ event, data, id? }`. `data` remains a string; JSON and provider markers such as `[DONE]` are application data and must be interpreted explicitly. Reconnect and `Last-Event-ID` replay are not automatic. Incomplete frames at EOF are discarded.
+
+<Warning>
+  Live byte and SSE iterators are local-runtime capabilities. They cannot be returned through remote JSON SDK calls or Custom Node.js, and they are unavailable with proxy mode. This does not add inbound SSE to RevoEngine Endpoints.
+</Warning>
+
+## Stream HTTP responses into Storage
+
+Use `responseType: 'storage'` with a flat `target` to keep a large response without buffering it in the Component.
+
+```js
+const folder = await storage.ensureFolderPath('finance/statements');
+
+const response = await api.httpCall(
+  {
+    url: `https://bank.example.com/v2/statements/${api.input('statementId')}`,
+    method: 'GET',
+    headers: { 'X-API-Key': await api.getSecret('BANK_API_KEY') },
+  },
+  {
+    responseType: 'storage',
+    target: {
+      parentStorageEntryId: folder.storageEntryId,
+      name: `${api.input('statementId')}.csv`,
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+      metadata: { source: 'bank-statements' },
+    },
+  },
+);
+
+if (!response.storage) api.throw(502, { upstreamStatus: response.status });
+return response.storage.entry;
+```
+
+Only successful `2xx` bodies are stored. The runtime creates a direct upload session, streams the response, and finalizes it before returning `response.storage.entry`; `response.data` is then `undefined`. Failed writes abort the new session, while a failed replacement keeps the existing entry.
+
+The inverse direction uses `requestType: 'storage'` and `source`:
+
+```js
+await api.httpCall(
+  {
+    url: 'https://signature.example.com/v1/documents',
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await api.getSecret('SIGNATURE_TOKEN')}` },
+  },
+  {
+    requestType: 'storage',
+    responseType: 'json',
+    source: { storageEntryId: api.input('documentStorageEntryId') },
+  },
+);
+```
+
+`source` and `target` can be combined for an external conversion API. A target may also fill and finalize an existing active, empty, direct upload session. For caller-controlled parts, incremental generation, repair, schema policy, or resumable upload behavior, use [Storage upload sessions](/operate/storage-uploads) instead.
+
+## Receive callbacks and events
+
+`api.httpCall()` does not receive traffic. Configure an authenticated Endpoint with a request guard, then read the validated request context from `api.input()` inside its Component.
+
+```js
+const request = api.input();
+const externalEvent = request.body;
+
+if (!externalEvent?.id || !externalEvent?.orderId) {
+  api.throw(400, { message: 'Invalid event envelope' });
+}
+
+const eventId = await api.triggerEvent(
+  'PARTNER_ORDER_CHANGED',
+  {
+    externalEventId: externalEvent.id,
+    orderId: externalEvent.orderId,
+    status: externalEvent.status,
+  },
+  {
+    metadata: {
+      provider: 'partner',
+      externalEventId: externalEvent.id,
+    },
+  },
+);
+
+return { accepted: true, eventId };
+```
+
+The Endpoint input root contains `body`, `query`, `headers`, and `parameters`; operator-owned template values remain separate. Treat every caller field as untrusted, do not forward inbound headers wholesale, and deduplicate external event IDs before performing a business mutation. If the sender signs raw bytes, do not reconstruct the signature input from parsed JSON unless its protocol defines canonical JSON.
+
+Use an Event after acceptance when several Jobs or Agents should react independently. Use a Job directly when exactly one durable workflow owns the callback.
+
+## Runtime constraints
+
+- `api.httpCall()` is a no-op in debug mode and returns `null`; do not disable debug protection casually for a real external side effect.
+- One deadline covers request preparation, response headers, and the body. Receiving data does not reset it.
+- A Component cancellation or timeout does not recall a request already accepted by the remote service.
+- Storage and live-stream response modes cannot be combined with proxy mode.
+- Do not log signed URLs, authorization headers, Secret values, unrestricted request bodies, or provider error payloads.
+
+See the generated [`api.httpCall()` reference](/low-code/reference/api#api-httpCall), [Endpoints](/operate/endpoints), [Outbound webhooks](/operate/webhooks), [Events](/operate/events), and [Storage](/operate/storage).

@@ -10,6 +10,9 @@ export const publicOpenApiPath = join(root, 'api-reference', 'openapi.json');
 
 const HTTP_METHODS = new Set(['get', 'put', 'post', 'delete', 'patch', 'options', 'head']);
 const PUBLIC_PATH_PREFIX = '/api/v1/';
+const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
+  '/api/v1/storage/provider-configs',
+]);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
 const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier']);
@@ -270,7 +273,10 @@ export function operationKey({ path, method }) {
 
 export function publicOperationKeys(document) {
   return operationEntries(document)
-    .filter(({ path }) => path.startsWith(PUBLIC_PATH_PREFIX))
+    .filter(({ path }) => (
+      path.startsWith(PUBLIC_PATH_PREFIX)
+      && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+    ))
     .map(operationKey)
     .sort();
 }
@@ -410,7 +416,10 @@ export function sanitizePlatformOpenApiSource(source) {
   };
   output.servers = [{ url: 'https://api.revoengine.com', description: 'Production' }];
   output.paths = Object.fromEntries(
-    Object.entries(output.paths ?? {}).filter(([path]) => path.startsWith(PUBLIC_PATH_PREFIX)),
+    Object.entries(output.paths ?? {}).filter(([path]) => (
+      path.startsWith(PUBLIC_PATH_PREFIX)
+      && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+    )),
   );
 
   const configOperationSummaries = {
@@ -508,10 +517,15 @@ export function sanitizePlatformOpenApiSource(source) {
     CreateStorageUploadSessionDto: 'Optional configured storage id for root-level uploads. Omit for managed default storage. Ignored when parentStorageEntryId is provided or when replacing an existing file.',
     EnsureStorageFolderPathDto: 'Optional configured storage id used only when the first path segment must be created at root. Omit for managed default storage.',
     MoveStorageEntryDto: 'Optional destination storage id for root-level moves. Omit for managed default storage. Ignored when parentStorageEntryId is provided.',
+    PutStorageObjectDto: 'Optional configured storage id for root-level writes. Omit for managed default storage.',
   };
   for (const [schemaName, description] of Object.entries(managedStorageDescriptions)) {
     const storageId = schemaProperties(output, schemaName)?.storageProviderConfigId;
     if (storageId) storageId.description = description;
+  }
+  const storageTextContentVersion = schemaProperties(output, 'StorageTextEditDto')?.contentVersion;
+  if (storageTextContentVersion) {
+    storageTextContentVersion.description = 'Immutable content version returned by the text read operation. Metadata version alone is insufficient.';
   }
 
   const instanceConfig = schemaProperties(output, 'InstanceConfigOverviewDto')?.config;
@@ -664,6 +678,9 @@ export function auditPlatformOpenApi(document, source) {
   }
   for (const path of Object.keys(document.paths ?? {})) {
     if (!path.startsWith(PUBLIC_PATH_PREFIX)) issues.push(`Non-public path published: ${path}`);
+    if (NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+      issues.push(`Private infrastructure path published: ${path}`);
+    }
   }
 
   for (const entry of operationEntries(document)) {

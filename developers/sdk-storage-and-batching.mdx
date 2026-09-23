@@ -4,7 +4,9 @@ description: Batch runtime calls safely and move small or large objects through 
 icon: boxes-stacked
 ---
 
-The SDK batches remote calls for throughput, but batching is not a transaction. Use Storage upload sessions when bytes are too large for the JSON runtime batch.
+The SDK batches remote calls for throughput, but batching is not a transaction. Use Storage upload sessions when bytes are too large for the JSON runtime batch or when a file must be assembled across calls.
+
+An upload session is a temporary durable control record, not a file. It stores the intended target, progress, lease, access, retention, metadata, schema, and compute policy. A readable `storageEntryId` exists only after the session reaches `FINALIZED`.
 
 ## Automatic batching
 
@@ -134,23 +136,33 @@ The platform's managed completion flow finalizes a successful direct upload. Do 
 
 Upload URLs and headers are temporary credentials. Do not log, persist, or pass them to another principal. If byte transfer fails before completion, abort the active session as a best-effort cleanup.
 
-## Read large text in batches
+## Read structured files in pages
 
-Text statistics record detected encoding, separator, total line count, batch size, batch count, and the byte-offset map used for bounded reads.
+CSV, TSV, XLSX, NDJSON, JSON arrays, and record-oriented XML return structured pages. Follow the opaque cursor instead of assuming the result is an array of text lines.
 
 ```ts
 const stats = await revo.storage.getFileStats(storageEntryId, {
-  separator: '\n',
   batchSize: 25_000,
 });
 
-for (let batchNumber = 1; batchNumber <= (stats.batches ?? 0); batchNumber += 1) {
-  const lines = await revo.storage.getFileData(storageEntryId, { batchNumber });
-  await processLines(lines);
-}
+let cursor: string | undefined;
+
+do {
+  const page = await revo.storage.getFileData(storageEntryId, {
+    cursor,
+    limit: 25_000,
+  });
+  if (typeof page === 'string' || Array.isArray(page)) {
+    throw new Error('Expected a structured file page');
+  }
+  await processRows(page.rows);
+  cursor = page.nextCursor ?? undefined;
+} while (cursor);
 ```
 
-`batchNumber` is one-based. A batch is a bounded line window backed by cached statistics; it is unrelated to SDK request batching. If statistics are missing, `getFileData()` can build them before reading. Use `reloadStats: true` only when the cached mapping must be recomputed.
+`getFileData()` builds missing structured statistics when needed. Use `reloadStats: true` only when the persisted mapping must be recomputed. For XLSX, select `sheet` when the first visible worksheet is not the intended source. XML requires `recordPath`.
+
+Plain text can still be read through line windows. That Storage batch is unrelated to SDK request batching.
 
 For binary data, `getFileData()` returns base64. Direct reads are limited to 10 MiB; use `buffer: true` with an explicit byte `start` and `end` for a bounded range.
 
@@ -168,8 +180,8 @@ For an HTTP source, use `api.httpCall({ ... }, { responseType: 'storage', target
 
 `responseType: 'stream'` means a byte/SSE iterator consumed inside low-code V8; the Node.js SDK does not transport those iterators and rejects this mode before dispatch. Use a Storage target or consume the stream inside a low-code execution and return a bounded result.
 
-For structured CSV or Excel generation, managed upload sessions can accept rows and worksheet batches. See the [workbook and CSV examples in 1.5.0](/changelog/1.5.0) and the current [Storage guide](/operate/storage). Local Node.js generation remains useful when a report needs a format outside the supported structured-file contract.
+For structured CSV or Excel generation, upload sessions accept rows and worksheet batches with one shared declared schema. See [Structured files in Storage](/operate/storage-structured-files). Local Node.js generation remains useful when a report needs a format outside the supported structured-file contract.
 
 Callback-based transaction compatibility APIs are intentionally not part of the public SDK. If several remote operations require atomicity, implement that boundary in one RevoEngine component or library where the database transaction context exists.
 
-See [Storage operations](/operate/storage), [HTTP and Storage](/low-code/http-and-storage), and the generated [Storage method reference](/low-code/reference/storage).
+See [Storage operations](/operate/storage), [Storage upload sessions](/operate/storage-uploads), [HTTP integrations](/low-code/http), and the generated [Storage method reference](/low-code/reference/storage).

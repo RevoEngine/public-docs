@@ -4,7 +4,9 @@ description: The enterprise BaaS and governed-execution platform for application
 icon: sparkles
 ---
 
-RevoEngine is an **enterprise Backend as a Service and governed-execution platform** for building, integrating, operating, and improving production software from one control plane. Teams combine versioned application logic, databases, Storage, HTTP endpoints, realtime delivery, durable automation, IAM/ACL, observability, and AI without assembling a disconnected runtime for each workflow.
+{/* product-summary:start */}
+RevoEngine is an enterprise Backend as a Service and governed-execution platform for building, integrating, operating, and improving production applications. It combines application logic, data, Storage, HTTP endpoints, automation, identity, observability, and AI in one instance-scoped application model. Low-code is one authoring option, alongside custom Node.js and external developer tools.
+{/* product-summary:end */}
 
 Low-code is an authoring option. The durable product contract is broader: every workload is identity-bound, policy-controlled, observable, and connected to its versioned definition.
 
@@ -19,7 +21,7 @@ Low-code is an authoring option. The durable product contract is broader: every 
     Follow changes and execution through activity, versions, logs, traces, audit, durable history, and correlation IDs.
   </Card>
   <Card title="Governed AI" icon="robot" href="/ai/overview">
-    Use the Assistant and durable Agents against the same authorized state, tools, evidence, approvals, and artifacts.
+    Use Interactive and Autonomous Agents through one policy-, capability-, memory-, and evidence-aware Agent Harness.
   </Card>
 </CardGroup>
 
@@ -40,7 +42,7 @@ flowchart LR
     D --> E["Endpoint execution"]
     D --> S["Sandbox and debugger"]
     D --> A["Automation"]
-    D --> AI["Assistant and Agents"]
+    D --> AI["Interactive and Autonomous Agents"]
     E --> O["Logs, traces, activity"]
     S --> O
     A --> O
@@ -50,6 +52,10 @@ flowchart LR
 <Tip>
   Start with the [enterprise execution model](/platform/enterprise-execution) to understand the control loop, then choose an authoring path: low-code, custom Node.js, SDK, CLI, or Platform UI.
 </Tip>
+
+## Start from the outcome
+
+Read [Choose your approach](/platform/product-model) to decide where RevoEngine fits, which capabilities to combine, and which responsibilities remain with your application team. For file workflows, start with the [Storage model](/operate/storage), then choose [upload sessions](/operate/storage-uploads) or [structured file processing](/operate/storage-structured-files).
 
 ## Choose the document that matches the question
 
@@ -68,5 +74,7 @@ The documentation separates learning material from canonical contracts so an ill
   <Card title="Quickstart" icon="bolt" href="/quickstart" />
   <Card title="Production guide" icon="shield-check" href="/platform/first-production-workflow" />
   <Card title="Developer options" icon="terminal" href="/developers/overview" />
+  <Card title="Build capabilities" icon="puzzle-piece" href="/build/overview" />
+  <Card title="Agent Harness" icon="microchip" href="/ai/agent-harness" />
   <Card title="API reference" icon="brackets-curly" href="/api-reference/introduction" />
 </CardGroup>

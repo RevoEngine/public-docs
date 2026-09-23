@@ -10,7 +10,7 @@ const snapshot = join(referenceRoot, 'source', 'api.public.d.ts');
 const surfaces = [
   ['api', 'api reference', 'Execution, platform, Database, HTTP, automation, and compatibility methods.'],
   ['storage', 'storage reference', 'Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.'],
-  ['transport', 'transport reference', 'Storage-only protocol adapters with Secret-backed connections.'],
+  ['transport', 'SFTP transport reference', 'Storage-backed SFTP import, export, and remote file operations with Secret-backed connections.'],
   ['agent', 'agent reference', 'Durable Agent, inbox, run, plugin, and Assistant-thread methods.'],
   ['util', 'util reference', 'Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers.'],
 ];
@@ -193,6 +193,16 @@ function publicMethods(source, global) {
   return methods(source, global).filter((method) => !/@deprecated\b/i.test(method.docs));
 }
 
+function methodGroups(list) {
+  const groups = new Map();
+  for (const method of list) {
+    const group = groups.get(method.name) ?? { name: method.name, overloads: [] };
+    group.overloads.push(method);
+    groups.set(method.name, group);
+  }
+  return [...groups.values()];
+}
+
 function clean(text) {
   return text
     .split('\n')
@@ -205,9 +215,37 @@ function methodAnchor(global, name) {
   return `${global}-${name}`;
 }
 
-function renderMethod(global, method) {
-  const docs = clean(method.docs);
-  const [description = '', example] = docs.split(/\n\s*Example:\s*\n/i);
+function splitMethodExamples(docs) {
+  const description = [];
+  const examples = [];
+  let current = null;
+  const marker = /^\s*(?:@example(?:\s+(.+?))?|Example(?:\s*\((.+?)\))?):?\s*$/i;
+
+  for (const line of docs.split('\n')) {
+    const match = line.match(marker);
+    if (match) {
+      if (current) examples.push(current);
+      current = { title: (match[1] || match[2] || '').trim(), lines: [] };
+      continue;
+    }
+    if (current) current.lines.push(line);
+    else description.push(line);
+  }
+  if (current) examples.push(current);
+
+  return {
+    description: description.join('\n').trim(),
+    examples: examples
+      .map(({ title, lines }) => ({ title, code: lines.join('\n').trim() }))
+      .filter(({ code }) => code),
+  };
+}
+
+function renderMethod(global, methodGroup) {
+  const primary = [...methodGroup.overloads]
+    .sort((left, right) => right.docs.length - left.docs.length)[0];
+  const docs = clean(primary.docs);
+  const { description, examples } = splitMethodExamples(docs);
   const prose = description
     .replace(/@deprecated\s*/g, '')
     .replace(/\n\s*Migration:\s*[\s\S]*$/i, '')
@@ -219,14 +257,17 @@ function renderMethod(global, method) {
     // Declaration prose can contain unfenced object examples. Escape JSX delimiters
     // so a JSDoc note can never make the generated MDX invalid.
     .replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
-  const exampleSection = example?.trim()
-    ? `\n### Example\n\n\`\`\`ts\n${example.trim()}\n\`\`\`\n`
-    : '\n<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>\n';
-  return `<span id="${methodAnchor(global, method.name)}" aria-hidden="true"></span>\n\n## \`${global}.${method.name}()\`\n\n${prose}\n\n### Signature\n\n\`\`\`ts\n${method.signature}\n\`\`\`${exampleSection}`;
+  const exampleSection = examples.length
+    ? `\n### ${examples.length === 1 ? 'Example' : 'Examples'}\n\n${examples.map(({ title, code }) => (
+      `${title ? `#### ${title}\n\n` : ''}\`\`\`ts\n${code}\n\`\`\``
+    )).join('\n\n')}\n`
+    : '';
+  const signatures = methodGroup.overloads.map(({ signature }) => signature).join('\n\n');
+  return `<span id="${methodAnchor(global, methodGroup.name)}" aria-hidden="true"></span>\n\n## \`${global}.${methodGroup.name}()\`\n\n${prose}\n\n### ${methodGroup.overloads.length === 1 ? 'Signature' : 'Overloads'}\n\n\`\`\`ts\n${signatures}\n\`\`\`${exampleSection}`;
 }
 
 function renderSurface([global, title, description], source) {
-  const list = publicMethods(source, global);
+  const list = methodGroups(publicMethods(source, global));
   const index = list.map(({ name }) => `- [\`${global}.${name}()\`](#${methodAnchor(global, name)})`).join('\n');
   return `---
 title: ${title}

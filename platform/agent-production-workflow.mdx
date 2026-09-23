@@ -1,0 +1,83 @@
+---
+title: Put an Agent into production
+description: Move from an interactive proof to a bounded Autonomous Agent with identity, plugins, triggers, memory, and recovery.
+icon: robot
+---
+
+This guide turns one proven agentic workflow into a durable production responsibility. Start interactively, then automate only the behavior, access, and failure policy you have verified.
+
+## 1. Prove the workflow interactively
+
+Use the Interactive Agent to complete the task with explicit targets and acceptance criteria. Confirm which platform context, plugins, approvals, and evidence are actually required.
+
+Do not start by creating a broad autonomous Agent. A successful supervised run exposes missing permissions, ambiguous decisions, and unsafe external effects while a person can still steer the work.
+
+## 2. Define one responsibility
+
+Write:
+
+- a measurable mission;
+- included and excluded responsibilities;
+- success criteria;
+- the owner accountable for the business outcome;
+- the evidence required before a run can finish.
+
+Separate deterministic business rules into Components or Jobs. Use the Agent for interpretation, investigation, coordination, or adaptive capability selection.
+
+## 3. Assign the execution identity
+
+Select a dedicated service account with least privilege. Test the exact reads, writes, Storage folders, Secrets bindings, and plugin targets under that identity.
+
+The Agent owner controls management. The service account controls runtime access. Neither the model nor an attached plugin broadens those permissions.
+
+## 4. Configure the Harness
+
+Choose the model and reasoning profile, planning policy, permission level, workspace, concurrency, run limits, and required plugins.
+
+Start with:
+
+- one active root run;
+- conservative child-run concurrency;
+- **Restricted** or **Auto Review**;
+- a managed workspace;
+- only the capabilities proven in the interactive workflow;
+- explicit approval routing for external or destructive actions.
+
+## 5. Test one direct run
+
+Run one bounded instruction and inspect:
+
+- admitted context and missing access;
+- plan and capability activity;
+- approval or clarification pauses;
+- workspace outputs;
+- final status and evidence;
+- behavior after cancellation, retry, and continuation.
+
+Only a terminal status plus the required durable result proves completion.
+
+## 6. Add a trigger
+
+Use Inbox first when work requires prioritization, delay, correlation, or de-duplication. Add a Schedule or Event after the task input and retry semantics are stable.
+
+Every producer should supply a stable business correlation identifier. Repeated delivery must not repeat a non-idempotent external effect.
+
+## 7. Operate by exception
+
+Monitor blocked, action-required, failed, delayed, and capacity-limited runs. Keep an operator procedure for:
+
+- missing permission or plugin access;
+- approval delegation;
+- ambiguous external outcomes;
+- failed child work;
+- workspace or retention problems;
+- retry versus continue decisions.
+
+Pause the Agent before materially changing its instructions, plugins, identity, workspace, or concurrency while work is active.
+
+<CardGroup cols={2}>
+  <Card title="Agent Harness" href="/ai/agent-harness" icon="microchip-ai" />
+  <Card title="Autonomous Agents" href="/ai/agents" icon="robot" />
+  <Card title="Operate Agents" href="/ai/agent-operations" icon="chart-line" />
+  <Card title="Plugins" href="/ai/plugins" icon="plug" />
+</CardGroup>

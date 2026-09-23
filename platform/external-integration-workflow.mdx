@@ -1,0 +1,57 @@
+---
+title: Connect an external system
+description: Build a governed integration with explicit ownership, credentials, idempotency, reconciliation, and operational evidence.
+icon: arrows-rotate
+---
+
+Use this guide when RevoEngine must read from or write to a system that remains an external source of truth.
+
+## 1. Define ownership and completion
+
+For every field and business effect, decide which system owns the authoritative state. Define what proves completion: an accepted request, a confirmed external operation, a returned identifier, a webhook, or later reconciliation.
+
+Do not copy an entire external model into RevoEngine unless the application needs to own that data.
+
+## 2. Choose the integration boundary
+
+| Need | Recommended boundary |
+| --- | --- |
+| Synchronous request with a bounded response | Component behind an Endpoint |
+| Long or retryable side effect | Job with an external correlation/idempotency key |
+| Existing standardized Agent capability | Governed MCP server plugin |
+| Tenant-specific business operation | Component tool plugin |
+| File exchange | Storage plus HTTP or SFTP transport |
+| External callback | Authenticated, validated Endpoint |
+
+## 3. Bind credentials through Secrets
+
+Keep tokens, passwords, and private headers in RevoEngine Secrets. Resolve them only for the target operation. Never place them in source, Agent instructions, plugin descriptions, logs, Inbox payloads, or workspace files.
+
+## 4. Design idempotency before retry
+
+Create a stable business key before the first external mutation. Persist the external correlation identifier and the local operation identity. After a timeout, query the external system before repeating the effect.
+
+Transport retry and business retry are different decisions. A successful HTTP status can still represent a rejected business operation, while a failed connection can hide a completed mutation.
+
+## 5. Make work observable
+
+Return or store safe identifiers that connect:
+
+- the RevoEngine execution;
+- the business record;
+- the external operation;
+- the Job, Event, or webhook attempt;
+- any generated Storage artifact.
+
+Log status, timing, and allowlisted identifiers—not credentials or unrestricted payloads.
+
+## 6. Validate the failure paths
+
+Test authentication rejection, validation failure, rate limiting, timeout after dispatch, duplicate delivery, unavailable reconciliation, and a successful retry. Verify both systems' final state instead of relying only on the caller response.
+
+<CardGroup cols={2}>
+  <Card title="HTTP integrations" href="/low-code/http" icon="globe" />
+  <Card title="SFTP integrations" href="/low-code/sftp" icon="folder-arrow-down" />
+  <Card title="Jobs" href="/operate/jobs" icon="gears" />
+  <Card title="MCP plugins" href="/developers/mcp-plugins" icon="plug" />
+</CardGroup>

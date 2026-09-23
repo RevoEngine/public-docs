@@ -1,0 +1,61 @@
+---
+title: Investigate a production failure
+description: Move from one failed execution to verified cause, impact, recovery, and prevention without replaying uncertain side effects.
+icon: magnifying-glass-chart
+---
+
+Use this workflow for failed Endpoints, Jobs, Events, Schedules, webhooks, integrations, Storage processing, or Agent runs.
+
+## 1. Start from one exact execution
+
+Capture the available execution, operation, Job, Event occurrence, Schedule occurrence, webhook attempt, Storage entry, or Agent run identifier. Record the time window and affected business object.
+
+Do not begin with a broad log search when an exact execution anchor exists.
+
+## 2. Establish the terminal fact
+
+Determine whether the work is pending, dispatched, processing, blocked, finished, failed, cancelled, or uncertain. A successful trigger or dispatch is not proof that the target work completed.
+
+For a Schedule or Event, inspect both the occurrence and the resulting Job or Agent run. For an Endpoint, distinguish the caller response from downstream work accepted by the Component.
+
+## 3. Read the smallest complete evidence packet
+
+Correlate:
+
+- the selected definition and active version;
+- sanitized input and runtime options;
+- the canonical error and relevant log span;
+- retry, parent, child, or trigger lineage;
+- external correlation identifiers;
+- resulting database, Storage, or integration state.
+
+Separate confirmed evidence from hypotheses. Missing logs, expired retention, or unavailable external state are findings, not permission to invent a cause.
+
+## 4. Check for side effects before retrying
+
+A timeout can happen after a database, external system, or file operation accepted the mutation. Reconcile through a stable business or provider identifier before replaying non-idempotent work.
+
+Use **Retry** for a failed task that should run again from its durable input. Use **Continue** when a terminal run needs new follow-up instructions without rewriting the original history.
+
+## 5. Prove recovery
+
+Recovery requires evidence from the affected boundary:
+
+- a terminal Job or Agent run;
+- a readable output artifact;
+- the expected database state;
+- a confirmed external operation;
+- a successful Endpoint response plus any required downstream result.
+
+Do not close an incident because a configuration save or retry request was accepted.
+
+## 6. Prevent recurrence
+
+Relate the failure to a concrete control: validation, version selection, access, timeout, idempotency, retry policy, capacity, retention, plugin contract, or operator procedure. Change only the control supported by evidence and verify the new failure path as well as the happy path.
+
+<CardGroup cols={2}>
+  <Card title="Observability" href="/operate/observability" icon="timeline" />
+  <Card title="Logs" href="/operate/logs" icon="rectangle-list" />
+  <Card title="Traces" href="/operate/traces" icon="route" />
+  <Card title="Operate Agents" href="/ai/agent-operations" icon="robot" />
+</CardGroup>

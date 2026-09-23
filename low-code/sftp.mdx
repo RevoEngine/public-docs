@@ -1,0 +1,190 @@
+---
+title: SFTP integrations
+description: Import, export, and manage remote SFTP paths through Secret-backed connections and governed Storage.
+icon: folder-arrow-down
+---
+
+The `transport` global is the low-code SFTP boundary. It moves files between a remote SFTP server and Storage or runs a bounded batch of supported file commands. It does not expose a remote shell and it does not own file retention, structured parsing, or ACLs.
+
+| Need | Method |
+| --- | --- |
+| Import a remote file into governed Storage | `transport.sftpImport()` |
+| Export an existing Storage object to a remote path | `transport.sftpExport()` |
+| List, inspect, rename, archive, or remove remote paths | `transport.sftpCommands()` |
+
+## Configure the connection Secret
+
+Pass an active Secret's unique name or ID as the final argument. Raw credentials are not accepted in low-code source.
+
+Password authentication can use flat JSON:
+
+```json
+{
+  "host": "sftp.example.com",
+  "port": 22,
+  "username": "integration",
+  "password": "...",
+  "hostKeyFingerprint": "SHA256:..."
+}
+```
+
+or a connection string:
+
+```text
+sftp://integration:password@sftp.example.com:22?hostKeyFingerprint=SHA256%3A...
+```
+
+Use JSON for private-key authentication:
+
+```json
+{
+  "host": "sftp.example.com",
+  "port": 22,
+  "username": "integration",
+  "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----...",
+  "passphrase": "optional",
+  "hostKeyFingerprint": "SHA256:..."
+}
+```
+
+Pin `hostKeyFingerprint` in production when the installation requires server identity verification. Without a pin, the bridge accepts the key presented during that handshake and does not persist a caller-owned `known_hosts` record.
+
+## Import into Storage
+
+Declare the final Storage destination in the import call. The transfer returns only after the upload session is finalized.
+
+```js
+const folder = await storage.ensureFolderPath('imports/warehouse', {
+  restricted: true,
+  groups: [api.input('operationsGroupId')],
+});
+
+const imported = await transport.sftpImport(
+  '/incoming/inventory.csv',
+  {
+    parentStorageEntryId: folder.storageEntryId,
+    name: 'inventory.csv',
+    contentTypeHint: 'text/csv',
+    computeStats: 'sync',
+    metadata: {
+      source: 'warehouse-sftp',
+      remotePath: '/incoming/inventory.csv',
+    },
+  },
+  'SFTP_WAREHOUSE',
+);
+
+return {
+  storageEntryId: imported.entry.storageEntryId,
+  version: imported.entry.version,
+};
+```
+
+The Storage identity, namespace policy, restricted ancestors, and entry ACL are enforced exactly as they are for `storage.*`. A namespace or folder ID is a target selector, not a permission grant.
+
+To replace an existing entry, make replacement explicit:
+
+```js
+const imported = await transport.sftpImport(
+  '/incoming/latest.csv',
+  {
+    storageEntryId: api.input('existingStorageEntryId'),
+    replace: true,
+    contentTypeHint: 'text/csv',
+    computeStats: 'async',
+  },
+  'SFTP_WAREHOUSE',
+);
+```
+
+With asynchronous statistics, trigger structured processing from `STORAGE_SYNCHRONIZED`, not merely from successful byte transfer.
+
+## Export from Storage
+
+`sftpExport()` streams the Storage object to the remote path without loading the complete file into low-code memory.
+
+```js
+await transport.sftpExport(
+  `/outgoing/orders-${api.input('businessDate')}.csv`,
+  { storageEntryId: api.input('exportStorageEntryId') },
+  'SFTP_WAREHOUSE',
+);
+
+return { exported: true };
+```
+
+For a receiver that watches the destination directory, export to a temporary remote name and rename it only after the upload completes. This prevents the receiver from observing a partially written business filename.
+
+```js
+const remoteFinal = `/outgoing/orders-${api.input('businessDate')}.csv`;
+const remoteTemporary = `${remoteFinal}.uploading-${api.getOperationId()}`;
+
+await transport.sftpExport(
+  remoteTemporary,
+  { storageEntryId: api.input('exportStorageEntryId') },
+  'SFTP_WAREHOUSE',
+);
+
+const commandResult = await transport.sftpCommands(
+  [['mv', remoteTemporary, remoteFinal]],
+  'SFTP_WAREHOUSE',
+);
+
+return { remoteFinal, commandResult };
+```
+
+Remote rename behavior still depends on the SFTP server and filesystem. If replacing an existing final path is not atomic on that server, use a versioned filename plus an explicit manifest or acknowledgement protocol.
+
+## Inspect and manage remote paths
+
+`sftpCommands()` executes supported file commands in order within one leased connection. A batch transport response can succeed while an individual command reports an error, so inspect every result.
+
+```js
+const batch = await transport.sftpCommands(
+  [
+    'pwd',
+    ['stat', '/incoming/inventory.csv'],
+    ['ls', '/incoming'],
+  ],
+  'SFTP_WAREHOUSE',
+);
+
+const failed = (batch.results ?? []).filter((result) => result.status !== 'ok');
+if (failed.length) {
+  api.throw(502, { message: 'One or more SFTP commands failed', failed });
+}
+
+return batch.results;
+```
+
+The adapter supports structured file operations such as listing, metadata lookup, directory creation, rename, bounded reads and writes, permissions, and cleanup. Content returned by file commands is base64 encoded. Use Storage import/export for normal whole-file transfer rather than reconstructing large files through command results.
+
+<Warning>
+  Commands such as remove, recursive remove, truncate, rename, permission change, and ownership change are real remote side effects. Keep paths allowlisted by application logic, verify the exact target, and use the Agent approval policy when an Agent can invoke the Component.
+</Warning>
+
+## Design an idempotent polling workflow
+
+A robust scheduled import usually follows this sequence:
+
+1. list the bounded inbound directory;
+2. select files by an explicit naming and age rule;
+3. derive a stable source identity from remote path, size, modification time, or a partner manifest;
+4. skip a source identity already committed locally;
+5. import and finalize the Storage entry;
+6. validate authoritative metadata and, when required, structured statistics;
+7. rename the remote file into an archive or processed path;
+8. retain evidence that connects the remote identity, Storage entry, and Job run.
+
+If finalization succeeds but the remote rename fails, the next poll can see the same source again. Idempotency must therefore be based on the source identity or business key, not only on the current remote directory.
+
+## Runtime and security rules
+
+- SFTP uses the executing identity's Storage access; the connection Secret does not expand Storage permissions.
+- Import creates or replaces a finalized Storage entry. Export reads an existing authorized entry.
+- Healthy connections can be reused internally, but code must not rely on connection affinity or session state between calls.
+- Debug execution does not perform the external SFTP side effect.
+- Never log credentials, private keys, signed Storage URLs, or unrestricted directory listings.
+- A timeout or disconnect can be ambiguous around a remote mutation. Inspect the remote path before repeating a destructive or overwriting command.
+
+See the generated [`transport` reference](/low-code/reference/transport), [Storage](/operate/storage), [Storage upload sessions](/operate/storage-uploads), and [Jobs](/operate/jobs).

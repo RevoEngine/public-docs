@@ -18,7 +18,10 @@
     "check:platform-contracts:source": "node scripts/platform-contracts.mjs --check --require-source",
     "test:openapi": "node --test test/*.test.mjs",
     "check:content": "node scripts/check-content.mjs",
-    "check": "npm run test:openapi && npm run check:platform-contracts && npm run check:content && npm run validate && npm run check:links && npm run check:a11y"
+    "check": "npm run test:openapi && npm run check:platform-contracts && npm run check:content && npm run validate && npm run check:links && npm run check:a11y",
+    "sync:product-knowledge": "node scripts/product-knowledge.mjs --sync --require-source",
+    "check:product-knowledge": "node scripts/product-knowledge.mjs --check",
+    "check:docs-live": "node scripts/check-docs-live.mjs"
   },
   "devDependencies": {
     "mint": "4.2.874"

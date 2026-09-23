@@ -55,7 +55,8 @@ declare class api {
     >;
 
   /**
-     * Exports logical database rows by name directly into Storage as CSV or XLSX.
+     * Exports a logical table, saved view, or materialized view by name directly into Storage as CSV or XLSX.
+     * The root and every structured join may independently target any of these relation types.
      *
      * Notes:
      * - No-op in debug mode.
@@ -64,7 +65,7 @@ declare class api {
      * - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
      *   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
      *   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
-     * - Set `{ async: true }` to return immediately with an accepted response.
+     * - Low-code exports currently complete synchronously; omit `async` or set it to `false`.
      * - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
      *   or provide an accessible Explorer folder storageEntryId.
      *
@@ -81,24 +82,6 @@ declare class api {
      * return result.storageEntryId;
      */
   static exportDatabase<TAsync extends boolean = false>(
-      name: string,
-      options?: ExportDatabaseOptions & { async?: TAsync },
-    ): Promise<
-      TAsync extends true
-        ? ExportDatabaseAcceptedResponse
-        : TAsync extends false
-          ? ExportDatabaseCompletedResponse
-          : ExportDatabaseResponse
-    >;
-
-  /**
-     * Exports a saved database view or materialized view by name directly into Storage as CSV or XLSX.
-     * The saved view owns its joins and CTEs; callers may add projection, filters,
-     * grouping, sorting, and paging over the resulting view definition.
-     * CSV is the default; pass `format: 'xlsx'` to use the typed native Excel export.
-     * Defaults to waiting for the completed Storage entry. Set `async: true` for kickoff semantics.
-     */
-  static exportDatabaseView<TAsync extends boolean = false>(
       name: string,
       options?: ExportDatabaseOptions & { async?: TAsync },
     ): Promise<
@@ -209,7 +192,7 @@ declare class api {
     ): Promise<T>;
 
   /**
-     * Reads database rows using the structured query shape.
+     * Reads rows from a database, view, or materialized view using the structured query shape.
      *
      * Notes:
      * - This is the canonical read API.
@@ -230,7 +213,8 @@ declare class api {
     ): Promise<GetDatabaseDataResponse<T>>;
 
   /**
-     * Reads one matching row in a single database operation, returning null when absent.
+     * Reads one matching row from a database, view, or materialized view in a single operation,
+     * returning null when absent.
      * The query supports fields, filter, joins and sort but not take, skip or count.
      * Specify sort when choosing among multiple matching rows matters.
      * Example: const customer = await api.getDatabaseDataRow('customers',
@@ -238,11 +222,12 @@ declare class api {
      */
   static getDatabaseDataRow<T = any>(name: string, query: DatabaseRowQuery): Promise<T | null>;
 
-  /** Counts matching rows with one query. Do not use count:true and take:0 for new code. */
+  /** Counts matching rows in a database, view, or materialized view with one query. */
   static countDatabase(name: string, query?: DatabaseCountQuery): Promise<number>;
 
   /**
-     * Processes a large result in sequential, awaited batches without collecting
+     * Processes a large database, view, or materialized-view result in sequential,
+     * awaited batches without collecting
      * all rows in the isolate. Specify query.take or options.fullScan:true.
      * Every non-final batch has exactly batchSize rows when available.
      * The callback may await writes; do not accumulate batches in an array.
@@ -261,9 +246,9 @@ declare class api {
     ): Promise<DatabaseWalkResult>;
 
   /**
-     * Reads a saved database view by its logical name. The saved view owns its
-     * joins and CTEs; callers may add projection, filters, casts, grouping,
-     * sorting, count, and pagination over the resulting definition.
+     * @deprecated Use getDatabaseData(), getDatabaseDataRow(), countDatabase(),
+     * or walkDatabaseData(). They resolve databases, views, and materialized views
+     * through the same logical relation namespace and support relation joins.
      */
   static getDatabaseViewData<T = any>(
       name: string,
@@ -1296,7 +1281,7 @@ declare class api {
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
      * - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
-     * - HTTP Storage targets use one provider-streamed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
+     * - HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
      * - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
@@ -1440,8 +1425,8 @@ declare class api {
     ): Promise<void>;
 
   /**
-     * Streams an SFTP file directly into Explorer Storage through a signed
-     * provider upload URL and returns the finalized Storage entry.
+     * Streams an SFTP file directly into Explorer Storage and returns the
+     * finalized Storage entry.
      * @deprecated Legacy. Use transport.sftpImport(path, storage, secretNameOrId) for new code.
      *
      * Notes:
@@ -1449,7 +1434,7 @@ declare class api {
      * - Prefer `{ storage: ... }` to create a Storage entry in one call or `{ storageEntryId, replace: true }` to replace one. String inputs are legacy fileIds.
      * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
      * - New Storage targets accept the create-upload fields except `uploadMode` and `replaceStorageEntryId`; SFTP always uses a native direct upload.
-     * - The bridge finalizes the uploaded object synchronously after provider verification. A later provider finalize event is idempotent.
+     * - The managed transfer finalizes the uploaded object synchronously after Storage verification. Repeated completion signals are idempotent.
      * - For text files, prefer `computeStats: 'sync'` so line stats are immediately available after finalize.
      *
      * Legacy example:
@@ -2091,14 +2076,33 @@ declare class storage {
      *
      * Notes:
      * - No-op in debug mode.
-     * - Use this instead of `storage.appendFile(...)`; uploads are resumable and finalized explicitly.
+     * - A session is a temporary, durable upload control record. It reserves the
+     *   intended file name and destination, stores upload policy, ACL, retention,
+     *   schema, and progress, but it is not a readable Storage file. The durable
+     *   entry exists only after the session reaches `FINALIZED`.
+     * - `uploadMode` controls how bytes arrive. `direct` returns a temporary
+     *   upload target for the complete file. `chunked` accepts caller-numbered
+     *   parts. `incremental` assigns part numbers by default and also accepts an
+     *   explicit number for repair. `writeMode` is independent: it controls only
+     *   CSV/XLSX row materialization (`staged` or declared-schema `direct`).
+     * - Use this instead of `storage.appendFile(...)`. Managed direct uploads are
+     *   finalized automatically after Storage confirms the transfer; observe the
+     *   session until `FINALIZED` and do not call `finalizeUploadSession` for that
+     *   path. Explicitly finalize chunked and incremental sessions.
      * - Structured CSV/TSV and XLSX sessions default to `computeStats: 'sync'` so
      *   byte maps, row indexes, and file stats are ready after finalize. Text
      *   `text/*` upload sessions also default to `sync`; other binary sessions
      *   default to `none`. An explicit compute mode always overrides the
-     *   default. The compatibility `staged` XLSX path may still persist its
-     *   reusable index when `none` is explicit; `direct` with `none` skips it.
+     *   default. The `staged` XLSX path may still persist its reusable index when
+     *   `none` is explicit; structured `direct` with `none` skips it.
      *   Both default to `writeMode: 'staged'`.
+     * - XLSX, CSV, and TSV share `schemaPolicy` plus
+     *   `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
+     *   are string, number, boolean, date, and object; object parses only a JSON
+     *   object or array. The default fallback policy leaves an incompatible whole
+     *   column as strings and records diagnostics without replacing cells with
+     *   null. Strict preserves the raw file but structured indexing fails with
+     *   STORAGE_TABULAR_SCHEMA_MISMATCH. Styles never infer column types.
      * - Set `restricted: true` with explicit `users` and/or `groups` to define
      *   the finalized entry ACL. These relations may be changed later with
      *   `storage.updateEntry(...)`; `restricted: false` clears them.
@@ -2118,6 +2122,8 @@ declare class storage {
      *   name: 'notes.txt', contentTypeHint: 'text/plain', uploadMode: 'direct',
      * });
      * return { sessionId: session.storageUploadSessionId, upload };
+     * // The client uploads with upload.method/headers/uploadUrl, then polls the
+     * // session. Managed direct uploads finalize automatically.
      *
      * @example declared-schema XLSX
      * const declared = await storage.createUploadSession({
@@ -2174,7 +2180,6 @@ declare class storage {
      *
      * Notes:
      * - No-op in debug mode.
-     * - Compatibility behavior: this read-only session lookup remains disabled in debug mode because it belongs to the upload-session lifecycle surface.
      * - Multipart sessions expose uploaded parts with computed byte ranges.
      *
      * Example:
@@ -2190,7 +2195,7 @@ declare class storage {
      * Notes:
      * - No-op in debug mode.
      * - Renews the durable session lease before processing and after committing the part.
-     * - Multipart part manifests remain durable independently of Redis.
+     * - Accepted part manifests remain durable across worker restarts.
      *
      * Example:
      * await storage.uploadPart(storageUploadSessionId, 2, {
@@ -2217,7 +2222,9 @@ declare class storage {
     ): Promise<StorageUploadPartResult>;
 
   /**
-     * Finalizes an upload session and materializes the storage entry.
+     * Finalizes a chunked or incremental upload session and materializes the
+     * Storage entry. Managed direct uploads finalize automatically and should be
+     * observed with `getUploadSession()` instead of calling this method.
      *
      * Notes:
      * - No-op in debug mode.
@@ -2261,7 +2268,7 @@ declare class storage {
     ): Promise<StorageEntryView>;
 
   /**
-     * Moves an entry to another folder or provider root.
+     * Moves an entry to another folder or registered Storage root.
      *
      * Notes:
      * - No-op in debug mode.

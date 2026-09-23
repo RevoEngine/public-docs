@@ -19,9 +19,31 @@ if (typeof orderId !== 'string' || orderId.length === 0) {
 
 RevoEngine does not blindly retry synchronous endpoint or SDK mutations. Use idempotency keys supported by the destination and record the correlation identifier with the execution result.
 
+For durable work, place the retry policy on a Job or Agent workflow and make the business effect idempotent. A timeout or disconnected caller does not prove that the previous attempt failed.
+
+```js
+const operationKey = `invoice:${api.input('invoiceId')}:issue:v1`;
+// Persist or send this key through the destination's supported idempotency contract.
+```
+
 ## Bound every read
 
 Select only required database fields, use filters and `take`, and paginate. Use Storage streaming for large files and database export APIs for full datasets.
+
+Do not use one large in-memory read as a substitute for a batch workflow. For structured files, declare a schema when you know it, select the required sheet or delimiter, and process bounded pages after finalization.
+
+## Keep transactions local
+
+Use a database transaction for related database changes that must commit together. Do not keep it open while waiting on an external HTTP call, user approval, file transfer, or long-running computation.
+
+```text
+load and validate local state
+  -> commit the local transaction
+  -> enqueue durable external work
+  -> record the external result with an idempotency key
+```
+
+When the external effect and local database cannot share one transaction, design an explicit state machine such as `PENDING → COMPLETED` or `PENDING → FAILED` and make reconciliation possible.
 
 ## Keep side effects observable
 
@@ -35,10 +57,50 @@ Log stable identifiers and decisions, not entire payloads. Return resource or ex
 - Job templates: durable background work.
 - Events: decoupled typed routing.
 
+Publish a reviewed Component as an Agent plugin when a model should select the capability but the business rule must remain deterministic, versioned, and testable. Use a skill for workflow guidance; do not hide executable business logic in prose.
+
 ## Handle uncertainty
 
 If an HTTP request, upload, or custom runtime call is interrupted after dispatch, the outcome can be indeterminate. Check the destination or durable RevoEngine record before repeating the operation.
 
+For uploads, distinguish the temporary upload session from the finalized Storage entry. Downstream processing should start from the durable entry and its lifecycle event, not merely from a successful byte transfer.
+
+## Separate acceptance from completion
+
+Endpoints should return synchronously only when the full operation fits the configured timeout and the caller needs the result immediately. For work that is slow, retryable, fan-out, or dependent on an external provider:
+
+1. validate the request;
+2. persist an operation or enqueue a Job;
+3. return an operation identifier;
+4. expose status and terminal evidence separately.
+
+HTTP `202` means accepted, not completed. Document which identifier the caller should poll or correlate.
+
 ## Protect secrets
 
 Resolve secrets at the latest possible moment, use them only in the target call, and redact error context. Never return a secret value from a component.
+
+## Return evidence, not internal noise
+
+A production result should tell the next operator or system what happened without exposing implementation details:
+
+```json
+{
+  "operationId": "…",
+  "status": "ACCEPTED",
+  "resourceId": "…"
+}
+```
+
+Keep provider payloads, credentials, stack traces, and large diagnostic objects out of public responses. Correlate them through authorized Logs, Trace, Activity, Job History, or Agent run evidence.
+
+## Production review checklist
+
+- Input is validated at the public boundary and again where business invariants are enforced.
+- Reads, pages, file batches, execution time, and concurrency are bounded.
+- Retried work cannot duplicate a payment, message, provisioned resource, or database transition.
+- External calls do not run inside long-lived database transactions.
+- The execution principal has only the access required by the Component.
+- Secrets are resolved at runtime and never copied to output or logs.
+- The result includes stable correlation or resource identifiers.
+- Failure and indeterminate outcomes have an operator recovery path.

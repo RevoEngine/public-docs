@@ -1,14 +1,16 @@
 ---
-title: AI and Agents
-description: Understand the RevoEngine Assistant, agentic development, and durable autonomous Agents.
+title: RevoEngine Agents
+description: Understand Interactive Agents, Autonomous Agents, the Agent Harness, and governed AI execution across RevoEngine.
 icon: sparkles
 ---
 
-RevoEngine brings AI into the same governed execution and control plane that manages your Components, Endpoints, Jobs, Events, databases, Storage, IAM/ACL, automation, and operational history. The result is more than a chat window: the AI can inspect current platform state, explain it, validate changes, and—when policy allows—carry out work through auditable capabilities.
+RevoEngine brings Agents into the same governed execution and control plane that manages Components, Endpoints, Jobs, Events, databases, Storage, identity, automation, and operational history. The result is more than a chat window: an Agent can inspect current platform state, explain it, validate changes, and—when policy allows—carry out work through auditable capabilities.
+
+The model is only one part of the product. The **Agent Harness** supplies identity, context, tools, skills, memory, plans, approvals, durable state, and evidence around every model call.
 
 <CardGroup cols={2}>
-  <Card title="Assistant" icon="messages" href="/ai/assistant">
-    Work interactively in persistent threads with streaming progress, references, attachments, plans, and approvals.
+  <Card title="Interactive Agents" icon="messages" href="/ai/assistant">
+    Work interactively in persistent threads with streaming progress, references, attachments, plans, and approvals. The current UI and API label this surface Assistant.
   </Card>
   <Card title="Agentic coding" icon="code" href="/ai/agentic-coding">
     Investigate implementation, understand dependencies, produce code, validate it, and apply governed changes.
@@ -21,20 +23,33 @@ RevoEngine brings AI into the same governed execution and control plane that man
   </Card>
 </CardGroup>
 
+<CardGroup cols={2}>
+  <Card title="Agent Harness" icon="microchip-ai" href="/ai/agent-harness">
+    See how RevoEngine grounds, governs, continues, and verifies Agent work.
+  </Card>
+  <Card title="Compare coding agents" icon="scale-balanced" href="/ai/compare-coding-agents">
+    Understand where RevoEngine is stronger and where repository-first tools are a better fit.
+  </Card>
+</CardGroup>
+
 ## One runtime, two ways to work
 
 | Surface | Best for | User interaction | Durable state |
 | --- | --- | --- | --- |
-| **Assistant** | Exploration, design, coding, debugging, and supervised changes | A person drives a thread and can answer questions or approve actions | Threads, messages, plans, actions, visible artifacts, and execution details |
-| **Agent** | Recurring, queued, event-driven, or long-running operational work | An operator defines identity, policy, tools, and triggers; the Agent executes independently within those limits | Agent definition, inbox, sessions, runs, run events, workspace outputs, and memory |
+| **Interactive Agent** | Exploration, design, coding, debugging, and supervised changes | A person drives a thread and can answer questions or approve actions | Threads, messages, plans, actions, visible artifacts, and execution details |
+| **Autonomous Agent** | Recurring, queued, event-driven, or long-running operational work | An operator defines identity, policy, tools, and triggers; the Agent executes independently within those limits | Agent definition, Inbox, sessions, runs, run events, workspace outputs, and memory |
 
-Both surfaces use the same platform-aware capability model. Read operations can inspect authorized platform objects and operational evidence. Mutations remain subject to identity, role, capability policy, safety classification, and approval policy.
+Both surfaces use the same Agent Harness and platform-aware capability model. Read operations can inspect authorized platform objects and operational evidence. Mutations remain subject to identity, role, capability policy, safety classification, and approval policy.
+
+<Note>
+  **Assistant** remains the current user-interface and API name for interactive threads. This documentation uses **Interactive Agent** as the product category and keeps Assistant where an exact screen, setting, or API contract requires that label.
+</Note>
 
 For a platform-wide view of why this matters to enterprise teams, see [Enterprise execution platform](/platform/enterprise-execution).
 
 ## An agentic system for the application lifecycle
 
-A typical coding assistant primarily helps a person understand or produce source code. RevoEngine Agentic System operates within the platform that builds and runs backend applications and services. It can connect engineering intent to governed platform objects, execution evidence, and authorized operations across the backend lifecycle.
+A repository-first coding agent primarily begins with source files and a terminal. RevoEngine begins with the governed application model that builds and runs backend applications and services. It can connect engineering intent to platform objects, execution evidence, and authorized operations across the backend lifecycle.
 
 | Capability | RevoEngine Agentic System |
 | --- | --- |
@@ -46,7 +61,7 @@ A typical coding assistant primarily helps a person understand or produce source
 | Continuity | Uses persistent threads, Agent runs, scoped memory, and governed workspaces for work that spans sessions |
 | Integrations | Uses approved platform capabilities and plugins with explicit scopes, Secrets bindings, and review policy |
 
-This does not make the AI an unrestricted administrator. The system operates only within the identity, capabilities, policies, and targets admitted for the current task.
+This does not make an Agent an unrestricted administrator. It operates only within the identity, capabilities, policies, and targets admitted for the current task. See [RevoEngine and coding agents](/ai/compare-coding-agents) for an explicit comparison with repository-first tools.
 
 ## Governed work lifecycle
 
@@ -66,7 +81,7 @@ The execution timeline shown in the UI distinguishes progress, capability activi
 
 ## Grounded by platform state
 
-The runtime works with stable references to the objects you can access—for example a component, endpoint, database, Agent, job, or stored file. It can inspect current details, read historical snapshots, compare versions, and analyze dependencies before proposing or applying a change.
+The Harness works with stable references to the objects you can access—for example a Component, Endpoint, database, Agent, Job, or stored file. It can inspect current details, read historical snapshots, compare versions, and analyze dependencies before proposing or applying a change.
 
 This grounding is especially important for development work. The Assistant should resolve the intended target, inspect its current contract, and validate the outcome instead of generating code against an assumed schema.
 
@@ -88,10 +103,10 @@ RevoEngine applies several independent controls:
 ## Choose your next guide
 
 <CardGroup cols={2}>
-  <Card title="Configure AI behavior" href="/ai/assistant-configuration" icon="sliders">
-    Separate tenant-wide policy, personal Assistant defaults, Agent configuration, memory, and workspaces.
+  <Card title="Configure Agent behavior" href="/ai/assistant-configuration" icon="sliders">
+    Separate tenant-wide policy, personal Interactive Agent defaults, Autonomous Agent configuration, memory, and workspaces.
   </Card>
-  <Card title="Use the Assistant" href="/ai/assistant" icon="message-bot">
+  <Card title="Use an Interactive Agent" href="/ai/assistant" icon="message-bot">
     Learn the thread, reference, attachment, sharing, and execution-detail workflow.
   </Card>
   <Card title="Review plans and actions" href="/ai/approvals-and-plans" icon="list-check">

@@ -4,9 +4,13 @@ description: Use the Assistant to understand, change, and validate RevoEngine ap
 icon: code
 ---
 
-Agentic coding connects conversational intent to the versioned application model already managed by RevoEngine. The Assistant can inspect components and libraries, trace dependencies, work with runtime-aware declarations, validate code, and apply a governed platform change.
+Agentic coding connects conversational intent to the versioned application model already managed by RevoEngine. An Interactive Agent can inspect components and libraries, trace dependencies, work with runtime-aware declarations, validate code, and apply a governed platform change.
 
 This workflow is designed for RevoEngine application code. It does not expose the private implementation of the RevoEngine control plane.
+
+<Note>
+  Agentic coding is not the same as an unrestricted host terminal. RevoEngine is strongest when the target is an authorized platform object with known versions, permissions, and lifecycle. Use a repository-first coding agent when the task depends on arbitrary shell commands, a local checkout, or an unsupported external build toolchain. See [RevoEngine Agents and coding agents](/ai/compare-coding-agents).
+</Note>
 
 ## The evidence-first loop
 

@@ -1,10 +1,20 @@
 {
   "schemaVersion": 1,
   "contracts": {
+    "productKnowledge": {
+      "snapshot": "platform/product-contract.json",
+      "generated": [
+        "platform/product-model.mdx"
+      ],
+      "summaries": [
+        "introduction.mdx",
+        "platform/overview.mdx"
+      ]
+    },
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 405
+      "operations": 406
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",

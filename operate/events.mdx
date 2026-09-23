@@ -250,7 +250,7 @@ The `custom` boolean is the only classifier. `custom: true` permits a dynamic bu
 | `STORAGE_SYNCHRONIZED` | Asynchronous text statistics finished and the entry projection was updated. | Start line-batched parsing that depends on `lineCount` and `batchNumber`. |
 | `STORAGE_ARCHIVED` | An entry or subtree entered the archived lifecycle. | Remove it from a downstream search index. |
 | `STORAGE_RESTORED` | A manually archived entry or subtree became active again. | Rebuild an external projection. |
-| `STORAGE_DELETED` | The archived entry was permanently tombstoned and provider cleanup was requested. | Remove external references and retention evidence. |
+| `STORAGE_DELETED` | The archived entry entered permanent deletion and managed content cleanup. | Remove external references and retention evidence. |
 
 `STORAGE_CREATED` is emitted after the Storage record is durable and an upload is finalized. With `computeStats: 'async'`, it can arrive before text statistics; subscribe to `STORAGE_SYNCHRONIZED` if the first Job must read cached batches immediately. Reports workspace lifecycle messages are not published as customer Storage events.
 
@@ -269,7 +269,7 @@ Legacy `FILE_FINALIZED`, `FILE_ARCHIVED`, and `FILE_DELETED` exist only for inte
   Grant the Job service account read access to the input's complete ancestor ACL chain and write access to the output folder. An Event matching successfully does not bypass Storage authorization at execution time.
 </Note>
 
-See the full [Storage ingestion example](/operate/storage) for Component code and retry-safe output design.
+See the full [file-processing workflow](/platform/file-processing-workflow) for upload, schema, finalization, and retry-safe output design.
 
 ## Roles and lifecycle
 

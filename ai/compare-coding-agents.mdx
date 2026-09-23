@@ -1,0 +1,91 @@
+---
+title: RevoEngine and coding agents
+description: Compare RevoEngine Agents with repository-first tools such as Codex and Claude Code, including strengths, limits, and combined workflows.
+icon: scale-balanced
+---
+
+RevoEngine Agents, OpenAI Codex, and Claude Code are agentic systems, but they begin from different working environments.
+
+- A **repository-first coding agent** begins with files, a terminal, build tools, tests, and version control.
+- A **RevoEngine Agent** begins with an authorized application model: Components, Endpoints, databases, Storage, automation, identities, versions, execution evidence, and governed operations.
+
+Neither category is universally better. The right choice depends on where the authoritative state and required execution boundary live.
+
+## Capability comparison
+
+| Work | RevoEngine Agents | Repository-first coding agents |
+| --- | --- | --- |
+| Understand a RevoEngine application | Strong: current resources, versions, relationships, permissions, and operational evidence are native context | Requires an integration, MCP connection, exported context, or manual explanation |
+| Change governed platform resources | Strong: changes use current contracts, identity, target access, version checks, approvals, and persisted evidence | Possible through an integration, but not normally the coding workspace's native state model |
+| Diagnose Jobs, Events, Endpoints, Storage, and Agent runs | Strong: durable execution and application state are part of the same product | Depends on logs, APIs, credentials, and tools connected to the coding agent |
+| Run arbitrary repository commands | Limited today: managed platform execution is available, but a general-purpose Agent terminal/VM is not yet a universal public capability | Strong: shell, filesystem, package managers, builds, tests, and Git are core workflows |
+| Perform a broad multi-language repository refactor | Better when the code is represented as RevoEngine Components or approved platform definitions | Usually stronger for arbitrary repositories and toolchains |
+| Run recurring or event-driven business work | Strong: Agent definitions, service accounts, Inbox, schedules, events, runs, sessions, and workspaces are native | Often requires a separate scheduler, integration, or CI automation layer |
+| Enforce application identity and ACLs | Native: the same tenant roles, service accounts, and resource policy apply at execution | Usually governed by the host workspace, repository, shell, and connected-service permissions |
+| Extend with business capabilities | Native Component tools, MCP server plugins, skills, and packages with per-operation safety metadata | Strong MCP and plugin ecosystems; governance depends on the selected host and configuration |
+| Continue operational work durably | Native run/session state, checkpoints, action-required states, retry lineage, and workspace outputs | Product-specific; often centered on coding sessions, tasks, or cloud workspaces |
+
+## Where RevoEngine is better
+
+Choose RevoEngine when the task must understand or change the running application under its real product controls:
+
+- investigate why a scheduled Job or Event-driven workflow failed;
+- trace an Endpoint to its active Component and dependent data or automation;
+- change a platform resource with version-aware review and approval;
+- process a Storage input and retain the resulting operational evidence;
+- run a recurring reconciliation, incident, release-readiness, or integration responsibility;
+- call an internal business capability without exposing its credentials in a prompt;
+- keep the same identity, ACL, Secrets, audit, and lifecycle boundary from request to outcome.
+
+The advantage is not that RevoEngine generates text differently. The advantage is that the Harness already understands the application's governed state and can connect a decision to an authorized, observable operation.
+
+## Where Codex or Claude Code is better today
+
+Choose a repository-first coding agent when the primary task is an arbitrary codebase and success depends on broad environment access:
+
+- install dependencies and use project-specific package managers;
+- inspect or modify many filesystem paths;
+- run compilers, linters, test suites, containers, and developer CLIs;
+- work across languages and frameworks not represented by RevoEngine Components;
+- create commits, branches, pull requests, or other repository-native deliverables;
+- use a disposable coding environment with a full terminal toolchain.
+
+OpenAI describes Codex as operating across terminal, editor, and cloud coding environments, including sandboxed execution and worktrees. Anthropic documents Claude Code as a terminal-oriented coding agent with shell, filesystem, permission modes, plugins, and MCP integrations. These products evolve quickly; use their official documentation for current feature details:
+
+- [OpenAI Codex](https://openai.com/codex/)
+- [Claude Code documentation](https://code.claude.com/docs/en/overview)
+
+## Use both when the boundaries differ
+
+A combined workflow is often stronger than forcing one agent to own everything:
+
+1. Use Codex or Claude Code for repository-wide implementation, builds, tests, and Git work.
+2. Connect it to RevoEngine through the public MCP or Platform API when it needs governed platform context.
+3. Use RevoEngine's Interactive Agent to inspect the exact application objects and runtime evidence.
+4. Use an Autonomous Agent for recurring production responsibilities after the workflow, identity, and failure policy are proven.
+
+In that model, the coding agent owns the developer workspace, while RevoEngine remains the source of truth for application definitions, operations, identities, and durable automation.
+
+## Product direction
+
+RevoEngine is actively developing isolated terminal and workspace execution for broader coding and operational workloads. This direction is intended to close part of the repository-tooling gap while preserving RevoEngine's identity, approval, evidence, and lifecycle model.
+
+It is not yet a promise that every Agent has a general-purpose shell or persistent VM. Design current production workflows against the capabilities enabled in the target instance, and treat future execution environments as unavailable until they appear in the public contract.
+
+## Decision guide
+
+| Primary source of truth | Start with |
+| --- | --- |
+| RevoEngine resources and live execution evidence | RevoEngine Interactive Agent |
+| Recurring, queued, or event-driven platform responsibility | RevoEngine Autonomous Agent |
+| Git repository, terminal, and arbitrary build toolchain | Codex, Claude Code, or another repository-first coding agent |
+| Repository change that must also inspect or operate RevoEngine | Repository agent plus RevoEngine MCP/API, with RevoEngine retaining platform governance |
+
+<CardGroup cols={2}>
+  <Card title="Agent Harness" href="/ai/agent-harness" icon="microchip-ai">
+    Understand the runtime around the model.
+  </Card>
+  <Card title="Agentic coding" href="/ai/agentic-coding" icon="code">
+    Work with RevoEngine application code and versions.
+  </Card>
+</CardGroup>

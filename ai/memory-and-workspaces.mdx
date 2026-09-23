@@ -1,111 +1,102 @@
 ---
 title: Memory and workspaces
-description: Separate conversation continuity, durable learned knowledge, and Agent files.
+description: Separate active execution state, bounded learned context, and durable Agent files.
 icon: folder-tree
 ---
 
-RevoEngine keeps three kinds of state separate so that AI work remains understandable and governable:
-
-Personal Assistant preferences and tenant-wide AI settings are configuration, not memory. Use [Assistant configuration and personalization](/ai/assistant-configuration) to decide which layer owns a behavior before storing durable knowledge.
+RevoEngine keeps three kinds of state separate. This makes Agent behavior easier to understand, govern, and resume:
 
 | Store | Purpose | Examples |
 | --- | --- | --- |
-| Thread or run state | Continue the current task | Recent messages, active goal, approved plan, pending action, exact references, run checkpoint |
-| Memory | Reuse stable knowledge across sessions | User preference, platform fact, prior operational episode |
-| Workspace | Store durable files and shared working material | Reports, generated code, source files, handoff artifacts |
+| Thread or run state | Continue active work | Messages, current goal, plan, approvals, action results, checkpoint |
+| Memory digest | Reuse concise, stable knowledge | User preference, Agent convention, workspace-specific operating context |
+| Workspace | Store durable files | Reports, source files, generated artifacts, review material |
 
-Do not use memory as a file store, the workspace as a conversation transcript, or the final answer as proof that a promised file was saved.
+Personal preferences and instance-wide policy are configuration, not memory. See [Agent configuration and personalization](/ai/assistant-configuration).
 
-## Conversation continuity
+## Conversation and run continuity
 
-Assistant threads preserve messages, artifacts, plans, actions, and execution details according to access and retention policy. Durable Agent sessions preserve run lineage and the state required for authorized follow-up work.
+An Interactive Agent thread keeps the messages, plans, approvals, actions, and artifacts needed for the current collaboration. An Autonomous Agent run additionally keeps durable lineage and checkpoints so authorized work can continue after a pause, retry, or scheduled wake-up.
 
-## Durable memory
+Use this state for live progress. Do not copy every intermediate action into memory.
 
-Memory is explicit, selective knowledge for future work. Authorized users and Agents can manage concise entries within defined ownership scopes. The platform does not automatically treat every final answer as learned memory.
+## How runtime memory works
 
-### Memory kinds
+Runtime memory is a bounded digest of stable knowledge. RevoEngine can provide at most one current digest for each active owner scope:
 
-| Kind | Use it for |
-| --- | --- |
-| `preference` | A durable choice about style, workflow, or expected behavior |
-| `fact` | A stable statement that future work should know |
-| `episode` | A concise outcome or lesson from a prior operation |
+| Scope | What it represents | Example |
+| --- | --- | --- |
+| `USER` | Preferences and working conventions for one user | “Lead with validation results.” |
+| `AGENT` | Operating knowledge for one Agent | “Reconcile settlement totals against the approved finance View.” |
+| `WORKSPACE` | Context shared by work attached to one workspace | “Use the quarterly report template stored in this workspace.” |
 
-### Ownership scopes
+The runtime can use these digests as soft context. They never override the current request, access controls, approval policy, verified action results, or the Agent definition.
 
-| Scope | Who or what it belongs to |
-| --- | --- |
-| `USER` | One user's durable preferences or facts |
-| `AGENT` | Operating knowledge for one Agent |
-| `WORKSPACE` | Knowledge shared by work attached to one exact workspace root |
-| `INSTANCE` | Tenant-wide knowledge managed by authorized operators |
-| `SHARED` | Explicitly shared tenant knowledge |
+Administrators can enable or disable memory, allow governed writeback, and set a bounded context budget. A larger budget can preserve more useful context, but it also increases model input and makes poorly maintained memory more expensive. Keep the digest compact.
 
-User, Agent, and Workspace memory requires the exact subject identifier. Instance and Shared memory are tenant-wide and do not take a subject identifier. Deleted memory is soft-deleted and can be restored; runtime recall ignores deleted entries.
+## Memory writeback
 
-### What to save
+When writeback is enabled, an Agent can propose a durable update when it discovers stable knowledge that will matter later. Updates are version-aware and use one of three operations:
 
-Good memory is stable, concise, named, and useful after the current task ends:
+- **append** — add a new durable fact or convention;
+- **edit** — change a specific existing part;
+- **replace** — replace the complete digest after loading its full current value.
+
+If the digest changed after it was read, the update must be refreshed instead of silently overwriting newer knowledge.
+
+Good memory is concise and remains useful after the current task ends:
 
 ```text
-Name: Billing reconciliation source
-Kind: fact
-Summary: The finance reconciliation flow treats the Stripe settlement export as the source of truth. Validate changes against the referenced billing component.
-Tags: billing, reconciliation
+The finance reconciliation flow treats the approved settlement View as its source of truth.
+Release summaries must lead with validation and rollback status.
 ```
 
-Do not save secrets, access tokens, raw reasoning, temporary task progress, large tool outputs, or information that expires with the current run. Use references to connect a memory entry to exact platform objects without copying their full content.
+Do not save credentials, access tokens, raw reasoning, full documents, transient task progress, or large action outputs. Store exact material in Storage and keep only the durable convention or reference in memory.
+
+## Search and deeper recall
+
+The digest is the normal runtime entry point. When a task needs older or more specific context, an authorized Agent can search or load governed memory records instead of placing the entire history into every model request.
+
+This separation keeps the default context predictable while retaining a path to deeper recall.
 
 ## Agent workspaces
 
-Every successfully created Agent has a workspace root. You can use:
+Every successfully created Autonomous Agent has a workspace root:
 
-- **Managed** — RevoEngine creates and owns a new restricted workspace for the Agent.
+- **Managed** — RevoEngine creates and governs a dedicated workspace.
 - **Existing** — an operator links an authorized Explorer folder as the Agent root.
 
-The workspace root is the default destination for Agent-generated files and is protected from mutation. Workspace-scoped operations stay within that root. Explicitly selected files elsewhere remain available through normal Storage access checks; reading or attaching such a file requires permission from the execution identity. Interactive Assistants create new files in Private by default.
+The root is the default location for Agent-generated files and an enforced boundary for workspace operations. Linking an existing folder is an authorization decision: review its contents, service-account access, and ACLs before making it the Agent workspace.
 
-Agents can use authorized guidance and files within the workspace root. Keep durable instructions concise and clearly named, and store large reference material as separate reviewable files.
-
-Workspace access follows the Agent's service account and owner ACL. Linking an existing folder is an authorization decision: review its contents and permissions before making it the Agent boundary.
+Interactive Agents create ordinary Storage files under the current user's authorization. Autonomous Agents use their assigned service account and workspace policy.
 
 ## Workspace writes and approvals
 
-Writes inside an Agent's enforced workspace can proceed without a separate user approval when policy allows because the target is already restricted to the linked root. Writes outside that boundary remain normal Explorer operations and keep the Assistant approval policy.
+Writes inside an enforced Agent workspace can proceed without an extra per-action confirmation when the configured policy allows them. Writes outside that boundary remain ordinary Explorer operations and keep their normal permission and approval rules.
 
-This does not make workspace content public. Download, preview, thumbnail, upload, archive, and folder operations still require platform authentication and Agent access.
+The workspace boundary does not make content public. Upload, download, preview, archive, and folder operations still require authentication and authorization.
 
 ## Outputs and completion
 
-A run output should reference a file only after a storage-producing operation persisted it. Generated output metadata includes the storage entry, name, MIME type, kind, size, and, where available, the source Assistant message.
+Reference a generated file only after the platform has persisted it. A durable output can include its Storage entry, name, media type, kind, size, and source activity when available.
 
-A file is required when the instruction asks for a durable file or folder, or when a delegated workflow explicitly requires an artifact-first handoff. Analysis, an inline table, a verified platform mutation, or a concise answer can complete successfully without creating an unnecessary file.
+| The task asks for… | Correct completion |
+| --- | --- |
+| A durable report, export, or file | Persist the artifact and return its reference |
+| A verified platform mutation | Return the result and operational evidence; a file is optional |
+| Analysis or a concise answer | Return the answer directly unless an artifact was requested |
+| Work that must resume later | Preserve run state or a checkpoint, not a fake memory note |
 
 <Warning>
-  Do not store secret values in memory, workspace instruction files, generated reports, or Assistant messages. Keep secrets in the RevoEngine Secrets service and reference them only through approved runtime bindings.
+  Do not store secret values in memory, workspace guidance, generated reports, or Agent messages. Keep secrets in the RevoEngine Secrets service and expose them only through approved runtime bindings.
 </Warning>
 
-## Choose the right store
-
-<AccordionGroup>
-  <Accordion title="I need the Assistant to remember my preferred response style">
-    Save a `USER` preference memory. Do not add it to every workspace file.
-  </Accordion>
-  <Accordion title="An Agent must continue a failed task">
-    Use the durable run/session checkpoint and retry or continue controls. Do not copy live progress into memory.
-  </Accordion>
-  <Accordion title="Several runs need the same generated report template">
-    Store the template in the Agent workspace. Save only the stable usage convention as Workspace or Agent memory if it helps future selection.
-  </Accordion>
-  <Accordion title="The company chose a tenant-wide source of truth">
-    An authorized operator can create an Instance memory entry with references to the governing platform objects or documentation.
-  </Accordion>
-</AccordionGroup>
-
 <CardGroup cols={2}>
-  <Card title="Assistant configuration" href="/ai/assistant-configuration" icon="sliders">
-    Separate administrator policy from personal defaults.
+  <Card title="Agent Harness" href="/ai/agent-harness" icon="microchip">
+    See how state, capabilities, policy, and evidence are assembled for execution.
+  </Card>
+  <Card title="Agent configuration" href="/ai/assistant-configuration" icon="sliders">
+    Separate platform policy, personal defaults, and Agent configuration.
   </Card>
   <Card title="Autonomous Agents" href="/ai/agents" icon="robot">
     Configure the identity and runs that use these stores.

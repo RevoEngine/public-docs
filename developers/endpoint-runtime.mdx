@@ -67,7 +67,7 @@ Configured normal response codes are successful `2xx` values. A component can de
 
 ## Version and readiness
 
-Low-code endpoints omit `componentVersion` to follow the latest active version, or pin an exact component version for a controlled rollout. Choose that behavior explicitly for a new Endpoint. Custom Node.js endpoints execute the component's selected ready runtime revision; they do not run newly saved source until its deployment is ready and active. If no usable runtime revision exists, invocation fails explicitly.
+Low-code Endpoints omit `componentDigest` to follow the latest active revision, or use a verified content digest for a controlled rollout across instances. Preserve an existing binding unless the change is intentional. Custom Node.js endpoints execute the component's selected ready runtime revision; they do not run newly saved source until its deployment is ready and active. If no usable runtime revision exists, invocation fails explicitly.
 
 When a Component is repaired, inspect dependent Endpoints, Job Templates, and Agent Tools. Latest-bound dependents follow the repaired version and require contract validation; pinned dependents remain unchanged. Do not migrate existing dependents to a different version without an explicit compatibility decision.
 

@@ -8,12 +8,11 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **71 methods**. Search the docs for an exact method name, or use this index:
+This page contains **66 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
 - [`api.exportDatabase()`](#api-exportDatabase)
-- [`api.exportDatabaseView()`](#api-exportDatabaseView)
 - [`api.updateDatabase()`](#api-updateDatabase)
 - [`api.deleteDatabase()`](#api-deleteDatabase)
 - [`api.restoreDatabase()`](#api-restoreDatabase)
@@ -23,7 +22,6 @@ This page contains **71 methods**. Search the docs for an exact method name, or 
 - [`api.getDatabaseDataRow()`](#api-getDatabaseDataRow)
 - [`api.countDatabase()`](#api-countDatabase)
 - [`api.walkDatabaseData()`](#api-walkDatabaseData)
-- [`api.getDatabaseViewData()`](#api-getDatabaseViewData)
 - [`api.getDatabaseAudit()`](#api-getDatabaseAudit)
 - [`api.insertDatabaseData()`](#api-insertDatabaseData)
 - [`api.upsertDatabaseData()`](#api-upsertDatabaseData)
@@ -77,9 +75,6 @@ This page contains **71 methods**. Search the docs for an exact method name, or 
 - [`api.triggerTarget()`](#api-triggerTarget)
 - [`api.triggerJob()`](#api-triggerJob)
 - [`api.triggerWebhook()`](#api-triggerWebhook)
-- [`api.httpCall()`](#api-httpCall)
-- [`api.httpCall()`](#api-httpCall)
-- [`api.httpCall()`](#api-httpCall)
 - [`api.httpCall()`](#api-httpCall)
 
 <span id="api-createDatabase" aria-hidden="true"></span>
@@ -156,7 +151,8 @@ return result.databases;
 
 ## `api.exportDatabase()`
 
-Exports logical database rows by name directly into Storage as CSV or XLSX.
+Exports a logical table, saved view, or materialized view by name directly into Storage as CSV or XLSX.
+The root and every structured join may independently target any of these relation types.
 
 Notes:
 - No-op in debug mode.
@@ -165,7 +161,7 @@ Notes:
 - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
-- Set `&#123; async: true &#125;` to return immediately with an accepted response.
+- Low-code exports currently complete synchronously; omit `async` or set it to `false`.
 - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
   or provide an accessible Explorer folder storageEntryId.
 
@@ -197,32 +193,6 @@ const result = await api.exportDatabase('contracts', {
 
 return result.storageEntryId;
 ```
-
-<span id="api-exportDatabaseView" aria-hidden="true"></span>
-
-## `api.exportDatabaseView()`
-
-Exports a saved database view or materialized view by name directly into Storage as CSV or XLSX.
-The saved view owns its joins and CTEs; callers may add projection, filters,
-grouping, sorting, and paging over the resulting view definition.
-CSV is the default; pass `format: 'xlsx'` to use the typed native Excel export.
-Defaults to waiting for the completed Storage entry. Set `async: true` for kickoff semantics.
-
-### Signature
-
-```ts
-static exportDatabaseView<TAsync extends boolean = false>(
-      name: string,
-      options?: ExportDatabaseOptions & { async?: TAsync },
-    ): Promise<
-      TAsync extends true
-        ? ExportDatabaseAcceptedResponse
-        : TAsync extends false
-          ? ExportDatabaseCompletedResponse
-          : ExportDatabaseResponse
-    >;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
 
 <span id="api-updateDatabase" aria-hidden="true"></span>
 
@@ -364,7 +334,7 @@ await api.transactionDatabase(async (tx) => {
 
 ## `api.getDatabaseData()`
 
-Reads database rows using the structured query shape.
+Reads rows from a database, view, or materialized view using the structured query shape.
 
 Notes:
 - This is the canonical read API.
@@ -394,7 +364,8 @@ const rows = await api.getDatabaseData('customers', {
 
 ## `api.getDatabaseDataRow()`
 
-Reads one matching row in a single database operation, returning null when absent.
+Reads one matching row from a database, view, or materialized view in a single operation,
+returning null when absent.
 The query supports fields, filter, joins and sort but not take, skip or count.
 Specify sort when choosing among multiple matching rows matters.
 Example: const customer = await api.getDatabaseDataRow('customers',
@@ -405,26 +376,23 @@ Example: const customer = await api.getDatabaseDataRow('customers',
 ```ts
 static getDatabaseDataRow<T = any>(name: string, query: DatabaseRowQuery): Promise<T | null>;
 ```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
 <span id="api-countDatabase" aria-hidden="true"></span>
 
 ## `api.countDatabase()`
 
-Counts matching rows with one query. Do not use count:true and take:0 for new code.
+Counts matching rows in a database, view, or materialized view with one query.
 
 ### Signature
 
 ```ts
 static countDatabase(name: string, query?: DatabaseCountQuery): Promise<number>;
 ```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
 <span id="api-walkDatabaseData" aria-hidden="true"></span>
 
 ## `api.walkDatabaseData()`
 
-Processes a large result in sequential, awaited batches without collecting
+Processes a large database, view, or materialized-view result in sequential,
+awaited batches without collecting
 all rows in the isolate. Specify query.take or options.fullScan:true.
 Every non-final batch has exactly batchSize rows when available.
 The callback may await writes; do not accumulate batches in an array.
@@ -448,24 +416,6 @@ await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },
   }, { batchSize: 2000 });
 ```
 
-<span id="api-getDatabaseViewData" aria-hidden="true"></span>
-
-## `api.getDatabaseViewData()`
-
-Reads a saved database view by its logical name. The saved view owns its
-joins and CTEs; callers may add projection, filters, casts, grouping,
-sorting, count, and pagination over the resulting definition.
-
-### Signature
-
-```ts
-static getDatabaseViewData<T = any>(
-      name: string,
-      request?: SelectInput,
-    ): Promise<GetDatabaseDataResponse<T>>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
 <span id="api-getDatabaseAudit" aria-hidden="true"></span>
 
 ## `api.getDatabaseAudit()`
@@ -481,8 +431,6 @@ static getDatabaseAudit(
       query?: DatabaseAuditQuery,
     ): Promise<DatabaseAuditResponse>;
 ```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
 <span id="api-insertDatabaseData" aria-hidden="true"></span>
 
 ## `api.insertDatabaseData()`
@@ -1697,53 +1645,6 @@ const webhook = await api.triggerWebhook({
 
 ## `api.httpCall()`
 
-@localOnly V8 only. The initial await resolves after response headers.
-
-### Signature
-
-```ts
-static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
-      responseType: 'stream'; streamFormat: 'sse'; timeout?: number; proxy?: false;
-    }): Promise<HttpStreamResponse<HttpSseEvent>>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="api-httpCall" aria-hidden="true"></span>
-
-## `api.httpCall()`
-
-@localOnly V8 only. break and close() release the upstream request.
-
-### Signature
-
-```ts
-static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
-      responseType: 'stream'; streamFormat?: 'bytes'; timeout?: number; proxy?: false;
-    }): Promise<HttpStreamResponse<Uint8Array>>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="api-httpCall" aria-hidden="true"></span>
-
-## `api.httpCall()`
-
-Stores only 2xx bodies and returns after finalization; other statuses return bounded diagnostic text.
-
-### Signature
-
-```ts
-static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
-      status: number; statusText: string; time: number; headers: LooseObject<string>;
-      revo?: HttpRevoResponseScope;
-      request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
-    } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
-```
-<Note>No dedicated example is encoded in the current editor declaration. The signature is authoritative.</Note>
-
-<span id="api-httpCall" aria-hidden="true"></span>
-
-## `api.httpCall()`
-
 Performs an outbound HTTP request.
 
 Notes:
@@ -1753,7 +1654,7 @@ Notes:
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
 - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
 - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
-- HTTP Storage targets use one provider-streamed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
+- HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
 - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
@@ -1765,9 +1666,23 @@ Notes:
 - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
 - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
 
-### Signature
+### Overloads
 
 ```ts
+static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat: 'sse'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<HttpSseEvent>>;
+
+static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat?: 'bytes'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<Uint8Array>>;
+
+static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
+      status: number; statusText: string; time: number; headers: LooseObject<string>;
+      revo?: HttpRevoResponseScope;
+      request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
+    } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
+
 static httpCall(
       config: HttpRequestInterface,
       options?: HttpRequestOptionsInterface & {

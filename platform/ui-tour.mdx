@@ -4,7 +4,7 @@ description: Follow the RevoEngine workspace from authoring to execution, eviden
 icon: display
 ---
 
-The RevoEngine workspace is an enterprise execution control plane. Its persistent navigation, global search, list-first grids, detail panels, dashboards, Chat, and Assistant keep build, runtime, evidence, and access decisions inside one instance context.
+The RevoEngine workspace is an enterprise execution control plane. Its persistent navigation, global search, list-first grids, detail panels, dashboards, Chat, and AI Agents keep build, runtime, evidence, and access decisions inside one instance context.
 
 ## Workspace anatomy
 
@@ -92,13 +92,13 @@ Start with the user-visible failure, locate its operation, Job, or Event identif
 
 **Secrets** stores versioned sensitive values. Secret metadata can be discoverable to authorized operators while secret values stay out of normal logs, source, and documentation.
 
-## AI and collaboration
+## AI Agents and collaboration
 
-- **AI Assistant** opens as a workspace panel for interactive research, code, governed tools, approvals, and artifacts.
-- **Agents** provides durable Agent definitions, runs, sessions, inbox, memory, plugins, and Storage workspaces.
+- **AI Agents → Threads** provides Interactive Agent work for research, code, governed tools, approvals, and artifacts. The current thread and API object is named **Assistant**.
+- **AI Agents → Agents** provides Autonomous Agent definitions, runs, sessions, Inbox, memory, plugins, and Storage workspaces.
 - **Chat** supports direct/group conversations and a read-only system notification inbox.
 
-These surfaces have separate persistence and access models. A Chat message is not automatically Agent memory, and an Assistant draft does not become deployed Component code until the normal review and deployment path completes.
+These surfaces have separate persistence and access models. A Chat message is not automatically Agent memory, and an Interactive Agent draft does not become deployed Component code until the normal review and deployment path completes.
 
 ## Example: investigate a failed order
 

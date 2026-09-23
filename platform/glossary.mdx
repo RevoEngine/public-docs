@@ -18,11 +18,12 @@ icon: book
 | Job template | A reusable background-execution definition. |
 | Job | One durable execution attempt with status, logs, and retry history. |
 | Event | A typed message route that can target jobs or Agents. |
-| Assistant | Interactive, thread-based AI for platform work, coding, and analysis. |
-| Agent | A configured durable AI worker with runs, sessions, memory, inbox, tools, and a workspace. |
+| Interactive Agent | Thread-based AI for supervised platform work, coding, and analysis. The current UI and API use **Assistant** for this surface. |
+| Autonomous Agent | A configured durable AI worker with runs, sessions, memory, Inbox, tools, triggers, and a workspace. |
+| Agent Harness | The governed runtime around the model that assembles identity, context, capabilities, plans, approvals, memory, execution state, and evidence. |
 | Tool | An executable capability admitted by runtime policy. |
-| Skill | Guidance that teaches an Assistant or Agent how to use tools and platform contracts; it does not grant permissions. |
-| Plugin | A governed extension that exposes additional capabilities to an Assistant or Agent. |
+| Skill | Guidance that teaches an Agent how to use tools and platform contracts; it does not grant permissions. |
+| Plugin | A governed extension that exposes tools, MCP servers, skills, or packages to an Agent. |
 | Artifact | A durable result or attachment associated with a message or execution, such as a plan, tool result, or generated file. |
 | Execution ID | The identifier for one endpoint, Sandbox, or component execution. |
 | Operation ID | A distributed request trace identifier that can span service boundaries. |

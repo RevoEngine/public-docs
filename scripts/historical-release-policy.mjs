@@ -9,6 +9,18 @@ export function permitsHistoricalMethod(page, method, content) {
       replacementNote: 'For new code, use `api.transactionDatabase()`; the older name is now deprecated.',
     },
     {
+      page: 'changelog/1.3.1.mdx',
+      method: 'api.getDatabaseViewData',
+      historicalNote: 'This historical example uses the method name available in 1.3.1.',
+      replacementNote: 'For new code, use `api.getDatabaseData()` with a View name; the older name is now deprecated.',
+    },
+    {
+      page: 'changelog/1.5.7.mdx',
+      method: 'api.getDatabaseViewData',
+      historicalNote: 'This historical example uses the method name available in 1.5.7.',
+      replacementNote: 'For new code, use `api.getDatabaseData()` with a View name; the older name is now deprecated.',
+    },
+    {
       page: 'changelog/1.3.2.mdx',
       method: 'api.sftpGet',
       historicalNote: 'This historical example uses the method name available in 1.3.2.',

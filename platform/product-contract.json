@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "name": "RevoEngine",
+  "summary": "RevoEngine is an enterprise Backend as a Service and governed-execution platform for building, integrating, operating, and improving production applications. It combines application logic, data, Storage, HTTP endpoints, automation, identity, observability, and AI in one instance-scoped application model. Low-code is one authoring option, alongside custom Node.js and external developer tools.",
+  "purpose": "Use RevoEngine when a team needs to deliver and operate business applications or integrations with shared identity, access control, versioned definitions, execution history, and operational ownership. Its value is the connection between a business capability, its implementation, the authority under which it runs, and evidence of the outcome.",
+  "boundaries": [
+    "The control plane manages definitions, versions, access, and operational state. The execution plane runs the selected workload through its own synchronous, transient, or durable execution contract.",
+    "The platform supplies managed capabilities and their controls. The application team owns business rules, data quality, idempotency, external-system contracts, rollout decisions, and business success criteria.",
+    "Platform UI, Platform API, SDK, CLI, and AI are access paths to the same application model. An interface choice does not create a separate source of truth or bypass permissions.",
+    "Documentation explains supported product concepts and workflows. Verify the target instance's current contract, enabled capabilities, permissions, and version before execution; latest documentation is not evidence of deployment.",
+    "A definition, accepted request, completed transfer, or dispatched event is not proof of business completion. Follow the relevant durable result, execution status, or finalized artifact.",
+    "RevoEngine does not automatically replace an existing system of record or design the application's business rules. Integrate with the existing owner when it already provides the required capability."
+  ],
+  "domains": [
+    {
+      "name": "Application logic",
+      "purpose": "Implement reusable business behavior in Components and libraries; validate it in Sandbox before selecting a production version.",
+      "docs": "/build/components"
+    },
+    {
+      "name": "Endpoints",
+      "purpose": "Expose a bounded HTTP contract over application logic when the caller needs a synchronous result.",
+      "docs": "/operate/endpoints"
+    },
+    {
+      "name": "Data",
+      "purpose": "Model application-owned structured data, query it through Tables and Views, and track changes with the appropriate access and audit policy.",
+      "docs": "/operate/databases"
+    },
+    {
+      "name": "Storage",
+      "purpose": "Keep files, generated outputs, and evidence addressable by stable entry identity. Distinguish an entry from bytes, an upload session, and a derived index; consumers require a finalized file.",
+      "docs": "/operate/storage"
+    },
+    {
+      "name": "Automation",
+      "purpose": "Run durable background work. Job templates define work and Jobs record executions; schedules and events are triggers that can target a Job template or an Agent where enabled.",
+      "docs": "/operate/automation"
+    },
+    {
+      "name": "Identity and governance",
+      "purpose": "Assign human and service identities, roles, Groups, ACLs, and Secrets so each action has an explicit authorized scope.",
+      "docs": "/operate/identity-and-access"
+    },
+    {
+      "name": "Operations",
+      "purpose": "Connect changes to runtime outcomes using Activity, versions, logs, traces, audit, and execution history.",
+      "docs": "/operate/observability"
+    },
+    {
+      "name": "AI",
+      "purpose": "Use Interactive Agents for supervised work and Autonomous Agents for durable responsibilities. Both run through the governed Agent Harness with explicit identity, capabilities, approvals, memory, evidence, and ownership.",
+      "docs": "/ai/overview"
+    }
+  ],
+  "decisions": [
+    {
+      "goal": "Publish a business operation",
+      "choose": "An Endpoint backed by a validated Component for bounded synchronous work. For long work, accept a command and follow a durable Job result.",
+      "verify": "Input validation, identity, expected duration, duplicate requests, and the caller's completion contract.",
+      "docs": "/operate/endpoints"
+    },
+    {
+      "goal": "Import or export files",
+      "choose": "Storage for durable inputs and outputs, with an upload session for transfer and bounded structured reads for CSV, TSV, or XLSX. Use a Job when processing must outlive the request.",
+      "verify": "Finalization, schema and parsing policy, access, retention, and idempotency by source identity and version.",
+      "docs": "/operate/storage"
+    },
+    {
+      "goal": "Connect an existing business system",
+      "choose": "Keep the existing system of record where appropriate. Use Components, HTTP integration, events, or webhooks to implement the integration boundary.",
+      "verify": "Ownership of each field, credentials, retry safety, reconciliation, and external rate or execution limits.",
+      "docs": "/low-code/http"
+    },
+    {
+      "goal": "Choose an authoring interface",
+      "choose": "Use Platform UI or Web IDE for in-platform work, CLI and VS Code for local development, and SDK or Platform API for programmatic integration.",
+      "verify": "Whether the task manages definitions, invokes an Endpoint, or executes runtime code; these are different contracts.",
+      "docs": "/developers/overview"
+    },
+    {
+      "goal": "Investigate a production failure",
+      "choose": "Start from the exact resource or execution and its operational evidence; relate the failure to configuration and version before proposing a change.",
+      "verify": "The original error, whether side effects happened, the affected scope, and proof of recovery.",
+      "docs": "/operate/observability"
+    },
+    {
+      "goal": "Choose deterministic automation or AI",
+      "choose": "Use deterministic Components and Jobs for known business rules. Use an Interactive or Autonomous Agent when interpretation, investigation, or adaptive capability use is required.",
+      "verify": "Acceptance criteria, authorized capabilities, execution identity, approvals, cost and execution bounds, and durable evidence of completion.",
+      "docs": "/ai/overview"
+    }
+  ],
+  "documentation": {
+    "origin": "https://docs.revoengine.com",
+    "index": "/llms.txt",
+    "mcp": "/mcp",
+    "entrypoints": [
+      "/introduction",
+      "/platform/product-model",
+      "/platform/enterprise-execution",
+      "/platform/first-production-workflow",
+      "/developers/overview"
+    ]
+  }
+}

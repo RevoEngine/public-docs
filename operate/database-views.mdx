@@ -6,7 +6,7 @@ icon: binoculars
 
 A Database View is a named read model over one or more accessible Tables. It gives dashboards, Endpoints, Components, exports, and operators one stable output contract without copying the source data. The saved definition is read-only: querying a View never mutates its sources.
 
-Use a regular View when results should reflect current source rows on every read. Use a [Materialized View](/operate/materialized-views) when the query is expensive and a controlled freshness boundary is acceptable.
+Use a regular View when results should reflect current source rows on every read. Use a [Materialized View](/operate/materialized-views) when the query is expensive and a controlled freshness boundary is acceptable. Low-code reads and structured joins use the same Database methods for Tables, Views, and Materialized Views; export each through `api.exportDatabase()`. New logical names must be unique across all three relation types.
 
 ## Create a View in the workspace
 
@@ -157,7 +157,7 @@ The `Database Views` OpenAPI tag is generated from the current Platform API cont
 - [List Database Views](/api-reference/database-views/list-database-views)
 - [Get a Database View](/api-reference/database-views/get-a-database-view)
 - [Update a Database View](/api-reference/database-views/update-a-database-view)
-- [Export Database View data](/api-reference/database-views/export-database-view-data)
+- [Export readable relation data](/api-reference/databases/export-table-view-or-materialized-view-data-to-csv-or-xlsx)
 - [Delete Database Views](/api-reference/database-views/delete-database-views)
 - [Restore a Database View](/api-reference/database-views/restore-a-database-view)
 

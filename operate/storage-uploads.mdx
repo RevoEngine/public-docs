@@ -1,0 +1,192 @@
+---
+title: Storage upload sessions
+description: Transfer or assemble a file through direct, incremental, or chunked sessions and publish it at the correct completion boundary.
+icon: cloud-arrow-up
+---
+
+Use an upload session when the bytes arrive outside the current call, the file is too large for one request, parts must be retried, or a CSV/XLSX file is assembled incrementally.
+
+An upload session is a temporary, durable **control record**. It reserves the intended target and stores progress, lease, access, retention, metadata, schema, and compute policy. It is not a Storage file. A readable `storageEntryId` exists only after the session reaches `FINALIZED`.
+
+```text
+RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
+                  |             |
+                  +-> ABORTED    +-> FAILED
+                  +-> EXPIRED
+```
+
+## Choose an upload mode
+
+| `uploadMode` | Use when | Part numbering | Completion |
+| --- | --- | --- | --- |
+| `direct` | A browser, frontend, or service sends one complete file to the returned temporary target | None | Managed direct uploads finalize automatically |
+| `incremental` | One producer appends ordered parts | Storage assigns the next number by default | Caller finalizes |
+| `chunked` | Writers need explicit ordering, concurrency, or repair | Caller supplies each part number | Caller finalizes |
+
+`writeMode` is a separate setting for structured CSV/XLSX row materialization. It does not choose how raw bytes are transferred. See [Structured files](/operate/storage-structured-files).
+
+## Direct frontend upload
+
+Create the session in trusted backend or low-code logic, return only the temporary upload contract to the frontend, and keep the session ID for status checks.
+
+```js
+const { session, upload } = await storage.createUploadSession({
+  parentStorageEntryId: api.input('folderId'),
+  name: 'products.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  sizeHint: api.input('size'),
+  uploadMode: 'direct',
+  computeStats: 'sync',
+  restricted: true,
+  groups: [api.input('operationsGroupId')],
+  retention: { ttlSeconds: 30 * 24 * 60 * 60 },
+});
+
+return {
+  storageUploadSessionId: session.storageUploadSessionId,
+  expiresAt: session.expiresAt,
+  upload: {
+    url: upload.uploadUrl,
+    method: upload.method,
+    headers: upload.headers,
+  },
+};
+```
+
+The frontend must use the exact method, URL, and headers:
+
+```js
+await fetch(upload.url, {
+  method: upload.method,
+  headers: upload.headers,
+  body: file,
+});
+```
+
+After the byte transfer completes, query the session until it reaches a terminal status. Do **not** call `finalizeUploadSession()` for the managed direct path. Storage owns finalization after it confirms the completed transfer.
+
+```js
+const state = await storage.getUploadSession(storageUploadSessionId);
+
+if (state.session.status === 'FINALIZED') {
+  return { storageEntryId: state.session.targetStorageEntryId };
+}
+
+return { status: state.session.status };
+```
+
+The upload response and the session state prove different things:
+
+- successful `fetch()` means the temporary target accepted the transfer;
+- `FINALIZED` means Storage published the governed file entry;
+- only the finalized entry should trigger later reads, Events, or Jobs.
+
+## Incremental generated upload
+
+Incremental mode is the default choice for one producer that appends data in order. Omit `partNumber` during normal writes; Storage assigns it.
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'customers.csv',
+  contentTypeHint: 'text/csv',
+  uploadMode: 'incremental',
+  computeStats: 'sync',
+});
+
+const sessionId = session.storageUploadSessionId;
+
+try {
+  await storage.uploadPart(sessionId, {
+    data: 'customerId,balance\n',
+    dataEncoding: 'utf8',
+  });
+
+  await storage.uploadPart(sessionId, {
+    data: 'customer-1,120.50\n',
+    dataEncoding: 'utf8',
+  });
+
+  const result = await storage.finalizeUploadSession(sessionId, {
+    expectedPartCount: 2,
+  });
+
+  return { storageEntryId: result.entry.storageEntryId };
+} catch (error) {
+  await storage.abortUploadSession(sessionId).catch(() => undefined);
+  throw error;
+}
+```
+
+For structured rows, send `rows` or `sheets` instead of manually serializing delimiters. One part must contain exactly one of `data`, `rows`, or `sheets`.
+
+## Chunked and repairable upload
+
+Use chunked mode when part numbers belong to the caller:
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'archive.bin',
+  contentTypeHint: 'application/octet-stream',
+  uploadMode: 'chunked',
+  computeStats: 'none',
+});
+
+const sessionId = session.storageUploadSessionId;
+
+await Promise.all([
+  storage.uploadPart(sessionId, 1, { data: chunk1, dataEncoding: 'base64' }),
+  storage.uploadPart(sessionId, 2, { data: chunk2, dataEncoding: 'base64' }),
+]);
+
+const result = await storage.finalizeUploadSession(sessionId, {
+  expectedPartNumbers: [1, 2],
+});
+```
+
+Re-uploading a known number repairs that part. Finalization rejects missing parts, conflicting checksums, and invalid manifests.
+
+## Platform API lifecycle
+
+The default Explorer routes are:
+
+| Operation | Route |
+| --- | --- |
+| Create session | `POST /api/v1/storage/uploads` |
+| Read session and part manifest | `GET /api/v1/storage/uploads/{storageUploadSessionId}` |
+| Append with assigned number | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/parts` |
+| Upload or repair an explicit part | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/parts/{partNumber}` |
+| Extend across an intentional idle gap | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/heartbeat` |
+| Finalize chunked/incremental session | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/finalize` |
+| Abort active session | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/abort` |
+
+Writable workspaces expose their own create-session route. After creation, use the returned session ID with the normal lifecycle operations. Use the generated [Platform API reference](/api-reference/introduction) for exact request and response schemas.
+
+## Lease, retention, and recovery
+
+Session expiry is an upload lease, not file retention:
+
+- every accepted part renews the lease;
+- use `extendUploadSession()` only for an intentional idle gap;
+- `retention.ttlSeconds` begins when the file is finalized;
+- `retention: null` means the finalized file does not expire;
+- an expired, failed, or aborted session cannot be resumed.
+
+If a request result is uncertain, read the session before retrying:
+
+- `FINALIZED` — use the target entry; do not upload again;
+- `RESERVED` or `UPLOADING` — inspect the manifest and continue deliberately;
+- `FINALIZING` — wait and read again;
+- `FAILED`, `ABORTED`, or `EXPIRED` — create a new session.
+
+For incremental mode, an uncertain retry without checking the manifest can create another numbered part. For replacement, always preserve the current target version fence.
+
+<Warning>
+  Temporary upload URLs and headers are credentials. Return them only to the authorized uploader, never log them, and never store them as file metadata.
+</Warning>
+
+## Next steps
+
+- [Structured files](/operate/storage-structured-files) — declare CSV/TSV/XLSX columns and choose schema policy.
+- [Storage overview](/operate/storage) — workspaces, access, retention, and readers.
+- [SDK storage and batching](/developers/sdk-storage-and-batching) — apply the same lifecycle from Node.js.
+- [Storage low-code reference](/low-code/reference/storage) — inspect exact `storage.*` signatures.

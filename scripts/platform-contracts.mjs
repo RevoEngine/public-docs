@@ -44,6 +44,11 @@ function buildManifest() {
   return {
     schemaVersion: 1,
     contracts: {
+      productKnowledge: {
+        snapshot: 'platform/product-contract.json',
+        generated: ['platform/product-model.mdx'],
+        summaries: ['introduction.mdx', 'platform/overview.mdx'],
+      },
       platformOpenApi: {
         snapshot: repoPath(sourceSnapshotPath),
         published: repoPath(publicOpenApiPath),
@@ -68,6 +73,7 @@ function main() {
   if (sync === check) throw new Error('Choose exactly one mode: --sync or --check.');
 
   const mode = sync ? '--sync' : '--check';
+  runScript('product-knowledge.mjs', mode, requireSource);
   runScript('generate-low-code-reference.mjs', mode, requireSource);
   runScript('sync-platform-openapi.mjs', mode, requireSource);
 

@@ -15,7 +15,7 @@ This reference describes the public Endpoint definition managed through the UI o
 | `path` | yes | Starts with `/`; static segments use letters, numbers, `.`, `_`, `-`; dynamic segments use `:name`; `@` is also supported as a segment token. Repeated and trailing slashes are normalized. Maximum 1024 characters. |
 | `method` | yes | `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`. Path uniqueness is per method. |
 | `componentId` | no | Target Component. Omit it for a static response Endpoint. |
-| `componentVersion` | no | Omit to follow the latest active low-code version, or set an exact integer for a deliberate stable pin. Decide this explicitly for a new Endpoint. `CUSTOM_NODEJS` targets must omit it and execute their selected ready runtime revision. |
+| `componentDigest` | no | Omit to follow the latest active low-code revision, or select a verified content digest for an exact portable pin. Preserve an existing binding unless its migration is intentional. `CUSTOM_NODEJS` targets use their selected ready runtime revision and must omit the digest. |
 | `timeout` | no | Seconds. The minimum is platform-defined and the effective maximum is constrained by the current instance quota. Align it to the caller deadline. |
 | `category`, `desc`, `metadata` | no | Organization and context. Metadata is JSON limited to 16 KiB / 64 top-level keys; `__*` keys are reserved. |
 | `options` | no | Execution, validation, libraries, response shaping, and controlled template input. |
@@ -53,7 +53,6 @@ Prefer equivalent `enum`/`const`, type, length, numeric bounds and supported dat
   "method": "POST",
   "path": "/orders/:orderId/confirm",
   "componentId": "4d3390ac-2c06-4eb0-8cd4-0b69c3aa531a",
-  "componentVersion": 12,
   "timeout": 20,
   "options": {
     "input": { "notificationChannel": "email" },

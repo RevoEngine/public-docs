@@ -20,7 +20,7 @@ Files is the legacy integration object model. It is retained so existing applica
 | Preview / download | Returns a short-lived managed URL after authorization. | `FILE_READ` or `FILE_ADMIN` |
 | Delete | Soft-deletes selected `fileId` values. | `FILE_ADMIN` |
 
-The current backend Files controller does not expose a public move, archive, restore, ACL, retention, or multipart-session endpoint. Do not build a recovery promise around frontend compatibility controls that are not backed by the current public API.
+The public Files contract does not provide move, archive, restore, ACL, retention, or multipart-session operations. Do not build a recovery promise around compatibility controls that are not part of that contract.
 
 ## Path-oriented identity
 
@@ -122,4 +122,4 @@ Legacy low-code file helpers and signed Files URL helpers remain compatibility-o
 - `storage.archiveEntry()`, `restoreEntry()`, and `deleteEntry()`;
 - Storage `source` and `target` objects in `api.httpCall()`.
 
-See [Storage](/operate/storage) for the complete lifecycle, [HTTP and Storage](/low-code/http-and-storage) for streamed migration, and the generated [Storage method reference](/low-code/reference/storage) for current signatures only.
+See [Storage](/operate/storage) for the complete lifecycle, [HTTP integrations](/low-code/http) for streamed migration, and the generated [Storage method reference](/low-code/reference/storage) for current signatures only.

@@ -1,10 +1,10 @@
 ---
 title: MCP server plugins
-description: Connect remote MCP servers to RevoEngine Assistants and Agents with synchronized manifests, Secret bindings, and per-tool governance.
+description: Connect remote MCP servers to RevoEngine Agents with synchronized manifests, Secret bindings, and per-tool governance.
 icon: plug-circle-plus
 ---
 
-An MCP server plugin lets the RevoEngine Assistant or an autonomous Agent use tools from an approved remote MCP server. The plugin is an administrative integration boundary: connecting a server does not automatically expose every remote capability to every AI workflow.
+An MCP server plugin lets an Interactive or Autonomous Agent use tools from an approved remote MCP server. The plugin is an administrative integration boundary: connecting a server does not automatically expose every remote capability to every AI workflow.
 
 ## When to use an MCP plugin
 
@@ -101,6 +101,14 @@ If refresh fails, RevoEngine retains the last known usable manifest for operator
 An active plugin is still unavailable unless it is admitted by the current attachment and Agent policy. At execution time RevoEngine evaluates the current identity, plugin state, tool configuration, approval policy, input schema, timeout, and result-size limits.
 
 Remote tool descriptions and outputs are external content. Do not allow them to override tenant policy, reveal Secrets, or expand the Agent's responsibility.
+
+### Immediate versus deferred tools
+
+Use immediate loading for a small, central toolset whose schemas are required in most tasks using the plugin. Use deferred loading when a server exposes many tools or when a capability is relevant only to a narrow workflow.
+
+Deferred does not mean disabled. RevoEngine keeps a compact reviewed summary available for capability selection, then loads the exact admitted operation when the task needs it. This reduces model context without hiding the integration entirely.
+
+Auto-discovery follows the same pattern: an active plugin can become a deferred candidate across eligible Agent work, but its full tool catalogue is not injected into every request and it cannot execute until current attachment, policy, identity, and operation checks succeed.
 
 <CardGroup cols={2}>
   <Card title="Plugin lifecycle" href="/ai/plugins" icon="plug" />

@@ -4,7 +4,7 @@ description: Design Agent responsibilities, connect triggers, inspect runs, hand
 icon: chart-line
 ---
 
-The Agents workspace is the operating console for durable AI work. It combines the Agent definition, current health, runs, queued inbox items, workspace files, and execution evidence so operators can answer one question quickly: **what is this Agent responsible for, and what happened to its work?**
+The Agents workspace is the operating console for durable AI work. It combines the Agent definition, current health, runs, queued inbox items, workspace files, and execution evidence so operators can answer one question quickly: **what is this Agent responsible for, and what happened to its work?** The [Agent Harness](/ai/agent-harness) provides the shared execution boundary behind both interactive and autonomous work.
 
 ## Operator flow
 
@@ -144,13 +144,15 @@ Use an Agent to compare source totals, detect anomalies, and prepare an exceptio
 
 ### Agentic engineering worker
 
-Use an Agent for bounded repository analysis, code changes, focused tests, and a review-ready handoff.
+Use an Agent for bounded changes to RevoEngine application definitions such as Components, Endpoints, plugins, and other authorized platform resources.
 
-- Coding work mode and a model/reasoning combination validated for the repository and task class;
+- Coding work mode and a model/reasoning combination validated for the resource and task class;
 - `review_required` for broad or high-risk modifications;
-- explicit success criteria for tests, changed files, and artifact evidence;
-- conservative child concurrency to avoid overlapping edits;
-- workspace-scoped file writes and approval for changes outside the assigned boundary.
+- explicit success criteria for validation, changed definitions, and operational evidence;
+- conservative child concurrency to avoid overlapping changes;
+- workspace-scoped artifact writes and approval for changes outside the assigned boundary.
+
+This does not currently mean unrestricted repository shell access. Use a repository-first coding agent for arbitrary local toolchains, build systems, and operating-system commands. RevoEngine is developing more isolated terminal and workspace execution, but that direction is not a promise that a general VM is available in every Agent run today. See [RevoEngine Agents and coding agents](/ai/compare-coding-agents).
 
 ### Integration operations coordinator
 

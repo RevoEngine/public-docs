@@ -8,6 +8,9 @@ Use the structured query API for most reads and writes. It provides explicit fie
 
 ## Read rows
 
+`getDatabaseData()`, `getDatabaseDataRow()`, `countDatabase()`, and `walkDatabaseData()` accept a Database, live View, or Materialized View by logical name. Structured joins can combine those readable relation types, with access checked for each source. If a legacy instance contains the same logical name in more than one relation type, the read fails until the ambiguity is resolved.
+
+
 ```js
 const response = await api.getDatabaseData('orders', {
   fields: ['orderId', 'customerId', 'amount', 'createdAt'],
@@ -62,6 +65,10 @@ const total = await api.countDatabase('orders', {
 ```
 
 Database operations beyond 1,000 calls in one execution are logged and throttled; prefer bulk writes and the walker over repeated small reads. Direct `getSecret()` / `getSecrets()`, Storage, Files, Agent and orchestration calls are outside this database throttle. Database-backed `getInstanceData()` sources are included.
+
+## Export readable relations
+
+Use `api.exportDatabase(name, options)` for Databases, live Views, and Materialized Views, including supported structured joins. The former View-only read helper remains a deprecated compatibility alias. Replace `api.exportDatabaseView()` with `api.exportDatabase()`; the View-specific export helper is no longer part of the current contract.
 
 ## Mutate rows
 

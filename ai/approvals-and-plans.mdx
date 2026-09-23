@@ -4,13 +4,13 @@ description: Control how the Assistant and Agents plan, pause, and execute side 
 icon: shield-check
 ---
 
-RevoEngine separates three controls that are easy to confuse: **execution mode**, **planning policy**, and **permission policy**. They work together, but each answers a different question.
+The [Agent Harness](/ai/agent-harness) separates three controls that are easy to confuse: **execution mode**, **planning policy**, and **permission policy**. They work together, but each answers a different question.
 
 | Control | Question it answers | Typical choice |
 | --- | --- | --- |
 | Execution mode | How interactive or autonomous should this turn be? | `interactive` for supervised work; `background` or `automation` for durable work |
 | Planning policy | Must implementation wait for plan review? | `standard` for normal work; `review_required` for a mandatory review gate |
-| Permission policy | Which side effects require approval? | **Restricted** for maximum supervision or **Auto Review** for governed autonomy |
+| Permission policy | How should an approval-sensitive action be routed? | **Restricted**, **Auto Review**, or **Full Access**, depending on the required supervision |
 
 ## Execution modes
 
@@ -71,7 +71,7 @@ These levels control approval behavior. They do not grant the Assistant or Agent
 
 ### How Auto Review works
 
-**RevoShield-1** is RevoEngine's specialized Auto Review model. It is designed to preserve the user's intent while reducing routine approval prompts. Before an eligible action proceeds, RevoShield-1 evaluates the exact proposed effect against the user's request, the authorized context available to the task, and the evidence required for that operation.
+**RevoShield-1** is RevoEngine's specialized Auto Review layer. It is designed to preserve the user's intent while reducing routine approval prompts. Before an eligible action proceeds, it evaluates the exact proposed effect against the user's request, the authorized context available to the task, and the evidence required for that operation.
 
 RevoShield-1 follows these boundaries:
 
@@ -84,6 +84,8 @@ RevoShield-1 follows these boundaries:
 <Info>
   RevoShield-1 does not expand access or replace least-privilege configuration. It adds a review boundary between a clear user request and the action proposed to carry it out. Unsupported, stale, ambiguous, or higher-risk actions remain visible decisions for the user.
 </Info>
+
+The public contract is the review behavior and the resulting decision evidence. Internal prompts, routing, and provider-specific review payloads are not part of that contract.
 
 <Warning>
   **Full Access** is not an administrator bypass. It does not defeat authentication, tenant isolation, role checks, blocked operations, validation, or external-provider controls. Use it only when the surrounding workflow already provides an equivalent review boundary.

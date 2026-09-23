@@ -4,17 +4,66 @@ description: Understand how RevoEngine AI discovers context, follows guidance, a
 icon: screwdriver-wrench
 ---
 
-Tools and skills solve different parts of an AI task:
+Tools and skills solve different parts of an Agent task:
 
 - A **tool** performs an operation: search, read, compare, validate, execute, write, or call an attached plugin.
 - A **skill** is focused guidance for how to solve a class of problems with the available tools.
 - A **plugin** adds tenant-specific tools, skills, MCP servers, or a package of related capabilities.
 
-A skill never grants permission by itself. Identity, policy, target access, and approval requirements still determine whether an operation can execute.
+A skill never grants permission by itself. Identity, policy, target access, and approval requirements still determine whether an operation can execute. The [Agent Harness](/ai/agent-harness) owns this boundary around the model.
+
+## What the model can see
+
+RevoEngine uses progressive capability loading instead of inserting every available integration and playbook into every turn.
+
+| Capability state | Model-visible context | Can it execute? |
+| --- | --- | --- |
+| Native capability admitted for the task | Name, description, and strict argument contract | Yes, subject to identity, target access, validation, and approval policy |
+| Attached plugin tool loaded for the task | Reviewed local name, schema, and declared effect metadata | Yes, while the plugin and operation remain enabled and authorized |
+| Deferred or auto-discovered plugin | Compact routing summary | Not until the selected plugin capability is loaded and admitted |
+| Skill candidate | ID, title, description, and related capability names | No; it is guidance, not an operation |
+| Loaded skill | Full selected workflow guidance and required skill dependencies | Still no permission grant; it only guides admitted capabilities |
+| Disabled or blocked capability | Omitted or reported unavailable | No |
+
+Attached packages can preload compact information about their skills and tools. A deferred capability remains discoverable without putting every complete schema or instruction body into the initial context.
+
+### Skill loading
+
+The built-in skill catalog exposes concise summaries. The Agent can search it and load selected skills in one bounded request. Required skill dependencies can load with the selected workflow.
+
+Full skill content is supplied to the model only when loaded. Persisted activity keeps the useful identity and outcome metadata rather than copying private instruction bodies into normal conversation history.
+
+When an Instance Administrator enables **Eager skill loading**, supported read operations can attach one selected, reviewed skill directly to the returned evidence. This reduces a follow-up round trip. It does not load every suggested skill, consume a data cursor, trim authoritative evidence, or bypass capability admission.
+
+### Plugin loading
+
+- Explicitly attached plugins are available to the current thread or Agent subject to current policy.
+- Package and skill plugins can describe their dependent capabilities without duplicating schemas or credentials.
+- Tools marked for deferred loading are advertised compactly and expanded only after selection.
+- Active auto-discovery plugins are deferred candidates, not an always-loaded global toolset.
+- A package dependency that is disabled or unavailable keeps the dependent workflow unavailable.
+
+Read [Plugins](/ai/plugins) for creation and lifecycle, and [MCP server plugins](/developers/mcp-plugins) for remote catalogue synchronization.
+
+### Research loading
+
+Public web research and RevoEngine Docs are optional read capabilities. They are model-visible only when enabled for the instance and admitted for the current execution. RevoEngine Docs is disabled by default; public web access is likewise policy-controlled.
+
+Research output is external evidence. It cannot prove current tenant configuration, resource access, deployment state, or a successful RevoEngine operation. Private application data, source code, identifiers, credentials, and signed URLs must not be sent as public research queries.
+
+## Product knowledge and current application state
+
+The Interactive Agent combines a compact product model with focused guidance and current evidence. **RevoEngine Docs** is an opt-in preview that provides read-only search and page retrieval from the official documentation. An Instance Administrator enables it under **Settings → AI Agents → Runtime** when users need current product guidance or citations. It stays disabled by default because documentation lookup can add several network calls and increase response latency.
+
+Documentation explains product behavior and design choices. It does not prove that a capability is enabled in your instance, that you have access, or that an operation succeeded. Exact runtime contracts and authorized resource state must still be inspected before execution. If documentation is unavailable or conflicts with the current instance, the Assistant should identify the limitation rather than invent support.
+
+Use generic product terms for public documentation research. Private records, source code, identifiers, and credentials do not belong in those queries.
+
+See [Choose your approach](/platform/product-model) for the shared product model.
 
 ## Platform-aware capability families
 
-Exact availability depends on the current identity, target, Agent or thread configuration, and instance policy.
+Exact availability depends on the current identity, target, Agent or thread configuration, and instance policy. These are public capability families, not internal operation names.
 
 | Capability | What it does | Typical safety |
 | --- | --- | --- |
@@ -24,7 +73,7 @@ Exact availability depends on the current identity, target, Agent or thread conf
 | Code search and describe | Finds implementation references and loads exact runtime or library declarations | Read-only |
 | Dependency graph | Shows relationships and likely blast radius | Read-only |
 | Operations investigation | Reads job history, logs, webhooks, events, and correlated failures | Read-only |
-| Safe code execution | Runs bounded validation, calculation, or debug probes | Execute, restricted |
+| Managed code execution | Runs bounded validation, calculation, or Sandbox debug probes | Execute, restricted; not a general host terminal |
 | Platform apply | Performs an admitted Platform API read or mutation against an exact contract | Approval depends on operation |
 | Storage | Reads or writes managed files within an authorized scope | Reads are safe; writes depend on scope and policy |
 | Public web research | Searches and loads current public information when enabled | External read |
@@ -38,7 +87,7 @@ These families describe product capabilities, not unconditional permissions or a
 
 RevoEngine can combine model reasoning with live, authorized application context, execution evidence, generated runtime types, persistent workspace artifacts, controlled web research, and instance-specific plugins. This makes it broad for the lifecycle of a RevoEngine application: design, build, debug, operate, and improve.
 
-It is not positioned as a universal, unrestricted computer operator. It deliberately does not bypass tenant roles, Secret masking, target ACLs, deployment state, or review controls. The right measure of its strength is the quality of a verified outcome in the permitted scope—not the size of a capability catalog.
+It is not currently positioned as a universal, unrestricted computer operator. It deliberately does not bypass tenant roles, Secret masking, target ACLs, deployment state, or review controls, and it does not promise a general-purpose shell to every Agent. The right measure of its strength is the quality of a verified outcome in the permitted scope—not the size of a capability catalog.
 
 ## Reference tokens
 

@@ -22,7 +22,8 @@ execution budget.
 
 | Global | Purpose |
 | --- | --- |
-| `api` | Execution context, platform data, side effects, HTTP, SFTP, events, jobs, and control flow |
+| `api` | Execution context, platform data, side effects, HTTP, events, jobs, and control flow |
+| `transport` | Secret-backed SFTP import, export, and remote file operations |
 | `util` | Local encoding, hashing, cryptography, IDs, comparisons, and sleep helpers |
 | `storage` | Files, folders, uploads, reads, downloads, retention, and metadata |
 | `agent` | Agent, run, inbox, plugin, and Assistant thread operations |
@@ -100,6 +101,6 @@ remote I/O outside Database transactions, and verify consequential state before 
   The generated editor declarations for your instance are the exact API contract. These guides explain how to choose and combine the surface; they do not duplicate every generated type.
 </Info>
 
-Continue with [Runtime API](/low-code/runtime-api), [Database API](/low-code/database),
-[HTTP and Storage](/low-code/http-and-storage), or the generated
+Continue with [Runtime API](/low-code/runtime-api), [HTTP integrations](/low-code/http),
+[SFTP integrations](/low-code/sftp), [Database API](/low-code/database), or the generated
 [Low-code runtime reference](/low-code/reference/index).

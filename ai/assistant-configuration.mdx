@@ -1,10 +1,10 @@
 ---
-title: "Assistant configuration and personalization"
-description: "Configure tenant-wide AI policy, personal Assistant defaults, Agent memory, plugins, and governed workspaces without mixing their responsibilities."
+title: "Agent configuration and personalization"
+description: "Configure tenant-wide AI policy, personal Interactive Agent defaults, Autonomous Agent memory, plugins, and governed workspaces without mixing their responsibilities."
 icon: "sliders"
 ---
 
-RevoEngine separates AI configuration into layers so administrators can govern the instance without erasing personal working preferences, while autonomous Agents keep their own identity, memory, and file boundary.
+RevoEngine separates AI configuration into layers so administrators can govern the instance without erasing personal working preferences, while Autonomous Agents keep their own identity, memory, and file boundary.
 
 <Note>
   Configuration is additive, not a permission shortcut. A global plugin, personal preference, memory entry, or workspace file never grants access that the current user or Agent service account does not already have.
@@ -14,10 +14,10 @@ RevoEngine separates AI configuration into layers so administrators can govern t
 
 | Layer | Configured by | Applies to | Examples |
 | --- | --- | --- | --- |
-| Platform safety | RevoEngine and instance policy | Every Assistant and Agent execution | Tenant isolation, authentication, approvals, blocked operations, runtime limits |
+| Platform safety | RevoEngine and instance policy | Every Interactive and Autonomous Agent execution | Tenant isolation, authentication, approvals, blocked operations, runtime limits |
 | Instance AI settings | Instance Administrator | AI work in the current instance | Global instructions, default plugins, plugin guidance, output ceiling, memory and retention policy, security rules |
-| Personal Assistant preferences | Individual user | That user's interactive Assistant experience | Reasoning, planning preference, work mode, persona, and custom instructions |
-| Thread or run configuration | User, operator, or automation | One Assistant thread, message, or Agent run | Selected model, explicit plugins, planning mode, current objective and attachments |
+| Personal Interactive Agent preferences | Individual user | That user's interactive workspace | Reasoning, planning preference, work mode, persona, and custom instructions |
+| Thread or run configuration | User, operator, or automation | One interactive thread, message, or Autonomous Agent run | Selected model, explicit plugins, planning mode, current objective and attachments |
 | Agent definition and policy | Agent operator | Every run of one autonomous Agent | Identity, mission, service account, Agent instructions, plugins, tool permissions, concurrency |
 | Memory and workspace | Runtime and authorized operators | Future work within an exact owner scope | Stable learned knowledge, instruction files, reports, generated code, checkpoints |
 
@@ -25,7 +25,7 @@ RevoEngine separates AI configuration into layers so administrators can govern t
 flowchart TB
   S["Platform safety and tenant policy"] --> R["Authorized AI runtime"]
   I["Instance AI defaults"] --> R
-  P["Personal Assistant preferences"] --> A["Interactive Assistant turn"]
+  P["Personal Agent preferences"] --> A["Interactive Agent turn"]
   T["Thread and current request"] --> A
   D["Agent definition and service account"] --> G["Autonomous Agent run"]
   M["Scoped memory"] --> A
@@ -39,9 +39,18 @@ The current instruction and verified tool results remain authoritative for the t
 
 ## Administrator: configure AI for the instance
 
-Open **Settings → AI Agents → Configuration** as an Instance Administrator. These settings establish the tenant-wide baseline used by the Assistant and autonomous Agents.
+Open **Settings → AI Agents** as an Instance Administrator. The workspace is split into four tabs so policy, runtime limits, governance, and usage are not mixed together.
+
+| Tab | Configure here |
+| --- | --- |
+| **Instructions** | Global instructions and default plugins |
+| **Runtime** | Output ceiling, artifact retention, eager skill loading, and RevoEngine Docs preview |
+| **Memory & security** | Memory recall and writeback, memory context budget, and tenant security rules |
+| **Usage** | AI usage for the selected timeframe, comparison with the preceding equal period, and on-demand tool, skill, and plugin activity |
 
 ### Global instructions
+
+Configure global instructions under **Settings → AI Agents → Instructions**.
 
 Global instructions express stable organization-wide expectations, for example:
 
@@ -51,7 +60,7 @@ Global instructions express stable organization-wide expectations, for example:
 - validate changes in Sandbox before activation;
 - return an operation identifier for production mutations.
 
-The editor accepts up to **12,000 characters**. Keep the text concise and policy-oriented. Product safety, authorization, approval rules, the current user's explicit request, and exact execution results still take precedence.
+The editor and runtime accept up to **12,000 characters** per global instruction entry, preserving paragraphs and lists. Keep the text concise and policy-oriented. Product safety, authorization, approval rules, the current user's explicit request, and exact execution results still take precedence.
 
 <Warning>
   Do not put credentials, private keys, bearer tokens, or Secret values in global instructions. Store them in [Secrets](/operate/secrets) and expose only the permitted runtime binding.
@@ -59,33 +68,39 @@ The editor accepts up to **12,000 characters**. Keep the text concise and policy
 
 ### Default plugins
 
+Configure default plugins under **Settings → AI Agents → Instructions**.
+
 Select active registry plugins that should be available by default for AI work in the instance. Instance defaults and explicitly selected plugins remain subject to plugin status, capability policy, operation safety, permissions, and approval requirements. A disabled, deleted, unavailable, or policy-blocked plugin cannot become executable merely because it is configured as a default.
 
-Use **Plugin instructions**—up to **4,000 characters**—for tenant guidance such as which system is authoritative, when a plugin is preferred, or which operations require extra care. Keep capability-specific schemas and authentication in the plugin definition rather than duplicating them in prose.
-
-```text
-Use the CRM plugin for customer ownership and contact state.
-Use the billing plugin for invoices and settlement status.
-Never treat CRM display totals as the financial source of truth.
-```
+Default plugin configuration accepts plugin IDs only. Put capability-specific guidance in an approved skill or package plugin. Use global instructions for organization-wide preferences, and keep tool schemas and authentication in the plugin definition.
 
 See [Plugins](/ai/plugins) for lifecycle, MCP synchronization, safety metadata, and attachment rules.
 
 ### Runtime output limits
 
+Configure the output ceiling under **Settings → AI Agents → Runtime**.
+
 The administrator can set the maximum output-token ceiling for AI execution from **10,240** to **128,000**. This is an upper bound, not a target: individual models, tasks, and runtime policies can use less.
 
 Increasing the ceiling can help large code reviews or long structured deliverables, but it also increases latency and cost exposure. Prefer better task scope, references, and artifact workflows before raising it globally.
 
+### RevoEngine Docs preview
+
+**RevoEngine Docs** is an opt-in preview under **Settings → AI Agents → Runtime**. It lets the Assistant search and read the current public product documentation. Keep it disabled for ordinary RevoEngine implementation work, where the compact product model, Revo skills, current declarations, and authorized instance resources provide a faster path.
+
+Enable the preview when users need current official product guidance, design rationale, documented workflows, or citations. Documentation lookup can add several network calls and increase response latency. When the preview is disabled, the Docs tools are absent from discovery, preload, and execution admission.
+
+The preview does not prove that a feature is deployed or permitted in the current instance. Exact contracts, permissions, and resource state still come from current platform tools. Public documentation queries must not contain private source code, records, identifiers, or credentials.
+
 ### Memory policy
 
-The tenant memory policy controls whether memory is enabled, the default recall count, and the retention horizon exposed by the instance configuration.
+Configure memory under **Settings → AI Agents → Memory & security**. The tenant policy controls whether runtime recall is enabled, whether Agents can persist governed updates, and how much combined digest context can be supplied.
 
 | Setting | Meaning | Guidance |
 | --- | --- | --- |
 | Memory enabled | Allows governed memory search and recall | Disable when the tenant must not reuse learned context across sessions |
-| Recall limit | Maximum default shortlist, from 0 to 100 | Start small; load only memory relevant to the current objective |
-| Retention days | Tenant memory lifecycle, from 1 to 3,650 days where configured | Align with legal, contractual, and operational retention requirements |
+| Memory writeback | Allows supported runtimes to persist stable learned context | Enable only when operators accept durable Agent learning and review its results |
+| Context budget | Maximum combined `USER`, `AGENT`, and `WORKSPACE` digest context, from 1,000 to 10,000 tokens | Keep it bounded; use search for deeper recall instead of loading all history |
 
 Memory is selective. RevoEngine does not convert every answer, tool output, or conversation into durable memory. See [Memory and workspaces](/ai/memory-and-workspaces).
 
@@ -97,13 +112,15 @@ Use shorter retention for reproducible temporary exports and longer retention on
 
 ### AI security rules
 
+Configure security guidance under **Settings → AI Agents → Memory & security**.
+
 Administrators can provide up to **8,000 characters** of security guidance, selection terms, and blocked runtime tool names. Use this layer for tenant-wide restrictions such as credentials, customer data, regulated records, or forbidden external mutations.
 
 Security guidance complements—not replaces—roles, ACLs, service-account permissions, plugin safety metadata, and approval classification. Test both an allowed and a denied example after changing this configuration.
 
-## User: configure personal Assistant defaults
+## User: configure personal Interactive Agent defaults
 
-Open **Settings → Assistant**. These preferences belong to the signed-in human account and shape new interactive Assistant messages; they do not redefine an autonomous Agent.
+Open **Settings → Assistant**. This is the current UI label for personal Interactive Agent preferences. These settings belong to the signed-in human account and shape new messages; they do not redefine an Autonomous Agent.
 
 The workspace has **Defaults**, **Instructions** and **Memory** tabs with one **Save** action. Defaults control the response preferences below; Instructions holds personal guidance; Memory lets you inspect, replace or clear your own durable memory text. Memory is context, not an access grant or a replacement for the current request. See [1.5.0](/changelog/1.5.0) for the expanded personal AI workspace.
 
@@ -147,7 +164,7 @@ The Agent definition is stable configuration. Memory, a workspace file, or a ses
 
 See [Agent configuration](/ai/agent-configuration) for every field and [Autonomous Agents](/ai/agents) for the operational lifecycle.
 
-## Memory: durable knowledge, not conversation history
+## Memory: bounded learned context, not conversation history
 
 Use memory only for concise information that should remain useful after the current thread or run:
 
@@ -156,10 +173,8 @@ Use memory only for concise information that should remain useful after the curr
 | `USER` | “Prefer concise release summaries with validation first.” |
 | `AGENT` | “This Agent validates ledger totals against the settlement View.” |
 | `WORKSPACE` | “Reports in this workspace use the approved quarterly template.” |
-| `INSTANCE` | “The billing Table is the tenant source of truth for settlement status.” |
-| `SHARED` | A deliberately shared convention available to authorized tenant AI work |
 
-Memory use remains bounded by scope, access, and instance policy. Deleted memory is excluded from use and can be restored through its governed lifecycle.
+The runtime supplies at most one current digest for each active owner scope. Memory use remains bounded by scope, access, and instance policy.
 
 Do not store secrets, full documents, transient progress, raw tool output, or reasoning in memory. Store exact content in Storage and keep only a concise convention or reference in memory.
 
@@ -222,7 +237,7 @@ Run lineage, inbox state, and session checkpoints coordinate execution. Workspac
 - Correlate changes and runs through Activity, Trace, and durable execution history.
 
 <CardGroup cols={2}>
-  <Card title="Assistant" icon="messages" href="/ai/assistant">
+  <Card title="Interactive Agents" icon="messages" href="/ai/assistant">
     Work in supervised, persistent threads.
   </Card>
   <Card title="Agent configuration" icon="robot" href="/ai/agent-configuration">

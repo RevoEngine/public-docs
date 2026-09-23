@@ -1,0 +1,245 @@
+---
+title: Structured files in Storage
+description: Use one declared schema for CSV, TSV, and XLSX imports, generation, indexing, and typed reads.
+icon: table
+---
+
+Storage uses one tabular contract for CSV, TSV, and XLSX. Declare it when the file's expected structure is known, regardless of whether the bytes come from a browser upload or rows generated through `uploadPart()`.
+
+The schema is stored on the upload session and reused when Storage builds the file index. It is not inferred from Excel formatting.
+
+## Shared schema contract
+
+```ts
+{
+  schemaPolicy: 'fallback' | 'strict',
+  sheets: [
+    {
+      name: 'Products',
+      table: {
+        columns: [
+          { key: 'sku', header: 'SKU', type: 'string' },
+          { key: 'price', header: 'Price', type: 'number' },
+          { key: 'createdAt', header: 'Created', type: 'date' },
+          { key: 'metadata', header: 'Metadata', type: 'object' },
+          { key: 'active', header: 'Active', type: 'boolean' },
+        ],
+      },
+    },
+  ],
+}
+```
+
+- XLSX may declare multiple worksheets.
+- CSV and TSV accept exactly one logical sheet. Its name identifies the tabular schema; the physical file still has no worksheet tabs.
+- `key` is the property returned in each row.
+- `header` matches the visible source header and defaults to `key` when omitted.
+- column order is stable and shared by row generation and indexed reads.
+
+## Column types
+
+| Type | Result |
+| --- | --- |
+| `string` | Text is preserved as text |
+| `number` | Compatible numeric values become numbers |
+| `boolean` | Compatible boolean values become booleans |
+| `date` | Compatible date values become typed dates |
+| `object` | JSON object or array text is parsed into an object or array |
+
+`object` deliberately excludes JSON scalar values. A value such as `{"segment":"A"}` or `[1,2]` is valid; `"A"`, `12`, and malformed JSON are not object-column values.
+
+Without a declared type, imported tabular values remain strings. XLSX cell styles, number formats, colors, and formatting never declare the logical type.
+
+## Fallback is the default
+
+Use `schemaPolicy: 'fallback'` for user-provided files and integrations where preserving the upload is more important than rejecting a structural deviation.
+
+Fallback behavior is deterministic:
+
+- the raw file remains available;
+- matching declared columns use their declared types;
+- missing and extra sheets or columns are reported in `fileStats.schema.issues`;
+- undeclared columns are retained as strings;
+- if any non-null value is incompatible with a declared type, the **whole column** falls back to strings;
+- incompatible values are never silently replaced with `null`.
+
+This avoids a mixed column such as `[12.5, "invalid"]` and keeps the source evidence intact.
+
+```js
+const { session, upload } = await storage.createUploadSession({
+  name: 'products.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'direct',
+  computeStats: 'sync',
+  schemaPolicy: 'fallback',
+  sheets: [{
+    name: 'Products',
+    table: {
+      columns: [
+        { key: 'sku', header: 'SKU', type: 'string' },
+        { key: 'price', header: 'Price', type: 'number' },
+        { key: 'createdAt', header: 'Created', type: 'date' },
+        { key: 'metadata', header: 'Metadata', type: 'object' },
+      ],
+    },
+  }],
+});
+
+return {
+  storageUploadSessionId: session.storageUploadSessionId,
+  upload: {
+    url: upload.uploadUrl,
+    method: upload.method,
+    headers: upload.headers,
+  },
+};
+```
+
+The client uploads the existing workbook with the returned contract. Storage then applies the declared schema while building the XLSX index. The client does not need to re-create or flatten the workbook.
+
+## Strict policy
+
+Use `schemaPolicy: 'strict'` only when a mismatch must stop structured processing, for example a controlled financial import or a versioned partner feed.
+
+Strict policy requires `table.columns` when the session is created. A missing or additional sheet, missing or additional column, duplicate declaration, or incompatible typed value makes structured indexing fail with `STORAGE_TABULAR_SCHEMA_MISMATCH`.
+
+The raw uploaded file is preserved for download and diagnosis; it is not silently transformed or deleted. Downstream processing must require successful structured indexing before it consumes rows.
+
+<Warning>
+  Strict validates the declared tabular contract, not business rules such as “price must be positive” or “SKU must exist.” Apply those rules after reading typed rows.
+</Warning>
+
+## CSV and TSV dialect
+
+CSV and TSV use the same column schema plus optional dialect settings:
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'products.tsv',
+  contentTypeHint: 'text/tab-separated-values',
+  uploadMode: 'incremental',
+  computeStats: 'sync',
+  schemaPolicy: 'fallback',
+  csv: {
+    delimiter: '\t',
+    recordDelimiter: '\n',
+    encoding: 'utf8',
+    headerRow: 1,
+  },
+  sheets: [{
+    name: 'Data',
+    table: {
+      columns: [
+        { key: 'sku', header: 'SKU', type: 'string' },
+        { key: 'price', header: 'Price', type: 'number' },
+      ],
+    },
+  }],
+});
+```
+
+Declare the delimiter and encoding when the source is known. Automatic detection remains available for ordinary imports, but an explicit dialect prevents ambiguity and is reused by indexed reads.
+
+## Generate typed rows
+
+For generated CSV/XLSX, parts may contain row objects or positional arrays instead of serialized bytes.
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental',
+  writeMode: 'direct',
+  computeStats: 'sync',
+  sheets: [{
+    name: 'Report',
+    table: {
+      header: true,
+      autoFilter: true,
+      columns: [
+        { key: 'productId', header: 'Product ID', type: 'string' },
+        { key: 'price', header: 'Price', type: 'number' },
+        { key: 'metadata', header: 'Metadata', type: 'object' },
+      ],
+    },
+  }],
+});
+
+const sessionId = session.storageUploadSessionId;
+
+await storage.uploadPart(sessionId, {
+  rows: [
+    { productId: 'P-1', price: 12.5, metadata: { segment: 'A' } },
+    { productId: 'P-2', price: 9.99, metadata: ['sale'] },
+  ],
+});
+
+const result = await storage.finalizeUploadSession(sessionId);
+return { storageEntryId: result.entry.storageEntryId };
+```
+
+Choose the structured `writeMode` independently from `uploadMode`:
+
+| `writeMode` | Use when |
+| --- | --- |
+| `staged` | Independent requests may be retried, replaced, or reordered; sheets or columns can be inferred; XLSX needs sparse cells, formulas, or dynamic worksheets |
+| `direct` | Every CSV/XLSX column and worksheet is declared before the first row; XLSX parts contain rows only |
+
+`staged` is the safer default for ordinary multi-request writers. Structured `direct` is for a fixed layout and rejects undeclared worksheets or cell-oriented XLSX parts.
+
+## Compute timing
+
+The declared schema is honored in every compute mode:
+
+| `computeStats` | Structured index availability |
+| --- | --- |
+| `sync` | Ready when finalization completes |
+| `async` | Queued after the file entry is published |
+| `none` | Built lazily by `getFileStats()` or `getFileData()` |
+
+CSV, TSV, and XLSX sessions default to `sync`. Set the mode explicitly when the next workflow has a strict latency or readiness requirement.
+
+## Read the typed result
+
+```js
+const page = await storage.getFileData(storageEntryId, {
+  sheet: 'Products',
+  limit: 2_000,
+});
+
+return {
+  rows: page.rows,
+  columns: page.columns,
+  hasMore: page.next,
+  nextCursor: page.nextCursor,
+};
+```
+
+Omit `sheet` to use the first visible XLSX worksheet. Omit `columns` to read every source column. The read-time `columns` option projects, renames, or casts a result; it does not replace the schema declared on the upload session.
+
+Use `storage.walkFileData()` for a complete scan without accumulating the file in memory:
+
+```js
+let total = 0;
+
+await storage.walkFileData(
+  storageEntryId,
+  { sheet: 'Products' },
+  async (rows) => {
+    total += rows.length;
+  },
+  { fullScan: true, batchSize: 2_000 },
+);
+
+return { total };
+```
+
+## Other structured formats
+
+`getFileData()` also supports NDJSON/JSONL, JSON arrays, and record-oriented XML. These formats use their native record structure rather than the CSV/TSV/XLSX `sheets[].table.columns[]` upload schema. XML reads require `recordPath`.
+
+## Next steps
+
+- [Upload sessions](/operate/storage-uploads) — direct, incremental, and chunked completion rules.
+- [Storage overview](/operate/storage) — workspaces, access, retention, and lifecycle.
+- [Storage low-code reference](/low-code/reference/storage) — exact reader and writer signatures.

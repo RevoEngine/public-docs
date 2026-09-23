@@ -37,6 +37,7 @@
             "icon": "rocket",
             "pages": [
               "introduction",
+              "platform/product-model",
               "quickstart",
               "platform/ui-tour",
               "platform/search"
@@ -46,7 +47,11 @@
             "group": "Guides",
             "icon": "compass",
             "pages": [
-              "platform/first-production-workflow"
+              "platform/first-production-workflow",
+              "platform/file-processing-workflow",
+              "platform/external-integration-workflow",
+              "platform/agent-production-workflow",
+              "platform/incident-investigation-workflow"
             ]
           },
           {
@@ -70,8 +75,9 @@
         "icon": "code",
         "groups": [
           {
-            "group": "Components",
+            "group": "Build applications",
             "pages": [
+              "build/overview",
               "build/components",
               "build/component-configuration",
               "build/libraries",
@@ -86,22 +92,22 @@
             "pages": [
               "low-code/overview",
               "low-code/runtime-api",
+              "low-code/http",
+              "low-code/sftp",
               "low-code/json-validator",
               "low-code/database",
-              "low-code/http-and-storage",
-              "low-code/patterns",
+              "low-code/patterns"
+            ]
+          },
+          {
+            "group": "Low-code reference",
+            "pages": [
               "low-code/reference/index",
               "low-code/reference/api",
               "low-code/reference/storage",
               "low-code/reference/transport",
               "low-code/reference/agent",
               "low-code/reference/util"
-            ]
-          },
-          {
-            "group": "Transport",
-            "pages": [
-              "build/transport"
             ]
           }
         ]
@@ -111,18 +117,35 @@
         "icon": "diagram-project",
         "groups": [
           {
-            "group": "Application delivery",
+            "group": "Application interfaces",
             "pages": [
               "operate/endpoints",
-              "operate/endpoint-configuration",
+              "operate/endpoint-configuration"
+            ]
+          },
+          {
+            "group": "Data",
+            "pages": [
               "operate/databases",
               "operate/database-definitions",
               "operate/database-audit",
               "operate/database-views",
               "operate/materialized-views",
-              "operate/database-cache",
+              "operate/database-cache"
+            ]
+          },
+          {
+            "group": "Files",
+            "pages": [
               "operate/storage",
-              "operate/files",
+              "operate/storage-uploads",
+              "operate/storage-structured-files",
+              "operate/files"
+            ]
+          },
+          {
+            "group": "Automation",
+            "pages": [
               "operate/automation",
               "operate/jobs",
               "operate/schedules",
@@ -132,14 +155,24 @@
             ]
           },
           {
-            "group": "Operations",
+            "group": "Collaboration and realtime",
+            "pages": [
+              "operate/chat",
+              "operate/realtime"
+            ]
+          },
+          {
+            "group": "Observability",
             "pages": [
               "operate/dashboards",
-              "operate/chat",
-              "operate/realtime",
               "operate/observability",
               "operate/logs",
-              "operate/traces",
+              "operate/traces"
+            ]
+          },
+          {
+            "group": "Identity and security",
+            "pages": [
               "operate/identity-and-access",
               "operate/users",
               "operate/service-accounts",
@@ -155,9 +188,17 @@
         "icon": "sparkles",
         "groups": [
           {
-            "group": "Assistant",
+            "group": "Start here",
             "pages": [
               "ai/overview",
+              "ai/agent-harness",
+              "ai/compare-coding-agents",
+              "ai/tools-and-skills"
+            ]
+          },
+          {
+            "group": "Interactive Agents",
+            "pages": [
               "ai/assistant",
               "ai/assistant-configuration",
               "ai/agentic-coding",
@@ -165,14 +206,18 @@
             ]
           },
           {
-            "group": "Autonomous agents",
+            "group": "Autonomous Agents",
             "pages": [
               "ai/agents",
               "ai/agent-configuration",
               "ai/agent-operations",
-              "ai/tools-and-skills",
-              "ai/plugins",
               "ai/memory-and-workspaces"
+            ]
+          },
+          {
+            "group": "Extend Agents",
+            "pages": [
+              "ai/plugins"
             ]
           }
         ]
@@ -246,6 +291,7 @@
               {
                 "group": "1.5.x",
                 "pages": [
+                  "changelog/1.5.9",
                   "changelog/1.5.8",
                   "changelog/1.5.7",
                   "changelog/1.5.6",
@@ -430,15 +476,16 @@
   },
   "seo": {
     "indexing": "navigable",
-    "metatags": {
-      "og:title": "RevoEngine Documentation",
-      "og:description": "Build and operate secure low-code applications, APIs, automation, and AI agents."
-    }
+    "metatags": {}
   },
   "redirects": [
     {
-      "source": "/mcp",
-      "destination": "/developers/mcp-overview"
+      "source": "/low-code/http-and-storage",
+      "destination": "/low-code/http"
+    },
+    {
+      "source": "/build/transport",
+      "destination": "/low-code/sftp"
     },
     {
       "source": "/developers/mcp",
@@ -483,6 +530,18 @@
     {
       "source": "/resources",
       "destination": "/platform/overview"
+    },
+    {
+      "source": "/features/components",
+      "destination": "/build/components"
+    },
+    {
+      "source": "/features/search",
+      "destination": "/platform/search"
+    },
+    {
+      "source": "/features/web-ide",
+      "destination": "/build/web-ide"
     }
   ]
 }

@@ -4,9 +4,13 @@ description: How RevoEngine unifies enterprise BaaS capabilities, governed execu
 icon: layer-group
 ---
 
-RevoEngine brings application logic, data, integration, automation, identity, operations, and AI into one instance-scoped enterprise platform. Definitions are versioned and governed in the control plane; every execution uses those definitions under the current principal, ACL, policy, and quota.
+{/* product-summary:start */}
+RevoEngine is an enterprise Backend as a Service and governed-execution platform for building, integrating, operating, and improving production applications. It combines application logic, data, Storage, HTTP endpoints, automation, identity, observability, and AI in one instance-scoped application model. Low-code is one authoring option, alongside custom Node.js and external developer tools.
+{/* product-summary:end */}
 
 The platform can be approached as BaaS for application teams, an execution control plane for platform engineering, and an operational workspace for security and support. Those are views of the same application model—not separate products glued together.
+
+Start with [Choose your approach](/platform/product-model) for capability selection and responsibility boundaries.
 
 ## Product surfaces
 
@@ -19,7 +23,7 @@ The platform can be approached as BaaS for application teams, an execution contr
 | Automation | Jobs, schedules, events, concurrency, retries, and webhooks | Durable background execution with lineage and terminal state |
 | IAM and enterprise identity | SSO/hybrid provider policy, MFA sessions, service accounts, roles, Groups, and ACLs | Every request and execution is evaluated in current authorized context |
 | Operational evidence | Activity, versions, Logs, Trace, Statistics, Job/Event/Webhook history, and database audit | Correlation from authored change to runtime outcome |
-| Governed AI | Assistant, Agents, skills, plugins, plans, approvals, memory, and workspaces | Auditable contextual work over permitted platform state |
+| Governed AI | Interactive Agents, Autonomous Agents, Harness, skills, plugins, plans, approvals, memory, and workspaces | Auditable contextual work over permitted platform state |
 
 <Info>
   Older RevoEngine documentation used **Resources** and **Schemas** as top-level product concepts. Current documentation uses the concrete domains shown above. Database structures and endpoint input contracts remain explicit, but they are no longer presented as a generic Resources layer.
@@ -33,7 +37,7 @@ The platform can be approached as BaaS for application teams, an execution contr
 4. Validate behavior in Sandbox and release a selected version.
 5. Publish through an Endpoint, Storage flow, automation trigger, or the Platform API.
 6. Observe logs, traces, activity, audit, job history, and execution results.
-7. Use the Assistant or an Agent to inspect, change, or operate the same governed resources within policy.
+7. Use an Interactive or Autonomous Agent to inspect, change, or operate the same governed resources within policy.
 
 ## Choose the right entry point
 
