@@ -26517,7 +26517,7 @@
             ],
             "type": "array",
             "items": {
-              "type": "array"
+              "type": "object"
             }
           }
         },
@@ -26584,7 +26584,7 @@
             ],
             "type": "array",
             "items": {
-              "type": "array"
+              "type": "object"
             }
           },
           "version": {

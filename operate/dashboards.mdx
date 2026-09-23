@@ -4,13 +4,13 @@ description: Build role-aware operational workspaces from live platform views an
 icon: chart-line
 ---
 
-Dashboards turn the RevoEngine control plane into an operator-specific workspace. A dashboard can combine live resource grids, endpoint performance, identity charts, Trace, Storage, and custom Component-powered widgets on one movable grid.
+Dashboards turn the RevoEngine control plane into an operator-specific workspace. A dashboard can combine live resource grids, performance and identity charts, Trace, Storage, and custom widgets on one movable grid.
 
 ## Build an operational dashboard
 
 1. Open **Dashboards** and load an existing dashboard or start from **Home**.
 2. Unlock the grid before changing its layout.
-3. Open the widget palette and choose a platform view or custom Component widget.
+3. Open the widget palette and choose a platform view or Custom Widget.
 4. Drag the widget into the grid; preview its placement, then move or resize it as needed.
 5. Configure panel-specific settings and filters.
 6. Select **Save** and provide the dashboard name and policy.
@@ -39,46 +39,67 @@ Embedded grids retain meaningful filter and sort state in the saved dashboard de
 
 Each panel can have a dynamic label and can hide its local header or buttons. File and Storage panels can start at a configured path; path locking and drag controls can prevent a focused workspace from becoming a general file browser.
 
-## Component-powered custom widgets
+## Custom widgets: inline or reusable code
 
-A **Custom Widget** executes a RevoEngine Component and renders its result. Configure:
+A **Custom Widget** renders code output as text, charts, tables, or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
 
 | Setting | Meaning |
 | --- | --- |
-| Component | Executable Component backing the widget. |
-| Version | `Latest` or an explicitly selected Component version. |
-| Element | Optional element within a multi-element Component. |
-| Inputs | JSON object passed to the execution. |
+| Source | Inline code or a reusable Component. A new widget starts in inline mode. |
+| Language and code | JavaScript or TypeScript source for inline mode. |
+| Component | Executable Component in reusable mode. |
+| Revision | Latest or an optional pinned Component digest in reusable mode. |
+| Element | Optional result element in a multi-element Component. |
+| Inputs | Optional JSON passed to either source. |
 | Timeout | Interactive execution timeout, validated from 5 to 600 seconds. |
 | Memory | Widget execution memory, validated from 32 to 1024 MiB. |
 | Refresh | Optional automatic refresh from 1 to 600 seconds. |
-| Production | Whether the widget executes in production mode. |
+| Production | Whether a reusable Component executes in production mode. |
 
-The Component returns rows containing widget elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and an array of data. Table elements require an array of data and a column definition.
+Inline code runs in Sandbox debug mode; a reusable Component runs through its normal execution path. Debug mode is intended for inspection and suppresses many writes, but it is not a strict read-only security boundary. Treat inline code as executable, keep it read-only by design, and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
 
 ```js
-return {
-  operations: [[
-    { type: 'TEXT', value: 'Settlement queue' },
-    {
-      type: 'TABLE',
-      data: pendingSettlements,
-      definition: [
-        { field: 'batchId', type: 'TEXT' },
-        { field: 'amount', type: 'NUMBER' }
-      ]
-    }
-  ]]
-};
+const rows = [{ day: 'Mon', processed: 18 }, { day: 'Tue', processed: 24 }]; // Replace with a bounded live query.
+return [
+  [{ type: 'TEXT', value: '## Settlement queue', width: 100 }],
+  [
+    { type: 'CHART', width: 60, data: rows, options: {
+      series: [{ type: 'bar', xKey: 'day', yKey: 'processed' }]
+    } },
+    { type: 'TABLE', width: 35, data: rows, definition: [
+      { field: 'day', headerName: 'Day', type: 'TEXT' },
+      { field: 'processed', headerName: 'Processed', type: 'NUMBER' }
+    ] },
+    { type: 'EMPTY', width: 5 }
+  ]
+];
 ```
 
+For a dashboard focused on one Endpoint and its Jobs, compute the chart and table from a bounded live read rather than storing metric values in the code. For example, pass verified Job template IDs through the widget's JSON Inputs and read the matching Jobs before grouping them by UTC day:
+
+```js
+const templateIds = api.input()?.templateIds ?? [];
+const page = await api.getInstanceData('Jobs', {
+  take: 100,
+  sort: ['-scheduledFor'],
+  fields: ['jobTemplateId', 'status', 'scheduledFor', 'processingTime'],
+  filter: { jobTemplateId: { in: templateIds } }
+});
+const jobs = Array.isArray(page?.data) ? page.data : [];
+// Group jobs for the selected period, then return TEXT, CHART, TABLE, and EMPTY cells.
+```
+
+Keep the chosen time window and timezone visible, bound pagination, and mark totals as partial if a cap omits rows. A Jobs Performance panel summarizes the instance, so use a custom chart for a trend restricted to one Endpoint's related Jobs. Save the matching filters and sort separately on the server-side Jobs History panel; Trace needs the Endpoint's own ID.
+
 <Tip>
-  Pin a Component version for a controlled executive or incident dashboard. Use Latest only when the widget should follow every new active Component version.
+  Use a pinned Component digest when an incident or executive dashboard must keep a reviewed revision. Use Latest when new active revisions should be picked up automatically.
 </Tip>
+
+The outer dashboard grid has 20 columns. In the Platform API, a dashboard preference's `data` is one flat array of panel objects. Each panel stores its position and size as `x`, `y`, `cols`, and `rows`; the custom widget's returned rows and cell widths control only the layout inside that panel. A server-side Jobs History panel can retain its column filter and sort order when the dashboard is saved. A custom `TABLE` uses the returned data in the browser; its live table filters are not saved as dashboard state. Trace stores its own applied filters, including an optional Endpoint selection.
 
 ## Refresh and source of truth
 
-A dashboard is presentation, not a separate data store. Embedded grids reload through their owning APIs; custom widgets execute their Component according to widget refresh settings. If a number looks stale, check the owning Table/view, Endpoint, Job, cache, or Component result.
+A dashboard is presentation, not a separate data store. Embedded grids reload through their owning APIs; custom widgets execute their inline code or Component according to widget refresh settings. If a number looks stale, check the owning Table/view, Endpoint, Job, cache, or widget result.
 
 For expensive repeatable aggregation, build a materialized view and refresh it through a [Schedule](/operate/schedules). The dashboard then reads a governed precomputed result instead of repeatedly scanning the same large dataset.
 
@@ -96,7 +117,7 @@ Operators begin with the decision surface and open the underlying row, Job, or T
 
 ## Failure semantics
 
-- **Widget error** means its Component or result contract failed; inspect widget input and execution evidence.
+- **Widget error** means its inline code, Component, or result contract failed; inspect widget input and execution evidence.
 - **Empty widget** can be an intentional `EMPTY` result; distinguish it from loading and failure.
 - **Stale grid** requires a source/API check; moving or re-saving the panel does not refresh authoritative data.
 - **Reload** discards unsaved layout changes and reloads the saved preference.
@@ -107,7 +128,7 @@ Operators begin with the decision surface and open the underlying row, Job, or T
 - Give each dashboard one operational purpose.
 - Expose decisions and exceptions, not raw volume alone.
 - Keep filters, time range, and environment clear.
-- Pin consequential custom widgets to reviewed versions.
+- Pin consequential reusable widgets to reviewed Component revisions; review inline code before sharing a dashboard.
 - Set refresh intervals according to source cost and freshness needs.
 - Test with an operator's actual roles and ACLs.
 - Link panels to underlying Job, resource, or Trace evidence.

@@ -59,6 +59,8 @@ New and resumed Assistant or Agent work selects GPT-6 Sol or Luna under the curr
 
 The dashboard widget palette supports adding a widget at a selected position and moving surrounding widgets into a valid layout before saving. New dashboard views bring Agent, AI usage, Database audit, Job performance and Endpoint performance information into the same workspace. The existing dashboard permission and save flow still controls persistence.
 
+Custom Widgets can now contain JavaScript or TypeScript directly in the dashboard, with optional JSON inputs, or bind to a reusable Component and optional pinned revision digest. Both modes can render text, charts, tables and spacing from a row-and-cell result. Inline code uses Sandbox debug execution; it is intended for read-oriented dashboard logic and must still be reviewed as executable code. Saved dashboard layouts now receive basic server validation for renderer type, position, overlap and inline source configuration. The Assistant's dashboard guidance covers the available panels, saved grid filters, Trace settings and custom visualization shapes.
+
 Component discovery now returns a compact revision and element map before source is requested. Builders and the Assistant can read selected current or historical elements, including several historical elements in one request, and apply source-only edits without replacing the entire element set. Operational investigation and conversation search use narrower evidence and indexed identifiers, reducing unnecessary broad reads.
 
   </Accordion>
