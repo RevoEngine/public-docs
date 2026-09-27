@@ -444,9 +444,9 @@ Jobs can run much longer than Endpoints, but they are still bounded. Instance po
 
 ### Settlement worker: Secret, HTTP egress, and Storage evidence
 
-Before activating the template, create `PAYMENTS_API_URL` and `PAYMENTS_API_KEY` under **Secrets**, grant the Job service account access to those names, and pre-create `payments/settlement-receipts` as a restricted Storage path for finance/audit groups. The Component still verifies effective restriction at runtime because `storage.ensureFolderPath()` does not mutate ACLs on folders that already exist.
+Before activating the template, create `PAYMENTS_API_KEY` under **Secrets**, grant the Job service account access to it, configure the provider URL as non-secret Component configuration, and pre-create `payments/settlement-receipts` as a restricted Storage path for finance/audit groups. The Component still verifies effective restriction at runtime because `storage.ensureFolderPath()` does not mutate ACLs on folders that already exist.
 
-The settlement Component resolves credentials at runtime, sends a JSON request to the provider, updates the ledger, and writes a restricted receipt artifact. It never returns or logs the resolved API key. The originating Endpoint operation and the Job operation remain separate but linked.
+The settlement Component binds the credential at the HTTP boundary, sends a JSON request to the provider, updates the ledger, and writes a restricted receipt artifact. It never returns or logs the resolved API key. The originating Endpoint operation and the Job operation remain separate but linked.
 
 ```ts
 type SettlementInput = {
@@ -456,11 +456,6 @@ type SettlementInput = {
 
 const { transactionId, parentOperationId } = api.input()?.message as SettlementInput;
 const operationId = api.getOperationId();
-const secrets = await api.getSecrets([
-  'PAYMENTS_API_URL',
-  'PAYMENTS_API_KEY',
-]);
-
 const transactions = await api.getDatabaseData('transactions', {
   filter: { field: 'transactionId', op: 'eq', value: transactionId },
   take: 1,
@@ -474,10 +469,10 @@ const transaction = transactions.data[0];
 
 const provider = await api.httpCall(
   {
-    url: `${secrets.PAYMENTS_API_URL}/v1/settlements`,
+    url: 'https://payments.example.com/v1/settlements',
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${secrets.PAYMENTS_API_KEY}`,
+      Authorization: vault('PAYMENTS_API_KEY', { prefix: 'Bearer ' }),
       'Idempotency-Key': transaction.transactionId,
       'X-Correlation-ID': operationId,
     },

@@ -70,6 +70,14 @@ Database operations beyond 1,000 calls in one execution are logged and throttled
 
 Use `api.exportDatabase(name, options)` for Databases, live Views, and Materialized Views, including supported structured joins. The former View-only read helper remains a deprecated compatibility alias. Replace `api.exportDatabaseView()` with `api.exportDatabase()`; the View-specific export helper is no longer part of the current contract.
 
+CSV is the default; select `format: 'tsv'`, `'ndjson'`, or `'xlsx'` when the consumer needs it. By default low-code waits for the final Storage entry. Set `async: true` to receive a `jobId` and follow the export as a Database operation instead of holding the current execution open.
+
+## Import Storage data
+
+Use `api.importDatabase(name, options)` to preview a Storage-backed CSV, TSV, NDJSON, or XLSX file. Supply `storageEntryId`, `format`, `mode` (`insert` or `upsert`), and `onError` (`abort` or `skipRow`). The call returns an import ID and operation job ID; preview validates rows and proposes a source-column mapping without writing to the target. Read the Database operation status and validation report before committing.
+
+When the mapping needs correction, call `api.updateDatabaseImportMapping(importId, mapping)` and wait for revalidation. Then call `api.commitDatabaseImport(importId)` to start the write. Commit rejects unresolved decisions and checks that the Storage source and target definitions still match the preview. `autoCommit` skips manual approval only after the same full validation; ambiguous mappings still require review. See the [generated low-code API reference](/low-code/reference/api) for the exact method signatures.
+
 ## Mutate rows
 
 Use the dedicated insert, upsert, update, and delete methods. Bulk update and delete accept the canonical structured filter tree.
@@ -101,6 +109,10 @@ The third argument controls the response for both `insertDatabaseData()` and
 | `return` | `true` | Return the written rows. Set `false` when the rows are not needed. |
 | `onlyKeys` | `false` | With `return` enabled, return only primary-key fields. |
 | `patch` | `true` for upsert | Preserve properties missing from a conflicting upsert row. Set `false` only to request legacy full replacement on conflict. It is not valid for insert. |
+
+`api.deleteDatabaseData()` accepts objects containing the Table's primary-key fields;
+server-owned row metadata is not required. Use `deleteDatabaseDataRequest()` when a
+structured filter identifies the rows without loading their keys first.
 
 For a multi-row PATCH selected by a structured filter, use
 `api.updateDatabaseDataRequest()`:

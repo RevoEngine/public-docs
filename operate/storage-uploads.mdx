@@ -159,7 +159,17 @@ The default Explorer routes are:
 | Finalize chunked/incremental session | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/finalize` |
 | Abort active session | `PUT /api/v1/storage/uploads/{storageUploadSessionId}/abort` |
 
-Writable workspaces expose their own create-session route. After creation, use the returned session ID with the normal lifecycle operations. Use the generated [Platform API reference](/api-reference/introduction) for exact request and response schemas.
+Writable workspaces expose their own create-session route. After creation, use the returned session ID with the normal lifecycle operations. The main response shapes are:
+
+| Operation | Response |
+| --- | --- |
+| Create session | `{ session, upload }`; `upload` contains the transfer strategy and, for direct uploads, its temporary target |
+| Read session | `{ session, partNumberRequired, uploadedParts, uploadedBytes, nextPartNumber, parts }` |
+| Upload part | `{ storageUploadSessionId, partNumber, status, size, checksumMd5 }` |
+| Finalize | `{ session, entry, fileStats? }` |
+| Extend or abort | The updated session |
+
+Use the generated [Platform API reference](/api-reference/introduction) for exact routes and request schemas. These Storage operations currently expose no machine-readable success-response schema in OpenAPI; use the response shapes above and the [low-code Storage reference](/low-code/reference/storage) when handling their results.
 
 ## Lease, retention, and recovery
 

@@ -83,7 +83,6 @@
               "build/libraries",
               "build/custom-nodejs",
               "build/web-ide",
-              "build/playground",
               "build/debugging"
             ]
           },
@@ -178,7 +177,8 @@
               "operate/service-accounts",
               "operate/groups",
               "operate/permissions",
-              "operate/secrets"
+              "operate/secrets",
+              "operate/vault"
             ]
           }
         ]
@@ -202,6 +202,7 @@
               "ai/assistant",
               "ai/assistant-configuration",
               "ai/agentic-coding",
+              "ai/terminals",
               "ai/approvals-and-plans"
             ]
           },
@@ -288,6 +289,14 @@
           {
             "group": "Public releases",
             "pages": [
+              {
+                "group": "1.6.x",
+                "pages": [
+                  "changelog/1.6.2",
+                  "changelog/1.6.1",
+                  "changelog/1.6.0"
+                ]
+              },
               {
                 "group": "1.5.x",
                 "pages": [
@@ -541,6 +550,10 @@
     },
     {
       "source": "/features/web-ide",
+      "destination": "/build/web-ide"
+    },
+    {
+      "source": "/build/playground",
       "destination": "/build/web-ide"
     }
   ]

@@ -33,7 +33,7 @@ JSON is the default. Set formats explicitly when they are part of the integratio
 
 ## Call a JSON API
 
-Keep credentials in Secrets and send query parameters through `params` rather than string concatenation.
+Keep credentials in Vault and send query parameters through `params` rather than string concatenation. Pass `vault()` as the entire header value. The trusted HTTP runtime resolves it when sending the request; the Component never receives the credential value.
 
 ```js
 const response = await api.httpCall(
@@ -41,7 +41,7 @@ const response = await api.httpCall(
     url: 'https://crm.example.com/v2/customers',
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${await api.getSecret('CRM_API_TOKEN')}`,
+      Authorization: vault('CRM_API_TOKEN', { prefix: 'Bearer ' }),
       Accept: 'application/json',
     },
     params: [
@@ -66,6 +66,18 @@ return response.data;
 
 Do not return the upstream error body blindly. It can contain credentials, personal data, or implementation details. Map expected failures to your own bounded response and keep safe correlation identifiers for investigation.
 
+`vault('NAME')` selects an instance Secret by default. To use a personal Secret or OAuth integration, select the saved Component in Settings → Vault, grant it access to the named value, and use the same name in code:
+
+```js
+headers: {
+  Authorization: vault('WORKSPACE', {
+    scope: 'user', source: 'integration', prefix: 'Bearer ',
+  }),
+}
+```
+
+The direct grant follows that Component's stable identity across updates; review changed code before it runs with the grant. A personal binding also requires a verified user identity during execution; unattended work without one should use an instance-owned value. `prefix` and `suffix` are optional literal strings. Do not interpolate a Vault reference into a template string or use it in a URL, body, query parameter, return value, or log. An unsaved ad hoc run cannot resolve a Vault binding. For HTTP headers, use `vault()`.
+
 ## Make external mutations retry-safe
 
 A timeout is ambiguous: the provider may have committed the operation before the connection failed. Generate or load a stable business idempotency key before the first attempt and reuse it for every retry.
@@ -79,7 +91,7 @@ const response = await api.httpCall(
     url: 'https://payments.example.com/v1/collections',
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${await api.getSecret('PAYMENTS_TOKEN')}`,
+      Authorization: vault('PAYMENTS_TOKEN', { prefix: 'Bearer ' }),
       'Idempotency-Key': paymentKey,
     },
     data: {
@@ -187,7 +199,7 @@ const response = await api.httpCall(
   {
     url: 'https://ai.example.com/v1/runs',
     method: 'POST',
-    headers: { Authorization: `Bearer ${await api.getSecret('AI_PROVIDER_TOKEN')}` },
+    headers: { Authorization: vault('AI_PROVIDER_TOKEN', { prefix: 'Bearer ' }) },
     data: { task: api.input('task'), stream: true },
   },
   {
@@ -240,7 +252,7 @@ const response = await api.httpCall(
   {
     url: `https://bank.example.com/v2/statements/${api.input('statementId')}`,
     method: 'GET',
-    headers: { 'X-API-Key': await api.getSecret('BANK_API_KEY') },
+    headers: { 'X-API-Key': vault('BANK_API_KEY') },
   },
   {
     responseType: 'storage',
@@ -267,7 +279,7 @@ await api.httpCall(
   {
     url: 'https://signature.example.com/v1/documents',
     method: 'POST',
-    headers: { Authorization: `Bearer ${await api.getSecret('SIGNATURE_TOKEN')}` },
+    headers: { Authorization: vault('SIGNATURE_TOKEN', { prefix: 'Bearer ' }) },
   },
   {
     requestType: 'storage',

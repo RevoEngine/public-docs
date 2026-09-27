@@ -8,11 +8,15 @@ test('Agent documentation separates product modes and states the current executi
   const overview = read('ai/overview.mdx');
   const harness = read('ai/agent-harness.mdx');
   const comparison = read('ai/compare-coding-agents.mdx');
+  const terminals = read('ai/terminals.mdx');
 
   assert.match(overview, /Interactive Agents/);
   assert.match(overview, /Autonomous Agents/);
   assert.match(harness, /does \*\*not\*\* promise an unrestricted host shell/);
-  assert.match(comparison, /not yet a promise that every Agent has a general-purpose shell/);
+  assert.match(comparison, /user-approved terminal on a computer or virtual machine/);
+  assert.match(comparison, /does not create a managed VM automatically/);
+  assert.match(terminals, /owner must select \*\*Approve with review\*\* or \*\*Full access\*\*/);
+  assert.match(terminals, /workspace is the starting directory, not a filesystem sandbox/);
   assert.match(comparison, /OpenAI Codex/);
   assert.match(comparison, /Claude Code/);
 });
@@ -42,10 +46,12 @@ test('public docs contain no literal IPv4 addresses', () => {
   const pages = [
     'ai/agent-harness.mdx',
     'ai/compare-coding-agents.mdx',
+    'ai/terminals.mdx',
     'ai/tools-and-skills.mdx',
     'ai/plugins.mdx',
     'platform/overview.mdx',
     'build/overview.mdx',
+    'operate/vault.mdx',
   ];
 
   for (const page of pages) assert.doesNotMatch(read(page), /(?:\d{1,3}\.){3}\d{1,3}/, page);

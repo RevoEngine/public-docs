@@ -40,10 +40,12 @@ This page contains **23 methods**. Search the docs for an exact method name, or 
 
 Lists files and folders from the default `explorer` namespace.
 
-### Signature
+### Overloads
 
 ```ts
 static explore(query?: StorageExploreRequest): Promise<StorageExploreResult>;
+
+static explore(namespace: string, query?: StorageExploreRequest): Promise<StorageExploreResult>;
 ```
 ### Example
 
@@ -62,10 +64,12 @@ Notes:
 - Leading and trailing slashes are optional.
 - Missing, archived, deleted, or inaccessible paths fail without creating folders.
 
-### Signature
+### Overloads
 
 ```ts
 static resolveFolderPath(path: string): Promise<StorageEntryView>;
+
+static resolveFolderPath(path: string, namespace: string): Promise<StorageEntryView>;
 ```
 ### Example
 
@@ -84,12 +88,18 @@ Notes:
 - Existing folders are never mutated.
 - ACL options apply to every newly created segment.
 
-### Signature
+### Overloads
 
 ```ts
 static ensureFolderPath(
       path: string,
       options?: StorageEnsureFolderPathOptions,
+    ): Promise<StorageEntryView>;
+
+static ensureFolderPath(
+      path: string,
+      options: StorageEnsureFolderPathOptions | undefined,
+      namespace: string,
     ): Promise<StorageEntryView>;
 ```
 ### Example
@@ -107,10 +117,16 @@ const folder = await storage.ensureFolderPath('exports/daily', {
 Returns metadata for a file entry. Without an explicit namespace the entry
 is resolved by its globally unique id, matching the REST Storage API.
 
-### Signature
+### Overloads
 
 ```ts
 static getFile(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+static getFile(
+      namespace: string,
       storageEntryId: string,
       includeDeleted?: boolean,
     ): Promise<StorageEntryView>;
@@ -133,10 +149,16 @@ Notes:
 - Binary reads return a base64 string.
 - Direct binary reads are limited to 10 MiB unless you request a ranged buffer.
 
-### Signature
+### Overloads
 
 ```ts
 static getFileData(
+      storageEntryId: string,
+      options?: StorageFileReadOptions,
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
+
+static getFileData(
+      namespace: string,
       storageEntryId: string,
       options?: StorageFileReadOptions,
     ): Promise<StorageStructuredFileDataPage | string[] | string>;
@@ -151,15 +173,26 @@ const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
 
 ## `storage.walkFileData()`
 
-Streams records into awaited callbacks. Omitted take scans all rows.
-XLSX: first visible sheet by default. XML: recordPath required.
+Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
+or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
+and binary files are not supported.
+Omitted take scans all rows. XLSX uses the first visible sheet by default;
+XML requires recordPath.
 Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
 Source changes or callback errors stop the scan. Keep only aggregates.
 
-### Signature
+### Overloads
 
 ```ts
 static walkFileData<T = any>(
+      storageEntryId: string,
+      read: StorageWalkReadOptions,
+      callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
+      options?: StorageWalkOptions,
+    ): Promise<StorageWalkResult>;
+
+static walkFileData<T = any>(
+      namespace: string,
       storageEntryId: string,
       read: StorageWalkReadOptions,
       callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
@@ -185,10 +218,16 @@ Builds reusable record or worksheet indexes and returns file statistics.
 Notes:
 - Derived stats are cached on the storage entry metadata for later batch reads.
 
-### Signature
+### Overloads
 
 ```ts
 static getFileStats(
+      storageEntryId: string,
+      options?: StorageFileStatsOptions,
+    ): Promise<StorageFileStats>;
+
+static getFileStats(
+      namespace: string,
       storageEntryId: string,
       options?: StorageFileStatsOptions,
     ): Promise<StorageFileStats>;
@@ -209,10 +248,16 @@ const stats = await storage.getFileStats(storageEntryId, {
 Returns metadata for any storage entry. Without an explicit namespace the
 entry is resolved by its globally unique id, matching the REST Storage API.
 
-### Signature
+### Overloads
 
 ```ts
 static getEntry(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+static getEntry(
+      namespace: string,
       storageEntryId: string,
       includeDeleted?: boolean,
     ): Promise<StorageEntryView>;
@@ -232,10 +277,12 @@ Creates a folder in the default `explorer` namespace.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static createFolder(data: StorageFolderInput): Promise<StorageEntryView>;
+
+static createFolder(namespace: string, data: StorageFolderInput): Promise<StorageEntryView>;
 ```
 ### Example
 
@@ -252,10 +299,12 @@ Uploads a small object in one request in the default `explorer` namespace.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static putObject(data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
+
+static putObject(namespace: string, data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
 ```
 ### Example
 
@@ -296,13 +345,17 @@ Notes:
   default. The `staged` XLSX path may still persist its reusable index when
   `none` is explicit; structured `direct` with `none` skips it.
   Both default to `writeMode: 'staged'`.
-- XLSX, CSV, and TSV share `schemaPolicy` plus
-  `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
+- XLSX, CSV, and TSV share `schemaPolicy: &#123; profile?, additionalProperties? &#125;`
+  plus `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
   are string, number, boolean, date, and object; object parses only a JSON
   object or array. The default fallback policy leaves an incompatible whole
   column as strings and records diagnostics without replacing cells with
-  null. Strict preserves the raw file but structured indexing fails with
-  STORAGE_TABULAR_SCHEMA_MISMATCH. Styles never infer column types.
+  null. `profile: 'strict'` fails indexing on missing columns, invalid values,
+  or sheet mismatches. `additionalProperties` independently controls extra
+  source columns: `allow` retains, `strip` omits from structured rows, and
+  `reject` fails indexing. The default is fallback + allow; strict defaults
+  to reject. Use strict + strip when extra columns may appear but the
+  declared layout and value types must match. The raw file remains available.
 - Set `restricted: true` with explicit `users` and/or `groups` to define
   the finalized entry ACL. These relations may be changed later with
   `storage.updateEntry(...)`; `restricted: false` clears them.
@@ -317,10 +370,15 @@ Notes:
   retried, replaced, reordered, or use inferred columns, sparse cells,
   formulas, or dynamic worksheets.
 
-### Signature
+### Overloads
 
 ```ts
 static createUploadSession(
+      data: StorageUploadSessionInput,
+    ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
+
+static createUploadSession(
+      namespace: string,
       data: StorageUploadSessionInput,
     ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
 ```
@@ -385,10 +443,15 @@ Notes:
 - No-op in debug mode.
 - uploadPart renews the durable session lease automatically; call this only across idle gaps.
 
-### Signature
+### Overloads
 
 ```ts
 static extendUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
+static extendUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
     ): Promise<StorageUploadSession>;
 ```
@@ -408,10 +471,15 @@ Notes:
 - No-op in debug mode.
 - Multipart sessions expose uploaded parts with computed byte ranges.
 
-### Signature
+### Overloads
 
 ```ts
 static getUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSessionView>;
+
+static getUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
     ): Promise<StorageUploadSessionView>;
 ```
@@ -432,10 +500,17 @@ Notes:
 - Renews the durable session lease before processing and after committing the part.
 - Accepted part manifests remain durable across worker restarts.
 
-### Signature
+### Overloads
 
 ```ts
 static uploadPart(
+      storageUploadSessionId: string,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
+    ): Promise<StorageUploadPartResult>;
+
+static uploadPart(
+      namespace: string,
       storageUploadSessionId: string,
       partNumber: number | StorageBinaryUploadPartInput,
       data?: StorageBinaryUploadPartInput,
@@ -479,10 +554,16 @@ observed with `getUploadSession()` instead of calling this method.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static finalizeUploadSession(
+      storageUploadSessionId: string,
+      data?: StorageUploadSessionFinalizeInput,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
+
+static finalizeUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
       data?: StorageUploadSessionFinalizeInput,
     ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
@@ -502,10 +583,15 @@ Cancels an active upload session.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static abortUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
+static abortUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
     ): Promise<StorageUploadSession>;
 ```
@@ -524,10 +610,16 @@ Updates mutable storage entry fields such as name, metadata, or ACLs.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static updateEntry(
+      storageEntryId: string,
+      data: StorageEntryUpdateInput,
+    ): Promise<StorageEntryView>;
+
+static updateEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageEntryUpdateInput,
     ): Promise<StorageEntryView>;
@@ -550,10 +642,16 @@ Moves an entry to another folder or registered Storage root.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static moveEntry(
+      storageEntryId: string,
+      data: StorageEntryMoveInput,
+    ): Promise<StorageEntryView>;
+
+static moveEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageEntryMoveInput,
     ): Promise<StorageEntryView>;
@@ -576,10 +674,16 @@ Archives an entry without deleting its backing object.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static archiveEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
+static archiveEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageVersionInput,
     ): Promise<StorageEntryView>;
@@ -599,10 +703,16 @@ Restores an archived or deleted storage entry.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static restoreEntry(
+      storageEntryId: string,
+      data: StorageRestoreInput,
+    ): Promise<StorageEntryView>;
+
+static restoreEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageRestoreInput,
     ): Promise<StorageEntryView>;
@@ -622,10 +732,16 @@ Soft-deletes a storage entry.
 Notes:
 - No-op in debug mode.
 
-### Signature
+### Overloads
 
 ```ts
 static deleteEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
+static deleteEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageVersionInput,
     ): Promise<StorageEntryView>;
@@ -643,10 +759,16 @@ const entry = await storage.deleteEntry(storageEntryId, { version: currentVersio
 Generates a signed download URL for a storage file. Without an explicit
 namespace the entry is resolved by its globally unique id, matching REST.
 
-### Signature
+### Overloads
 
 ```ts
 static getDownload(
+      storageEntryId: string,
+      preview?: boolean,
+    ): Promise<StorageDownload>;
+
+static getDownload(
+      namespace: string,
       storageEntryId: string,
       preview?: boolean,
     ): Promise<StorageDownload>;
@@ -673,10 +795,16 @@ line metadata instead of byte offsets. Do not mix line and byte ranges.
 returns an order-preserving XML representation. `format: 'auto'` selects
 JSON/XML from the stored MIME type or file extension.
 
-### Signature
+### Overloads
 
 ```ts
 static getDocument(
+      storageEntryId: string,
+      options?: StorageDocumentReadOptions,
+    ): Promise<StorageDocument>;
+
+static getDocument(
+      namespace: string,
       storageEntryId: string,
       options?: StorageDocumentReadOptions,
     ): Promise<StorageDocument>;

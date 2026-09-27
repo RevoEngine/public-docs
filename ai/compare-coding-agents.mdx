@@ -18,7 +18,7 @@ Neither category is universally better. The right choice depends on where the au
 | Understand a RevoEngine application | Strong: current resources, versions, relationships, permissions, and operational evidence are native context | Requires an integration, MCP connection, exported context, or manual explanation |
 | Change governed platform resources | Strong: changes use current contracts, identity, target access, version checks, approvals, and persisted evidence | Possible through an integration, but not normally the coding workspace's native state model |
 | Diagnose Jobs, Events, Endpoints, Storage, and Agent runs | Strong: durable execution and application state are part of the same product | Depends on logs, APIs, credentials, and tools connected to the coding agent |
-| Run arbitrary repository commands | Limited today: managed platform execution is available, but a general-purpose Agent terminal/VM is not yet a universal public capability | Strong: shell, filesystem, package managers, builds, tests, and Git are core workflows |
+| Run repository commands | Available through a terminal approved and connected by its owner; commands run with that runner's OS permissions | Strong: shell, filesystem, package managers, builds, tests, and Git are core workflows |
 | Perform a broad multi-language repository refactor | Better when the code is represented as RevoEngine Components or approved platform definitions | Usually stronger for arbitrary repositories and toolchains |
 | Run recurring or event-driven business work | Strong: Agent definitions, service accounts, Inbox, schedules, events, runs, sessions, and workspaces are native | Often requires a separate scheduler, integration, or CI automation layer |
 | Enforce application identity and ACLs | Native: the same tenant roles, service accounts, and resource policy apply at execution | Usually governed by the host workspace, repository, shell, and connected-service permissions |
@@ -39,7 +39,7 @@ Choose RevoEngine when the task must understand or change the running applicatio
 
 The advantage is not that RevoEngine generates text differently. The advantage is that the Harness already understands the application's governed state and can connect a decision to an authorized, observable operation.
 
-## Where Codex or Claude Code is better today
+## Where a repository-first agent may fit better
 
 Choose a repository-first coding agent when the primary task is an arbitrary codebase and success depends on broad environment access:
 
@@ -66,11 +66,9 @@ A combined workflow is often stronger than forcing one agent to own everything:
 
 In that model, the coding agent owns the developer workspace, while RevoEngine remains the source of truth for application definitions, operations, identities, and durable automation.
 
-## Product direction
+## Approved terminal boundary
 
-RevoEngine is actively developing isolated terminal and workspace execution for broader coding and operational workloads. This direction is intended to close part of the repository-tooling gap while preserving RevoEngine's identity, approval, evidence, and lifecycle model.
-
-It is not yet a promise that every Agent has a general-purpose shell or persistent VM. Design current production workflows against the capabilities enabled in the target instance, and treat future execution environments as unavailable until they appear in the public contract.
+RevoEngine now supports a user-approved terminal on a computer or virtual machine. Its owner controls pairing and sharing, the conversation connects the approved runner, and command execution remains subject to the Agent's policy. This does not create a managed VM automatically or isolate the runner from the rest of its operating-system account. See [Connect a terminal](/ai/terminals).
 
 ## Decision guide
 

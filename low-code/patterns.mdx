@@ -78,7 +78,7 @@ HTTP `202` means accepted, not completed. Document which identifier the caller s
 
 ## Protect secrets
 
-Resolve secrets at the latest possible moment, use them only in the target call, and redact error context. Never return a secret value from a component.
+Use `vault()` as the entire `api.httpCall()` header value so the trusted runtime resolves it at the latest possible moment. Redact error context. Never return a secret value from a Component.
 
 ## Return evidence, not internal noise
 

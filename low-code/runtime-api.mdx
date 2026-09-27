@@ -51,9 +51,9 @@ Calls inherit the caller's remaining deadline and nesting is limited to five lev
 ```js
 const id = util.randomUUID();
 const encoded = util.encodeBase64(JSON.stringify(api.input()));
-const signature = util.hmac(encoded, await api.getSecret('SIGNING_SECRET'));
+const digest = util.sha256(encoded);
 
-return { id, encoded, signature };
+return { id, encoded, digest };
 ```
 
 RSA encrypt/decrypt/sign/verify, AES, password hashing, validation and sleep return

@@ -152,7 +152,7 @@ Use an Agent for bounded changes to RevoEngine application definitions such as C
 - conservative child concurrency to avoid overlapping changes;
 - workspace-scoped artifact writes and approval for changes outside the assigned boundary.
 
-This does not currently mean unrestricted repository shell access. Use a repository-first coding agent for arbitrary local toolchains, build systems, and operating-system commands. RevoEngine is developing more isolated terminal and workspace execution, but that direction is not a promise that a general VM is available in every Agent run today. See [RevoEngine Agents and coding agents](/ai/compare-coding-agents).
+This Autonomous Agent workflow does not currently provide unrestricted repository shell access. An Interactive Agent can use a [terminal approved by its owner](/ai/terminals), including one running in a virtual machine. Use a repository-first coding agent when the task requires a workspace and toolchain that are not connected to RevoEngine.
 
 ### Integration operations coordinator
 

@@ -61,7 +61,7 @@ Plugin installation, attachment, loading, and execution are separate decisions:
 
 An auto-discovered plugin is deferred by default: the model can recognize when it may be relevant without receiving every complete schema up front. Explicit attachment makes the plugin part of the current working context, but it still does not authorize a call.
 
-Full skill and package guidance can be loaded on demand. Executable component and MCP tools are exposed with their reviewed local contracts only when selected and admitted. Credentials remain in Secrets and are never supplied as model-visible plugin context.
+Full skill and package guidance can be loaded on demand. Executable component and MCP tools are exposed with their reviewed local contracts only when selected and admitted. Credentials remain in [Vault](/operate/vault) and are never supplied as model-visible plugin context.
 
 ## Component tools
 
@@ -71,10 +71,10 @@ Use component tools when business behavior already lives in RevoEngine or should
 
 ## MCP servers
 
-MCP plugins keep authentication in RevoEngine Secrets and synchronize the remote capability contract for operator review. Each admitted operation retains its own safety and approval policy, so read and write capabilities from the same server can be governed differently.
+MCP plugins bind authentication through RevoEngine Vault and synchronize the remote capability contract for operator review. Each admitted operation retains its own safety and approval policy, so read and write capabilities from the same server can be governed differently.
 
 <Warning>
-  Never put bearer tokens, passwords, or private header values in plugin descriptions, prompts, or plain configuration fields. Bind authentication to RevoEngine Secrets.
+  Never put bearer tokens, passwords, or private header values in plugin descriptions, prompts, or plain configuration fields. Bind authentication through RevoEngine Vault.
 </Warning>
 
 When an MCP refresh fails, inspect the plugin status and last synchronization error. Re-test authentication and review the remote contract before enabling or trusting changed operations.

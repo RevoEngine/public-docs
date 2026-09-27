@@ -55,7 +55,7 @@ declare class api {
     >;
 
   /**
-     * Exports a logical table, saved view, or materialized view by name directly into Storage as CSV or XLSX.
+     * Exports a logical table, saved view, or materialized view by name directly into Storage as CSV, TSV, NDJSON, or XLSX.
      * The root and every structured join may independently target any of these relation types.
      *
      * Notes:
@@ -65,7 +65,7 @@ declare class api {
      * - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
      *   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
      *   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
-     * - Low-code exports currently complete synchronously; omit `async` or set it to `false`.
+     * - By default the call completes synchronously in its current runtime. Set `async: true` to queue it on Processor and receive a jobId.
      * - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
      *   or provide an accessible Explorer folder storageEntryId.
      *
@@ -91,6 +91,17 @@ declare class api {
           ? ExportDatabaseCompletedResponse
           : ExportDatabaseResponse
     >;
+
+  /** Validates a Storage file against current Database definitions and creates an import operation. */
+  static importDatabase(name: string, options: ImportDatabaseOptions): Promise<{ importId: string; jobId: string; status: string }>;
+
+  /** Revalidates a corrected source-to-target mapping. */
+  static updateDatabaseImportMapping(
+      importId: string, mapping: NonNullable<ImportDatabaseOptions['mapping']>,
+    ): Promise<{ importId: string; status: string }>;
+
+  /** Starts the transactional write after a reviewed preview. */
+  static commitDatabaseImport(importId: string): Promise<{ importId: string; status: string }>;
 
   /**
      * Updates selected logical-database fields by name. The public contract requires the current
@@ -348,7 +359,7 @@ declare class api {
      *   { customerId: 'c-1' },
      * ]);
      */
-  static deleteDatabaseData(name: string, data: ResourceItem[]): Promise<any>;
+  static deleteDatabaseData(name: string, data: LooseObject<any>[]): Promise<any>;
 
   /**
      * Bulk-updates rows matched by an advanced structured filter.
@@ -865,7 +876,9 @@ declare class api {
   static getInstanceDetails(): InstanceDetails;
 
   /**
-     * Resolves a single secret value by name.
+     * Resolves one legacy instance Secret as plaintext.
+     * @deprecated For outbound HTTP credentials use vault() in the entire header value.
+     * Retained for consumers that need a plaintext instance Secret outside HTTP headers.
      *
      * Example:
      * const apiKey = await api.getSecret('CRM_API_KEY');
@@ -873,7 +886,9 @@ declare class api {
   static getSecret(name: string): Promise<string>;
 
   /**
-     * Resolves multiple secret values by name.
+     * Resolves legacy instance Secrets as plaintext.
+     * @deprecated For outbound HTTP credentials use vault() in the entire header value.
+     * Retained for consumers that need plaintext instance Secrets outside HTTP headers.
      *
      * Example:
      * const secrets = await api.getSecrets([
@@ -1933,6 +1948,8 @@ declare class storage {
      */
   static explore(query?: StorageExploreRequest): Promise<StorageExploreResult>;
 
+  static explore(namespace: string, query?: StorageExploreRequest): Promise<StorageExploreResult>;
+
   /**
      * Resolves an exact active folder path relative to the default `explorer` root.
      *
@@ -1945,6 +1962,8 @@ declare class storage {
      * const folder = await storage.resolveFolderPath('exports/daily');
      */
   static resolveFolderPath(path: string): Promise<StorageEntryView>;
+
+  static resolveFolderPath(path: string, namespace: string): Promise<StorageEntryView>;
 
   /**
      * Resolves a folder path and idempotently creates any missing segments.
@@ -1964,6 +1983,12 @@ declare class storage {
       options?: StorageEnsureFolderPathOptions,
     ): Promise<StorageEntryView>;
 
+  static ensureFolderPath(
+      path: string,
+      options: StorageEnsureFolderPathOptions | undefined,
+      namespace: string,
+    ): Promise<StorageEntryView>;
+
   /**
      * Returns metadata for a file entry. Without an explicit namespace the entry
      * is resolved by its globally unique id, matching the REST Storage API.
@@ -1972,6 +1997,12 @@ declare class storage {
      * const file = await storage.getFile(storageEntryId);
      */
   static getFile(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+  static getFile(
+      namespace: string,
       storageEntryId: string,
       includeDeleted?: boolean,
     ): Promise<StorageEntryView>;
@@ -1994,9 +2025,18 @@ declare class storage {
       options?: StorageFileReadOptions,
     ): Promise<StorageStructuredFileDataPage | string[] | string>;
 
+  static getFileData(
+      namespace: string,
+      storageEntryId: string,
+      options?: StorageFileReadOptions,
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
+
   /**
-     * Streams records into awaited callbacks. Omitted take scans all rows.
-     * XLSX: first visible sheet by default. XML: recordPath required.
+     * Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
+     * or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
+     * and binary files are not supported.
+     * Omitted take scans all rows. XLSX uses the first visible sheet by default;
+     * XML requires recordPath.
      * Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
      * Source changes or callback errors stop the scan. Keep only aggregates.
      *
@@ -2008,6 +2048,14 @@ declare class storage {
      * return { processed };
      */
   static walkFileData<T = any>(
+      storageEntryId: string,
+      read: StorageWalkReadOptions,
+      callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
+      options?: StorageWalkOptions,
+    ): Promise<StorageWalkResult>;
+
+  static walkFileData<T = any>(
+      namespace: string,
       storageEntryId: string,
       read: StorageWalkReadOptions,
       callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
@@ -2032,6 +2080,12 @@ declare class storage {
       options?: StorageFileStatsOptions,
     ): Promise<StorageFileStats>;
 
+  static getFileStats(
+      namespace: string,
+      storageEntryId: string,
+      options?: StorageFileStatsOptions,
+    ): Promise<StorageFileStats>;
+
   /**
      * Returns metadata for any storage entry. Without an explicit namespace the
      * entry is resolved by its globally unique id, matching the REST Storage API.
@@ -2040,6 +2094,12 @@ declare class storage {
      * const entry = await storage.getEntry(storageEntryId);
      */
   static getEntry(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+  static getEntry(
+      namespace: string,
       storageEntryId: string,
       includeDeleted?: boolean,
     ): Promise<StorageEntryView>;
@@ -2054,6 +2114,8 @@ declare class storage {
      * const folder = await storage.createFolder({ name: 'Exports' });
      */
   static createFolder(data: StorageFolderInput): Promise<StorageEntryView>;
+
+  static createFolder(namespace: string, data: StorageFolderInput): Promise<StorageEntryView>;
 
   /**
      * Uploads a small object in one request in the default `explorer` namespace.
@@ -2070,6 +2132,8 @@ declare class storage {
      * });
      */
   static putObject(data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
+
+  static putObject(namespace: string, data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
 
   /**
      * Opens an upload session for a file in the default `explorer` namespace.
@@ -2096,13 +2160,17 @@ declare class storage {
      *   default. The `staged` XLSX path may still persist its reusable index when
      *   `none` is explicit; structured `direct` with `none` skips it.
      *   Both default to `writeMode: 'staged'`.
-     * - XLSX, CSV, and TSV share `schemaPolicy` plus
-     *   `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
+     * - XLSX, CSV, and TSV share `schemaPolicy: { profile?, additionalProperties? }`
+     *   plus `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
      *   are string, number, boolean, date, and object; object parses only a JSON
      *   object or array. The default fallback policy leaves an incompatible whole
      *   column as strings and records diagnostics without replacing cells with
-     *   null. Strict preserves the raw file but structured indexing fails with
-     *   STORAGE_TABULAR_SCHEMA_MISMATCH. Styles never infer column types.
+     *   null. `profile: 'strict'` fails indexing on missing columns, invalid values,
+     *   or sheet mismatches. `additionalProperties` independently controls extra
+     *   source columns: `allow` retains, `strip` omits from structured rows, and
+     *   `reject` fails indexing. The default is fallback + allow; strict defaults
+     *   to reject. Use strict + strip when extra columns may appear but the
+     *   declared layout and value types must match. The raw file remains available.
      * - Set `restricted: true` with explicit `users` and/or `groups` to define
      *   the finalized entry ACL. These relations may be changed later with
      *   `storage.updateEntry(...)`; `restricted: false` clears them.
@@ -2161,6 +2229,11 @@ declare class storage {
       data: StorageUploadSessionInput,
     ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
 
+  static createUploadSession(
+      namespace: string,
+      data: StorageUploadSessionInput,
+    ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
+
   /**
      * Extends the TTL for an active upload session.
      *
@@ -2175,6 +2248,11 @@ declare class storage {
       storageUploadSessionId: string,
     ): Promise<StorageUploadSession>;
 
+  static extendUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
   /**
      * Returns the current upload session state together with uploaded part manifests.
      *
@@ -2186,6 +2264,11 @@ declare class storage {
      * const state = await storage.getUploadSession(storageUploadSessionId);
      */
   static getUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSessionView>;
+
+  static getUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
     ): Promise<StorageUploadSessionView>;
 
@@ -2221,6 +2304,13 @@ declare class storage {
       data?: StorageBinaryUploadPartInput,
     ): Promise<StorageUploadPartResult>;
 
+  static uploadPart(
+      namespace: string,
+      storageUploadSessionId: string,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
+    ): Promise<StorageUploadPartResult>;
+
   /**
      * Finalizes a chunked or incremental upload session and materializes the
      * Storage entry. Managed direct uploads finalize automatically and should be
@@ -2233,6 +2323,12 @@ declare class storage {
      * const result = await storage.finalizeUploadSession(storageUploadSessionId);
      */
   static finalizeUploadSession(
+      storageUploadSessionId: string,
+      data?: StorageUploadSessionFinalizeInput,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
+
+  static finalizeUploadSession(
+      namespace: string,
       storageUploadSessionId: string,
       data?: StorageUploadSessionFinalizeInput,
     ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
@@ -2250,6 +2346,11 @@ declare class storage {
       storageUploadSessionId: string,
     ): Promise<StorageUploadSession>;
 
+  static abortUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
   /**
      * Updates mutable storage entry fields such as name, metadata, or ACLs.
      *
@@ -2263,6 +2364,12 @@ declare class storage {
      * });
      */
   static updateEntry(
+      storageEntryId: string,
+      data: StorageEntryUpdateInput,
+    ): Promise<StorageEntryView>;
+
+  static updateEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageEntryUpdateInput,
     ): Promise<StorageEntryView>;
@@ -2284,6 +2391,12 @@ declare class storage {
       data: StorageEntryMoveInput,
     ): Promise<StorageEntryView>;
 
+  static moveEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageEntryMoveInput,
+    ): Promise<StorageEntryView>;
+
   /**
      * Archives an entry without deleting its backing object.
      *
@@ -2294,6 +2407,12 @@ declare class storage {
      * const entry = await storage.archiveEntry(storageEntryId, { version: currentVersion });
      */
   static archiveEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
+  static archiveEntry(
+      namespace: string,
       storageEntryId: string,
       data: StorageVersionInput,
     ): Promise<StorageEntryView>;
@@ -2312,6 +2431,12 @@ declare class storage {
       data: StorageRestoreInput,
     ): Promise<StorageEntryView>;
 
+  static restoreEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageRestoreInput,
+    ): Promise<StorageEntryView>;
+
   /**
      * Soft-deletes a storage entry.
      *
@@ -2326,6 +2451,12 @@ declare class storage {
       data: StorageVersionInput,
     ): Promise<StorageEntryView>;
 
+  static deleteEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
   /**
      * Generates a signed download URL for a storage file. Without an explicit
      * namespace the entry is resolved by its globally unique id, matching REST.
@@ -2334,6 +2465,12 @@ declare class storage {
      * const download = await storage.getDownload(storageEntryId, true);
      */
   static getDownload(
+      storageEntryId: string,
+      preview?: boolean,
+    ): Promise<StorageDownload>;
+
+  static getDownload(
+      namespace: string,
       storageEntryId: string,
       preview?: boolean,
     ): Promise<StorageDownload>;
@@ -2378,6 +2515,12 @@ declare class storage {
      * return doc.document ?? doc.content;
      */
   static getDocument(
+      storageEntryId: string,
+      options?: StorageDocumentReadOptions,
+    ): Promise<StorageDocument>;
+
+  static getDocument(
+      namespace: string,
       storageEntryId: string,
       options?: StorageDocumentReadOptions,
     ): Promise<StorageDocument>;

@@ -35,10 +35,11 @@ The Interactive Agent can have broad access to your *authorized* platform surfac
 | External information | Search/load public web sources when the web capability is enabled | No arbitrary network or credential access. |
 | Integrations | Call an attached, governed plugin | Plugin status, operation policy, arguments, and approval rules apply independently. |
 | Mutations | Submit permitted Platform API operations, Storage writes, plugin actions, or handoffs | Read-only and write-capable calls are classified separately; a required approval pauses execution. |
+| Approved terminal | Connect a registered macOS or Linux runner and run commands in its environment | The owner approves the runner in a browser; conversation access, command policy, and the runner account's OS permissions still apply. |
 
-It cannot reveal Secret values merely by being asked, bypass role checks or tenant isolation, access private RevoEngine control-plane implementation, run arbitrary host shell commands, or silently perform a blocked, destructive, or external change. A capability shown in the activity timeline is evidence of a governed attempt, not proof of unlimited access.
+It cannot reveal Secret values merely by being asked, bypass role checks or tenant isolation, access private RevoEngine control-plane implementation, run host shell commands without an approved connected terminal, or silently perform a blocked, destructive, or external change. A capability shown in the activity timeline is evidence of a governed attempt, not proof of unlimited access.
 
-For broad repository and terminal work, compare the current boundary in [RevoEngine and coding agents](/ai/compare-coding-agents).
+For terminal work, follow [Connect a terminal](/ai/terminals). For broader coding workflows, compare [RevoEngine and coding agents](/ai/compare-coding-agents).
 
 ## Start a productive thread
 
@@ -72,6 +73,158 @@ A thread preserves the visible conversation and the runtime state needed to cont
 - inspect message-level execution details and retained artifacts.
 
 Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store.
+
+## Charts, diagrams and tables in answers
+
+Ask the Assistant to **show a chart, diagram, table, comparison or visual analysis**. It can return one analytical card that combines explanatory text, a Mermaid diagram, AG Charts plots and an interactive AG Grid table. You do not need to request or create a dashboard. The Assistant makes an authorized, bounded read when it needs instance data, validates the result, and attaches the complete card to the conversation. Its final message contains an interpretation; it does not need to repeat thousands of rows.
+
+The card uses the same Custom Widget cell renderer as dashboards. Expand the complete card for a wide chart or table. **Code** opens the JavaScript or TypeScript that produced it in Monaco; **Copy** copies the displayed matrix. The answer is a snapshot. **Convert to dashboard** is a separate user action for creating a dashboard or adding the widget to an existing one. Review the source and inputs before choosing a dynamic widget; a fixed snapshot preserves the displayed result. Saving follows dashboard permissions. See [Dashboards](/operate/dashboards#custom-widgets-inline-or-reusable-code).
+
+### Result structure
+
+The executable function body returns a nonempty matrix: an array of rows, with one to four cells per row. Alternatively, return `{ matrix, summary }`; calculate the short summary from the same data that produced the card. Cells may use `width` (percentage, greater than 0 and at most 100) and `height` (80–800 pixels). Width and height belong to the cell, not to AG Charts options.
+
+| Cell | Required fields | Displayed result |
+| --- | --- | --- |
+| `TEXT` | `type: 'TEXT'`, string `value` | Markdown text, headings, ordinary links, Revo reference tokens and fenced Mermaid diagrams. Put context, units, source scope, partial-result notes and conclusions here. |
+| `CHART` | `type: 'CHART'`, `data` array, `options` with 1–16 supported `series`, or a gauge `options.type` with `data: []` | AG Charts with the active Revo theme and a transparent background by default. Data rows must be flat. |
+| `TABLE` | `type: 'TABLE'`, `data` array, nonempty `definition` array | Client-side AG Grid, with sorting, resizing and column filters. The definition is deliberately narrower than AG Grid's general `ColDef` API. |
+| `EMPTY` | `type: 'EMPTY'` | Intentional blank space in a row. It does not represent missing data or a failed query. |
+
+The generated card accepts up to **8 rows**, **4 cells per row**, **5000 flat records per CHART or TABLE**, **16 chart series**, **12 table columns** and **2 MB for the entire serialized matrix**. Data field values can be strings, finite numbers, booleans or null; nested objects, arrays, JavaScript callbacks, Date objects, NaN and Infinity are not valid data field values. Keep individual strings below 4000 characters. Aggregate a larger source before returning it, identify the population and period, and say when a cap makes the result partial. A format failure prevents publication; a successful tool receipt confirms validation and persistence, not that the browser has rendered a chart.
+
+### Tables: exact column contract
+
+Each table column is `{ field, headerName, type }`. The accepted types for a generated answer are `TEXT`, `NUMBER`, `DATE`, and `BOOLEAN`. Additional column properties are discarded. Although the dashboard table component has an internal `JSON` type, the Assistant's generated-widget contract does **not** accept it.
+
+- `TEXT` is escaped before it reaches AG Grid. HTML and Revo ref tokens stay plain text in a cell; place clickable reference tokens in a `TEXT` cell above or below the table.
+- `NUMBER` uses local numeric formatting. Supply actual numeric values rather than strings containing currency signs or separators. Put units in the heading or column label.
+- `DATE` accepts an ISO date string or epoch value, parses it and displays the UTC `YYYY-MM-DD` date. Invalid dates display as null.
+- `BOOLEAN` should be a real `true` or `false`; a string such as `'false'` is truthy and would display incorrectly.
+- Null values use the table's null placeholder. This card does not accept custom AG Grid renderers, JavaScript value getters, column callbacks, server-side row models, grid state or arbitrary `ColDef` options.
+
+For a wide table, prefer a full-width row and give it enough height. A legitimate empty query can return `data: []` with valid columns and a `TEXT` cell stating the queried scope. A failed query should be corrected or reported, never represented as a fabricated empty table.
+
+### Charts: what this version accepts
+
+Revo uses **AG Charts 13.2.1 Enterprise**, and the Assistant's generated card accepts these fifteen series types. Each key names a field in the flat `data` rows.
+
+| Series | Required keys | Useful for |
+| --- | --- | --- |
+| `bar` | `xKey`, `yKey` | Categories; `direction: 'horizontal'` for long labels, multiple series for comparisons, `stacked: true` for parts of a total and `normalizedTo: 100` for shares. |
+| `line` | `xKey`, `yKey` | Trends and comparisons across ordered values. |
+| `area` | `xKey`, `yKey` | Magnitude or cumulative composition across a sequence. |
+| `scatter` | `xKey`, `yKey` | Relationships between two numeric variables. |
+| `bubble` | `xKey`, `yKey`, `sizeKey` | Relationships with a third numeric size. |
+| `histogram` | `xKey` | Numeric distributions; use `binCount` or explicit numeric `bins` such as `[[0, 10], [10, 20]]`. |
+| `pie`, `donut` | `angleKey` | A small set of parts of a whole; use `calloutLabelKey` for category labels. |
+| `range-area`, `range-bar` | `xKey`, `yLowKey`, `yHighKey` | An uncertainty band or discrete start/end intervals. |
+| `heatmap` | `xKey`, `yKey`; optional `colorKey` | A two-dimensional category matrix; use numeric `colorKey` values for color intensity. |
+| `waterfall` | `xKey`, `yKey` | Signed contributions to a running total. |
+| `box-plot` | `xKey`, `minKey`, `q1Key`, `medianKey`, `q3Key`, `maxKey` | Distribution summaries across cohorts. Quantiles must be finite and ordered for each row. |
+| `funnel`, `pyramid` | `stageKey`, `valueKey` | Stage counts or magnitudes; `valueKey` must contain finite numbers. |
+
+For a mixed Cartesian chart, put compatible `bar`, `line`, `area`, `scatter` or `bubble` series in the same `options.series` array. When measures have different units, set `yKeyAxis: 'rateAxis'` on the percentage series and define `axes: { y: { type: 'number', position: 'left' }, rateAxis: { type: 'number', position: 'right', min: 0, max: 100 } }`. Give both series meaningful `yName` labels and state the units in an adjacent `TEXT` cell. Use separate CHART cells for unrelated standalone plots such as a funnel and a donut.
+
+A gauge is a special CHART cell with `data: []` and `options: { type: 'radial-gauge' | 'linear-gauge', value, scale: { min, max } }`. It has no `series` or `legend`. Value and optional `targets: [{ value, text }]` must be finite and within the scale; `min` must be smaller than `max`. A radial gauge is compact for a single KPI; a linear gauge is useful for comparing progress with a threshold. Put the unit, timeframe and denominator in TEXT. Other AG Charts families such as financial series, radar, treemaps, maps and flows are not accepted from generated cards today.
+
+Within the accepted series types, AG Charts JSON options may set a title, legend, axes, zoom and navigator. A continuous number axis may use `axes: { y: { type: 'number', min: 0, max: 100 } }`; `preferredMin` and `preferredMax` leave room for data beyond a preferred range. Use numeric epoch milliseconds for flat time-series data when selecting a time axis. `zoom: { enabled: true }` and an initial zoom range or ratio can focus a dense plot. A fixed or cropped axis changes the visual impression, so state the range and aggregation in accompanying text. Avoid opaque chart backgrounds: the Revo wrapper already supplies the active theme and a transparent background.
+
+Set `legend: { enabled: true, position: 'right', toggleSeries: true }` to show a clickable legend on the right. `position` accepts top, bottom, left or right and their corner variants; it can also be an object with `placement` and `floating`. Set `enabled: false` to hide it. When `legend` is omitted, the shared chart wrapper supplies a bottom legend for charts with multiple series and for single pie, donut or waterfall series, including after conversion to a dashboard. An explicit setting takes precedence. Name series with `yName` or `legendItemName`, and pie/donut categories with `calloutLabelKey`; a legend without meaningful labels is hard to interpret. Legend configuration accepts JSON settings, not formatters or event callbacks.
+
+Chart options must remain JSON. Callback formatters, event handlers, custom tooltip functions, stylers and Date instances cannot pass through this artifact. Precompute labels and values in the returned data. The backend checks supported series, required keys and field presence, but browser rendering still depends on a valid AG Charts combination. Keep the option tree simple and correct validation errors before claiming success.
+
+### Complete example: text, chart and table together
+
+This JavaScript function body returns a single card. It computes the summary from the same values shown in the chart and table. Replace the sample rows with an authorized, bounded read for real instance data.
+
+```js
+const rows = [
+  { day: 'Mon', completed: 18, target: 20, onTime: true },
+  { day: 'Tue', completed: 24, target: 20, onTime: true },
+  { day: 'Wed', completed: 16, target: 20, onTime: false },
+];
+const completed = rows.reduce((sum, row) => sum + row.completed, 0);
+const target = rows.reduce((sum, row) => sum + row.target, 0);
+return {
+  summary: `${completed} completed over ${rows.length} days against a target of ${target}.`,
+  matrix: [
+    [{ type: 'TEXT', width: 100,
+       value: `## Completion trend\n${completed} completed; target ${target}. Period: Mon–Wed.` }],
+    [{ type: 'CHART', width: 100, height: 320, data: rows,
+       options: { series: [
+         { type: 'bar', xKey: 'day', yKey: 'completed', yName: 'Completed' },
+         { type: 'bar', xKey: 'day', yKey: 'target', yName: 'Target' },
+       ], legend: { enabled: true, position: 'top', toggleSeries: true },
+       axes: { y: { type: 'number', min: 0 } } } }],
+    [{ type: 'TABLE', width: 100, height: 320, data: rows,
+       definition: [
+         { field: 'day', headerName: 'Day', type: 'TEXT' },
+         { field: 'completed', headerName: 'Completed', type: 'NUMBER' },
+         { field: 'target', headerName: 'Target', type: 'NUMBER' },
+         { field: 'onTime', headerName: 'On time', type: 'BOOLEAN' },
+       ] }],
+  ],
+};
+```
+
+### Mixed chart, gauges and exact rows in one card
+
+This CODE_JS function body combines a dual-axis comparison, two gauges and an AG Grid table. The chart and table share the same records; the gauges use the latest row. Replace the sample with an authorized bounded read for live data.
+
+```js
+const rows = [
+  { week: 'W1', orders: 120, onTime: 93 },
+  { week: 'W2', orders: 148, onTime: 89 },
+  { week: 'W3', orders: 136, onTime: 96 },
+];
+const latest = rows[rows.length - 1];
+return {
+  summary: 'W3: ' + latest.orders + ' orders and ' + latest.onTime + '% on time.',
+  matrix: [
+    [{ type: 'TEXT', width: 100, value: '## Weekly operations\nOrders are counts; on-time performance is a percentage. W1–W3.' }],
+    [{ type: 'CHART', width: 100, height: 340, data: rows, options: {
+      series: [
+        { type: 'bar', xKey: 'week', yKey: 'orders', yName: 'Orders' },
+        { type: 'line', xKey: 'week', yKey: 'onTime', yKeyAxis: 'rateAxis', yName: 'On time %' },
+      ],
+      axes: { y: { type: 'number', position: 'left', min: 0 }, rateAxis: { type: 'number', position: 'right', min: 0, max: 100 } },
+      legend: { enabled: true, position: 'bottom' },
+    } }],
+    [
+      { type: 'CHART', width: 50, height: 240, data: [], options: {
+        type: 'radial-gauge', value: latest.onTime, scale: { min: 0, max: 100 }, targets: [{ value: 95, text: 'SLA' }],
+      } },
+      { type: 'CHART', width: 50, height: 240, data: [], options: {
+        type: 'linear-gauge', value: latest.orders, scale: { min: 0, max: 200 }, targets: [{ value: 150, text: 'Goal' }],
+      } },
+    ],
+    [{ type: 'TABLE', width: 100, height: 260, data: rows, definition: [
+      { field: 'week', headerName: 'Week', type: 'TEXT' },
+      { field: 'orders', headerName: 'Orders', type: 'NUMBER' },
+      { field: 'onTime', headerName: 'On time %', type: 'NUMBER' },
+    ] }],
+  ],
+};
+```
+
+### Additional patterns
+
+**Distribution.** For `data: [{ latency: 110 }, { latency: 160 }]`, use `options: { series: [{ type: 'histogram', xKey: 'latency', bins: [[0, 100], [100, 200]] }] }`. Add a `TEXT` cell naming the latency unit and population.
+
+**Share.** For `data: [{ name: 'A', count: 12 }, { name: 'B', count: 8 }]`, use `options: { series: [{ type: 'donut', angleKey: 'count', calloutLabelKey: 'name' }] }`. A precise table may be clearer when there are many categories.
+
+**Range and heatmap.** For `data: [{ week: 'W1', low: 10, high: 18 }]`, use `series: [{ type: 'range-area', xKey: 'week', yLowKey: 'low', yHighKey: 'high' }]`. A `range-bar` uses the same keys for separate intervals. For `data: [{ day: 'Mon', team: 'A', load: 0.7 }]`, use `series: [{ type: 'heatmap', xKey: 'day', yKey: 'team', colorKey: 'load', colorRange: ['#e2e8f0', '#1d4ed8'] }]` and explain the color scale in `TEXT`.
+
+**Waterfall.** For `data: [{ step: 'Start', delta: 20 }, { step: 'Refunds', delta: -5 }]`, use `series: [{ type: 'waterfall', xKey: 'step', yKey: 'delta' }]`. Add a table for exact signed values.
+
+**Box plot.** For `data: [{ cohort: 'A', min: 2, q1: 4, median: 6, q3: 8, max: 12 }]`, use `series: [{ type: 'box-plot', xKey: 'cohort', minKey: 'min', q1Key: 'q1', medianKey: 'median', q3Key: 'q3', maxKey: 'max' }]`. Compute quantiles from real samples and state each cohort's sample size.
+
+**Stage analysis.** For `data: [{ stage: 'Visited', value: 100 }, { stage: 'Qualified', value: 42 }]`, use `series: [{ type: 'funnel', stageKey: 'stage', valueKey: 'value' }]`. A `pyramid` uses the same keys for stage magnitude. Add a table for exact counts and conversion rates.
+
+**Diagram and analysis.** Return a `TEXT` cell containing a Markdown heading, a fenced `mermaid` diagram and a short interpretation. The text renderer draws Mermaid after the message completes. Put exact Revo reference tokens in an adjacent `TEXT` cell, outside the Mermaid fence; add a `TABLE` or `CHART` row when the diagram has supporting measurements. Derive nodes and edges from the relevant resource, dependency or execution evidence, rather than inventing a flow.
+
+**Source and saving.** The complete validated matrix stays with the conversation; the Assistant receives a compact receipt with cell counts, summary and diagnostics. The user may inspect the code, expand the card and explicitly convert it to a dashboard. A dynamic dashboard widget runs its original inline code and inputs on load or refresh; a fixed snapshot retains the displayed matrix. See [Custom widgets in dashboards](/operate/dashboards#custom-widgets-inline-or-reusable-code) for execution and refresh settings.
 
 ## Progress and files
 

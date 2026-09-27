@@ -44,3 +44,19 @@ test('publishes stable runtime behavior without carrying method implementation p
   assert.match(sanitized, /required for remote Sandbox calls/);
   assert.match(sanitized, /static getContext/);
 });
+
+test('keeps undocumented namespace overloads beside their documented Storage method', () => {
+  const source = `declare class storage {
+  /** Reads a file. */
+  static getFileData(storageEntryId: string): Promise<string>;
+  static getFileData(namespace: string, storageEntryId: string): Promise<string>;
+  /** @deprecated Use getFileData. */
+  static oldRead(storageEntryId: string): Promise<string>;
+  static oldRead(namespace: string, storageEntryId: string): Promise<string>;
+}`;
+  const sanitized = sanitizeDeclarationSource(source);
+  assert.equal(sanitized.match(/static getFileData\(/g)?.length, 2);
+  assert.match(sanitized, /static getFileData\(namespace: string, storageEntryId: string\)/);
+  assert.equal(sanitized.match(/static oldRead\(/g)?.length, 2);
+  assert.match(sanitized, /@deprecated Use getFileData/);
+});

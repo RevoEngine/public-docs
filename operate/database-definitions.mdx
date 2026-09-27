@@ -132,7 +132,7 @@ The partition key and audit policy are inherited from the logical parent. A chil
 
 The data surface supports bounded reads, field projection, typed filters, sorting, inserts, updates, deletes, and bulk mutations. Schema validation runs before a supported write reaches the Table. Primary keys, uniqueness, nullability, references, and types can still reject a request even when the caller is authorized.
 
-Use **Export** for a governed CSV artifact in Storage, **Clone** for an asynchronous copy of the definition with optional data and partitions, and **Truncate** only for administrative bulk removal. Truncate preserves identity counters unless explicitly told to restart them and never emits row-level audit events.
+Use **Export** for a governed CSV or XLSX artifact in Storage, **Clone** for a copy of the definition with optional data and partitions, and **Truncate** only for administrative bulk removal. REST clone starts a background task; low-code waits by default and supports an explicit asynchronous mode. Truncate preserves identity counters unless explicitly told to restart them and never emits row-level audit events.
 
 <Warning>
   A Table definition update is an application contract change. Review Components, Endpoints, Views, exports, and external consumers before renaming or removing a field.

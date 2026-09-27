@@ -12,7 +12,10 @@ The schema is stored on the upload session and reused when Storage builds the fi
 
 ```ts
 {
-  schemaPolicy: 'fallback' | 'strict',
+  schemaPolicy: {
+    profile: 'fallback' | 'strict',
+    additionalProperties: 'allow' | 'strip' | 'reject',
+  },
   sheets: [
     {
       name: 'Products',
@@ -50,16 +53,28 @@ The schema is stored on the upload session and reused when Storage builds the fi
 
 Without a declared type, imported tabular values remain strings. XLSX cell styles, number formats, colors, and formatting never declare the logical type.
 
-## Fallback is the default
+## Choose validation and extra-column handling
 
-Use `schemaPolicy: 'fallback'` for user-provided files and integrations where preserving the upload is more important than rejecting a structural deviation.
+The optional `schemaPolicy` object separates validation from handling extra source columns. It uses the same `profile` and `additionalProperties` property names as the JSON validator, while applying them to tabular imports. If omitted, Storage uses `{ profile: 'fallback', additionalProperties: 'allow' }`. With only `profile: 'strict'`, extra columns default to `reject`.
+
+Storage rejects unknown `schemaPolicy` property names, so a misspelled option cannot silently select a default.
+
+| Option | Behavior |
+| --- | --- |
+| `profile: 'fallback'` | Keep imperfect declared data and report missing sheets or columns and invalid typed values |
+| `profile: 'strict'` | Fail structured indexing for missing declared sheets or columns, invalid typed values, or sheet mismatches |
+| `additionalProperties: 'allow'` | Keep extra source columns in structured rows |
+| `additionalProperties: 'strip'` | Omit extra source columns from structured rows while preserving the raw file |
+| `additionalProperties: 'reject'` | Fail structured indexing when an extra source column appears |
+
+Use the default `fallback` profile for user-provided files and integrations where preserving imperfect structured data matters.
 
 Fallback behavior is deterministic:
 
 - the raw file remains available;
 - matching declared columns use their declared types;
 - missing and extra sheets or columns are reported in `fileStats.schema.issues`;
-- undeclared columns are retained as strings;
+- extra columns are retained as strings with the default `additionalProperties: 'allow'`;
 - if any non-null value is incompatible with a declared type, the **whole column** falls back to strings;
 - incompatible values are never silently replaced with `null`.
 
@@ -71,7 +86,7 @@ const { session, upload } = await storage.createUploadSession({
   contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   uploadMode: 'direct',
   computeStats: 'sync',
-  schemaPolicy: 'fallback',
+  schemaPolicy: { profile: 'fallback', additionalProperties: 'allow' },
   sheets: [{
     name: 'Products',
     table: {
@@ -97,11 +112,13 @@ return {
 
 The client uploads the existing workbook with the returned contract. Storage then applies the declared schema while building the XLSX index. The client does not need to re-create or flatten the workbook.
 
-## Strict policy
+## Strict validation
 
-Use `schemaPolicy: 'strict'` only when a mismatch must stop structured processing, for example a controlled financial import or a versioned partner feed.
+Use `schemaPolicy: { profile: 'strict' }` when a mismatch must stop structured processing, for example a controlled financial import or a versioned partner feed.
 
-Strict policy requires `table.columns` when the session is created. A missing or additional sheet, missing or additional column, duplicate declaration, or incompatible typed value makes structured indexing fail with `STORAGE_TABULAR_SCHEMA_MISMATCH`.
+Strict validation requires `table.columns` when the session is created. A missing or additional sheet, missing declared column, or incompatible typed value makes structured indexing fail with `STORAGE_TABULAR_SCHEMA_MISMATCH`. Extra columns fail by default because strict uses `additionalProperties: 'reject'`; choose `strip` to omit them or `allow` to retain them while keeping the other strict checks. Duplicate declarations are rejected when the session is created.
+
+For example, `{ profile: 'strict', additionalProperties: 'strip' }` accepts a file with extra source columns, omits those columns from structured rows, and still rejects missing declared columns, invalid typed values, and sheet mismatches. `strip` and `reject` require declared `table.columns` even with the fallback profile.
 
 The raw uploaded file is preserved for download and diagnosis; it is not silently transformed or deleted. Downstream processing must require successful structured indexing before it consumes rows.
 
@@ -119,7 +136,7 @@ const { session } = await storage.createUploadSession({
   contentTypeHint: 'text/tab-separated-values',
   uploadMode: 'incremental',
   computeStats: 'sync',
-  schemaPolicy: 'fallback',
+  schemaPolicy: { profile: 'fallback', additionalProperties: 'allow' },
   csv: {
     delimiter: '\t',
     recordDelimiter: '\n',
@@ -217,7 +234,7 @@ return {
 
 Omit `sheet` to use the first visible XLSX worksheet. Omit `columns` to read every source column. The read-time `columns` option projects, renames, or casts a result; it does not replace the schema declared on the upload session.
 
-Use `storage.walkFileData()` for a complete scan without accumulating the file in memory:
+Use `storage.walkFileData()` for a complete structured scan without accumulating every row in memory. It accepts CSV/TSV, XLSX, NDJSON/JSONL, a top-level JSON array, and record-oriented XML. It does not walk arbitrary plain text, a top-level JSON object, or binary files as rows. For XML, pass `recordPath`; for XLSX, select a worksheet with `sheet` or use the first visible one. The callback is awaited for each batch; omitting `take` scans all records.
 
 ```js
 let total = 0;
@@ -236,7 +253,7 @@ return { total };
 
 ## Other structured formats
 
-`getFileData()` also supports NDJSON/JSONL, JSON arrays, and record-oriented XML. These formats use their native record structure rather than the CSV/TSV/XLSX `sheets[].table.columns[]` upload schema. XML reads require `recordPath`.
+`getFileData()` and `walkFileData()` also support NDJSON/JSONL, JSON arrays, and record-oriented XML. These formats use their native record structure rather than the CSV/TSV/XLSX `sheets[].table.columns[]` upload schema. XML reads and walks require `recordPath`.
 
 ## Next steps
 

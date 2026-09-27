@@ -16,7 +16,7 @@ Results can include:
 - Components, Endpoints, Job templates, Jobs, Schedules, Events, and Event History;
 - Databases, database Views and data destinations;
 - Secrets, Files, Storage, Webhooks, Logs, and Trace;
-- Dashboards, Playground, Web IDE, Agents, plugins, and Agent memory;
+- Dashboards, Studio, Agents, plugins, and Agent memory;
 - account and instance configuration destinations.
 
 Each result carries a stable reference type and ID. Open it to resolve the current resource rather than relying on the highlighted name or excerpt.
@@ -37,15 +37,15 @@ Select the favourite action on a resource or static navigation destination to ad
 
 Use favourites for stable work areas such as a production failure dashboard or a settlement Job template. Do not rely on them as evidence that a resource still exists or that access has not changed.
 
-## Code search in Web IDE
+## Code search in Studio
 
-Web IDE search finds implementation text inside Components and supports Component-type scope, case-sensitive matching, and whole-word matching. It is the correct surface for questions such as:
+Studio search finds implementation text inside Components and supports Component-type scope, case-sensitive matching, and whole-word matching. It is the correct surface for questions such as:
 
 - Where is `lib.Payments.Settlement.Client.send` called?
 - Which Component reads `operationId`?
 - Which element handles `CUSTOM_ORDER_APPROVED`?
 
-Open the result in the editor and confirm the Component, element, current version, and surrounding code. See [Web IDE](/build/web-ide).
+Open the result in the editor and confirm the Component, element, current version, and surrounding code. See [Studio](/build/web-ide).
 
 ## Chat and Assistant search
 
@@ -79,7 +79,7 @@ Archived, deleted, restricted, unindexed, very recent, or historical content may
 - open the owning product list and include archived/deleted records;
 - search by stable ID instead of display name;
 - verify your roles and resource Groups;
-- use the Web IDE for source text;
+- use the Studio for source text;
 - inspect history and Trace for execution evidence.
 
 The Assistant follows the same discipline: discover a bounded candidate, load its exact current state, and make claims from that evidence rather than a broad text match.

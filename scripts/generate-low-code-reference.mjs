@@ -43,7 +43,7 @@ function publicMethodContract(source) {
         .split('\n')
         .map((line) => `  ${line}`)
         .join('\n');
-      return `${documentation}\n${signature}`;
+      return `${method.inherited ? '' : `${documentation}\n`}${signature}`;
     });
     return `declare class ${global} {\n${declarations.join('\n\n')}\n}`;
     });
@@ -182,9 +182,19 @@ function methods(source, global) {
   const body = classBody(source, global);
   const found = [];
   const pattern = /\/\*\*([\s\S]*?)\*\/\s*static\s+([A-Za-z_$][\w$]*)(?:<[\s\S]*?>)?\s*\(/g;
-  for (const match of body.matchAll(pattern)) {
+  const documented = [...body.matchAll(pattern)];
+  for (const [index, match] of documented.entries()) {
     const start = match.index + match[0].lastIndexOf('static');
-    found.push({ name: match[2], docs: match[1], signature: body.slice(start, methodEnd(body, start)).trim() });
+    let end = methodEnd(body, start);
+    found.push({ name: match[2], docs: match[1], signature: body.slice(start, end).trim() });
+    const nextDocumented = documented[index + 1]?.index ?? body.length;
+    while (end < nextDocumented) {
+      const overload = /^\s*static\s+([A-Za-z_$][\w$]*)(?:<[\s\S]*?>)?\s*\(/.exec(body.slice(end, nextDocumented));
+      if (!overload || overload[1] !== match[2]) break;
+      const overloadStart = end + overload[0].lastIndexOf('static');
+      end = methodEnd(body, overloadStart);
+      found.push({ name: match[2], docs: match[1], signature: body.slice(overloadStart, end).trim(), inherited: true });
+    }
   }
   return found;
 }

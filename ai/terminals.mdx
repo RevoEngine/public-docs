@@ -1,0 +1,56 @@
+---
+title: Connect a terminal
+description: Let an Assistant work in an approved computer or virtual machine under the access its owner grants.
+icon: terminal
+---
+
+An approved terminal lets an Interactive Agent run commands in a connected macOS or Linux environment. The environment can be your computer, a virtual machine, or a sandbox you manage that can run the CLI. The same pairing and owner approval apply in each case. RevoEngine's managed Sandbox remains a separate execution environment for Components and debugging.
+
+## How access is granted
+
+1. Install the [RevoEngine CLI](/developers/cli) in the environment you want to connect and sign in with your personal API key.
+2. Choose an existing workspace directory and run `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"`. The terminal appears as a pending request in **AI Agents → Terminals**.
+3. In a signed-in browser session, inspect the terminal name and workspace. The owner must select **Approve with review** or **Full access**. Pairing from the CLI alone does not authorize commands.
+4. Keep the CLI connection running. Open an Assistant conversation and ask it to connect the approved terminal to that conversation. **Terminals** in the Composer menu opens the access settings.
+5. Ask the Assistant to work on a specific task. Review proposed commands when prompted, then inspect their output and the resulting files or state.
+
+The connection is personal by default. The owner can grant access to named users, groups, or the instance in terminal settings. A shared terminal still runs under the operating-system identity of its runner.
+
+<Warning>
+  The workspace is the starting directory, not a filesystem sandbox. Commands have the permissions of the account running the CLI. Use a dedicated, least-privilege account or a disposable virtual machine when the task needs stronger isolation.
+</Warning>
+
+## Review and full access
+
+**Approve with review** keeps command starts under the Assistant's normal approval policy, even if a conversation uses a more permissive setting. **Full access** permits the conversation's configured approval policy to apply. Neither choice expands the runner's operating-system permissions or grants access to a terminal that the owner has not approved.
+
+The Assistant can connect more than one approved terminal to a conversation. It starts a command, then reads output and completion status as they arrive. A disconnected or uncertain execution should be inspected before repeating a command with side effects.
+
+## Keep a terminal available
+
+The foreground `revo terminal connect` command remains active while the CLI is running. After browser approval, you can install the CLI's per-user background service on macOS or Linux:
+
+```bash
+revo terminal service install --workspace "$HOME/projects/my-project"
+revo terminal status
+```
+
+Use the same saved CLI profile and workspace when managing that service. A connected virtual machine follows the same steps: install the CLI inside the VM, sign in, pair, approve in the browser, then keep its runner online.
+
+## Disconnect and revoke
+
+Disconnecting a terminal from one conversation removes that conversation's connection; it does not revoke the owner's terminal grant or stop an already running process. The owner can remove the terminal in **AI Agents → Terminals** to revoke its grant. To remove a locally registered runner, stop its background service first if installed, then run:
+
+```bash
+revo terminal service uninstall --workspace "$HOME/projects/my-project"
+revo terminal disconnect --workspace "$HOME/projects/my-project"
+```
+
+Terminal settings show connection and command activity for authorized viewers. Use that history and the task's actual output to confirm what ran. A pending request, an offline runner, and a conversation without a terminal connection cannot execute commands.
+
+## Related guides
+
+- [RevoEngine CLI](/developers/cli)
+- [Assistant](/ai/assistant)
+- [Approvals and plans](/ai/approvals-and-plans)
+- [Secrets and Vault](/operate/secrets)

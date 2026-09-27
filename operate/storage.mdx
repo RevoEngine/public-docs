@@ -65,12 +65,12 @@ Use the narrowest reader that matches the file:
 | --- | --- |
 | File or folder metadata | `storage.getEntry()` / `storage.getFile()` |
 | Bounded text or extracted document text | `storage.getDocument()` |
-| CSV, TSV, XLSX, NDJSON, JSON array, or record-oriented XML | `storage.getFileData()` |
-| Full structured scan without collecting every row | `storage.walkFileData()` |
+| CSV, TSV, XLSX, NDJSON/JSONL, JSON array, or record-oriented XML | `storage.getFileData()` |
+| Full scan of CSV/TSV, XLSX, NDJSON/JSONL, a JSON array, or record-oriented XML | `storage.walkFileData()` |
 | Reusable row, worksheet, or line index | `storage.getFileStats()` |
 | Temporary download or preview | `storage.getDownload()` |
 
-Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `nextCursor`. Copy the cursor exactly and keep pages bounded. For XML, provide `recordPath`; for a specific Excel worksheet, provide `sheet`.
+Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `nextCursor`. Copy the cursor exactly and keep pages bounded. `walkFileData()` processes the same record formats in awaited batches; it does not treat plain text, a top-level JSON object, or binary files as rows. For XML, provide `recordPath`; for a specific Excel worksheet, provide `sheet`.
 
 Do not parse CSV by splitting on commas or newlines. Quoted separators, escaped quotes, and multiline records are valid CSV.
 

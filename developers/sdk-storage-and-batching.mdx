@@ -13,10 +13,9 @@ An upload session is a temporary durable control record, not a file. It stores t
 Calls queued in the same microtask are grouped. `Promise.all` is the normal way to create a batch:
 
 ```ts
-const [customers, agents, secret] = await Promise.all([
+const [customers, agents] = await Promise.all([
   revo.api.getDatabaseData('Customers', { take: 100 }),
   revo.agents.list(),
-  revo.api.getSecret('CRM_API_TOKEN'),
 ]);
 ```
 
@@ -138,10 +137,12 @@ Upload URLs and headers are temporary credentials. Do not log, persist, or pass 
 
 ## Read structured files in pages
 
-CSV, TSV, XLSX, NDJSON, JSON arrays, and record-oriented XML return structured pages. Follow the opaque cursor instead of assuming the result is an array of text lines.
+CSV, TSV, XLSX, NDJSON/JSONL, JSON arrays, and record-oriented XML return structured pages. Follow the opaque cursor instead of assuming the result is an array of text lines.
+
+This example reads a CSV file. For XML, pass the same `recordPath` to `getFileStats()` and `getFileData()`.
 
 ```ts
-const stats = await revo.storage.getFileStats(storageEntryId, {
+await revo.storage.getFileStats(storageEntryId, {
   batchSize: 25_000,
 });
 
@@ -160,7 +161,7 @@ do {
 } while (cursor);
 ```
 
-`getFileData()` builds missing structured statistics when needed. Use `reloadStats: true` only when the persisted mapping must be recomputed. For XLSX, select `sheet` when the first visible worksheet is not the intended source. XML requires `recordPath`.
+`getFileData()` builds missing structured statistics when needed. If the persisted mapping must be recomputed, call `getFileStats(storageEntryId, { reloadStats: true })` first; `reloadStats` is not a `getFileData()` option. For XLSX, select `sheet` when the first visible worksheet is not the intended source. XML requires `recordPath`.
 
 Plain text can still be read through line windows. That Storage batch is unrelated to SDK request batching.
 
@@ -168,7 +169,10 @@ For binary data, `getFileData()` returns base64. Direct reads are limited to 10 
 
 ## Large data exports
 
-When exporting database rows:
+For a CSV, TSV, NDJSON, or XLSX export of a Table, View, or Materialized View, use
+`revo.api.exportDatabase(name, options)` so the platform streams the selected rows
+directly into Storage. Use the following page-and-upload flow only when the output
+requires custom Node.js processing or an unsupported format:
 
 1. request bounded pages rather than one unbounded result;
 2. use a stable unique sort key;

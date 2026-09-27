@@ -36,7 +36,9 @@ Use the generated [Platform API reference](/api-reference/introduction) for the 
 
 ## Authentication and Secrets
 
-Bearer tokens, basic-auth passwords, and sensitive custom headers must reference a RevoEngine Secret. A binding can follow the active Secret data revision or pin an explicit revision when controlled credential rollout requires it.
+Bearer tokens, basic-auth passwords, and sensitive custom headers must use a governed Vault binding. Instance Secrets remain supported. A remote MCP header can also bind a personal Secret or connected OAuth account, selected by the executing user's explicit grant. Instance-owned connected accounts are available for shared service identity. An organization-scoped reference is recognized by the runtime when an organization grant has been provisioned; the current Vault screen does not offer self-service organization grants.
+
+The account owner first connects and consents at the provider, then grants the named value to this Agent plugin. Plugin admission and per-tool approval remain separate. See [Vault and connected accounts](/operate/vault) for the complete flow.
 
 Non-sensitive static header values are supported, but do not use that field to avoid Secret governance.
 

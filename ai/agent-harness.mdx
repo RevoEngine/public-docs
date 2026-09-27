@@ -144,7 +144,7 @@ When a long conversation must be compacted, the runtime preserves the recent tas
 
 Today, RevoEngine is optimized for governed work inside the RevoEngine application and operations model. It supports managed component validation and execution, but it does **not** promise an unrestricted host shell or a general-purpose coding VM to every Agent.
 
-Isolated terminal and workspace execution is an active product direction. Until it becomes an enabled public capability, choose a repository-native coding agent for broad shell, package-manager, build-system, or arbitrary filesystem work, and use RevoEngine for platform-native context, operations, automation, and governed changes.
+An Interactive Agent can work through an [approved terminal](/ai/terminals) running on a user's computer or virtual machine. The owner first pairs and approves that runner, then the Agent connects it to a conversation. Commands use the runner account's operating-system permissions; the selected workspace is a starting directory, not an isolation boundary. RevoEngine's managed Sandbox remains the execution boundary for Components and debugging.
 
 ## What remains private
 

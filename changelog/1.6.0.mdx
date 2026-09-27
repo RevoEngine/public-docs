@@ -1,0 +1,75 @@
+---
+title: "1.6.0 — Studio: one workspace for Components, Scratch and execution"
+sidebarTitle: "1.6.0"
+icon: "tag"
+description: "24 September 2026"
+---
+
+RevoEngine 1.6.0 brings Component editing and saved Scratch files into Studio. Builders can arrange code and operational panes, keep several files open, run Components from the same workspace and save a preferred layout. The release also tightens preference validation and clarifies Storage and Database contracts used by low-code authors.
+
+## Highlights
+
+- Work with Components and Scratch files in Studio, with moveable tabs, independent splits and saved workspace layouts.
+- Organize Scratch files in nested folders, edit common text and data formats, and promote supported code to a Component.
+- Keep Input, Code, Terminal, Output and Performance close to the editor while arranging reference and search tools where they are useful.
+- Use a guided Studio tour, automatic Scratch saving and clearer validation and deployment controls.
+- Rely on type-specific server validation for Grid, Dashboard, Favourite, Scratch and Studio preferences.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Build and organize in Studio" defaultOpen={true}>
+
+Studio replaces the separate Playground route with a single editing workspace. Component source, Scratch files and runtime tools share the tab and split layout. Drag a tab onto an editor group to join it, or to an edge to create an independently resizable pane. Rail shortcuts can be rearranged and layout preferences save the arrangement for later use. The home action restores the default layout.
+
+Scratch files can hold JavaScript, TypeScript, Markdown, JSON, NDJSON, YAML, CSV and plain text. A single-file Scratch opens directly; folders can contain files and other folders. Scratch content is saved to instance preferences, and supported code can be converted into a Component after review. Component changes still use the deployment review; saving a Scratch does not deploy a Component.
+
+  </Accordion>
+  <Accordion title="Run, inspect and validate code">
+
+The default Studio layout keeps the editor above Input and Code, with Terminal, Output and Performance in a neighboring pane. Code input is available for JavaScript and TypeScript libraries. The run controls expose debug and production mode, configuration and recent results. Methods, Types, Libraries, Secrets, recent runs, working diff and code search remain available as moveable tools.
+
+Studio includes a guided tour that can be reopened from Studio Info. Automatic validation reports diagnostics while authoring; the deploy review bounds validation output so the selected Components remain visible. Scratch automatic saving is separate from Component deployment.
+
+  </Accordion>
+  <Accordion title="Make preferences and data contracts clearer">
+
+Preference validation now follows the family that owns the data. Studio layout preferences retain pane geometry and references, while Scratch preferences retain the user's draft files and folder structure. The preference manager uses the same fields and validation as dashboard preferences.
+
+Structured Storage reads and uploads use explicit format options. Database reads accept the supported relation types through the standard low-code methods:
+
+```js
+const page = await api.getDatabaseData('recent_orders_view', { fields: ['orderId'], take: 25 });
+return page.data;
+```
+
+```js
+const total = await api.countDatabase('orders');
+return total;
+```
+
+```js
+const exportResult = await api.exportDatabase('recent_orders_view', { format: 'csv', fileName: 'recent-orders.csv' });
+return exportResult.storageEntryId;
+```
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- The current Node.js SDK, generated editor declarations and Platform API description carry the 1.6.0 release identity.
+- Studio layout saving records references and presentation state rather than copying Component source or Secret values into a layout preference.
+- Older release notes remain available in the in-app release history.
+
+## Related guides
+
+- [Studio](/build/web-ide)
+- [Components](/build/components)
+- [Node.js SDK](/developers/sdk-overview)
+- [Storage](/operate/storage)
+- [Database Views](/operate/database-views)
+
+## Continue through the releases
+
+[Newer: 1.6.1](/changelog/1.6.1) · [All releases](/releases/changelog) · [Earlier: 1.5.9](/changelog/1.5.9)

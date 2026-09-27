@@ -1,0 +1,73 @@
+---
+title: Vault and connected accounts
+description: Bind instance, personal, and organization credentials to authorized Components and Agent integrations.
+icon: vault
+---
+
+Vault lets a workload use a credential without saving its value in Component code, an Agent prompt, or a plugin definition. It can hold a Secret you enter or a connected account authorized through an external identity provider. The owner controls which workload may use a personal or organization value.
+
+## Choose the owner
+
+| Scope | Use it when | Access decision |
+| --- | --- | --- |
+| Instance | A shared service identity should be available to eligible instance workloads | Instance Secret and integration permissions |
+| Personal | An action should use the signed-in user's own external account | The user grants the named value to a specific Component or Agent plugin |
+| Organization | A verified member should use an organization-owned value | The runtime recognizes organization bindings, but a self-service organization Vault flow is not exposed yet |
+
+An unattended process without a verified personal identity should use an instance-owned credential. A personal or organization grant does not give the Component permission to impersonate another owner.
+
+## Connect an external account
+
+1. Open **Settings → Vault** and choose a personal or instance connection. Organization-owned values require a separately provisioned organization grant and are not currently managed in this screen.
+2. Add a connection. Enter the remote MCP server URL and the permissions the integration needs. Where the provider advertises more than one authorization server, choose the intended server.
+3. Review discovered authorization details. Some providers support dynamic client registration; others require you to register an application with the provider and enter its client ID. Follow the redirect address shown in Vault when registering your own client.
+4. Select **Connect**, review the provider's consent screen, and authorize the requested access there. RevoEngine returns to Vault and shows the connection status.
+5. Grant that connection to the exact Component or Agent plugin that needs it. Connecting the external account alone does not attach it to every workload.
+6. Test a read operation through the real execution path before enabling writes or broader Agent access.
+
+This flow works with compatible OAuth authorization servers, including providers that publish OIDC discovery metadata. Provider-specific registration, scopes, consent policy, and remote MCP behavior may still be required. A successful provider sign-in proves the account connection; it does not approve each Agent action or override RevoEngine permissions.
+
+## Bind a Secret in a Component
+
+For an outbound HTTP header in a saved low-code Component, use `vault()` as the **entire** header value:
+
+```js
+const response = await api.httpCall({
+  url: 'https://api.example.com/orders',
+  method: 'GET',
+  headers: {
+    Authorization: vault('ORDERS_ACCOUNT', {
+      scope: 'user',
+      source: 'integration',
+      prefix: 'Bearer ',
+    }),
+  },
+});
+return response.data;
+```
+
+`scope` defaults to `instance`; `source` defaults to `secret`. Select `organization` for an organization-owned binding. The name in code is the name requested by the workload; the Vault grant selects the owner's actual Secret or connection. The trusted outbound sender resolves the credential at call time. A Vault reference is an opaque value, not a string: do not interpolate it into a URL, body, log, return value, or template string.
+
+Personal and organization values require an explicit grant to the exact saved consumer. The current self-service grant flow covers personal values; organization binding is a runtime contract and requires separate provisioning. A direct Component grant follows its stable Component identity across updates; review the grant whenever its code changes. A Tool grant follows the Tool identity. Unsaved ad hoc code has no eligible saved Component identity for these bindings.
+
+## Use Vault with Agent plugins and remote MCP
+
+A Component-backed Agent tool can use the same bound HTTP header inside its saved Component. A remote MCP server plugin instead declares a governed Vault binding for the relevant outbound header in its server configuration. RevoEngine resolves that binding for the executing identity when it connects to the remote server; the model sees the tool contract, not the credential value.
+
+For a personal credential, the owner must grant the plugin the requested Vault name and source. Organization values require an organization grant before they can be resolved. An administrator must also review the remote server's discovered tools, enable the intended operations, and set their approval policy. These are separate decisions: an account connection or Vault grant alone does not authorize a remote tool call.
+
+An instance connection represents a shared account. Use a personal connection when the remote action must reflect the current user's identity. The remote provider's own consent and permissions still apply in either case.
+
+## Rotate, revoke, and diagnose
+
+- Rotate a Secret by activating a new revision under its stable name. Review external access before disabling the old value.
+- Disconnect an external account or remove its grant when a workload should stop using it. Reconnects may require a new grant; a Component code update retains its identity and grant, so review the changed code before it runs again.
+- If a call fails, check the owner's scope, the exact requested name, the saved consumer identity, provider consent, and the workload's real execution identity. A missing or ambiguous binding fails rather than falling back to a value embedded in code.
+- Keep credential values out of prompts, metadata, logs, and saved plugin descriptions. Use sanitized execution and connection status for investigation.
+
+## Related guides
+
+- [Secrets](/operate/secrets)
+- [HTTP integrations](/low-code/http)
+- [Agent plugins](/ai/plugins)
+- [MCP server plugins](/developers/mcp-plugins)

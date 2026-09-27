@@ -25,7 +25,7 @@ Do not copy an entire external model into RevoEngine unless the application need
 
 ## 3. Bind credentials through Secrets
 
-Keep tokens, passwords, and private headers in RevoEngine Secrets. Resolve them only for the target operation. Never place them in source, Agent instructions, plugin descriptions, logs, Inbox payloads, or workspace files.
+Keep tokens, passwords, and private headers in [Vault](/operate/vault). Bind the appropriate instance, personal, or provisioned organization value to the exact Component or Agent plugin that needs it. Resolve it only for the outbound operation. Never place credentials in source, Agent instructions, plugin descriptions, logs, Inbox payloads, or workspace files.
 
 ## 4. Design idempotency before retry
 

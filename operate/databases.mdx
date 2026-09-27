@@ -18,7 +18,7 @@ An `orders` Table is not merely a place to put JSON. It answers who may see an o
     Make the Table restricted when a group or service account should be the only principal that can read or mutate it.
   </Card>
   <Card title="Operate" icon="timeline">
-    Enable audit before sensitive changes, export a governed CSV when needed, and inspect change evidence without leaving the workspace.
+    Enable audit before sensitive changes, export a governed CSV, TSV, NDJSON, or XLSX file when needed, and inspect change evidence without leaving the workspace.
   </Card>
 </CardGroup>
 
@@ -125,13 +125,19 @@ Text editing covers insertion, literal replacement, trimming and case conversion
 
 Preview the filtered selection before submitting. Ordered operations do not replace the normal authorization or transaction boundaries. See the current [low-code API reference](/low-code/reference/api) for exact operation shapes.
 
-### CSV and Excel exports
+### Database exports
 
-The export dialog offers **CSV** and **Excel (XLSX)** for Tables and Views. Choose the destination, filename and access settings, then follow the asynchronous export through its job and resulting file.
+The export dialog offers **CSV**, **TSV**, **NDJSON**, and **Excel (XLSX)** for Tables and Views. Choose the destination, filename and access settings, then follow the asynchronous export through its job and resulting file.
 
-CSV remains the default when existing API or low-code callers omit the format. Excel preserves supported column types; values that exceed Excel's numeric precision are written as text. The server checks the worksheet ceiling of 1,048,575 data rows plus a header and 16,384 columns before accepting an Excel export.
+CSV remains the default when existing API or low-code callers omit the format. Excel preserves supported column types; values that exceed Excel's numeric precision are written as text. The server checks the worksheet ceiling of 1,048,575 data rows plus a header and 16,384 columns during export execution. A REST request may already have been accepted when that check fails; low-code waits for the result by default.
 
 Exports are managed files in [Storage](/operate/storage). See [1.5.0](/changelog/1.5.0) for the related data and spreadsheet changes.
+
+### Import from Storage
+
+The Database import API accepts CSV, TSV, NDJSON, and XLSX files already in Storage. Start a preview with the source file, target database name, insert or upsert mode, and row-error policy. Follow the returned operation ID to inspect the validation report and proposed column mapping; preview does not write rows. Correct ambiguous mappings, revalidate, and commit only after reviewing the report. Commit checks that the source file and target definitions have not changed since preview. The same Database operation routes expose progress, result, cancellation, and eligible failed-operation retry. Resource Write or Admin is required to start or change an import; Resource Read can inspect status.
+
+Low-code uses `api.importDatabase()`, `api.updateDatabaseImportMapping()`, and `api.commitDatabaseImport()`; see [Database API](/low-code/database) for the workflow and the generated [API reference](/low-code/reference/api) for signatures.
 
 ## Views
 
@@ -192,13 +198,13 @@ administration bounds, and recovery patterns.
 
 ## Clone, export, and lifecycle
 
-- **Clone** creates a new Table asynchronously and is suitable for controlled copies or environment preparation.
-- **Export** streams selected rows to CSV and places the result in Storage. You can choose a private destination, the Storage root, or an accessible folder, and assign retention.
+- **Clone** creates a new Table for controlled copies or environment preparation. REST starts a background task; low-code waits by default and supports an explicit asynchronous mode.
+- **Export** streams selected rows to CSV, TSV, NDJSON, or XLSX and places the result in Storage. REST starts a background task, while low-code waits for the finalized file by default or can request an asynchronous operation. You can choose a private destination, the Storage root, or an accessible folder, and assign retention.
 - **Delete** is recoverable while the Table remains in its deleted lifecycle state.
 - **Restore** returns a deleted definition and its retained data when allowed.
 - **Truncate** removes rows; identity restart is opt-in rather than implicit. Truncate does not create row-level audit events, so use a deliberately confirmed filtered delete when every removed row must remain in audit history.
 
-The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-table-view-or-materialized-view-data-to-csv-or-xlsx), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
+The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-table-view-or-materialized-view-data-to-csv-tsv-ndjson-or-xlsx), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
 
 ## Access model
 
@@ -229,7 +235,7 @@ Schema-changing operations, clones, exports, scheduled materialized refreshes, a
 - Index materialized output according to real filters and sorts.
 - Give automation service accounts explicit access to restricted sources.
 - Treat Cache as disposable and choose TTLs intentionally.
-- Apply retention and ACLs to exported CSV files.
+- Apply retention and ACLs to exported CSV, TSV, NDJSON, and XLSX files.
 
 ## Related guides
 

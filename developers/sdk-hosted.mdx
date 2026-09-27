@@ -52,11 +52,9 @@ export async function init(runtime) {
   const operationId = runtime.api.getOperationId();
   const instance = runtime.api.getInstanceDetails();
 
-  const secret = await runtime.api.getSecret('WEBHOOK_SIGNING_SECRET');
   return {
     executionId,
     operationId,
-    hasSecret: Boolean(secret),
     instanceId: instance.id,
     input,
     context,
@@ -64,7 +62,7 @@ export async function init(runtime) {
 }
 ```
 
-Only platform-backed work returns a promise. Never return or log a secret value.
+Only platform-backed work returns a promise. Keep credential values out of return values and logs.
 
 ## Use active low-code libraries
 

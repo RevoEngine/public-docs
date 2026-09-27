@@ -1,0 +1,88 @@
+---
+title: "1.6.2 — Approved terminals and clearer integration workflows"
+sidebarTitle: "1.6.2"
+icon: "tag"
+description: "27 September 2026"
+---
+
+RevoEngine 1.6.2 builds on the Studio, analytical answers, Database transfers and Vault connections delivered in 1.6.1. An Interactive Agent can now connect to a terminal that its owner has approved, while updated Vault and Database screens make access and operation status easier to review.
+
+## Highlights
+
+- Connect an Assistant conversation to a terminal on an approved computer or virtual machine and inspect its command activity.
+- Review terminal access in the browser, choose a review mode and control who may use a shared runner.
+- Configure connected accounts in Vault with provider discovery and grant their credentials to specific Components or Agent plugins.
+- Follow Database import and audit operations with clearer status, selection and filtering.
+- See a terminal command and its output together in Assistant history, including after reopening the conversation.
+- Use Node.js SDK 1.6.2 with the current Platform runtime contract in new hosted Components and standalone applications.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Connect an approved terminal" defaultOpen={true}>
+
+Install the RevoEngine CLI on a macOS or Linux computer, including a virtual machine you control, and start a terminal connection for an existing workspace. The device appears as a pending request. Its owner must approve it in a signed-in browser session before an Interactive Agent can connect it to a conversation. The owner can keep access private or share the approved terminal with selected users, groups or the instance. Review mode keeps command starts under the normal approval policy; Full access uses the conversation's configured policy.
+
+After connection, the Assistant can start a command, read output while it runs, inspect completion and request cancellation. Terminal activity records the connection and command history. A conversation disconnect does not revoke the owner's device grant or stop a process already running; the owner can remove the grant separately. Commands run with the operating-system permissions of the account running the CLI. The workspace is the starting directory, so use a limited account or disposable virtual machine when stronger isolation is needed.
+
+  </Accordion>
+  <Accordion title="Review connected accounts and credential bindings">
+
+Vault now presents connected accounts, stored personal Secrets and access grants in a clearer workflow. Enter the remote MCP server URL, review the discovered authorization server and requested scopes, then complete consent with the external provider. Some providers offer dynamic client registration; others require an application registered by the user or administrator. A successful account connection still needs a separate grant to the Component or Agent plugin that will use it.
+
+The bound-value contract introduced in 1.6.1 remains the supported way to send a credential in an outbound HTTP header. Instance Secrets are the default; a personal connected account requires a verified user and an explicit grant. Organization-scoped references are recognized by the runtime when an organization-owned value and grant have been provisioned, but the current Vault screen does not provide self-service organization provisioning.
+
+```js
+const response = await api.httpCall({
+  url: 'https://api.example.com/orders',
+  method: 'GET',
+  headers: { Authorization: vault('ORDERS_TOKEN', { prefix: 'Bearer ' }) },
+});
+return response.data;
+```
+
+```js
+const response = await api.httpCall({
+  url: 'https://api.example.com/me',
+  method: 'GET',
+  headers: { Authorization: vault('ACCOUNT', {
+    scope: 'user', source: 'integration', prefix: 'Bearer ',
+  }) },
+});
+return response.data;
+```
+
+A remote MCP server plugin can bind the same governed Vault value in its outbound authentication header. Its tools still require administrator review, admission to the current Agent workflow and the applicable operation approval.
+
+  </Accordion>
+  <Accordion title="Inspect data operations and Assistant activity">
+
+Database operation details and audit filters now keep selected resources and visible names aligned. Prefix searches for regular and materialized Views return matching names, while the audit's Database selector filters by the selected Database identity. Import and export remain reviewable operations with their existing preview, commit and status boundaries.
+
+```js
+const exportJob = await api.exportDatabase('orders', { format: 'csv', async: true });
+return exportJob.jobId;
+```
+
+Assistant history presents a terminal command, streamed output and final exit state as one inspectable execution, including after a conversation reload. Older entries retain their available detail without inventing a missing command. Bounded output is marked when truncated.
+
+  </Accordion>
+  <Accordion title="Keep Node.js applications aligned">
+
+Node.js SDK 1.6.2 carries the current generated runtime types for Database transfers, Storage and Agent operations. Remote MCP server configuration uses public HTTPS destinations. Newly created hosted Custom Node.js Components pin SDK 1.6.2; existing deployed revisions retain their recorded SDK version until updated. Coordinate SDK availability with the platform rollout so a new Component can install the version it declares.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Connect a terminal](/ai/terminals)
+- [Vault and connected accounts](/operate/vault)
+- [MCP server plugins](/developers/mcp-plugins)
+- [Database operations](/operate/databases)
+- [Assistant](/ai/assistant)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.1](/changelog/1.6.1)

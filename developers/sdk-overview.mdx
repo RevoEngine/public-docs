@@ -15,7 +15,7 @@ icon: node-js
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk@1.5.9
+npm install @revoengine/sdk@1.6.2
 ```
 
 ## Choose a runtime mode
@@ -70,7 +70,7 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 ## Contract behavior
 
-SDK 1.5.9 matches the RevoEngine 1.5.9 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+SDK 1.6.2 matches the RevoEngine 1.6.2 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 
@@ -78,7 +78,11 @@ Use `transport.sftpImport`, `transport.sftpExport`, and `transport.sftpCommands`
 
 For portable Component pins, use a verified `componentDigest`. Database reads and exports now use one relation namespace: `api.exportDatabase()` covers Databases, live Views, and Materialized Views. The former View-only read helper is a deprecated compatibility alias; `api.exportDatabaseView()` has been removed.
 
+Database exports accept CSV, TSV, NDJSON, and XLSX. `api.importDatabase()` previews a Storage file and returns an operation to review before `api.commitDatabaseImport()` writes it; use `api.updateDatabaseImportMapping()` when columns need correction. See [Database API](/low-code/database) for the lifecycle and [generated methods](/low-code/reference/api) for current signatures.
+
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
+
+Remote MCP server definitions in SDK 1.6.2 accept public HTTPS destinations. Configure a Vault binding for credentials and review the discovered tools and their permissions before enabling the plugin. See [MCP server plugins](/developers/mcp-plugins) for the connection workflow.
 
 <Note>
   Runtime method availability does not grant permission. Authentication, roles, instance boundaries, execution context, and platform policy are still enforced by RevoEngine.

@@ -34,6 +34,8 @@ Named environment profiles are stored separately from the default login. Logout 
 
 ## Essential commands
 
+To connect a computer or virtual machine for an Assistant, follow [Connect a terminal](/ai/terminals). After signing in with a personal API key, `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"` creates a pending request. Its owner must approve it in **AI Agents → Terminals** from a browser session before the Assistant can use it.
+
 ```bash
 revo --help
 revo -i
@@ -80,4 +82,5 @@ The interactive update notifier checks for a newer CLI release at most once ever
 <CardGroup cols={2}>
   <Card title="Local projects" icon="folder-tree" href="/developers/cli-projects" />
   <Card title="Environment promotion" icon="arrow-right-arrow-left" href="/developers/cli-environments" />
+  <Card title="Connect a terminal" icon="terminal" href="/ai/terminals" />
 </CardGroup>

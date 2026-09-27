@@ -1,0 +1,91 @@
+---
+title: "1.6.1 — Studio, visual Assistant answers and governed data workflows"
+sidebarTitle: "1.6.1"
+icon: "tag"
+description: "26 September 2026"
+---
+
+RevoEngine 1.6.1 develops the Studio workspace introduced in 1.6.0 into a more complete editing and merge flow. It also lets the Assistant present analytical widgets directly in a conversation, extends Database transfer workflows, and adds governed Vault connections for integrations. These capabilities build on existing Components, dashboards, Storage, and low-code execution rather than introducing a separate authoring system.
+
+## Highlights
+
+- Resolve Component changes in Studio with a clearer comparison and acceptance flow inside the expanded Studio workspace.
+- Ask the Assistant for a chart or table and inspect the rendered result, its source code, or a saved dashboard widget.
+- Preview and review Database imports before committing data, and export as CSV, TSV, NDJSON, or XLSX.
+- Bind integration credentials through Vault without putting their values into saved low-code HTTP headers.
+- Author against refreshed Monaco declarations, Platform API descriptions, and the 1.6.1 Node.js SDK contract.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Resolve changes in Studio" defaultOpen={true}>
+
+Studio now gives builders a more cohesive place to compare proposed Component code with the current revision and accept reviewed changes. The merge view keeps the conflict and affected code visible while the builder decides how to proceed. Navigation to an element, search, declarations, and the surrounding tool panes remain part of the same workspace. Tabs and tool windows can be grouped and moved while preserving a usable layout across editing tasks.
+
+The merge step still belongs to the existing Component revision and deployment process. Review the resulting source and validation diagnostics before deploying it. Scratch remains a saved draft workspace, so editing a Scratch file does not silently update a deployed Component. This release improves the day-to-day handoff between writing, inspecting, and accepting code without changing that deployment boundary.
+
+  </Accordion>
+  <Accordion title="Build an answer the user can inspect">
+
+The Assistant can turn an ordinary request for a chart or table into a validated analytical widget in the conversation. A card can combine charts, tables, and explanatory values; the user can expand the complete card, copy its definition, and inspect the JavaScript or TypeScript that produced it in the code viewer. The widget appears as part of the answer and is available again in conversation history.
+
+The Assistant receives a compact completion summary while the complete validated result is delivered to the chat. This keeps large result sets out of the Assistant's final message. A user can save the result as a new dashboard or add it to an existing dashboard. Dynamic widgets retain their source and input configuration; a fixed snapshot is available when a reusable live source is inappropriate. Dashboard persistence remains an explicit action by the user.
+
+  </Accordion>
+  <Accordion title="Move Database data with a reviewable operation">
+
+Database export now offers CSV, TSV, NDJSON, and XLSX, with the same structured relation selection for tables, Views, and Materialized Views. A queued export returns a job ID that can be followed through the Database operations view. Storage access, selected destination, and the effective relation permissions are still checked by the platform.
+
+```js
+const exportJob = await api.exportDatabase('orders', { format: 'tsv', async: true });
+return exportJob.jobId;
+```
+
+The import workflow starts with a preview of a Storage file and proposed source-to-target mapping. Review the report, correct ambiguous columns if needed, then explicitly commit. The platform checks source and target state again before the write. Operation status, cancellation, and eligible retries use the same Database operations surface.
+
+```js
+const preview = await api.importDatabase('orders', {
+  storageEntryId: 'storage-entry-id',
+  format: 'csv',
+  mode: 'upsert',
+  onError: 'abort',
+});
+return preview.jobId;
+```
+
+  </Accordion>
+  <Accordion title="Connect integrations through Vault">
+
+Vault adds managed instance, personal, and organization credential references for supported integration paths. A saved Component can pass an opaque reference as an entire outbound HTTP header value; the trusted sender resolves it at call time. Personal and organization values require an appropriate grant to the exact Component revision. Ad hoc code without a saved Component identity cannot resolve these references. Existing plaintext Secret methods remain available for legacy consumers that need them outside HTTP headers.
+
+```js
+const response = await api.httpCall({
+  url: 'https://example.com/orders',
+  method: 'GET',
+  headers: { Authorization: vault('ORDER_API', { scope: 'user', prefix: 'Bearer ' }) },
+});
+return response;
+```
+
+Agent plugin connections can also use governed Vault credentials. Their discovery, grants, and remote tool policy are kept separate from the user's saved credential value. The updated management flow makes the scope of a connection and its available actions clearer before an Agent uses it.
+
+  </Accordion>
+  <Accordion title="Keep authoring contracts aligned">
+
+The 1.6.1 Node.js SDK and Monaco declarations cover the current Database transfer methods and supported low-code types. The Platform API description includes the corresponding operations and request shapes. Newly created hosted Node.js Components pin the matching SDK version; existing deployed revisions keep their recorded package version until updated. SDK publication and platform rollout must be coordinated so a new hosted Component can install the version it declares.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Studio](/build/web-ide)
+- [Components](/build/components)
+- [Assistant](/ai/assistant)
+- [Dashboards](/operate/dashboards)
+- [Databases](/operate/databases)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[Newer: 1.6.2](/changelog/1.6.2) · [All releases](/releases/changelog) · [Earlier: 1.6.0](/changelog/1.6.0)

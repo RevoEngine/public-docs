@@ -2820,6 +2820,83 @@
         ]
       }
     },
+    "/api/v1/component/navigation/search": {
+      "get": {
+        "operationId": "ComponentController_searchNavigation",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Literal substring of a component name or element key.",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Restrict results to one component type.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CODE_JS_LIB",
+                "CODE_TS_LIB",
+                "CODE_JS",
+                "CODE_TS",
+                "JSON_VALIDATOR",
+                "CUSTOM_NODEJS"
+              ]
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Components matching a name or element key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComponentNavigationSearchPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search Studio navigation by component name or element key.",
+        "tags": [
+          "Components"
+        ],
+        "description": "Search Studio navigation by component name or element key. The request is scoped to the authenticated instance and enforces Component roles and version state."
+      }
+    },
     "/api/v1/component/digest/{componentDigest}": {
       "get": {
         "description": "Returns local component ids and revisions whose canonical content matches the digest. Local version numbers may differ between instances.\n\nROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN",
@@ -6415,6 +6492,342 @@
         "description": "Delete a Database cache value. The request is scoped to the authenticated instance and enforces Database cache access."
       }
     },
+    "/api/v1/databases/imports/preview": {
+      "post": {
+        "description": "Starts validation of the proposed import and returns an accepted operation to inspect before committing.",
+        "operationId": "DatabaseController_previewImport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatabaseImportPreviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview a Database import",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/imports/{importId}/mapping": {
+      "put": {
+        "description": "Revalidates the named import with its updated source-to-target column mapping.",
+        "operationId": "DatabaseController_updateImportMapping",
+        "parameters": [
+          {
+            "name": "importId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatabaseImportMappingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a Database import mapping",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/imports/{importId}/commit": {
+      "post": {
+        "description": "Starts the committed import using a previously validated preview and mapping.",
+        "operationId": "DatabaseController_commitImport",
+        "parameters": [
+          {
+            "name": "importId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Commit a Database import",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/operations": {
+      "get": {
+        "description": "Returns a page of Database operation status records for this instance.",
+        "operationId": "DatabaseController_listOperations",
+        "parameters": [
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of rows to return. Parsed from a query-string integer. Most QueryWrapper-backed list endpoints default to 100 when omitted.",
+            "schema": {
+              "minimum": 0,
+              "maximum": 10000,
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are logical wrapper fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint wrapper.",
+            "schema": {
+              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "QueryWrapper sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
+            "schema": {
+              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "distinct",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper DISTINCT ON logical fields as a JSON array string, indexed array query object, array, or legacy CSV. The wrapper rewrites selected distinct fields into distinct select items.",
+            "schema": {
+              "example": "category,global",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper field projection as a JSON array string, indexed array query object, array, or legacy CSV. String fields must be allowlisted logical wrapper fields. Advanced select items may use field, fn, raw, cast, coalesce, or case expressions when the endpoint enables dynamic projection.",
+            "schema": {
+              "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "joins",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper join definitions as a JSON string or bracket-style query object. This is only honored by endpoints that explicitly enable dynamic joins, such as dynamic database data reads. Each join has table, alias, type (left or inner), and an on condition.",
+            "schema": {
+              "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper groupBy logical fields as a JSON array string, indexed array query object, array, or legacy CSV. Only honored when the endpoint enables dynamic grouping or already has grouped defaults.",
+            "schema": {
+              "example": "[\"category\",\"global\"]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "cast",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper cast mapping as a JSON string or bracket-style query object. Keys are selected aliases or logical fields; values are database definition types such as TEXT, INTEGER, BIGINT, NUMERIC, BOOLEAN, DATE, TIMESTAMP, TIMESTAMPTZ, JSON, JSONB, or UUID where supported.",
+            "schema": {
+              "example": "{\"userCount\":\"INTEGER\"}",
+              "type": "string"
+            }
+          },
+          {
+            "name": "with",
+            "required": false,
+            "in": "query",
+            "description": "Optional QueryWrapper CTE definitions as a JSON string or bracket-style query object. Only honored by endpoints that explicitly enable dynamic CTEs.",
+            "schema": {
+              "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
+              "type": "string"
+            }
+          },
+          {
+            "name": "debug",
+            "required": false,
+            "in": "query",
+            "description": "Enable QueryWrapper debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the underlying query service supports it.",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List Database operations",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/operations/{jobId}": {
+      "get": {
+        "description": "Returns the current status and result metadata for the requested Database operation.",
+        "operationId": "DatabaseController_getOperation",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a Database operation",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/operations/{jobId}/cancel": {
+      "post": {
+        "description": "Requests cancellation of the named Database operation. Check its status for the terminal outcome.",
+        "operationId": "DatabaseController_cancelOperation",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a Database operation",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
+    "/api/v1/databases/operations/{jobId}/retry": {
+      "post": {
+        "description": "Starts a retry for an eligible failed Database operation and returns its accepted status.",
+        "operationId": "DatabaseController_retryOperation",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retry a Database operation",
+        "tags": [
+          "Databases"
+        ]
+      }
+    },
     "/api/v1/databases": {
       "get": {
         "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -7920,6 +8333,8 @@
               "type": "string",
               "enum": [
                 "csv",
+                "tsv",
+                "ndjson",
                 "xlsx"
               ]
             }
@@ -8077,7 +8492,7 @@
             "bearer": []
           }
         ],
-        "summary": "Export table, view, or materialized-view data to CSV or XLSX.",
+        "summary": "Export table, view, or materialized-view data to CSV, TSV, NDJSON, or XLSX.",
         "tags": [
           "Databases"
         ],
@@ -10232,6 +10647,249 @@
           "Secrets"
         ],
         "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/vault/integrations": {
+      "get": {
+        "description": "Lists shared integrations configured for this instance. Requires instance administrator access.",
+        "operationId": "InstanceVaultController_listIntegrations",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List instance Vault integrations",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/disable": {
+      "post": {
+        "description": "Disables the named shared connection for future tool calls. Existing grants may need renewal after reconnecting.",
+        "operationId": "InstanceVaultController_disableIntegration",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstanceVaultIntegrationNameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disconnect an instance Vault integration",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/oauth/start": {
+      "post": {
+        "description": "Creates an OAuth authorization attempt for a configured shared integration and returns its provider authorization URL.",
+        "operationId": "InstanceVaultController_startOAuth",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartInstanceVaultOAuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start instance integration authorization",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/definitions/discover": {
+      "post": {
+        "description": "Validates provider metadata for a proposed shared integration before saving its definition.",
+        "operationId": "InstanceVaultController_discoverOAuthDefinition",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoverInstanceVaultOAuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Discover an instance OAuth provider",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/definitions": {
+      "get": {
+        "description": "Lists provider configuration metadata for shared integrations without returning confidential client credentials.",
+        "operationId": "InstanceVaultController_listOAuthDefinitions",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List instance OAuth definitions",
+        "tags": [
+          "Instance Vault"
+        ]
+      },
+      "post": {
+        "description": "Creates or updates the shared provider configuration. A material change invalidates its earlier connection.",
+        "operationId": "InstanceVaultController_putOAuthDefinition",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutInstanceVaultOAuthDefinitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save an instance OAuth definition",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/definitions/item": {
+      "get": {
+        "description": "Returns the named shared provider definition for review without exposing its confidential client credential.",
+        "operationId": "InstanceVaultController_oauthDefinition",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an instance OAuth definition",
+        "tags": [
+          "Instance Vault"
+        ]
+      }
+    },
+    "/api/v1/vault/integrations/oauth/complete": {
+      "post": {
+        "description": "Exchanges an authorized OAuth attempt and stores the resulting shared connection for this instance.",
+        "operationId": "InstanceVaultController_completeOAuth",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteInstanceVaultOAuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Complete instance integration authorization",
+        "tags": [
+          "Instance Vault"
+        ]
       }
     },
     "/api/v1/files": {
@@ -18540,6 +19198,882 @@
         ]
       }
     },
+    "/api/v1/agents/terminals": {
+      "get": {
+        "operationId": "TerminalGrantController_list[0]",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current terminal grants and recent removal history",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List current terminal grants and recent removal history. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals": {
+      "get": {
+        "operationId": "TerminalGrantController_list[1]",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current terminal grants and recent removal history",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List current terminal grants and recent removal history. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/search": {
+      "get": {
+        "operationId": "TerminalGrantController_search[0]",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search ACL-visible agent terminals by name, workspace or ID",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Search ACL-visible agent terminals by name, workspace or ID. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/search": {
+      "get": {
+        "operationId": "TerminalGrantController_search[1]",
+        "parameters": [
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search ACL-visible agent terminals by name, workspace or ID",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Search ACL-visible agent terminals by name, workspace or ID. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/grid": {
+      "get": {
+        "operationId": "TerminalGrantController_grid[0]",
+        "parameters": [
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantGridDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Page through agent terminals visible to this user, including owned pending requests",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Page through agent terminals visible to this user, including owned pending requests. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/grid": {
+      "get": {
+        "operationId": "TerminalGrantController_grid[1]",
+        "parameters": [
+          {
+            "name": "take",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantGridDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Page through agent terminals visible to this user, including owned pending requests",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Page through agent terminals visible to this user, including owned pending requests. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/pair": {
+      "post": {
+        "operationId": "TerminalGrantController_pair[0]",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a pending terminal for explicit browser approval",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Register a pending terminal for explicit browser approval. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/pair": {
+      "post": {
+        "operationId": "TerminalGrantController_pair[1]",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a pending terminal for explicit browser approval",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Register a pending terminal for explicit browser approval. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/versions": {
+      "get": {
+        "operationId": "TerminalGrantController_versions[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List immutable terminal configuration snapshots for the owner",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List immutable terminal configuration snapshots for the owner. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/versions": {
+      "get": {
+        "operationId": "TerminalGrantController_versions[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List immutable terminal configuration snapshots for the owner",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List immutable terminal configuration snapshots for the owner. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/activity": {
+      "get": {
+        "operationId": "TerminalGrantController_activity[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": false,
+            "in": "query",
+            "description": "Limit activity to one terminal.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Return entries older than this activity ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive text search, up to 100 characters.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "description": "Page size from 1 to 200; default 50."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search terminal connection and command activity with a stable cursor",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Search terminal connection and command activity with a stable cursor. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/activity": {
+      "get": {
+        "operationId": "TerminalGrantController_activity[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": false,
+            "in": "query",
+            "description": "Limit activity to one terminal.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Return entries older than this activity ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive text search, up to 100 characters.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "description": "Page size from 1 to 200; default 50."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search terminal connection and command activity with a stable cursor",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Search terminal connection and command activity with a stable cursor. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/activity/{activityId}": {
+      "get": {
+        "operationId": "TerminalGrantController_activityDetail[0]",
+        "parameters": [
+          {
+            "name": "activityId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get one terminal activity entry with bounded stdout and stderr",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Get one terminal activity entry with bounded stdout and stderr. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/activity/{activityId}": {
+      "get": {
+        "operationId": "TerminalGrantController_activityDetail[1]",
+        "parameters": [
+          {
+            "name": "activityId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get one terminal activity entry with bounded stdout and stderr",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Get one terminal activity entry with bounded stdout and stderr. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/approve": {
+      "post": {
+        "operationId": "TerminalGrantController_approve[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve a pending personal terminal grant from the browser",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Approve a pending personal terminal grant from the browser. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/approve": {
+      "post": {
+        "operationId": "TerminalGrantController_approve[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve a pending personal terminal grant from the browser",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Approve a pending personal terminal grant from the browser. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/access": {
+      "post": {
+        "operationId": "TerminalGrantController_updateAccess[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalAccessDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set instance sharing and user/group ACL for an owned approved terminal",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Set instance sharing and user/group ACL for an owned approved terminal. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/access": {
+      "post": {
+        "operationId": "TerminalGrantController_updateAccess[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalAccessDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set instance sharing and user/group ACL for an owned approved terminal",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Set instance sharing and user/group ACL for an owned approved terminal. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/revoke": {
+      "post": {
+        "operationId": "TerminalGrantController_revoke[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantAuditDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a personal terminal grant and retain a bounded audit record",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Remove a personal terminal grant and retain a bounded audit record. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/revoke": {
+      "post": {
+        "operationId": "TerminalGrantController_revoke[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantAuditDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a personal terminal grant and retain a bounded audit record",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Remove a personal terminal grant and retain a bounded audit record. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
     "/api/v1/agents/memory/me/digest": {
       "get": {
         "operationId": "AgentMemoryController_getMyDigest",
@@ -19813,6 +21347,59 @@
         ],
         "summary": "Get an Agent run",
         "description": "Get an Agent run. The request enforces Agent roles, ownership, workspace boundaries, and lifecycle state.",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/agents/runs/{agentRunId}/report": {
+      "post": {
+        "description": "Stores the linked conversation and diagnostic evidence for an authorized run. Local runtimes return a short-lived signed download URL.",
+        "operationId": "AgentController_reportRunConversation",
+        "parameters": [
+          {
+            "name": "agentRunId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantThreadReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Local runtime only: signed report download URL.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantThreadReportResponseDto"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Report stored without download credentials."
+          },
+          "404": {
+            "description": "Run or linked conversation not found."
+          }
+        },
+        "summary": "Report an agent run conversation.",
+        "tags": [
+          "Agents"
+        ],
         "security": [
           {
             "bearer": []
@@ -21103,6 +22690,52 @@
         ]
       }
     },
+    "/api/v1/agents/{agentId}/generateAvatar": {
+      "post": {
+        "description": "Generate a square avatar with GPT Image 2.5 Flare and save it to the Agent. No Assistant thread or message is created.",
+        "operationId": "AgentController_generateAgentAvatar",
+        "parameters": [
+          {
+            "name": "agentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateAgentAvatarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Generated avatar saved to the Agent."
+          },
+          "429": {
+            "description": "Hourly avatar generation limit reached."
+          },
+          "502": {
+            "description": "Image generation provider failed."
+          }
+        },
+        "summary": "Generate an Agent avatar",
+        "tags": [
+          "Agents"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/agents/{agentId}/clearAvatar": {
       "post": {
         "operationId": "AgentController_clearAgentAvatar",
@@ -21578,6 +23211,57 @@
         ]
       }
     },
+    "/api/v1/agent/plugins/personal-vault-requirements": {
+      "get": {
+        "operationId": "AgentPluginController_listPersonalVaultRequirements",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active MCP plugins requesting a personal Vault binding",
+        "tags": [
+          "Agent Plugins"
+        ],
+        "description": "List active MCP plugins requesting a personal Vault binding. The request enforces Agent plugin roles, provider policy, and lifecycle state."
+      }
+    },
+    "/api/v1/agent/plugins/personal-vault-tools": {
+      "get": {
+        "operationId": "AgentPluginController_listPersonalVaultTools",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Find active component-backed Tools eligible for personal Vault access",
+        "tags": [
+          "Agent Plugins"
+        ],
+        "description": "Find active component-backed Tools eligible for personal Vault access. The request enforces Agent plugin roles, provider policy, and lifecycle state."
+      }
+    },
     "/api/v1/agent/plugins/delete": {
       "post": {
         "description": "Soft-deletes agent plugins while preserving their snapshots and historical metadata.",
@@ -21908,6 +23592,36 @@
         ]
       }
     },
+    "/api/v1/agent/plugins/{agentPluginId}/sync-personal": {
+      "post": {
+        "operationId": "AgentPluginController_syncPersonalMcpManifest",
+        "parameters": [
+          {
+            "name": "agentPluginId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Synchronize this account's personal MCP tools",
+        "tags": [
+          "Agent Plugins"
+        ],
+        "description": "Synchronize this account's personal MCP tools. The request enforces Agent plugin roles, provider policy, and lifecycle state."
+      }
+    },
     "/api/v1/agent/plugins/{agentPluginId}/restore": {
       "post": {
         "description": "Restores a soft-deleted agent plugin so it can be managed and used again.",
@@ -21936,6 +23650,82 @@
         "tags": [
           "Agent Plugins"
         ]
+      }
+    },
+    "/api/v1/avatars/generate": {
+      "post": {
+        "operationId": "AvatarMediaController_generate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateAgentAvatarDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WebP image as base64. Generation is recorded without an Assistant thread.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvatarImageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate an avatar image for an editable profile, group, Agent or plugin.",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Generate an avatar image for an editable profile, group, Agent or plugin. The request enforces Agent roles, ownership, workspace boundaries, and lifecycle state."
+      }
+    },
+    "/api/v1/avatars/import": {
+      "post": {
+        "operationId": "AvatarMediaController_importUrl",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportAvatarUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Source image as base64 with its content type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvatarImageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import a public HTTPS image for cropping and persistent avatar upload.",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Import a public HTTPS image for cropping and persistent avatar upload. The request enforces Agent roles, ownership, workspace boundaries, and lifecycle state."
       }
     },
     "/api/v1/share": {
@@ -22020,7 +23810,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.5.9",
+    "version": "1.6.2",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -22058,6 +23848,14 @@
       "externalDocs": {
         "description": "Agent plugins guide",
         "url": "https://docs.revoengine.com/ai/plugins"
+      }
+    },
+    {
+      "name": "Agent Terminals",
+      "description": "Terminal pairing, owner grants, access, and command activity.",
+      "externalDocs": {
+        "description": "Connect a terminal guide",
+        "url": "https://docs.revoengine.com/ai/terminals"
       }
     },
     {
@@ -22162,6 +23960,14 @@
       "externalDocs": {
         "description": "Groups guide",
         "url": "https://docs.revoengine.com/operate/groups"
+      }
+    },
+    {
+      "name": "Instance Vault",
+      "description": "Operations in the Instance Vault Platform API domain.",
+      "externalDocs": {
+        "description": "Secrets and Vault guide",
+        "url": "https://docs.revoengine.com/operate/secrets"
       }
     },
     {
@@ -22369,7 +24175,7 @@
           },
           "title": {
             "type": "string",
-            "example": "What’s new in RevoEngine 1.5.9"
+            "example": "What’s new in RevoEngine 1.6.2"
           },
           "highlights": {
             "example": [
@@ -22384,7 +24190,7 @@
           },
           "url": {
             "type": "string",
-            "example": "https://docs.revoengine.com/changelog/1.5.9",
+            "example": "https://docs.revoengine.com/changelog/1.6.2",
             "format": "uri"
           }
         },
@@ -22401,7 +24207,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.9"
+            "example": "1.6.2"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -22417,7 +24223,7 @@
         "properties": {
           "applicationVersion": {
             "type": "string",
-            "example": "1.5.9"
+            "example": "1.6.2"
           },
           "release": {
             "$ref": "#/components/schemas/ApplicationReleaseDto"
@@ -23506,6 +25312,63 @@
         "required": [
           "path",
           "method"
+        ]
+      },
+      "ComponentNavigationSearchItemDto": {
+        "type": "object",
+        "properties": {
+          "componentId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CODE_JS_LIB",
+              "CODE_TS_LIB",
+              "CODE_JS",
+              "CODE_TS",
+              "JSON_VALIDATOR",
+              "CUSTOM_NODEJS"
+            ]
+          },
+          "matchingElementKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "componentId",
+          "name",
+          "category",
+          "type",
+          "matchingElementKeys"
+        ]
+      },
+      "ComponentNavigationSearchPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentNavigationSearchItemDto"
+            }
+          },
+          "next": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "next"
         ]
       },
       "ComponentDigestMatchDto": {
@@ -25165,6 +27028,63 @@
           "data"
         ]
       },
+      "DatabaseImportPreviewDto": {
+        "type": "object",
+        "properties": {
+          "databaseName": {
+            "type": "string"
+          },
+          "storageEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "csv",
+              "tsv",
+              "ndjson",
+              "xlsx"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "upsert"
+            ]
+          },
+          "onError": {
+            "type": "string",
+            "enum": [
+              "abort",
+              "skipRow"
+            ]
+          },
+          "mapping": {
+            "type": "object",
+            "description": "Source column to target database and column; null skips a source column."
+          }
+        },
+        "required": [
+          "databaseName",
+          "storageEntryId",
+          "format",
+          "mode",
+          "onError"
+        ]
+      },
+      "DatabaseImportMappingDto": {
+        "type": "object",
+        "properties": {
+          "mapping": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "mapping"
+        ]
+      },
       "DatabaseReadDto": {
         "type": "object",
         "properties": {
@@ -26052,6 +27972,8 @@
             "description": "Output format. CSV remains the default; XLSX uses the native streaming Storage writer.",
             "enum": [
               "csv",
+              "tsv",
+              "ndjson",
               "xlsx"
             ],
             "example": "xlsx",
@@ -27410,6 +29332,26 @@
           "secret"
         ]
       },
+      "InstanceVaultIntegrationNameDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "StartInstanceVaultOAuthDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "DiscoverInstanceVaultOAuthDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "PutInstanceVaultOAuthDefinitionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CompleteInstanceVaultOAuthDto": {
+        "type": "object",
+        "properties": {}
+      },
       "CreateFileDto": {
         "type": "object",
         "properties": {
@@ -27521,6 +29463,29 @@
         "required": [
           "name"
         ]
+      },
+      "StorageTabularSchemaPolicyDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "string",
+            "description": "How missing sheets or columns and invalid declared values are handled. fallback retains imperfect data with diagnostics; strict fails structured indexing. Defaults to fallback.",
+            "enum": [
+              "fallback",
+              "strict"
+            ],
+            "default": "fallback"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "How undeclared source columns are handled. allow retains them, strip omits them from structured rows, and reject fails indexing. Defaults to allow for fallback and reject for strict. The raw file is preserved.",
+            "enum": [
+              "allow",
+              "strip",
+              "reject"
+            ]
+          }
+        }
       },
       "StorageCsvOptionsDto": {
         "type": "object",
@@ -27757,13 +29722,12 @@
             "example": "sync"
           },
           "schemaPolicy": {
-            "type": "string",
-            "description": "How an uploaded XLSX, CSV, or TSV is handled when its declared sheets, columns, or value types do not match the file. \"fallback\" preserves the file, applies every valid declared type, and keeps each incompatible whole column as string with diagnostics in fileStats. \"strict\" preserves the raw file but fails structured indexing with STORAGE_TABULAR_SCHEMA_MISMATCH. Defaults to \"fallback\".",
-            "enum": [
-              "fallback",
-              "strict"
-            ],
-            "default": "fallback"
+            "description": "Independent validation and undeclared-column policies for an uploaded XLSX, CSV, or TSV. Defaults to fallback validation with additional columns allowed; strict validation defaults to rejecting additional columns. The raw file is preserved.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StorageTabularSchemaPolicyDto"
+              }
+            ]
           },
           "writeMode": {
             "type": "string",
@@ -27798,6 +29762,10 @@
               "scope": "integration",
               "source": "sdk"
             }
+          },
+          "ignoreEvent": {
+            "type": "boolean",
+            "description": "Suppress Storage lifecycle events for the finalized file. Omit to preserve the existing setting on replacement; false explicitly enables events."
           },
           "refId": {
             "type": "string",
@@ -28003,6 +29971,10 @@
               "scope": "integration",
               "source": "put-object"
             }
+          },
+          "ignoreEvent": {
+            "type": "boolean",
+            "description": "Suppress Storage lifecycle events for this file. Omit to preserve the existing setting on replacement; false explicitly enables events."
           },
           "tier": {
             "type": "string",
@@ -29596,6 +31568,19 @@
           }
         }
       },
+      "AssistantThreadReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "downloadUrl": {
+            "type": "string",
+            "description": "Short-lived signed download URL returned only by an API process running with ENV=local.",
+            "example": "https://storage.googleapis.com/example/report.txt?X-Goog-Signature=..."
+          }
+        },
+        "required": [
+          "downloadUrl"
+        ]
+      },
       "ForkThreadDto": {
         "type": "object",
         "properties": {
@@ -29755,6 +31740,7 @@
               "SECRETS",
               "REVISIONS",
               "DATABASES",
+              "DATABASE_OPERATIONS",
               "DATABASE_VIEWS",
               "DATA",
               "DATA_ITEMS",
@@ -29766,7 +31752,9 @@
               "JOBS",
               "AGENTS",
               "AGENT_RUNS",
+              "AGENT_INBOX",
               "AGENT_PLUGINS",
+              "AGENT_TERMINALS",
               "WEBHOOKS",
               "COMPONENTS",
               "COMPONENT_ELEMENTS",
@@ -30276,6 +32264,618 @@
           }
         }
       },
+      "TerminalGrantDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastOnlineAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "online": {
+            "type": "boolean"
+          },
+          "connectionIp": {
+            "type": "string",
+            "nullable": true,
+            "description": "Gateway-observed IP of the active runner, visible only to its owner."
+          },
+          "canManage": {
+            "type": "boolean"
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastUpdateAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastUpdateBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "ownerUserId",
+          "name",
+          "workspace",
+          "status",
+          "mode",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "restricted",
+          "users",
+          "groups"
+        ]
+      },
+      "TerminalGrantAuditDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          },
+          "pairedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastOnlineAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "revokedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "ownerUserId",
+          "name",
+          "mode",
+          "pairedAt",
+          "revokedAt"
+        ]
+      },
+      "TerminalGrantListDto": {
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalGrantDto"
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalGrantAuditDto"
+            }
+          }
+        },
+        "required": [
+          "devices",
+          "history"
+        ]
+      },
+      "TerminalGrantGridDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalGrantDto"
+            }
+          },
+          "results": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "next": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "results",
+          "total",
+          "next"
+        ]
+      },
+      "PairTerminalDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Legacy runner alias."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "workspace": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "secretHash": {
+            "type": "string",
+            "description": "SHA-256 digest of the random device secret, encoded as 64 hex characters."
+          }
+        },
+        "required": [
+          "name",
+          "workspace",
+          "secretHash"
+        ]
+      },
+      "TerminalActivitySummaryDto": {
+        "type": "object",
+        "properties": {
+          "activityId": {
+            "type": "string",
+            "description": "Monotonic cursor, returned as a decimal string."
+          },
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorMail": {
+            "type": "string",
+            "nullable": true
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "executionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "targetExecutionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "runner_connected",
+              "runner_disconnected",
+              "chat_connected",
+              "chat_disconnected",
+              "command",
+              "command_cancel",
+              "grant_paired",
+              "grant_approved",
+              "grant_updated",
+              "grant_removed"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "grantRevision": {
+            "type": "number"
+          },
+          "grantMode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "permissionPolicy": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientIp": {
+            "type": "string",
+            "nullable": true
+          },
+          "command": {
+            "type": "string",
+            "nullable": true
+          },
+          "workdir": {
+            "type": "string",
+            "nullable": true
+          },
+          "outputCursor": {
+            "type": "number"
+          },
+          "executed": {
+            "type": "boolean"
+          },
+          "exitCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "timedOut": {
+            "type": "boolean"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "logTruncated": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "finishedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "before": {},
+                "after": {}
+              }
+            },
+            "description": "Configuration diff for grant activity. Commands do not include changes."
+          }
+        },
+        "required": [
+          "activityId",
+          "agentTerminalId",
+          "ownerUserId",
+          "actorUserId",
+          "kind",
+          "status",
+          "grantRevision",
+          "grantMode",
+          "restricted",
+          "outputCursor",
+          "executed",
+          "timedOut",
+          "cancelled",
+          "truncated",
+          "logTruncated",
+          "createdAt"
+        ]
+      },
+      "TerminalActivityListDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalActivitySummaryDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Pass this value as cursor to read the next page."
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "TerminalActivityDto": {
+        "type": "object",
+        "properties": {
+          "activityId": {
+            "type": "string",
+            "description": "Monotonic cursor, returned as a decimal string."
+          },
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorMail": {
+            "type": "string",
+            "nullable": true
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "connectionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "executionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "targetExecutionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "runner_connected",
+              "runner_disconnected",
+              "chat_connected",
+              "chat_disconnected",
+              "command",
+              "command_cancel",
+              "grant_paired",
+              "grant_approved",
+              "grant_updated",
+              "grant_removed"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "grantRevision": {
+            "type": "number"
+          },
+          "grantMode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "permissionPolicy": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientIp": {
+            "type": "string",
+            "nullable": true
+          },
+          "command": {
+            "type": "string",
+            "nullable": true
+          },
+          "workdir": {
+            "type": "string",
+            "nullable": true
+          },
+          "outputCursor": {
+            "type": "number"
+          },
+          "executed": {
+            "type": "boolean"
+          },
+          "exitCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "timedOut": {
+            "type": "boolean"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "logTruncated": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "finishedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "before": {},
+                "after": {}
+              }
+            },
+            "description": "Configuration diff for grant activity. Commands do not include changes."
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "activityId",
+          "agentTerminalId",
+          "ownerUserId",
+          "actorUserId",
+          "kind",
+          "status",
+          "grantRevision",
+          "grantMode",
+          "restricted",
+          "outputCursor",
+          "executed",
+          "timedOut",
+          "cancelled",
+          "truncated",
+          "logTruncated",
+          "createdAt",
+          "stdout",
+          "stderr"
+        ]
+      },
+      "ApproveTerminalDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "TerminalAccessDto": {
+        "type": "object",
+        "properties": {
+          "restricted": {
+            "type": "boolean"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "restricted",
+          "users",
+          "groups"
+        ]
+      },
       "UpsertUserMemoryDigestDto": {
         "type": "object",
         "properties": {
@@ -30753,6 +33353,59 @@
           }
         }
       },
+      "AgentPluginMcpVaultRefDto": {
+        "type": "object",
+        "properties": {
+          "__revoBoundValue": {
+            "type": "string",
+            "enum": [
+              "vault-v1"
+            ],
+            "description": "Opaque Vault reference marker."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "Credential requirement name declared by the plugin."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "instance",
+              "user",
+              "organization"
+            ],
+            "description": "Credential owner scope."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "secret",
+              "integration"
+            ],
+            "description": "Vault value source."
+          },
+          "prefix": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "Literal text prepended to the resolved value."
+          },
+          "suffix": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "Literal text appended to the resolved value."
+          }
+        },
+        "required": [
+          "__revoBoundValue",
+          "name",
+          "scope",
+          "source",
+          "prefix",
+          "suffix"
+        ]
+      },
       "AgentPluginMcpHeaderBindingDto": {
         "type": "object",
         "properties": {
@@ -30760,6 +33413,14 @@
             "type": "string",
             "description": "Header name sent to the remote MCP server.",
             "minLength": 1
+          },
+          "vault": {
+            "description": "Vault BoundValue resolved for the executing user, organization, or instance after an explicit grant.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentPluginMcpVaultRefDto"
+              }
+            ]
           },
           "secretId": {
             "type": "string",
@@ -30797,7 +33458,14 @@
           },
           "url": {
             "type": "string",
-            "description": "Absolute HTTPS endpoint for the remote MCP server."
+            "description": "Absolute public HTTPS MCP endpoint URL. Private and localhost destinations are blocked at connection time."
+          },
+          "networkAccess": {
+            "type": "string",
+            "description": "Public HTTPS network policy. Legacy private values are restricted to public HTTPS at execution time.",
+            "enum": [
+              "public"
+            ]
           },
           "manifestTtlMs": {
             "type": "number",
@@ -32531,6 +35199,68 @@
             "description": "New user instruction appended to the durable Agent session as a successor run.",
             "example": "Now compare the result with the previous month and update the recommendation.",
             "minLength": 1
+          },
+          "storageEntryIds": {
+            "description": "Finalized Storage files attached to the continuation message.",
+            "maxItems": 8,
+            "example": [
+              "44444444-4444-4444-8444-444444444444"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pluginIds": {
+            "description": "Registry plugins attached to the successor run.",
+            "maxItems": 32,
+            "example": [
+              "55555555-5555-4555-8555-555555555555"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "model": {
+            "type": "string",
+            "description": "Optional model override for the successor run.",
+            "enum": [
+              "gpt-6-sol",
+              "gpt-6-luna"
+            ],
+            "example": "gpt-6-sol"
+          },
+          "reasoningEffort": {
+            "type": "string",
+            "description": "Optional reasoning effort override for the successor run.",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "example": "medium"
+          },
+          "planningPolicy": {
+            "type": "string",
+            "description": "Optional planning policy override for the successor run.",
+            "enum": [
+              "standard",
+              "review_required"
+            ],
+            "example": "standard"
+          },
+          "fastMode": {
+            "type": "boolean",
+            "description": "Enable fast mode for the successor run.",
+            "example": true
+          },
+          "backgroundProcessing": {
+            "type": "boolean",
+            "description": "Process the successor run in the background.",
+            "example": true
           }
         },
         "required": [
@@ -32784,6 +35514,20 @@
             "minimum": 0
           }
         }
+      },
+      "GenerateAgentAvatarDto": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Description of the avatar to generate. Do not include credentials or other secrets.",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "prompt"
+        ]
       },
       "RunAgentDto": {
         "type": "object",
@@ -33078,8 +35822,7 @@
         },
         "required": [
           "id",
-          "name",
-          "componentId"
+          "name"
         ]
       },
       "UpdateAgentPluginApprovalPolicyDto": {
@@ -33341,6 +36084,41 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "AvatarImageResponseDto": {
+        "type": "object",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "image/png",
+              "image/jpeg",
+              "image/gif",
+              "image/webp"
+            ]
+          },
+          "imageBase64": {
+            "type": "string",
+            "description": "Base64-encoded image bytes."
+          }
+        },
+        "required": [
+          "contentType",
+          "imageBase64"
+        ]
+      },
+      "ImportAvatarUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Public HTTPS image URL.",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "url"
         ]
       },
       "CreateShareDto": {

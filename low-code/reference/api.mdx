@@ -8,11 +8,14 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **66 methods**. Search the docs for an exact method name, or use this index:
+This page contains **67 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
 - [`api.exportDatabase()`](#api-exportDatabase)
+- [`api.importDatabase()`](#api-importDatabase)
+- [`api.updateDatabaseImportMapping()`](#api-updateDatabaseImportMapping)
+- [`api.commitDatabaseImport()`](#api-commitDatabaseImport)
 - [`api.updateDatabase()`](#api-updateDatabase)
 - [`api.deleteDatabase()`](#api-deleteDatabase)
 - [`api.restoreDatabase()`](#api-restoreDatabase)
@@ -48,8 +51,6 @@ This page contains **66 methods**. Search the docs for an exact method name, or 
 - [`api.getCurrentInstance()`](#api-getCurrentInstance)
 - [`api.getInstanceData()`](#api-getInstanceData)
 - [`api.getInstanceDetails()`](#api-getInstanceDetails)
-- [`api.getSecret()`](#api-getSecret)
-- [`api.getSecrets()`](#api-getSecrets)
 - [`api.publishMessage()`](#api-publishMessage)
 - [`api.getInstanceCache()`](#api-getInstanceCache)
 - [`api.setInstanceCache()`](#api-setInstanceCache)
@@ -151,7 +152,7 @@ return result.databases;
 
 ## `api.exportDatabase()`
 
-Exports a logical table, saved view, or materialized view by name directly into Storage as CSV or XLSX.
+Exports a logical table, saved view, or materialized view by name directly into Storage as CSV, TSV, NDJSON, or XLSX.
 The root and every structured join may independently target any of these relation types.
 
 Notes:
@@ -161,7 +162,7 @@ Notes:
 - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
-- Low-code exports currently complete synchronously; omit `async` or set it to `false`.
+- By default the call completes synchronously in its current runtime. Set `async: true` to queue it on Processor and receive a jobId.
 - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
   or provide an accessible Explorer folder storageEntryId.
 
@@ -194,6 +195,41 @@ const result = await api.exportDatabase('contracts', {
 return result.storageEntryId;
 ```
 
+<span id="api-importDatabase" aria-hidden="true"></span>
+
+## `api.importDatabase()`
+
+Validates a Storage file against current Database definitions and creates an import operation.
+
+### Signature
+
+```ts
+static importDatabase(name: string, options: ImportDatabaseOptions): Promise<{ importId: string; jobId: string; status: string }>;
+```
+<span id="api-updateDatabaseImportMapping" aria-hidden="true"></span>
+
+## `api.updateDatabaseImportMapping()`
+
+Revalidates a corrected source-to-target mapping.
+
+### Signature
+
+```ts
+static updateDatabaseImportMapping(
+      importId: string, mapping: NonNullable<ImportDatabaseOptions['mapping']>,
+    ): Promise<{ importId: string; status: string }>;
+```
+<span id="api-commitDatabaseImport" aria-hidden="true"></span>
+
+## `api.commitDatabaseImport()`
+
+Starts the transactional write after a reviewed preview.
+
+### Signature
+
+```ts
+static commitDatabaseImport(importId: string): Promise<{ importId: string; status: string }>;
+```
 <span id="api-updateDatabase" aria-hidden="true"></span>
 
 ## `api.updateDatabase()`
@@ -543,7 +579,7 @@ Notes:
 ### Signature
 
 ```ts
-static deleteDatabaseData(name: string, data: ResourceItem[]): Promise<any>;
+static deleteDatabaseData(name: string, data: LooseObject<any>[]): Promise<any>;
 ```
 ### Example
 
@@ -1006,43 +1042,6 @@ static getInstanceDetails(): InstanceDetails;
 
 ```ts
 const details = api.getInstanceDetails();
-```
-
-<span id="api-getSecret" aria-hidden="true"></span>
-
-## `api.getSecret()`
-
-Resolves a single secret value by name.
-
-### Signature
-
-```ts
-static getSecret(name: string): Promise<string>;
-```
-### Example
-
-```ts
-const apiKey = await api.getSecret('CRM_API_KEY');
-```
-
-<span id="api-getSecrets" aria-hidden="true"></span>
-
-## `api.getSecrets()`
-
-Resolves multiple secret values by name.
-
-### Signature
-
-```ts
-static getSecrets(name: string[]): Promise<{ [key: string]: string }>;
-```
-### Example
-
-```ts
-const secrets = await api.getSecrets([
-  'CRM_API_KEY',
-  'CRM_API_URL',
-]);
 ```
 
 <span id="api-publishMessage" aria-hidden="true"></span>
