@@ -18,6 +18,8 @@ Use an MCP server plugin when:
 
 Use a [component tool plugin](/ai/plugins#component-tools) when the business operation should be implemented, versioned, executed, and observed entirely inside RevoEngine.
 
+Before creating a plugin, check whether the provider currently publishes an official public MCP endpoint and whether your instance already has a registration for that exact server. For a private or self-hosted server, use the endpoint and setup instructions supplied by its owner. A request to connect an external service may instead call for an Endpoint, Job or Webhook; choose the workflow by the action the user needs.
+
 ## Configuration model
 
 | Setting | Contract |
@@ -38,7 +40,7 @@ Use the generated [Platform API reference](/api-reference/introduction) for the 
 
 Bearer tokens, basic-auth passwords, and sensitive custom headers must use a governed Vault binding. Instance Secrets remain supported. A remote MCP header can also bind a personal Secret or connected OAuth account, selected by the executing user's explicit grant. Instance-owned connected accounts are available for shared service identity. An organization-scoped reference is recognized by the runtime when an organization grant has been provisioned; the current Vault screen does not offer self-service organization grants.
 
-The account owner first connects and consents at the provider, then grants the named value to this Agent plugin. Plugin admission and per-tool approval remain separate. See [Vault and connected accounts](/operate/vault) for the complete flow.
+The account owner first connects and consents at the provider, then grants the named value to this Agent plugin. A personal manifest is synchronized after the grant; if tools are still missing or stale, the authorized account can request another personal synchronization. Connecting or granting alone does not attach the plugin to a conversation. Plugin admission and per-tool approval remain separate. See [Vault and connected accounts](/operate/vault) for the complete flow.
 
 Non-sensitive static header values are supported, but do not use that field to avoid Secret governance.
 
@@ -50,7 +52,7 @@ Non-sensitive static header values are supported, but do not use that field to a
 
 <Steps>
   <Step title="Create the connection definition">
-    Select the transport, HTTPS endpoint, bounded timeout, authentication mode, and Secret bindings. Keep the plugin disabled for general use.
+    Select the transport, HTTPS endpoint, bounded timeout, authentication mode, and Secret bindings. Keep discovered operations deferred and under a conservative approval policy until their exact schemas and effects have been reviewed.
   </Step>
   <Step title="Test connectivity">
     Authenticate and initialize the remote server. A successful connection test proves reachability and handshake compatibility; it does not approve every discovered tool.
@@ -84,7 +86,7 @@ Each discovered tool can override:
 - reversibility and affected target scope;
 - a concise side-effect summary shown during review.
 
-Remote metadata is evidence supplied by another server, not a substitute for administrator review. RevoEngine policy should describe the real operation even when the remote manifest understates its side effects.
+Remote metadata is evidence supplied by another server, not a substitute for authorized operator review. RevoEngine policy should describe the real operation even when the remote manifest understates its side effects.
 
 ## Manifest changes
 

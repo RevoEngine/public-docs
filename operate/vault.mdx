@@ -22,7 +22,7 @@ An unattended process without a verified personal identity should use an instanc
 2. Add a connection. Enter the remote MCP server URL and the permissions the integration needs. Where the provider advertises more than one authorization server, choose the intended server.
 3. Review discovered authorization details. Some providers support dynamic client registration; others require you to register an application with the provider and enter its client ID. Follow the redirect address shown in Vault when registering your own client.
 4. Select **Connect**, review the provider's consent screen, and authorize the requested access there. RevoEngine returns to Vault and shows the connection status.
-5. Grant that connection to the exact Component or Agent plugin that needs it. Connecting the external account alone does not attach it to every workload.
+5. Grant that connection to the exact Component or Agent plugin that needs it. When starting from a configured MCP plugin, Vault can prefill the plugin endpoint and suggested connection name. Connecting the external account alone does not attach it to every workload.
 6. Test a read operation through the real execution path before enabling writes or broader Agent access.
 
 This flow works with compatible OAuth authorization servers, including providers that publish OIDC discovery metadata. Provider-specific registration, scopes, consent policy, and remote MCP behavior may still be required. A successful provider sign-in proves the account connection; it does not approve each Agent action or override RevoEngine permissions.
@@ -54,14 +54,14 @@ Personal and organization values require an explicit grant to the exact saved co
 
 A Component-backed Agent tool can use the same bound HTTP header inside its saved Component. A remote MCP server plugin instead declares a governed Vault binding for the relevant outbound header in its server configuration. RevoEngine resolves that binding for the executing identity when it connects to the remote server; the model sees the tool contract, not the credential value.
 
-For a personal credential, the owner must grant the plugin the requested Vault name and source. Organization values require an organization grant before they can be resolved. An administrator must also review the remote server's discovered tools, enable the intended operations, and set their approval policy. These are separate decisions: an account connection or Vault grant alone does not authorize a remote tool call.
+For a personal credential, the owner must grant the plugin the requested Vault name and source. Organization values require an organization grant before they can be resolved. An authorized operator also reviews the remote server's discovered tools, enables the intended operations, and sets their approval policy. These are separate decisions: an account connection or Vault grant alone does not authorize a remote tool call.
 
 An instance connection represents a shared account. Use a personal connection when the remote action must reflect the current user's identity. The remote provider's own consent and permissions still apply in either case.
 
 ## Rotate, revoke, and diagnose
 
 - Rotate a Secret by activating a new revision under its stable name. Review external access before disabling the old value.
-- Disconnect an external account or remove its grant when a workload should stop using it. Reconnects may require a new grant; a Component code update retains its identity and grant, so review the changed code before it runs again.
+- Disconnect an external account or remove its grant when a workload should stop using it. The owner can delete a disconnected personal connection or a personal connection definition that was never connected; deletion removes its saved credentials and revokes grants for that connection. An active connection must be disconnected first. Reconnects may require a new grant; a Component code update retains its identity and grant, so review the changed code before it runs again.
 - If a call fails, check the owner's scope, the exact requested name, the saved consumer identity, provider consent, and the workload's real execution identity. A missing or ambiguous binding fails rather than falling back to a value embedded in code.
 - Keep credential values out of prompts, metadata, logs, and saved plugin descriptions. Use sanitized execution and connection status for investigation.
 

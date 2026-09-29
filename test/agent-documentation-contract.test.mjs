@@ -15,8 +15,20 @@ test('Agent documentation separates product modes and states the current executi
   assert.match(harness, /does \*\*not\*\* promise an unrestricted host shell/);
   assert.match(comparison, /user-approved terminal on a computer or virtual machine/);
   assert.match(comparison, /does not create a managed VM automatically/);
-  assert.match(terminals, /owner must select \*\*Approve with review\*\* or \*\*Full access\*\*/);
-  assert.match(terminals, /workspace is the starting directory, not a filesystem sandbox/);
+  assert.match(terminals, /\*\*Workspace Access\*\* is the default command permission/);
+  assert.match(terminals, /saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode/);
+  assert.match(terminals, /runner checks the current grants before each dispatch/);
+  for (const mode of ['Workspace Access', 'Full Access', 'No Network', 'Local Access', 'Full Network Access']) {
+    assert.match(terminals, new RegExp(`\\*\\*${mode}\\*\\*`));
+  }
+  assert.match(terminals, /Workspace Access with a temporary exception/);
+  assert.match(terminals, /two independent controls/);
+  assert.match(terminals, /system and toolchain files needed to run programs/);
+  assert.match(terminals, /can read, change, or delete anything the runner's operating-system account can access/);
+  assert.doesNotMatch(terminals, /Codex|ChatGPT/i);
+  assert.match(terminals, /\*\*15 minutes\*\* or \*\*one hour\*\*/);
+  assert.match(terminals, /not included in the model-visible tool call/);
+  assert.doesNotMatch(terminals, /eight hours|remembered approval/i);
   assert.match(comparison, /OpenAI Codex/);
   assert.match(comparison, /Claude Code/);
 });

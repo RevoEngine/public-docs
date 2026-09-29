@@ -18992,6 +18992,75 @@
         ]
       }
     },
+    "/api/v1/assistant/threads/{id}/actions/{actionId}/browser-credential": {
+      "post": {
+        "operationId": "AssistantController_submitBrowserCredential",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "One-time credential delivery to the connected browser. The value is never added to assistant messages, action resolution, or tool arguments.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requestId",
+                  "value"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096,
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secure browser input submitted and the assistant turn resumed."
+          },
+          "400": {
+            "description": "The input request is invalid, expired, or already submitted."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit a one-time browser credential without persisting the value.",
+        "tags": [
+          "Assistant"
+        ],
+        "description": "Submit a one-time browser credential without persisting the value. The request is scoped to Assistant threads and content accessible to the authenticated caller."
+      }
+    },
     "/api/v1/assistant/threads/{id}/actions/{actionId}/resolve/stream": {
       "post": {
         "description": "Resolve a pending action and stream the resumed assistant turn as server-sent events.",
@@ -19812,6 +19881,80 @@
         "description": "Get one terminal activity entry with bounded stdout and stderr. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
       }
     },
+    "/api/v1/agents/terminals/activity/execution/{executionId}": {
+      "get": {
+        "operationId": "TerminalGrantController_executionActivity[0]",
+        "parameters": [
+          {
+            "name": "executionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current bounded shell output for one execution",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Get the current bounded shell output for one execution. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/activity/execution/{executionId}": {
+      "get": {
+        "operationId": "TerminalGrantController_executionActivity[1]",
+        "parameters": [
+          {
+            "name": "executionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalActivityDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current bounded shell output for one execution",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Get the current bounded shell output for one execution. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
     "/api/v1/agents/terminals/{agentTerminalId}/approve": {
       "post": {
         "operationId": "TerminalGrantController_approve[0]",
@@ -19904,6 +20047,194 @@
           "Agent Terminals"
         ],
         "description": "Approve a pending personal terminal grant from the browser. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/mode": {
+      "post": {
+        "operationId": "TerminalGrantController_updateMode[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change command review mode for an approved terminal without disconnecting it",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Change command review mode for an approved terminal without disconnecting it. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/mode": {
+      "post": {
+        "operationId": "TerminalGrantController_updateMode[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change command review mode for an approved terminal without disconnecting it",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Change command review mode for an approved terminal without disconnecting it. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/network-mode": {
+      "post": {
+        "operationId": "TerminalGrantController_updateNetworkMode[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalNetworkModeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change network permission for an approved terminal without disconnecting it",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Change network permission for an approved terminal without disconnecting it. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/network-mode": {
+      "post": {
+        "operationId": "TerminalGrantController_updateNetworkMode[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalNetworkModeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change network permission for an approved terminal without disconnecting it",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Change network permission for an approved terminal without disconnecting it. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
       }
     },
     "/api/v1/agents/terminals/{agentTerminalId}/access": {
@@ -24241,6 +24572,41 @@
           "releases"
         ]
       },
+      "AssistantThreadGroupDto": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "description": "Instance ID or route slug containing the grouped threads.",
+            "maxLength": 100
+          },
+          "id": {
+            "type": "string",
+            "description": "Stable personal group identifier.",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible group label.",
+            "maxLength": 80
+          },
+          "threadIds": {
+            "description": "Ordered assistant thread IDs assigned to this group.",
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "instanceId",
+          "id",
+          "name",
+          "threadIds"
+        ]
+      },
       "AssistantAppPreferencesDto": {
         "type": "object",
         "properties": {
@@ -24294,6 +24660,15 @@
       "AppPreferencesDto": {
         "type": "object",
         "properties": {
+          "assistantThreadGroups": {
+            "description": "Ordered personal AI thread groups and their ordered thread IDs, scoped to an instance.",
+            "maxItems": 50,
+            "example": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistantThreadGroupDto"
+            }
+          },
           "disableChangeConfirmation": {
             "type": "boolean",
             "description": "Skips the general unsaved-changes confirmation dialog in the app UI.",
@@ -24330,6 +24705,92 @@
             "example": 7,
             "minimum": 1,
             "maximum": 7
+          },
+          "studioFontSize": {
+            "type": "number",
+            "description": "Font size in pixels for Monaco editors.",
+            "example": 14,
+            "minimum": 10,
+            "maximum": 24
+          },
+          "studioWordWrap": {
+            "type": "string",
+            "description": "Word wrapping in Monaco editors.",
+            "enum": [
+              "off",
+              "on"
+            ],
+            "example": "on"
+          },
+          "studioMinimap": {
+            "type": "boolean",
+            "description": "Shows the Monaco minimap.",
+            "example": false
+          },
+          "studioLineNumbers": {
+            "type": "boolean",
+            "description": "Shows line numbers in Monaco editors.",
+            "example": true
+          },
+          "studioLineNumberMode": {
+            "type": "string",
+            "description": "Line number display mode in Monaco editors.",
+            "enum": [
+              "default",
+              "on",
+              "off",
+              "relative"
+            ],
+            "example": "relative"
+          },
+          "studioFontFamily": {
+            "type": "string",
+            "description": "Preferred locally installed Monaco monospace font.",
+            "enum": [
+              "default",
+              "menlo",
+              "consolas",
+              "monaco",
+              "courier-new"
+            ],
+            "example": "menlo"
+          },
+          "studioFontLigatures": {
+            "type": "boolean",
+            "description": "Enables font ligatures in Monaco editors.",
+            "example": false
+          },
+          "studioRenderWhitespace": {
+            "type": "string",
+            "description": "Whitespace display mode in Monaco editors.",
+            "enum": [
+              "default",
+              "none",
+              "selection",
+              "all"
+            ],
+            "example": "all"
+          },
+          "studioTabSize": {
+            "type": "string",
+            "description": "Tab width in Monaco models; default preserves each model setting.",
+            "enum": [
+              "default",
+              "2",
+              "4",
+              "8"
+            ],
+            "example": "2"
+          },
+          "studioIndentation": {
+            "type": "string",
+            "description": "Indentation characters in Monaco models; default preserves each model setting.",
+            "enum": [
+              "default",
+              "spaces",
+              "tabs"
+            ],
+            "example": "spaces"
           },
           "assistant": {
             "description": "Assistant-specific UI preferences stored on the global account.",
@@ -32295,8 +32756,20 @@
               "full"
             ]
           },
+          "networkMode": {
+            "type": "string",
+            "enum": [
+              "restricted",
+              "sandbox",
+              "external"
+            ]
+          },
           "revision": {
             "type": "number"
+          },
+          "connectionRevision": {
+            "type": "number",
+            "description": "Runner and conversation connection epoch; command review mode edits keep it unchanged."
           },
           "createdAt": {
             "format": "date-time",
@@ -32360,7 +32833,9 @@
           "workspace",
           "status",
           "mode",
+          "networkMode",
           "revision",
+          "connectionRevision",
           "createdAt",
           "updatedAt",
           "restricted",
@@ -32546,6 +33021,7 @@
               "chat_disconnected",
               "command",
               "command_cancel",
+              "command_input",
               "grant_paired",
               "grant_approved",
               "grant_updated",
@@ -32723,6 +33199,7 @@
               "chat_disconnected",
               "command",
               "command_cancel",
+              "command_input",
               "grant_paired",
               "grant_approved",
               "grant_updated",
@@ -32811,6 +33288,11 @@
           },
           "stderr": {
             "type": "string"
+          },
+          "refToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Runner reference for an execution while its grant exists."
           }
         },
         "required": [
@@ -32847,6 +33329,22 @@
         },
         "required": [
           "mode"
+        ]
+      },
+      "TerminalNetworkModeDto": {
+        "type": "object",
+        "properties": {
+          "networkMode": {
+            "type": "string",
+            "enum": [
+              "restricted",
+              "sandbox",
+              "external"
+            ]
+          }
+        },
+        "required": [
+          "networkMode"
         ]
       },
       "TerminalAccessDto": {

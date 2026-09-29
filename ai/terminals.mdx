@@ -1,56 +1,99 @@
 ---
 title: Connect a terminal
-description: Let an Assistant work in an approved computer or virtual machine under the access its owner grants.
+description: Give an Assistant controlled access to a macOS or Linux workspace through your own runner.
 icon: terminal
 ---
 
-An approved terminal lets an Interactive Agent run commands in a connected macOS or Linux environment. The environment can be your computer, a virtual machine, or a sandbox you manage that can run the CLI. The same pairing and owner approval apply in each case. RevoEngine's managed Sandbox remains a separate execution environment for Components and debugging.
+An approved terminal lets an Interactive Agent run commands in a connected macOS or Linux environment. The runner can be your computer or a virtual machine running the RevoEngine CLI. The owner approves the terminal before a conversation can use it. Commands run with the runner's operating-system account; its permissions remain an outer limit.
 
-## How access is granted
+## Connect a workspace
 
-1. Install the [RevoEngine CLI](/developers/cli) in the environment you want to connect and sign in with your personal API key.
-2. Choose an existing workspace directory and run `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"`. The terminal appears as a pending request in **AI Agents → Terminals**.
-3. In a signed-in browser session, inspect the terminal name and workspace. The owner must select **Approve with review** or **Full access**. Pairing from the CLI alone does not authorize commands.
-4. Keep the CLI connection running. Open an Assistant conversation and ask it to connect the approved terminal to that conversation. **Terminals** in the Composer menu opens the access settings.
-5. Ask the Assistant to work on a specific task. Review proposed commands when prompted, then inspect their output and the resulting files or state.
+1. Install the [RevoEngine CLI](/developers/cli) on the runner and sign in with a personal API key.
+2. Choose an existing directory and run `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"`.
+3. Open **AI Agents → Terminals** in the browser and approve the pending terminal. **Workspace Access** is the default command permission. CLI pairing alone does not authorize commands.
+4. Keep the CLI connection running, or install its per-user background service. In the Assistant conversation, select **Terminals** in Composer and connect the approved runner.
+5. Describe the outcome you want. The Assistant can run workspace commands, inspect output, edit files, install packages and run tests within the permission boundaries below.
 
-The connection is personal by default. The owner can grant access to named users, groups, or the instance in terminal settings. A shared terminal still runs under the operating-system identity of its runner.
+The owner can share an approved terminal with selected users, groups, or the instance. Sharing does not change the runner's operating-system account. A conversation can connect multiple approved terminals; its activity shows which runner handled a command.
+
+## Permissions
+
+Terminal permissions have two independent controls in **AI Agents → Terminals → Permissions**. The owner can change either setting while the runner is connected. The runner checks the current grants before each dispatch and stops work that loses required access. The terminal's **Full Access** command setting is separate from the Composer permission mode with the same name.
+
+### Commands
+
+| Setting | Access |
+| --- | --- |
+| **Workspace Access** (default) | Runs ordinary commands, builds, tests, and edits inside the selected workspace. Writes outside it and host-level actions are blocked unless you approve an exception. |
+| **Workspace Access with a temporary exception** | Keeps Workspace Access as the saved setting. An approval permits the requested host-level action once, or permits host-level actions in this chat on this terminal for 15 minutes or one hour. The approved host action can access files outside the workspace. |
+| **Full Access** | Allows the Assistant to explicitly request host-level commands without another command-scope approval. Those commands can read, change, or delete anything the runner's operating-system account can access, including files outside the workspace. This setting does not grant network access by itself. |
+
+### Networking
+
+| Setting | Access |
+| --- | --- |
+| **No Network** | Commands and Browser cannot connect even to localhost unless you approve a temporary network exception. |
+| **Local Access** (default) | Permits supported connections to services on the runner's localhost. Internet and other LAN hosts require a temporary network exception. |
+| **Full Network Access** | Permits connections to addresses the runner can reach, including the internet and LAN, without another network-scope approval. It does not grant access to files outside the workspace. |
+
+The Assistant requests the command scope and network scope needed for each action. A broader saved grant does not automatically turn an ordinary workspace command into a host command or add network access. For example, **Workspace Access + Full Network Access** can download dependencies and write inside the workspace, but cannot write elsewhere. **Full Access + No Network** permits a requested host-level command to access files available to the runner account, while blocking its network connections. A temporary exception can broaden either dimension without changing the saved settings.
+
+### How the sandbox works
+
+The **workspace** is the directory selected when connecting the CLI runner. Commands execute on that computer or VM, not in a separate RevoEngine-hosted filesystem. For a workspace command, the runner checks the working directory and launches the process with operating-system-enforced file and network restrictions. It can write in the workspace and a temporary working area; the restrictions block writes elsewhere. It can also read the system and toolchain files needed to run programs, so Workspace Access is not a promise that every file outside the workspace is unreadable. Files reached through links remain subject to the boundary. Child processes inherit these restrictions.
+
+On macOS, supported workspace shell actions can connect to localhost under **Local Access**. On Linux, the workspace shell remains isolated from host localhost; the local Browser action is available. Host commands with **Local Access** are unavailable on Linux until that boundary can be enforced. If the runner cannot enforce a required boundary, it rejects the action. Browser actions have their own controlled execution path and follow the networking grant.
+
+**Full Access** removes the workspace file boundary for a host-level command; it does not elevate the runner's operating-system account. Use a dedicated account or VM if the runner has access to other projects, personal files, or credentials. With **Full Network Access** as well, a host-level command can reach external services and transmit data available to that account.
+
+## Approvals for elevated actions
+
+The Assistant explains why an action needs host-level commands or more network access. Under **Restricted** Composer, you decide directly. Under **Auto Review** or **Full Access**, RevoShield first assesses the exact action against your request and sends it to you if it cannot safely approve it. A saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode. Destructive commands and secret access may still require separate review.
+
+When your decision is needed, you can approve the exact invocation once or grant the missing command or network scope for **15 minutes** or **one hour** on this chat and device. A temporary grant does not change the terminal's permanent settings or authorize a different action after a one-time approval. It ends at expiry, explicit chat disconnect, or a change to the device grant. A short runner reconnect can preserve a still-valid temporary grant for the same chat and device. The runner checks authorization again before input or another action; work requiring an expired or revoked scope is stopped.
+
+The approval shows the proposed command or Browser action and the reason for elevation. Terminal activity in the conversation shows the runner, command, output, and execution status. Ordinary workspace actions within the available grants do not create an approval prompt for every read, edit, or test.
 
 <Warning>
-  The workspace is the starting directory, not a filesystem sandbox. Commands have the permissions of the account running the CLI. Use a dedicated, least-privilege account or a disposable virtual machine when the task needs stronger isolation.
+  Full Access gives a requested host-level command broad control over everything the runner account can access. It can modify or delete files outside the workspace. Full Network Access can contact external services. Review the requested scope and destination when an approval reaches you. A terminal grant does not expand operating-system permissions.
 </Warning>
 
-## Review and full access
+## Work with running commands
 
-**Approve with review** keeps command starts under the Assistant's normal approval policy, even if a conversation uses a more permissive setting. **Full access** permits the conversation's configured approval policy to apply. Neither choice expands the runner's operating-system permissions or grants access to a terminal that the owner has not approved.
+The Assistant starts a command and waits briefly for its result. A long-running command remains visible under its execution ID; its shell output and final status update in the conversation even if the Assistant continues with other steps. It can check status, cancel, send input, and resize a PTY for interactive programs. A single process may run for up to 59 minutes. Several commands may run at once, subject to runner limits.
 
-The Assistant can connect more than one approved terminal to a conversation. It starts a command, then reads output and completion status as they arrive. A disconnected or uncertain execution should be inspected before repeating a command with side effects.
+If the runner's connection drops, the CLI reconnects and resumes the same execution without starting the command again. If recovery does not succeed, the result is marked uncertain; inspect the target before repeating a command with side effects.
+
+The Assistant can apply a workspace patch without asking for each ordinary edit. Browser actions can navigate to an HTTP(S) page, inspect visible page text, interact with forms, and take a screenshot. The CLI installs the required browser runtime; a separate browser installation is not required. The activity shows the visited URL and page output; a screenshot is automatically attached and shown in the Assistant conversation. The Assistant loads its pixels only when visual inspection is needed. Browser access follows the terminal's network grant and any temporary exception. For a password or similar secret field, the Assistant can request a secure input popup: the value goes directly to the connected browser session and is not included in the model-visible tool call. The Assistant must inspect the resulting page to confirm the action. The browser runs as a dedicated controlled action, separate from the shell's operating-system sandbox.
+
+To show images created by a command or browser screenshot, the Assistant can use `save_image` with up to 32 PNG, JPEG, or WebP files per call from the workspace (240 MiB total per call). It can make more calls for a larger collection. The runner uploads them securely; RevoEngine then attaches them to the conversation. The Assistant loads their pixels in the next model step only when it explicitly needs to inspect them. `save_image` requires **Full Network Access** or a temporary full-network exception.
+
+If a side-effecting command has an uncertain outcome after recovery, inspect its status before trying it again. Starting it twice could repeat its effects.
 
 ## Keep a terminal available
 
-The foreground `revo terminal connect` command remains active while the CLI is running. After browser approval, you can install the CLI's per-user background service on macOS or Linux:
+The foreground `revo terminal connect` command works while the CLI runs. After approval, you can install a per-user background service on macOS or Linux:
 
 ```bash
 revo terminal service install --workspace "$HOME/projects/my-project"
 revo terminal status
 ```
 
-Use the same saved CLI profile and workspace when managing that service. A connected virtual machine follows the same steps: install the CLI inside the VM, sign in, pair, approve in the browser, then keep its runner online.
+Use the same CLI profile and workspace to manage the service.
 
 ## Disconnect and revoke
 
-Disconnecting a terminal from one conversation removes that conversation's connection; it does not revoke the owner's terminal grant or stop an already running process. The owner can remove the terminal in **AI Agents → Terminals** to revoke its grant. To remove a locally registered runner, stop its background service first if installed, then run:
+Disconnecting a runner from one conversation removes that conversation's connection. It does not revoke the owner's terminal grant or stop an already-running process. The owner can remove the terminal in **AI Agents → Terminals** to revoke its grant. To remove a locally registered runner, stop its background service first if installed:
 
 ```bash
 revo terminal service uninstall --workspace "$HOME/projects/my-project"
 revo terminal disconnect --workspace "$HOME/projects/my-project"
 ```
 
-Terminal settings show connection and command activity for authorized viewers. Use that history and the task's actual output to confirm what ran. A pending request, an offline runner, and a conversation without a terminal connection cannot execute commands.
+The terminal settings and conversation show activity for authorized viewers. A pending request, offline runner or conversation without a terminal connection cannot execute commands.
 
 ## Related guides
 
 - [RevoEngine CLI](/developers/cli)
-- [Assistant](/ai/assistant)
 - [Approvals and plans](/ai/approvals-and-plans)
 - [Secrets and Vault](/operate/secrets)
