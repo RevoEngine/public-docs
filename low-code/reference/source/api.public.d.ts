@@ -1,6 +1,81 @@
 /**
  * Generated public low-code method contract used by the documentation reference.
  */
+declare class vault {
+  /** Gets the parent and selected revision with revision.value as Buffer of the stored text’s UTF-8 bytes.
+     * With no selector, reads the latest enabled revision whose validFrom is at most now.
+     * A version/validFrom selector reads that exact retained revision, including disabled history.
+     * Saved personal Component/Tool reads require the exact grant and map its requested name.
+     * Example:
+     * const secret = await vault.get('TOKEN', { scope: 'user' });
+     * const token = secret.revision.value.toString('utf8');
+     */
+  static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
+
+  /** Creates a new parent and first revision atomically. An existing name conflicts. No value in the result.
+     * Example:
+     * const secret = await vault.create('TOKEN', { value: input.token }, { scope: 'user' });
+     */
+  static create(name: string, data: SecretCreateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+
+  /** Updates parent category, description and metadata at its metadata counter. Never changes revision values.
+     * Example:
+     * const current = await vault.get('TOKEN');
+     * await vault.update('TOKEN', { version: current.version, description: 'CRM credential' });
+     */
+  static update(name: string, data: SecretUpdateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+
+  /** Deletes the whole parent and its values; a non-null version/validFrom deletes only that exact revision.
+     * Historical values remain accessible until their revision or parent is deleted.
+     * Example:
+     * await vault.delete('TOKEN', { scope: 'user', validFrom: input.version });
+     */
+  static delete(name: string, options?: SecretDeleteOptions): Promise<void | null>;
+
+  /** Adds a new immutable revision to an existing parent. Returns its metadata, never value.
+     * Default/null validFrom activates now and retires previous eligible/scheduled revisions.
+     * A future validFrom schedules activation while the current value remains available until then.
+     * Duplicate validFrom conflicts. Cache invalidation follows commit; no relogin is required.
+     * Instance total/active revision quotas remain enforced.
+     * Example:
+     * const rotated = await vault.rotate('TOKEN', { value: input.token }, { scope: 'user', validFrom: null });
+     */
+  static rotate(name: string, data: SecretRotateInput, options?: SecretRotateOptions): Promise<SecretWithRevision | null>;
+
+  /** Lists metadata for retained revisions. limit 1–100, default 50; follow nextCursor until null, including empty pages. */
+  static listRevisions(name: string, options?: SecretRevisionListOptions): Promise<SecretRevisionPage>;
+
+  /** Returns a usable integration access token and its matching expiry; refreshes when required.
+     * Saved component/Tool reads retain their exact grants. Direct SDK reads require owner/admin access.
+     * Never returns refresh tokens or client secrets. Do not log the result.
+     * Example:
+     * const token = await vault.getAccessToken('CRM', { scope: 'user' });
+     * await api.httpCall({ url: input.url, headers: { Authorization: `Bearer ${token.accessToken}` } });
+     */
+  static getAccessToken(name: string, options?: SecretScopeOptions): Promise<VaultAccessToken>;
+
+  /** Owner/admin configuration metadata, including the definition revision guard; no credentials. */
+  static getIntegrationMetadata(name: string, options?: SecretScopeOptions): Promise<VaultIntegrationMetadata>;
+
+  /** Discovers provider metadata. Does not create a connection or grant consent. */
+  static discoverIntegration(name: string, data: VaultIntegrationConfig, options?: SecretScopeOptions): Promise<VaultIntegrationDiscovery>;
+
+  /** Saves the guarded definition and starts interactive OAuth. Returns an authorization URL;
+     * the verified initiating user completes consent through the existing frontend callback.
+     * Instance scope requires a verified personal instance administrator. No-op in debug mode.
+     * Example:
+     * const pending = await vault.connectIntegration('CRM', {
+     *   resourceUrl: input.resourceUrl, scopes: ['read'], expectedRevision: null,
+     * }, { scope: 'user' });
+     */
+  static connectIntegration(name: string, data: VaultConnectIntegrationInput, options?: SecretScopeOptions): Promise<VaultIntegrationConnectResult | null>;
+
+  /** Disables the stored connection and invalidates credentials, retaining definition/history/grants.
+     * Does not promise revocation at the external provider. No-op in debug mode.
+     */
+  static disconnectIntegration(name: string, options?: SecretScopeOptions): Promise<{ name: string; disabled: boolean } | null>;
+}
+
 declare class api {
   /**
      * Creates a logical database. The server assigns databaseId, version, and timestamps;
@@ -877,8 +952,8 @@ declare class api {
 
   /**
      * Resolves one legacy instance Secret as plaintext.
-     * @deprecated For outbound HTTP credentials use vault() in the entire header value.
-     * Retained for consumers that need a plaintext instance Secret outside HTTP headers.
+     * @deprecated Use await vault.get() for explicit value access.
+     * Retained for callers that still require a plaintext instance Secret.
      *
      * Example:
      * const apiKey = await api.getSecret('CRM_API_KEY');
@@ -887,8 +962,8 @@ declare class api {
 
   /**
      * Resolves legacy instance Secrets as plaintext.
-     * @deprecated For outbound HTTP credentials use vault() in the entire header value.
-     * Retained for consumers that need plaintext instance Secrets outside HTTP headers.
+     * @deprecated Use await vault.get() for explicit value access.
+     * Retained for callers that still require plaintext instance Secrets.
      *
      * Example:
      * const secrets = await api.getSecrets([
@@ -1269,6 +1344,58 @@ declare class api {
       options?: AutomationScheduleOptions,
     ): Promise<Webhook>;
 
+  /** Cancel by jobIds OR a non-empty platform filter. No-op in debug mode.
+     * Returns a durable operation over frozen IDs; counters describe requests processed, not downstream completion.
+     * Example:
+     * const operation = await api.cancelJobs({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
+     */
+  static cancelJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+
+  /** Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. No-op in debug mode.
+     * Example:
+     * const operation = await api.retryJobs({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
+     */
+  static retryJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+
+  /** Delete by jobIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+     * Example:
+     * const operation = await api.deleteJobs({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+     */
+  static deleteJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+
+  /** Cancel by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+     * Example:
+     * const operation = await api.cancelWebhooks({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
+     */
+  static cancelWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+
+  /** Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. No-op in debug mode.
+     * Example:
+     * const operation = await api.retryWebhooks({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
+     */
+  static retryWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+
+  /** Delete by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+     * Example:
+     * const operation = await api.deleteWebhooks({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+     */
+  static deleteWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+
+  /** Preview is advisory; submit freezes a fresh selection. No request bodies are returned. */
+  static previewAutomationOperation(resource: 'jobs' | 'webhooks', action: 'cancel' | 'retry' | 'delete', input: JobsBulkInput | WebhooksBulkInput): Promise<{ matched: number; eligible: number }>;
+
+  /** Read the durable operation and its progress. Counters describe requests processed, not downstream completion.
+     * Example:
+     * const operation = await api.getAutomationOperation(input.operationId);
+     */
+  static getAutomationOperation(operationId: string): Promise<AutomationOperation>;
+
+  /** Read a page of safe per-item outcomes without saved request bodies. Pass nextCursor as after to read the next page.
+     * Example:
+     * const page = await api.getAutomationOperationItems(input.operationId);
+     */
+  static getAutomationOperationItems(operationId: string, after?: string): Promise<{ data: Array<{ resourceId: string; status: string; resultId: string | null; errorCode: string | null }>; nextCursor: string | null }>;
+
   /** @localOnly V8 only. The initial await resolves after response headers. */
   static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
       responseType: 'stream'; streamFormat: 'sse'; timeout?: number; proxy?: false;
@@ -1413,8 +1540,10 @@ declare class api {
      *
      * Example:
      * await api.sftpExec([['mkdir', '/archive']], connection);
+     * const secret = await vault.get('SFTP');
+     * await api.sftpExec([['ls', '/incoming']], JSON.parse(secret.revision.value.toString('utf8')));
      */
-  static sftpExec(commands: any[], config: SFTPClient): Promise<any>;
+  static sftpExec(commands: any[], config: SFTPConnection): Promise<any>;
 
   /**
      * Streams a Storage entry to SFTP through a short-lived signed
@@ -1436,7 +1565,7 @@ declare class api {
   static sftpPut(
       source: SFTPFileSourceRef,
       path: string,
-      config: SFTPClient,
+      config: SFTPConnection,
     ): Promise<void>;
 
   /**
@@ -1469,7 +1598,7 @@ declare class api {
   static sftpGet(
       target: SFTPFileTargetRef,
       path: string,
-      config: SFTPClient,
+      config: SFTPConnection,
     ): Promise<void | { session: StorageUploadSession; entry: StorageEntryView }>;
 
   /**

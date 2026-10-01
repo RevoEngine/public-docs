@@ -145,3 +145,73 @@ test('quality gate reports missing operation metadata and unknown security schem
   assert.match(issues, /missing description/);
   assert.match(issues, /unknown security scheme missing/);
 });
+
+
+test('publishes canonical Rotate DTOs without introducing scheduling or response secret material', () => {
+  const source = fixture();
+  source.paths['/api/v1/secrets/{secretId}/rotate'] = { post: {
+    operationId: 'SecretsController_rotateSecret', tags: ['Secrets'],
+    summary: 'Rotate a secret.',
+    description: 'Immediately replaces active and scheduled revisions while retaining history.',
+    security: [{ bearer: [] }],
+    requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/RotateSecretDto' } } } },
+    responses: { 201: { description: 'Metadata only.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SecretRevisionResponseDto' } } } } },
+  } };
+  source.components.schemas.RotateSecretDto = { type: 'object', required: ['secret'], properties: { secret: { type: 'string', minLength: 1 } } };
+  source.components.schemas.SecretRevisionResponseDto = { type: 'object', properties: { secretDataId: { type: 'string', format: 'uuid' }, active: { type: 'boolean' } } };
+  const output = enrichPlatformOpenApi(source);
+  assert.deepEqual(output.components.schemas.RotateSecretDto, source.components.schemas.RotateSecretDto);
+  assert.deepEqual(output.components.schemas.SecretRevisionResponseDto, source.components.schemas.SecretRevisionResponseDto);
+  assert.equal(output.paths['/api/v1/secrets/{secretId}/rotate'].post.responses[201].content['application/json'].schema.$ref, '#/components/schemas/SecretRevisionResponseDto');
+  assert.match(output.tags.find(tag => tag.name === 'Secrets').description, /rotation/);
+  assert.equal(auditPlatformOpenApi(output, source).length, 0);
+});
+
+
+test('publishes conversation feedback receipts and message anchors without private diagnostic APIs', () => {
+  const source = fixture();
+  const reportRequest = { content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantThreadReportDto' } } } };
+  const receiptResponse = { description: 'Diagnostic metadata stored in Firestore without Storage export.', content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantThreadReportResponseDto' } } } };
+  for (const [path, operationId, tags] of [
+    ['/api/v1/assistant/threads/{id}/report', 'AssistantController_reportThread', ['Assistant']],
+    ['/api/v1/agents/runs/{agentRunId}/report', 'AgentController_reportRunConversation', ['Agents']],
+  ]) source.paths[path] = { post: { operationId, tags, summary: 'Report a conversation.', security: [{ bearer: [] }], description: 'Writes Firestore metadata with private support diagnostics.', requestBody: reportRequest, responses: { 200: receiptResponse, 403: { description: 'Forbidden.' }, 404: { description: 'Not found.' } } } };
+  source.paths['/api/v1/assistant/threads/{id}'] = { get: { operationId: 'AssistantController_getThread', tags: ['Assistant'], summary: 'Get a conversation.', description: 'Get an authorized conversation.', security: [{ bearer: [] }], responses: { 200: { description: 'Conversation.', content: { 'application/json': { schema: { $ref: '#/components/schemas/CustomerThreadDto' } } } } } } };
+  const privatePaths = [
+    '/api/v1/assistant/reports/{reportId}/evidence',
+    '/api/v1/assistant/threads/{id}/evidence',
+    '/api/v1/assistant/evidence/threads',
+  ];
+  privatePaths.forEach((path, index) => {
+    source.paths[path] = { get: { operationId: `PrivateSupportEvidence_${index}`, tags: ['Assistant'], responses: { 200: { description: 'Private support payload.', content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantEvidenceResponseDto' } } } } } } };
+  });
+  Object.assign(source.components.schemas, {
+    AssistantThreadReportDto: { type: 'object', properties: { reason: { type: 'string' }, summary: { type: 'string' }, assistantMessageId: { type: 'string', format: 'uuid' }, includeLocalModelCallSnapshots: { type: 'boolean' } } },
+    AssistantThreadReportResponseDto: { type: 'object', required: ['reportId', 'assistantThreadId', 'status', 'createdAt'], properties: { reportId: { type: 'string', format: 'uuid' }, assistantThreadId: { type: 'string', format: 'uuid' }, status: { type: 'string', enum: ['pending'] }, createdAt: { type: 'string', format: 'date-time' } } },
+    CustomerThreadDto: { type: 'object', properties: { title: { type: 'string' } } },
+    AssistantEvidenceResponseDto: { type: 'object', properties: { items: { type: 'array', items: { $ref: '#/components/schemas/AssistantEvidenceItemDto' } } } },
+    AssistantEvidenceItemDto: { type: 'object', properties: { chunk: { $ref: '#/components/schemas/AssistantEvidenceChunkDto' } } },
+    AssistantEvidenceChunkDto: { type: 'object', properties: { fingerprint: { type: 'string' } } },
+  });
+  const output = enrichPlatformOpenApi(source);
+  for (const path of privatePaths) {
+    assert.equal(output.paths[path], undefined);
+    assert.equal(publicOperationKeys(source).some(key => key.endsWith(path)), false);
+  }
+  for (const name of ['AssistantEvidenceResponseDto', 'AssistantEvidenceItemDto', 'AssistantEvidenceChunkDto']) assert.equal(output.components.schemas[name], undefined);
+  assert(output.paths['/api/v1/assistant/threads/{id}']);
+  assert(output.components.schemas.CustomerThreadDto);
+  assert.deepEqual(output.components.schemas.AssistantThreadReportDto.properties.assistantMessageId.format, 'uuid');
+  assert.equal(output.components.schemas.AssistantThreadReportDto.properties.includeLocalModelCallSnapshots, undefined);
+  for (const path of ['/api/v1/assistant/threads/{id}/report', '/api/v1/agents/runs/{agentRunId}/report']) {
+    const operation = output.paths[path].post;
+    assert.equal(operation.responses[200].content['application/json'].schema.$ref, '#/components/schemas/AssistantThreadReportResponseDto');
+    assert.doesNotMatch(JSON.stringify(operation), /Firestore|Storage|private support/i);
+  }
+  assert.deepEqual(output.components.schemas.AssistantThreadReportResponseDto.required, ['reportId', 'assistantThreadId', 'status', 'createdAt']);
+  assert.deepEqual(publicOperationKeys(output), publicOperationKeys(source));
+  assert.deepEqual(auditPlatformOpenApi(output, source), []);
+  const polluted = structuredClone(output);
+  polluted.paths[privatePaths[0]] = source.paths[privatePaths[0]];
+  assert.match(auditPlatformOpenApi(polluted, source).join('\n'), /Private diagnostic path published/);
+});

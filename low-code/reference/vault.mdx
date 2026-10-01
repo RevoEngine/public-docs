@@ -1,0 +1,205 @@
+---
+title: Vault reference
+description: Unified instance and user Secret lifecycle, revision values and OAuth integration management.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **11 methods**. Search the docs for an exact method name, or use this index:
+
+- [`vault.get()`](#vault-get)
+- [`vault.create()`](#vault-create)
+- [`vault.update()`](#vault-update)
+- [`vault.delete()`](#vault-delete)
+- [`vault.rotate()`](#vault-rotate)
+- [`vault.listRevisions()`](#vault-listRevisions)
+- [`vault.getAccessToken()`](#vault-getAccessToken)
+- [`vault.getIntegrationMetadata()`](#vault-getIntegrationMetadata)
+- [`vault.discoverIntegration()`](#vault-discoverIntegration)
+- [`vault.connectIntegration()`](#vault-connectIntegration)
+- [`vault.disconnectIntegration()`](#vault-disconnectIntegration)
+
+<span id="vault-get" aria-hidden="true"></span>
+
+## `vault.get()`
+
+Gets the parent and selected revision with revision.value as Buffer of the stored text’s UTF-8 bytes.
+With no selector, reads the latest enabled revision whose validFrom is at most now.
+A version/validFrom selector reads that exact retained revision, including disabled history.
+Saved personal Component/Tool reads require the exact grant and map its requested name.
+
+### Signature
+
+```ts
+static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
+```
+### Example
+
+```ts
+const secret = await vault.get('TOKEN', { scope: 'user' });
+const token = secret.revision.value.toString('utf8');
+```
+
+<span id="vault-create" aria-hidden="true"></span>
+
+## `vault.create()`
+
+Creates a new parent and first revision atomically. An existing name conflicts. No value in the result.
+
+### Signature
+
+```ts
+static create(name: string, data: SecretCreateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+```
+### Example
+
+```ts
+const secret = await vault.create('TOKEN', { value: input.token }, { scope: 'user' });
+```
+
+<span id="vault-update" aria-hidden="true"></span>
+
+## `vault.update()`
+
+Updates parent category, description and metadata at its metadata counter. Never changes revision values.
+
+### Signature
+
+```ts
+static update(name: string, data: SecretUpdateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+```
+### Example
+
+```ts
+const current = await vault.get('TOKEN');
+await vault.update('TOKEN', { version: current.version, description: 'CRM credential' });
+```
+
+<span id="vault-delete" aria-hidden="true"></span>
+
+## `vault.delete()`
+
+Deletes the whole parent and its values; a non-null version/validFrom deletes only that exact revision.
+Historical values remain accessible until their revision or parent is deleted.
+
+### Signature
+
+```ts
+static delete(name: string, options?: SecretDeleteOptions): Promise<void | null>;
+```
+### Example
+
+```ts
+await vault.delete('TOKEN', { scope: 'user', validFrom: input.version });
+```
+
+<span id="vault-rotate" aria-hidden="true"></span>
+
+## `vault.rotate()`
+
+Adds a new immutable revision to an existing parent. Returns its metadata, never value.
+Default/null validFrom activates now and retires previous eligible/scheduled revisions.
+A future validFrom schedules activation while the current value remains available until then.
+Duplicate validFrom conflicts. Cache invalidation follows commit; no relogin is required.
+Instance total/active revision quotas remain enforced.
+
+### Signature
+
+```ts
+static rotate(name: string, data: SecretRotateInput, options?: SecretRotateOptions): Promise<SecretWithRevision | null>;
+```
+### Example
+
+```ts
+const rotated = await vault.rotate('TOKEN', { value: input.token }, { scope: 'user', validFrom: null });
+```
+
+<span id="vault-listRevisions" aria-hidden="true"></span>
+
+## `vault.listRevisions()`
+
+Lists metadata for retained revisions. limit 1–100, default 50; follow nextCursor until null, including empty pages.
+
+### Signature
+
+```ts
+static listRevisions(name: string, options?: SecretRevisionListOptions): Promise<SecretRevisionPage>;
+```
+<span id="vault-getAccessToken" aria-hidden="true"></span>
+
+## `vault.getAccessToken()`
+
+Returns a usable integration access token and its matching expiry; refreshes when required.
+Saved component/Tool reads retain their exact grants. Direct SDK reads require owner/admin access.
+Never returns refresh tokens or client secrets. Do not log the result.
+
+### Signature
+
+```ts
+static getAccessToken(name: string, options?: SecretScopeOptions): Promise<VaultAccessToken>;
+```
+### Example
+
+```ts
+const token = await vault.getAccessToken('CRM', { scope: 'user' });
+await api.httpCall({ url: input.url, headers: { Authorization: `Bearer ${token.accessToken}` } });
+```
+
+<span id="vault-getIntegrationMetadata" aria-hidden="true"></span>
+
+## `vault.getIntegrationMetadata()`
+
+Owner/admin configuration metadata, including the definition revision guard; no credentials.
+
+### Signature
+
+```ts
+static getIntegrationMetadata(name: string, options?: SecretScopeOptions): Promise<VaultIntegrationMetadata>;
+```
+<span id="vault-discoverIntegration" aria-hidden="true"></span>
+
+## `vault.discoverIntegration()`
+
+Discovers provider metadata. Does not create a connection or grant consent.
+
+### Signature
+
+```ts
+static discoverIntegration(name: string, data: VaultIntegrationConfig, options?: SecretScopeOptions): Promise<VaultIntegrationDiscovery>;
+```
+<span id="vault-connectIntegration" aria-hidden="true"></span>
+
+## `vault.connectIntegration()`
+
+Saves the guarded definition and starts interactive OAuth. Returns an authorization URL;
+the verified initiating user completes consent through the existing frontend callback.
+Instance scope requires a verified personal instance administrator. No-op in debug mode.
+
+### Signature
+
+```ts
+static connectIntegration(name: string, data: VaultConnectIntegrationInput, options?: SecretScopeOptions): Promise<VaultIntegrationConnectResult | null>;
+```
+### Example
+
+```ts
+const pending = await vault.connectIntegration('CRM', {
+  resourceUrl: input.resourceUrl, scopes: ['read'], expectedRevision: null,
+}, { scope: 'user' });
+```
+
+<span id="vault-disconnectIntegration" aria-hidden="true"></span>
+
+## `vault.disconnectIntegration()`
+
+Disables the stored connection and invalidates credentials, retaining definition/history/grants.
+Does not promise revocation at the external provider. No-op in debug mode.
+
+### Signature
+
+```ts
+static disconnectIntegration(name: string, options?: SecretScopeOptions): Promise<{ name: string; disabled: boolean } | null>;
+```

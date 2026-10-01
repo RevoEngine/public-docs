@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { deprecatedLowCodeMethods } from '../scripts/check-content.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -27,4 +28,51 @@ test('Storage reference shows both id-only and namespace signatures', () => {
     assert.equal(section.match(new RegExp(`static ${name}(?:<[^>]+>)?\\(`, 'g'))?.length, 2, name);
   }
   assert.doesNotMatch(reference, /## `storage\.getText\(\)`/);
+});
+
+
+test('content gate groups overloads and removes obsolete bound decoding', () => {
+  const declarations = `declare class api {
+    /** @deprecated Prefer util.decodeBase64(). */
+    static decodeBase64(value: string): string;
+    /** Explicit bound decoding. */
+    static decodeBase64(value: VaultBoundValue): Promise<string>;
+    /** @deprecated Old alias. */
+    static retired(value: string): string;
+    /** @deprecated Old alias. */
+    static retired(value: number): string;
+    /** @deprecated Legacy shape. */
+    static mixed(value: string): string;
+    static mixed(value: number): string;
+  }`;
+  assert.deepEqual(deprecatedLowCodeMethods(declarations), ['api.retired']);
+  const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
+  assert.doesNotMatch(reference, /## `api.decodeBase64\(\)`/);
+  const utils = readFileSync(join(root, 'low-code/reference/util.mdx'), 'utf8');
+  assert.match(utils, /static decodeBase64\(base64String: string\): string/);
+  const manager = readFileSync(join(root, 'low-code/reference/vault.mdx'), 'utf8');
+  assert.match(manager, /static getAccessToken\(/);
+  assert.doesNotMatch(manager, /static ref\(/);
+});
+
+
+test('every generated reference linked from the index belongs to the platform contract manifest', () => {
+  const index = readFileSync(join(root, 'low-code/reference/index.mdx'), 'utf8');
+  const manifest = JSON.parse(readFileSync(join(root, 'platform-contracts.json'), 'utf8'));
+  const links = [...index.matchAll(/\]\(\/low-code\/reference\/([a-z]+)\)/g)].map(match => `low-code/reference/${match[1]}.mdx`);
+  assert.ok(links.includes('low-code/reference/vault.mdx'));
+  for (const page of links) assert.ok(manifest.contracts.lowCodeRuntime.generated.includes(page), `Missing contract artifact: ${page}`);
+});
+
+
+test('bulk automation reference documents mutations, preview and progress reads', () => {
+  const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
+  for (const method of [
+    'cancelJobs', 'retryJobs', 'deleteJobs',
+    'cancelWebhooks', 'retryWebhooks', 'deleteWebhooks',
+    'previewAutomationOperation', 'getAutomationOperation', 'getAutomationOperationItems',
+  ]) {
+    assert.ok(reference.includes(`## \`api.${method}()\``), `Missing bulk lifecycle method: ${method}`);
+    assert.ok(reference.includes(`static ${method}(`), `Missing canonical signature: ${method}`);
+  }
 });

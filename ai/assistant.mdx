@@ -288,6 +288,8 @@ Assistant turns stream messages, progress, tool activity, and action-required ev
 
 If you send another message while a turn is active, the UI can queue it for later or use it to steer the current work. Steering is a correction to the active task, not a new independent thread.
 
+When the Assistant asks for clarification, you can choose an offered answer or write your own correction. Independent questions can appear together in one request. If your decision depends on an explanation, say so: submitting that response does not approve a proposed change or close the underlying decision. Passwords requested for a connected browser use a separate secure dialog.
+
 ## What you can inspect
 
 The execution timeline can include:
@@ -341,3 +343,13 @@ The Assistant surface is separate from user and group chat. Regular chat manages
     Configure how supervised actions pause and resume.
   </Card>
 </CardGroup>
+
+## Report a conversation
+
+Use the report action to send feedback about an Assistant conversation to the
+RevoEngine team. Include a short reason and, when relevant, identify the message
+where the problem occurred. The API returns a receipt confirming the submission.
+
+Reporting preserves the conversation reference and the information needed to
+investigate your feedback. It does not publish your conversation or authorize
+changes to customer data.

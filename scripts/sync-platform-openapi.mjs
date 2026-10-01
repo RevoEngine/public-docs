@@ -13,6 +13,14 @@ const PUBLIC_PATH_PREFIX = '/api/v1/';
 const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
   '/api/v1/storage/provider-configs',
 ]);
+const NON_PUBLIC_DIAGNOSTIC_PATHS = new Set([
+  '/api/v1/assistant/reports/{reportId}/evidence',
+  '/api/v1/assistant/threads/{id}/evidence',
+  '/api/v1/assistant/evidence/threads',
+]);
+const isPublicPath = (path) => path.startsWith(PUBLIC_PATH_PREFIX)
+  && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+  && !NON_PUBLIC_DIAGNOSTIC_PATHS.has(path);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
 const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier']);
@@ -23,7 +31,8 @@ const PUBLIC_STANDALONE_SCHEMA_NAMES = new Set([
 ]);
 const PUBLIC_SCHEMA_PROPERTIES = Object.freeze({
   AssistantAppPreferencesDto: ['hideReasoning', 'reasoning', 'workMode', 'persona', 'customInstructions'],
-  AssistantThreadReportDto: ['reason', 'summary'],
+  AssistantThreadReportDto: ['reason', 'summary', 'assistantMessageId'],
+  AssistantThreadReportResponseDto: ['reportId', 'assistantThreadId', 'status', 'createdAt'],
   CreateMessageDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds'],
   CreateThreadDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds', 'version'],
   CreateThreadlessResponseDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds', 'version', 'context', 'persistThread'],
@@ -194,7 +203,7 @@ const TAG_DESCRIPTIONS = Object.freeze({
   Roles: 'Available platform roles and role details.',
   Search: 'Cross-domain search over objects visible to the caller.',
   Share: 'Short-lived authenticated links to supported application routes and grid state.',
-  Secrets: 'Secret definitions, revisions, activation, reveal, disable, and destruction.',
+  Secrets: 'Secret definitions, revision history, explicit rotation, activation, reveal, disable, and destruction.',
   Storage: 'Storage workspaces, folders, objects, upload sessions, signed access, and lifecycle.',
 });
 
@@ -277,10 +286,7 @@ export function operationKey({ path, method }) {
 
 export function publicOperationKeys(document) {
   return operationEntries(document)
-    .filter(({ path }) => (
-      path.startsWith(PUBLIC_PATH_PREFIX)
-      && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
-    ))
+    .filter(({ path }) => isPublicPath(path))
     .map(operationKey)
     .sort();
 }
@@ -420,10 +426,7 @@ export function sanitizePlatformOpenApiSource(source) {
   };
   output.servers = [{ url: 'https://api.revoengine.com', description: 'Production' }];
   output.paths = Object.fromEntries(
-    Object.entries(output.paths ?? {}).filter(([path]) => (
-      path.startsWith(PUBLIC_PATH_PREFIX)
-      && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
-    )),
+    Object.entries(output.paths ?? {}).filter(([path]) => isPublicPath(path)),
   );
 
   const configOperationSummaries = {
@@ -462,17 +465,22 @@ export function sanitizePlatformOpenApiSource(source) {
   const getGoal = operationById(output, 'AssistantController_getThreadGoal');
   if (getGoal) getGoal.description = 'Get the current durable goal for a thread, if one was set.';
 
-  const report = operationById(output, 'AssistantController_reportThread');
-  if (report) {
-    report.description = 'Submit an Assistant conversation report, with an optional user-provided reason, to the team improving the RevoEngine Agentic System. The report is accepted without returning diagnostic artifacts or credentials.';
-    const publicResponseCodes = new Set(['204', '403', '404']);
+  for (const operationId of ['AssistantController_reportThread', 'AgentController_reportRunConversation']) {
+    const report = operationById(output, operationId);
+    if (!report) continue;
+    report.description = 'Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.';
+    const publicResponseCodes = new Set(['200', '400', '403', '404']);
     report.responses = Object.fromEntries(
       Object.entries(report.responses ?? {}).filter(([status]) => publicResponseCodes.has(status)),
     );
-    if (report.responses?.['204']) {
-      report.responses['204'].description = 'Conversation report submitted to the team improving the RevoEngine Agentic System.';
+    if (report.responses?.['200']) {
+      report.responses['200'].description = 'Conversation feedback accepted. Returns the report identifier, conversation identifier, pending status and creation time.';
     }
   }
+  const reportMessage = schemaProperties(output, 'AssistantThreadReportDto')?.assistantMessageId;
+  if (reportMessage) reportMessage.description = 'Optional message where the reported issue occurred. Must belong to the conversation.';
+  const reportIdentifier = schemaProperties(output, 'AssistantThreadReportResponseDto')?.reportId;
+  if (reportIdentifier) reportIdentifier.description = 'Unique conversation report identifier.';
 
   const uploadDetail = operationById(output, 'AssistantController_uploadThreadAttachment')
     ?.requestBody?.content?.['multipart/form-data']?.schema?.properties?.detail;
@@ -566,6 +574,9 @@ export function sanitizePlatformOpenApiSource(source) {
 
 export function auditPublicSanitization(document) {
   const issues = new Set();
+  for (const path of Object.keys(document.paths ?? {})) {
+    if (NON_PUBLIC_DIAGNOSTIC_PATHS.has(path)) issues.add(`Private diagnostic path published: ${path}`);
+  }
   const visit = (value) => {
     if (Array.isArray(value)) {
       for (const item of value) visit(item);
@@ -682,7 +693,7 @@ export function auditPlatformOpenApi(document, source) {
   }
   for (const path of Object.keys(document.paths ?? {})) {
     if (!path.startsWith(PUBLIC_PATH_PREFIX)) issues.push(`Non-public path published: ${path}`);
-    if (NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+    if (path.startsWith(PUBLIC_PATH_PREFIX) && !isPublicPath(path)) {
       issues.push(`Private infrastructure path published: ${path}`);
     }
   }

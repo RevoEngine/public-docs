@@ -10386,8 +10386,15 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "OK."
+          "201": {
+            "description": "New revision metadata without secret material.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretRevisionResponseDto"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden."
@@ -10402,6 +10409,63 @@
           }
         ],
         "summary": "Create a secret.",
+        "tags": [
+          "Secrets"
+        ]
+      }
+    },
+    "/api/v1/secrets/{secretId}/rotate": {
+      "post": {
+        "description": "ROLES: SECRET_WRITE,SECRET_ADMIN\nUSER: true\nSERVICE ACCOUNT: true\nAtomically creates an immediately active revision and disables all previous active revisions of this secret, including scheduled revisions. Retains history. Checks total and resulting active revision quotas. Returns revision metadata without the secret value. Does not rotate credentials at an external provider.",
+        "operationId": "SecretsController_rotateSecret",
+        "parameters": [
+          {
+            "name": "secretId",
+            "required": true,
+            "in": "path",
+            "description": "Secret metadata identifier.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateSecretDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New revision metadata without secret material.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretRevisionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or revision quota reached."
+          },
+          "403": {
+            "description": "Forbidden."
+          },
+          "404": {
+            "description": "Secret not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rotate a secret.",
         "tags": [
           "Secrets"
         ]
@@ -16878,6 +16942,419 @@
         ]
       }
     },
+    "/api/v1/automation/jobs/bulk/{action}/preview": {
+      "post": {
+        "operationId": "AutomationBulkController_previewJobs",
+        "parameters": [
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "cancel",
+                "retry",
+                "delete"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobsBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkPreviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview jobs matching a bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/automation/jobs/bulk/cancel": {
+      "post": {
+        "operationId": "AutomationBulkController_cancelJobs",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobsBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel jobs by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/automation/jobs/bulk/retry": {
+      "post": {
+        "operationId": "AutomationBulkController_retryJobs",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobsBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retry jobs by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "write"
+      }
+    },
+    "/api/v1/automation/jobs/bulk/delete": {
+      "post": {
+        "operationId": "AutomationBulkController_deleteJobs",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobsBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete jobs by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/automation/webhooks/bulk/{action}/preview": {
+      "post": {
+        "operationId": "AutomationBulkController_previewWebhooks",
+        "parameters": [
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "cancel",
+                "retry",
+                "delete"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhooksBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkPreviewDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview webhooks matching a bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/automation/webhooks/bulk/cancel": {
+      "post": {
+        "operationId": "AutomationBulkController_cancelWebhooks",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhooksBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel webhooks by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/automation/webhooks/bulk/retry": {
+      "post": {
+        "operationId": "AutomationBulkController_retryWebhooks",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhooksBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retry webhooks by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "write"
+      }
+    },
+    "/api/v1/automation/webhooks/bulk/delete": {
+      "post": {
+        "operationId": "AutomationBulkController_deleteWebhooks",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhooksBulkRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete webhooks by IDs or filter as a durable bulk operation.",
+        "tags": [
+          "Automation"
+        ],
+        "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/automation/bulk-operations/{operationId}": {
+      "get": {
+        "operationId": "AutomationBulkController_getOperation",
+        "parameters": [
+          {
+            "name": "operationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read automation bulk operation progress.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/bulk-operations/{operationId}/items": {
+      "get": {
+        "operationId": "AutomationBulkController_getItems",
+        "parameters": [
+          {
+            "name": "operationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationBulkItemsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read up to 100 resource outcomes. Use nextCursor for the next page.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
     "/api/v1/assistant/audio/transcription-sessions": {
       "post": {
         "description": "Create a short-lived transcription session credential for direct browser audio.",
@@ -17433,7 +17910,7 @@
     },
     "/api/v1/assistant/threads/{id}/report": {
       "post": {
-        "description": "Submit an Assistant conversation report, with an optional user-provided reason, to the team improving the RevoEngine Agentic System. The report is accepted without returning diagnostic artifacts or credentials.",
+        "description": "Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.",
         "operationId": "AssistantController_reportThread",
         "parameters": [
           {
@@ -17456,8 +17933,15 @@
           }
         },
         "responses": {
-          "204": {
-            "description": "Conversation report submitted to the team improving the RevoEngine Agentic System."
+          "200": {
+            "description": "Conversation feedback accepted. Returns the report identifier, conversation identifier, pending status and creation time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantThreadReportResponseDto"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden."
@@ -18365,7 +18849,7 @@
     },
     "/api/v1/assistant/threads/{id}/messages/{messageId}/artifacts/{artifactId}": {
       "get": {
-        "description": "Return one compact user-facing assistant message artifact. Raw persisted execution evidence remains available only through the assistant report.",
+        "description": "Return one compact user-facing assistant message artifact. Raw persisted execution evidence is available to authorized Support through the diagnostic evidence bridge.",
         "operationId": "AssistantController_getThreadMessageArtifact",
         "parameters": [
           {
@@ -19135,6 +19619,190 @@
         "summary": "Compact thread.",
         "tags": [
           "Assistant"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/workspaces/register": {
+      "post": {
+        "operationId": "TerminalGrantController_registerWorkspace[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterTerminalWorkspaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a pending workspace on an existing owned device without changing its identity",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/workspaces/register": {
+      "post": {
+        "operationId": "TerminalGrantController_registerWorkspace[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterTerminalWorkspaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a pending workspace on an existing owned device without changing its identity",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/workspaces": {
+      "post": {
+        "operationId": "TerminalGrantController_updateWorkspaces[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalWorkspacesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atomically replace workspace grants using the expected device revision",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/workspaces": {
+      "post": {
+        "operationId": "TerminalGrantController_updateWorkspaces[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalWorkspacesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atomically replace workspace grants using the expected device revision",
+        "tags": [
+          "Agent Terminals"
         ]
       }
     },
@@ -21356,7 +22024,7 @@
     },
     "/api/v1/agents/runs/{agentRunId}/report": {
       "post": {
-        "description": "Stores the linked conversation and diagnostic evidence for an authorized run. Local runtimes return a short-lived signed download URL.",
+        "description": "Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.",
         "operationId": "AgentController_reportRunConversation",
         "parameters": [
           {
@@ -21380,7 +22048,7 @@
         },
         "responses": {
           "200": {
-            "description": "Local runtime only: signed report download URL.",
+            "description": "Conversation feedback accepted. Returns the report identifier, conversation identifier, pending status and creation time.",
             "content": {
               "application/json": {
                 "schema": {
@@ -21388,9 +22056,6 @@
                 }
               }
             }
-          },
-          "204": {
-            "description": "Report stored without download credentials."
           },
           "404": {
             "description": "Run or linked conversation not found."
@@ -28946,9 +29611,9 @@
             "description": ""
           },
           "actDate": {
-            "format": "date-time",
             "type": "string",
-            "description": ""
+            "description": "ISO8601 activation time; omitted means now.",
+            "format": "date-time"
           },
           "active": {
             "type": "boolean",
@@ -28997,9 +29662,9 @@
             "description": ""
           },
           "actDate": {
-            "format": "date-time",
             "type": "string",
-            "description": ""
+            "description": "ISO8601 activation time; omitted means now.",
+            "format": "date-time"
           },
           "active": {
             "type": "boolean",
@@ -29010,25 +29675,223 @@
           "secret"
         ]
       },
+      "SecretRevisionResponseDto": {
+        "type": "object",
+        "properties": {
+          "secretDataId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "secretId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "actDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "number"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUpdateBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastUpdateAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedBy": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "secretDataId",
+          "secretId",
+          "active",
+          "actDate",
+          "version",
+          "createdBy",
+          "createdAt",
+          "lastUpdateBy",
+          "lastUpdateAt"
+        ]
+      },
+      "RotateSecretDto": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "description": "New secret value. Creates an immediately active revision and disables all previous active revisions of this secret atomically. Previous revisions remain in history; the total revision quota still applies."
+          }
+        },
+        "required": [
+          "secret"
+        ]
+      },
       "InstanceVaultIntegrationNameDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "name"
+        ]
       },
       "StartInstanceVaultOAuthDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "name"
+        ]
       },
       "DiscoverInstanceVaultOAuthDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "resourceUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "issuer": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "clientId": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "clientSecret": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "metadataScopeAliases": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "resourceUrl",
+          "scopes",
+          "name"
+        ]
       },
       "PutInstanceVaultOAuthDefinitionDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "resourceUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "issuer": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "clientId": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "clientSecret": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "metadataScopeAliases": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "expectedRevision": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "resourceUrl",
+          "scopes",
+          "name"
+        ]
       },
       "CompleteInstanceVaultOAuthDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "issuer": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "state",
+          "code"
+        ]
       },
       "CreateFileDto": {
         "type": "object",
@@ -31056,6 +31919,16 @@
             "type": "boolean",
             "description": "Save entire request."
           },
+          "stopOnStatuses": {
+            "type": "array",
+            "description": "Stop delivery on a supported attempt status. Processing of delivery logs is asynchronous.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNAUTHENTICATED"
+              ]
+            }
+          },
           "maxAttempts": {
             "type": "number",
             "description": "Max attempts."
@@ -31102,6 +31975,245 @@
             ]
           }
         }
+      },
+      "JobsBulkRequestDto": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "object",
+            "description": "Existing platform filter tree. Exactly one of filter and resource IDs is required."
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "description": "Caller-generated key: repeated admission returns the same operation. Maximum 200 characters."
+          },
+          "jobIds": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AutomationBulkPreviewDto": {
+        "type": "object",
+        "properties": {
+          "matched": {
+            "type": "number"
+          },
+          "eligible": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "matched",
+          "eligible"
+        ]
+      },
+      "AutomationBulkResultDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "jobs",
+              "webhooks"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "cancel",
+              "retry",
+              "delete"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "FINISHED",
+              "ERROR"
+            ]
+          },
+          "total": {
+            "type": "number"
+          },
+          "processed": {
+            "type": "number"
+          },
+          "skipped": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "operationId",
+          "resource",
+          "action",
+          "status",
+          "total",
+          "processed",
+          "skipped",
+          "failed"
+        ]
+      },
+      "WebhookMapPatchDto": {
+        "type": "object",
+        "properties": {
+          "set": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "remove": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "WebhookRequestPatchDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "POST",
+              "GET",
+              "HEAD",
+              "PUT",
+              "DELETE",
+              "PATCH",
+              "OPTIONS"
+            ]
+          },
+          "headers": {
+            "$ref": "#/components/schemas/WebhookMapPatchDto"
+          },
+          "query": {
+            "$ref": "#/components/schemas/WebhookMapPatchDto"
+          },
+          "maskDetails": {
+            "description": "Additional request paths to mask in the new attempt. Existing masks are always preserved.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "body": {
+            "description": "Explicit replacement of the whole body. Omitted body reuses the saved body.",
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
+          }
+        }
+      },
+      "WebhooksBulkRequestDto": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "object",
+            "description": "Existing platform filter tree. Exactly one of filter and resource IDs is required."
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "description": "Caller-generated key: repeated admission returns the same operation. Maximum 200 characters."
+          },
+          "webhookIds": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "requestPatch": {
+            "description": "Only allowed for retry. Missing masked values must be supplied explicitly.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookRequestPatchDto"
+              }
+            ]
+          }
+        }
+      },
+      "AutomationBulkItemDto": {
+        "type": "object",
+        "properties": {
+          "resourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "FINISHED",
+              "SKIPPED",
+              "ERROR"
+            ]
+          },
+          "resultId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "resourceId",
+          "status",
+          "resultId",
+          "errorCode"
+        ]
+      },
+      "AutomationBulkItemsDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AutomationBulkItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "data",
+          "nextCursor"
+        ]
       },
       "AssistantRealtimeTranscriptionSessionDto": {
         "type": "object",
@@ -31241,20 +32353,43 @@
             "deprecated": true,
             "maxLength": 1000,
             "example": "The assistant assumed the wrong tenant and edited the wrong configuration."
+          },
+          "assistantMessageId": {
+            "type": "string",
+            "description": "Optional message where the reported issue occurred. Must belong to the conversation.",
+            "format": "uuid",
+            "example": "11111111-1111-4111-8111-111111111111"
           }
         }
       },
       "AssistantThreadReportResponseDto": {
         "type": "object",
         "properties": {
-          "downloadUrl": {
+          "reportId": {
             "type": "string",
-            "description": "Short-lived signed download URL returned only by an API process running with ENV=local.",
-            "example": "https://storage.googleapis.com/example/report.txt?X-Goog-Signature=..."
+            "description": "Unique conversation report identifier.",
+            "format": "uuid"
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
-          "downloadUrl"
+          "reportId",
+          "assistantThreadId",
+          "status",
+          "createdAt"
         ]
       },
       "ForkThreadDto": {
@@ -31863,7 +32998,7 @@
           },
           "fastMode": {
             "type": "boolean",
-            "description": "Optional Fast-mode override for the resumed turn. Available on GPT-6 Sol and Luna."
+            "description": "Optional Fast-mode override for the resumed turn. Available only on GPT-6 Luna."
           },
           "reasoningEffort": {
             "type": "string",
@@ -31940,6 +33075,94 @@
           }
         }
       },
+      "RegisterTerminalWorkspaceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "name",
+          "path"
+        ]
+      },
+      "TerminalWorkspaceDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "review",
+              "full"
+            ]
+          },
+          "networkMode": {
+            "type": "string",
+            "enum": [
+              "restricted",
+              "sandbox",
+              "external"
+            ]
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "inheritDevicePermissions": {
+            "type": "boolean",
+            "description": "Use device permission ceilings directly; default workspace preserves existing grants."
+          }
+        },
+        "required": [
+          "agentTerminalWorkspaceId",
+          "name",
+          "path",
+          "status",
+          "mode",
+          "networkMode",
+          "restricted",
+          "users",
+          "groups"
+        ]
+      },
       "TerminalGrantDto": {
         "type": "object",
         "properties": {
@@ -31956,6 +33179,13 @@
           },
           "workspace": {
             "type": "string"
+          },
+          "workspaces": {
+            "description": "Atomic workspace permission contract under the terminal revision.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalWorkspaceDto"
+            }
           },
           "status": {
             "type": "string",
@@ -32046,6 +33276,7 @@
           "ownerUserId",
           "name",
           "workspace",
+          "workspaces",
           "status",
           "mode",
           "networkMode",
@@ -32056,6 +33287,26 @@
           "restricted",
           "users",
           "groups"
+        ]
+      },
+      "TerminalWorkspacesDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "workspaces": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalWorkspaceDto"
+            }
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "workspaces"
         ]
       },
       "TerminalGrantAuditDto": {
@@ -34939,10 +36190,10 @@
             "type": "string",
             "description": "Optional model override for the successor run.",
             "enum": [
-              "gpt-6-sol",
+              "gpt-6.1-sol",
               "gpt-6-luna"
             ],
-            "example": "gpt-6-sol"
+            "example": "gpt-6.1-sol"
           },
           "reasoningEffort": {
             "type": "string",

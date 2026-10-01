@@ -8,12 +8,15 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const referenceRoot = join(root, 'low-code', 'reference');
 const snapshot = join(referenceRoot, 'source', 'api.public.d.ts');
 const surfaces = [
+  ['vault', 'Vault reference', 'Unified instance and user Secret lifecycle, revision values and OAuth integration management.'],
   ['api', 'api reference', 'Execution, platform, Database, HTTP, automation, and compatibility methods.'],
   ['storage', 'storage reference', 'Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.'],
   ['transport', 'SFTP transport reference', 'Storage-backed SFTP import, export, and remote file operations with Secret-backed connections.'],
   ['agent', 'agent reference', 'Durable Agent, inbox, run, plugin, and Assistant-thread methods.'],
   ['util', 'util reference', 'Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers.'],
 ];
+
+export const LOW_CODE_REFERENCE_GLOBALS = surfaces.map(([global]) => global);
 
 function replaceMethodDocumentation(source, methodName, documentation) {
   const signatureStart = source.indexOf(`static ${methodName}`);

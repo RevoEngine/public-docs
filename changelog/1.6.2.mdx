@@ -26,28 +26,28 @@ Install the RevoEngine CLI on a macOS or Linux computer, including a virtual mac
 After connection, the Assistant can start a command, read output while it runs, inspect completion and request cancellation. Terminal activity records the connection and command history. A conversation disconnect does not revoke the owner's device grant or stop a process already running; the owner can remove the grant separately. Commands run with the operating-system permissions of the account running the CLI. The workspace is the starting directory, so use a limited account or disposable virtual machine when stronger isolation is needed.
 
   </Accordion>
-  <Accordion title="Review connected accounts and credential bindings">
+  <Accordion title="Review connected accounts and credential access">
 
 Vault now presents connected accounts, stored personal Secrets and access grants in a clearer workflow. Enter the remote MCP server URL, review the discovered authorization server and requested scopes, then complete consent with the external provider. Some providers offer dynamic client registration; others require an application registered by the user or administrator. A successful account connection still needs a separate grant to the Component or Agent plugin that will use it.
 
-The bound-value contract introduced in 1.6.1 remains the supported way to send a credential in an outbound HTTP header. Instance Secrets are the default; a personal connected account requires a verified user and an explicit grant. Organization-scoped references are recognized by the runtime when an organization-owned value and grant have been provisioned, but the current Vault screen does not provide self-service organization provisioning.
+Read a Secret with `await vault.get(...)` or an integration token with `await vault.getAccessToken(...)`, then pass the explicit value in the outbound HTTP header. Instance Secrets are the default; a personal connected account requires a verified user and an explicit consumer grant. Secret values are UTF-8 Buffers. Keep credentials and credential-bearing provider responses out of logs.
 
 ```js
+const secret = await vault.get('ORDERS_TOKEN');
 const response = await api.httpCall({
   url: 'https://api.example.com/orders',
   method: 'GET',
-  headers: { Authorization: vault('ORDERS_TOKEN', { prefix: 'Bearer ' }) },
+  headers: { Authorization: `Bearer ${secret.revision.value.toString('utf8')}` },
 });
 return response.data;
 ```
 
 ```js
+const token = await vault.getAccessToken('ACCOUNT', { scope: 'user' });
 const response = await api.httpCall({
   url: 'https://api.example.com/me',
   method: 'GET',
-  headers: { Authorization: vault('ACCOUNT', {
-    scope: 'user', source: 'integration', prefix: 'Bearer ',
-  }) },
+  headers: { Authorization: `Bearer ${token.accessToken}` },
 });
 return response.data;
 ```

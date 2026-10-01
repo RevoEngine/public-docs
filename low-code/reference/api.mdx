@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **67 methods**. Search the docs for an exact method name, or use this index:
+This page contains **76 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
@@ -76,6 +76,15 @@ This page contains **67 methods**. Search the docs for an exact method name, or 
 - [`api.triggerTarget()`](#api-triggerTarget)
 - [`api.triggerJob()`](#api-triggerJob)
 - [`api.triggerWebhook()`](#api-triggerWebhook)
+- [`api.cancelJobs()`](#api-cancelJobs)
+- [`api.retryJobs()`](#api-retryJobs)
+- [`api.deleteJobs()`](#api-deleteJobs)
+- [`api.cancelWebhooks()`](#api-cancelWebhooks)
+- [`api.retryWebhooks()`](#api-retryWebhooks)
+- [`api.deleteWebhooks()`](#api-deleteWebhooks)
+- [`api.previewAutomationOperation()`](#api-previewAutomationOperation)
+- [`api.getAutomationOperation()`](#api-getAutomationOperation)
+- [`api.getAutomationOperationItems()`](#api-getAutomationOperationItems)
 - [`api.httpCall()`](#api-httpCall)
 
 <span id="api-createDatabase" aria-hidden="true"></span>
@@ -1638,6 +1647,154 @@ const webhook = await api.triggerWebhook({
 }, {
   scheduleFor: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
 });
+```
+
+<span id="api-cancelJobs" aria-hidden="true"></span>
+
+## `api.cancelJobs()`
+
+Cancel by jobIds OR a non-empty platform filter. No-op in debug mode.
+Returns a durable operation over frozen IDs; counters describe requests processed, not downstream completion.
+
+### Signature
+
+```ts
+static cancelJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.cancelJobs({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
+```
+
+<span id="api-retryJobs" aria-hidden="true"></span>
+
+## `api.retryJobs()`
+
+Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. No-op in debug mode.
+
+### Signature
+
+```ts
+static retryJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.retryJobs({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
+```
+
+<span id="api-deleteJobs" aria-hidden="true"></span>
+
+## `api.deleteJobs()`
+
+Delete by jobIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+
+### Signature
+
+```ts
+static deleteJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.deleteJobs({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+```
+
+<span id="api-cancelWebhooks" aria-hidden="true"></span>
+
+## `api.cancelWebhooks()`
+
+Cancel by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+
+### Signature
+
+```ts
+static cancelWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.cancelWebhooks({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
+```
+
+<span id="api-retryWebhooks" aria-hidden="true"></span>
+
+## `api.retryWebhooks()`
+
+Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. No-op in debug mode.
+
+### Signature
+
+```ts
+static retryWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.retryWebhooks({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
+```
+
+<span id="api-deleteWebhooks" aria-hidden="true"></span>
+
+## `api.deleteWebhooks()`
+
+Delete by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+
+### Signature
+
+```ts
+static deleteWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.deleteWebhooks({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+```
+
+<span id="api-previewAutomationOperation" aria-hidden="true"></span>
+
+## `api.previewAutomationOperation()`
+
+Preview is advisory; submit freezes a fresh selection. No request bodies are returned.
+
+### Signature
+
+```ts
+static previewAutomationOperation(resource: 'jobs' | 'webhooks', action: 'cancel' | 'retry' | 'delete', input: JobsBulkInput | WebhooksBulkInput): Promise<{ matched: number; eligible: number }>;
+```
+<span id="api-getAutomationOperation" aria-hidden="true"></span>
+
+## `api.getAutomationOperation()`
+
+Read the durable operation and its progress. Counters describe requests processed, not downstream completion.
+
+### Signature
+
+```ts
+static getAutomationOperation(operationId: string): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.getAutomationOperation(input.operationId);
+```
+
+<span id="api-getAutomationOperationItems" aria-hidden="true"></span>
+
+## `api.getAutomationOperationItems()`
+
+Read a page of safe per-item outcomes without saved request bodies. Pass nextCursor as after to read the next page.
+
+### Signature
+
+```ts
+static getAutomationOperationItems(operationId: string, after?: string): Promise<{ data: Array<{ resourceId: string; status: string; resultId: string | null; errorCode: string | null }>; nextCursor: string | null }>;
+```
+### Example
+
+```ts
+const page = await api.getAutomationOperationItems(input.operationId);
 ```
 
 <span id="api-httpCall" aria-hidden="true"></span>

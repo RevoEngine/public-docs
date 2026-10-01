@@ -34,7 +34,7 @@ Named environment profiles are stored separately from the default login. Logout 
 
 ## Essential commands
 
-To connect a computer or virtual machine for an Assistant, follow [Connect a terminal](/ai/terminals). After signing in with a personal API key, `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"` creates a pending request. Its owner must approve it in **AI Agents → Terminals** from a browser session before the Assistant can use it.
+To connect a computer or virtual machine for an Assistant, follow [Connect a terminal](/ai/terminals). After signing in with a personal API key, `revo terminal connect --workspace "$HOME/projects/my-project" --name "Work VM"` creates a pending request. Its owner must approve it in **Settings → Vault → Terminals** from a browser session before the Assistant can use it. Later connections with the same profile and terminal name preserve the device registration; an additional directory becomes a separately approved workspace. Approved online workspaces are available directly to the Assistant. See the terminal guide for connection recovery, background services, browser state and file transfers.
 
 ```bash
 revo --help

@@ -16,6 +16,36 @@ Vault lets a workload use a credential without saving its value in Component cod
 
 An unattended process without a verified personal identity should use an instance-owned credential. A personal or organization grant does not give the Component permission to impersonate another owner.
 
+## Secret history and rotation
+
+Both instance and personal Secrets retain encrypted revision history and have an explicit **Rotate** action. Their access boundaries remain different:
+
+| Behavior | Instance Secret | Personal Secret |
+| --- | --- | --- |
+| Ownership | Instance resource roles and ownership | Verified personal account and explicit consumer grants |
+| Revision history | Revision metadata is browsable in the Secret detail | Revision metadata is browsable in Personal Settings and the personal-account API |
+| Rotate | Immediate replacement of all earlier active and scheduled revisions | Immediate replacement of all earlier eligible and scheduled values, checked against the current revision |
+| Read old values | Explicit, authorized Reveal action | Explicit owner-only Reveal action; no dedicated restore action |
+| Limits | Instance-wide total and active revision quotas | Separate personal storage; instance revision quotas do not apply |
+
+Rotate preserves the name, binding, and personal grants. Credential caches are invalidated after the committed change, so subsequent credential reads use the new value without signing in again. Calls already running keep their previously resolved inputs. Rotation does not change the external provider's credential and is separate from OAuth token refresh or reconnect.
+
+### Personal Secret rotation API
+
+This is a personal-account operation on the **Auth service**, separate from the Platform API and instance Secret actions. Use an authenticated, verified personal account; a service account cannot manage a personal Vault.
+
+`POST /v1/vault/secrets/rotate` accepts:
+
+| Field | Contract |
+| --- | --- |
+| `name` | Required existing Secret name; non-empty string, at most 256 characters |
+| `value` | Required new value; non-empty string, at most 65,536 characters |
+| `expectedRevision` | Required exact current revision id from `GET /v1/vault/secrets/item?name=...`; cannot be null |
+
+Success returns `201` with `{ name, revision, validFrom }`; `validFrom` is Unix epoch milliseconds. The response never contains a Secret value. A changed revision or deletion in progress returns `409`; a missing Secret returns `404`; invalid fields return `400`. Refresh metadata after a conflict before submitting again.
+
+Rotate does not accept scheduling. Existing `POST /v1/vault/secrets` remains additive: `expectedRevision: null` creates a new name, an exact current revision appends a value, and optional `validFrom` is an ISO date-time for scheduling. Use Create for a new name and Rotate for immediate replacement. A disabled personal Secret can be replaced by Rotate; deletion requires disabling first and removes its history and grants.
+
 ## Connect an external account
 
 1. Open **Settings → Vault** and choose a personal or instance connection. Organization-owned values require a separately provisioned organization grant and are not currently managed in this screen.
@@ -27,40 +57,54 @@ An unattended process without a verified personal identity should use an instanc
 
 This flow works with compatible OAuth authorization servers, including providers that publish OIDC discovery metadata. Provider-specific registration, scopes, consent policy, and remote MCP behavior may still be required. A successful provider sign-in proves the account connection; it does not approve each Agent action or override RevoEngine permissions.
 
-## Bind a Secret in a Component
+## Read a credential in a Component
 
-For an outbound HTTP header in a saved low-code Component, use `vault()` as the **entire** header value:
+Use the flat asynchronous `vault.*` manager. Read a Secret with `vault.get` (its value is a UTF-8 Buffer) or an OAuth access token with `vault.getAccessToken`:
 
 ```js
+const token = await vault.getAccessToken('ORDERS_ACCOUNT', { scope: 'user' });
 const response = await api.httpCall({
   url: 'https://api.example.com/orders',
-  method: 'GET',
-  headers: {
-    Authorization: vault('ORDERS_ACCOUNT', {
-      scope: 'user',
-      source: 'integration',
-      prefix: 'Bearer ',
-    }),
-  },
+  headers: { Authorization: `Bearer ${token.accessToken}` },
 });
-return response.data;
+return { status: response.status };
 ```
 
-`scope` defaults to `instance`; `source` defaults to `secret`. Select `organization` for an organization-owned binding. The name in code is the name requested by the workload; the Vault grant selects the owner's actual Secret or connection. The trusted outbound sender resolves the credential at call time. A Vault reference is an opaque value, not a string: do not interpolate it into a URL, body, log, return value, or template string.
+Scope defaults to `instance`; use `user` for the verified current account. Saved Component and Tool reads keep their exact grant and requested-name mapping. Management never inherits rights from a read grant. Direct owner/admin reads use their own authorization. Protect execution captures and keep values out of logs, queued payloads and model results. Later reads can observe rotation or revocation; a previously read value remains the caller's snapshot.
 
-Personal and organization values require an explicit grant to the exact saved consumer. The current self-service grant flow covers personal values; organization binding is a runtime contract and requires separate provisioning. A direct Component grant follows its stable Component identity across updates; review the grant whenever its code changes. A Tool grant follows the Tool identity. Unsaved ad hoc code has no eligible saved Component identity for these bindings.
+## Manage an integration from low-code
+
+`getIntegrationMetadata` returns definition metadata and its revision. `discoverIntegration` validates provider metadata without connecting. `connectIntegration` accepts provider configuration and the required `expectedRevision`: null creates a definition; otherwise use its exact current revision. It returns an `authorizationUrl` which the initiating user opens to grant consent. The existing callback completes the connection.
+
+`getAccessToken` returns `{ accessToken, expiresAt, tokenType: 'Bearer' }` and refreshes when necessary. `disconnectIntegration` disables the stored connection, retaining definition, history and grants; it does not promise revocation at the provider. Instance lifecycle requires a verified personal instance administrator. Writes return null in debug mode.
 
 ## Use Vault with Agent plugins and remote MCP
 
-A Component-backed Agent tool can use the same bound HTTP header inside its saved Component. A remote MCP server plugin instead declares a governed Vault binding for the relevant outbound header in its server configuration. RevoEngine resolves that binding for the executing identity when it connects to the remote server; the model sees the tool contract, not the credential value.
+A Component-backed Agent tool can use the same explicit token read and HTTP header inside its saved Component. A remote MCP server plugin instead declares a governed Vault binding for the relevant outbound header in its server configuration. RevoEngine resolves that binding for the executing identity when it connects to the remote server; the model sees the tool contract, not the credential value.
 
 For a personal credential, the owner must grant the plugin the requested Vault name and source. Organization values require an organization grant before they can be resolved. An authorized operator also reviews the remote server's discovered tools, enables the intended operations, and sets their approval policy. These are separate decisions: an account connection or Vault grant alone does not authorize a remote tool call.
 
 An instance connection represents a shared account. Use a personal connection when the remote action must reflect the current user's identity. The remote provider's own consent and permissions still apply in either case.
 
+## Personal lifecycle from a Component
+
+Use `vault.get/create/update/delete/rotate` with `{ scope: 'user' }` for the
+verified executing account. The default instance scope has the same contract.
+Both scopes support parent properties and retained revision history through
+`vault.listRevisions`. Personal Settings also provide history, explicit Reveal,
+metadata editing and scheduled revisions.
+
+Only `get` returns plaintext in `revision.value`. Rotate returns the parent and
+new revision metadata, without value. Its optional validFrom accepts null, Date,
+ISO or epoch milliseconds; a future timestamp keeps the current value available
+until activation. Exact get/delete versions are normalized activation timestamps.
+No owner override is accepted; reading through a grant confers no management
+rights. Debug writes return null. Protect execution captures and never log values.
+See [Manage Secrets from low-code](/operate/secrets#manage-secrets-from-low-code).
+
 ## Rotate, revoke, and diagnose
 
-- Rotate a Secret by activating a new revision under its stable name. Review external access before disabling the old value.
+- Use **Rotate** for an immediate Secret replacement, or add a scheduled revision for a coordinated rollout. Review external access and test the real workload before revoking the old provider credential. See [Secrets](/operate/secrets) for instance revision actions and quotas.
 - Disconnect an external account or remove its grant when a workload should stop using it. The owner can delete a disconnected personal connection or a personal connection definition that was never connected; deletion removes its saved credentials and revokes grants for that connection. An active connection must be disconnected first. Reconnects may require a new grant; a Component code update retains its identity and grant, so review the changed code before it runs again.
 - If a call fails, check the owner's scope, the exact requested name, the saved consumer identity, provider consent, and the workload's real execution identity. A missing or ambiguous binding fails rather than falling back to a value embedded in code.
 - Keep credential values out of prompts, metadata, logs, and saved plugin descriptions. Use sanitized execution and connection status for investigation.

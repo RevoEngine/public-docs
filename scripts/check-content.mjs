@@ -99,12 +99,15 @@ function declarationClassBody(source, className) {
   return '';
 }
 
-function deprecatedLowCodeMethods(source) {
+export function deprecatedLowCodeMethods(source) {
   return ['api', 'storage', 'agent', 'util'].flatMap((global) => {
     const body = declarationClassBody(source, global);
-    return [...body.matchAll(/\/\*\*([\s\S]*?)\*\/\s*static\s+([A-Za-z_$][\w$]*)/g)]
-      .filter((match) => /@deprecated\b/i.test(match[1]))
-      .map((match) => `${global}.${match[2]}`);
+    const methods = new Map();
+    for (const match of body.matchAll(/(?:\/\*\*([\s\S]*?)\*\/\s*)?static\s+([A-Za-z_$][\w$]*)/g)) {
+      const deprecated = /@deprecated\b/i.test(match[1] ?? '');
+      methods.set(match[2], (methods.get(match[2]) ?? true) && deprecated);
+    }
+    return [...methods].filter(([, deprecated]) => deprecated).map(([name]) => `${global}.${name}`);
   });
 }
 
@@ -269,9 +272,11 @@ function main() {
   console.log(`Content quality passed: ${mdxFiles.length} non-empty MDX pages, complete navigation, current terminology.`);
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  }
 }

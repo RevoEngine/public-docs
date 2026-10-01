@@ -27,21 +27,34 @@ Request and response formats are independent:
 | Direction | Supported formats | Result |
 | --- | --- | --- |
 | Request | `json`, `text`, `buffer`, `base64buffer`, `form-data`, `storage` | Encodes `data`, `formData`, or a Storage `source` |
-| Response | `json`, `text`, `buffer`, `base64buffer`, `document`, `storage`, `stream` | Returns bounded data, a finalized Storage entry, or a local async iterator |
+| Response | `json`, `text`, `buffer`, `base64buffer`, `document`, `storage`, `stream` | Returns provider data, a finalized Storage entry, or a local async iterator |
 
 JSON is the default. Set formats explicitly when they are part of the integration contract. `requestType: 'json'` is valid for every supported method, including bodyless requests; non-JSON request types require a method that accepts a body.
 
+## Query and multipart values
+
+Query parameter values in `params` and text fields in `formData` accept strings, numbers, and booleans. The HTTP runtime converts numbers and booleans to text before request validation and sending: `true` becomes `'true'`, `false` becomes `'false'`, and `0` becomes `'0'`. This conversion preserves the original request object.
+
+For example, `{ key: 'skip', value: 1 }` and `{ key: 'active', value: true }` are valid query parameters. Query values must be nonempty; multipart text fields may contain an empty string. The legacy plain query-map type retains its historical `'[object Object]'` wire conversion; serialize structured queries explicitly with `JSON.stringify`. Arrays and nested query maps are unsupported, and multipart text values cannot be objects.
+
+## Payload ownership and diagnostics
+
+Request and response bodies are integration-owned content. Explicit Vault reads produce ordinary values in the caller. HTTP preserves JSON, text and binary body content. `response.data` retains the provider body, including any credential echo. Decide what to return, persist or log in your own code. Provider headers can also echo credentials; choose safe response fields.
+
+Vault reads omit credential values from automatic previews. Ordinary HTTP calls use bounded previews; keep credential-bearing payloads out of execution captures. Transport failures retain safe error codes, HTTP status and retry metadata without exposing Axios request objects or credential-bearing URLs.
+
+HTTP data, multipart text and webhook JSON bodies do not consume the DTO control-field byte budget. Runtime tests cover 60 MiB payloads; component memory, deadlines, proxy and provider limits still govern actual delivery. For queued webhooks, `saveDetails` and `maskDetails` control a separate history snapshot. For explicitly read credentials, configure `maskDetails` for credential-bearing request sections before saving webhook history. History masking does not change delivery content.
+
 ## Call a JSON API
 
-Keep credentials in Vault and send query parameters through `params` rather than string concatenation. Pass `vault()` as the entire header value. The trusted HTTP runtime resolves it when sending the request; the Component never receives the credential value.
-
+Keep credentials in Vault and send query parameters through `params`. Read the value explicitly with `await vault.get` or `await vault.getAccessToken`, then build the outgoing header. Protect execution capture and never log credentials. Provider bodies can echo credentials; return only the fields your caller needs.
 ```js
 const response = await api.httpCall(
   {
     url: 'https://crm.example.com/v2/customers',
     method: 'GET',
     headers: {
-      Authorization: vault('CRM_API_TOKEN', { prefix: 'Bearer ' }),
+      Authorization: `Bearer ${(await vault.get('CRM_API_TOKEN')).revision.value.toString('utf8')}`,
       Accept: 'application/json',
     },
     params: [
@@ -66,17 +79,17 @@ return response.data;
 
 Do not return the upstream error body blindly. It can contain credentials, personal data, or implementation details. Map expected failures to your own bounded response and keep safe correlation identifiers for investigation.
 
-`vault('NAME')` selects an instance Secret by default. To use a personal Secret or OAuth integration, select the saved Component in Settings → Vault, grant it access to the named value, and use the same name in code:
+`vault.get` defaults to instance scope. Personal reads in saved Components require the exact grant and a verified executing owner; direct owner reads use the current account. Integration consumption follows the same saved Component or Tool grant mapping:
 
 ```js
-headers: {
-  Authorization: vault('WORKSPACE', {
-    scope: 'user', source: 'integration', prefix: 'Bearer ',
-  }),
-}
+const token = await vault.getAccessToken('WORKSPACE', { scope: 'user' });
+const response = await api.httpCall({
+  url: 'https://api.example.com/items',
+  headers: { Authorization: `Bearer ${token.accessToken}` },
+});
 ```
 
-The direct grant follows that Component's stable identity across updates; review changed code before it runs with the grant. A personal binding also requires a verified user identity during execution; unattended work without one should use an instance-owned value. `prefix` and `suffix` are optional literal strings. Do not interpolate a Vault reference into a template string or use it in a URL, body, query parameter, return value, or log. An unsaved ad hoc run cannot resolve a Vault binding. For HTTP headers, use `vault()`.
+The grant follows the consumer's stable identity across updates; review changed code before running it with credentials. Values are ordinary strings or Buffers in code. Reuse a read for a stable execution snapshot; read again when the latest value is required. Queue credential names rather than tokens.
 
 ## Make external mutations retry-safe
 
@@ -91,7 +104,7 @@ const response = await api.httpCall(
     url: 'https://payments.example.com/v1/collections',
     method: 'POST',
     headers: {
-      Authorization: vault('PAYMENTS_TOKEN', { prefix: 'Bearer ' }),
+      Authorization: `Bearer ${(await vault.get('PAYMENTS_TOKEN')).revision.value.toString('utf8')}`,
       'Idempotency-Key': paymentKey,
     },
     data: {
@@ -199,7 +212,7 @@ const response = await api.httpCall(
   {
     url: 'https://ai.example.com/v1/runs',
     method: 'POST',
-    headers: { Authorization: vault('AI_PROVIDER_TOKEN', { prefix: 'Bearer ' }) },
+    headers: { Authorization: `Bearer ${(await vault.get('AI_PROVIDER_TOKEN')).revision.value.toString('utf8')}` },
     data: { task: api.input('task'), stream: true },
   },
   {
@@ -252,7 +265,7 @@ const response = await api.httpCall(
   {
     url: `https://bank.example.com/v2/statements/${api.input('statementId')}`,
     method: 'GET',
-    headers: { 'X-API-Key': vault('BANK_API_KEY') },
+    headers: { 'X-API-Key': (await vault.get('BANK_API_KEY')).revision.value.toString('utf8') },
   },
   {
     responseType: 'storage',
@@ -279,7 +292,7 @@ await api.httpCall(
   {
     url: 'https://signature.example.com/v1/documents',
     method: 'POST',
-    headers: { Authorization: vault('SIGNATURE_TOKEN', { prefix: 'Bearer ' }) },
+    headers: { Authorization: `Bearer ${(await vault.get('SIGNATURE_TOKEN')).revision.value.toString('utf8')}` },
   },
   {
     requestType: 'storage',

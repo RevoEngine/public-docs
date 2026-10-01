@@ -103,6 +103,7 @@
             "pages": [
               "low-code/reference/index",
               "low-code/reference/api",
+              "low-code/reference/vault",
               "low-code/reference/storage",
               "low-code/reference/transport",
               "low-code/reference/agent",

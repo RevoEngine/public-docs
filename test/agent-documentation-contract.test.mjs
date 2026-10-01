@@ -26,9 +26,14 @@ test('Agent documentation separates product modes and states the current executi
   assert.match(terminals, /system and toolchain files needed to run programs/);
   assert.match(terminals, /can read, change, or delete anything the runner's operating-system account can access/);
   assert.doesNotMatch(terminals, /Codex|ChatGPT/i);
-  assert.match(terminals, /\*\*15 minutes\*\* or \*\*one hour\*\*/);
+  assert.match(terminals, /\*\*15 minutes\*\*, \*\*one hour\*\*, \*\*eight hours\*\*, \*\*24 hours\*\*, or \*\*this thread\*\*/);
   assert.match(terminals, /not included in the model-visible tool call/);
-  assert.doesNotMatch(terminals, /eight hours|remembered approval/i);
+  assert.doesNotMatch(terminals, /remembered approval/i);
+  assert.match(terminals, /Each workspace has its own access and sharing contract/);
+  assert.match(terminals, /Recovery has a three-minute window/);
+  assert.match(terminals, /four sessions and sixteen tabs per session/);
+  assert.match(terminals, /recreates the browser context and loses its cookies/);
+  assert.match(terminals, /90-second idle timeout/);
   assert.match(comparison, /OpenAI Codex/);
   assert.match(comparison, /Claude Code/);
 });
