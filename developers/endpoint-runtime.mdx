@@ -42,6 +42,18 @@ flowchart LR
 
 Component code can read request body, query, path values, sanitized headers, and endpoint template inputs through its execution input/context. Authorization and platform-internal headers are not exposed to customer code.
 
+## Caller and execution account
+
+An Endpoint's saved `executionPolicy` chooses whether its runtime operations use the caller or a Service Account. Set defaults in **Settings → Endpoints**, then override individual Endpoints when necessary. The authenticated caller needs `ENDPOINT_INVOKE` or `INSTANCE_ADMIN`; a human application user can invoke Endpoints with platform access disabled. Invocation access does not grant access to Databases, Storage, Users, or other operations inside the Component.
+
+In `CALLER` mode, those operations use the caller's current roles and resource ACLs. In `SERVICE_ACCOUNT` mode, they use the selected account's current roles and resource ACLs. An administrator caller uses their own permissions in `CALLER` mode without Service Account code approval. A Service Account must be active and have platform access in either mode.
+
+Existing instances without saved execution settings automatically retain their application behavior with System as execution authority and the invoking user as business identity. Existing executable versions remain available and Job defaults stay unchanged. Explicit saved settings are preserved; new instances start with Caller Endpoint authority.
+
+`api.currentUser()` defaults to the invoking business user, even when a Service Account performs resource operations. Choose `EXECUTION_ACCOUNT` in the instance or Endpoint policy only when the Component should see that executor instead. The audit trail keeps the initiating caller separately from the execution account. See [Endpoint configuration](/operate/endpoint-configuration#execution-policy) for policy fields and code approval for configured administrator Service Accounts.
+
+For example, an application user invokes a reporting Endpoint as **System + Caller**. Database queries execute with System's permissions, while `api.currentUser().userId` remains that application's user ID for existing filters and business attribution. Changing only the execution identity does not change authorization. Direct Platform API, MCP, and ad-hoc Sandbox calls continue to use their authenticated caller; Endpoint defaults apply to saved Endpoint execution.
+
 ## Validation
 
 An Endpoint can validate its input with an inline guard or a JSON-validator component. Configure the failure status/body independently from the successful response. Validate both accepted and rejected payloads before activation.
@@ -67,7 +79,7 @@ Configured normal response codes are successful `2xx` values. A component can de
 
 ## Version and readiness
 
-Low-code Endpoints omit `componentDigest` to follow the latest active revision, or use a verified content digest for a controlled rollout across instances. Preserve an existing binding unless the change is intentional. Custom Node.js endpoints execute the component's selected ready runtime revision; they do not run newly saved source until its deployment is ready and active. If no usable runtime revision exists, invocation fails explicitly.
+Low-code Endpoints omit `componentDigest` to follow the latest active revision, or use a verified content digest for a controlled rollout across instances. Preserve an existing binding unless the change is intentional. Custom Node.js endpoints execute the component's selected ready runtime revision; they do not run newly saved source until its deployment is ready and active. If no usable runtime revision exists, invocation fails explicitly. For configured execution as an administrator Service Account, approval covers the selected ready runtime revision; pending source does not replace it or grant its artifact approval.
 
 When a Component is repaired, inspect dependent Endpoints, Job Templates, and Agent Tools. Latest-bound dependents follow the repaired version and require contract validation; pinned dependents remain unchanged. Do not migrate existing dependents to a different version without an explicit compatibility decision.
 

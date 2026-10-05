@@ -102,6 +102,26 @@ A clean local copy can fast-forward when only the remote changed. If both sides 
   The lock file is synchronization evidence, not deployed source of truth. RevoEngine remains authoritative for deployed state; local component files are the desired source you are proposing.
 </Warning>
 
+## Portable owners and execution policies
+
+Use `owner: { "type": "system" }` for a Group or Service Account whose management owner is the built-in System account. An ordinary Service Account owner uses `owner: { "type": "service-account", "stableKey": "operations-worker" }`. The CLI resolves these references in the target instance. A Service Account manifest owner becomes management access; it does not grant execution roles. System itself is protected and is excluded from managed-account exports, updates, and pruning. A target without a valid physical System account is blocked before dependent writes.
+
+Endpoint `execution` identifies the Component. The separate `executionPolicy` chooses permission identity and business `currentUser` behavior:
+
+```json
+{
+  "executionPolicy": {
+    "mode": "SERVICE_ACCOUNT",
+    "serviceAccount": { "kind": "system" },
+    "currentUser": "CALLER"
+  }
+}
+```
+
+For an ordinary executor, use `serviceAccount: { "kind": "service-account", "stableKey": "operations-worker" }`. Both Endpoints and Job Templates accept `INHERIT`, `CALLER`, or `SERVICE_ACCOUNT`; omit `serviceAccount` for the first two. Only Endpoints have the independent `currentUser` choice. Job code sees the captured executor and records the initiator separately.
+
+Instance execution defaults are target-local settings under **Settings → Endpoints** and are not copied by resource migration. Existing Job `executionPrincipal` manifests remain supported; use either that legacy reference or `executionPolicy`, not both. Writing an explicit policy clears the legacy executor alias. Configured `SERVICE_ACCOUNT` execution with administrator permissions requires approved Component and library code; see [Endpoint configuration](/operate/endpoint-configuration#execution-policy).
+
 ## Debug local source
 
 ```bash

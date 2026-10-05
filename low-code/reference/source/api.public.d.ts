@@ -584,7 +584,11 @@ declare class api {
      * Executes raw SELECT/WITH SQL when the structured helpers are not enough.
      * Do not use this for writes; use insert/upsert/update/delete helpers or
      * transactionDatabase for write flows.
-     * Requires current INSTANCE_ADMIN membership. Always runs exactly one SELECT/WITH
+     * Requires current INSTANCE_ADMIN membership on the effective execution account.
+     * Saved endpoint/Job policies select that account; direct Sandbox/MCP execution
+     * uses the authenticated caller. api.currentUser() follows the configured identity mode
+     * and does not grant execution permissions.
+     * Always runs exactly one SELECT/WITH
      * in a READ ONLY database transaction. Mutating CTEs and multiple statements are rejected.
      * Use parameters for values. Typed data and ORM helpers retain their own resource permissions.
      *
@@ -823,7 +827,11 @@ declare class api {
     ): Promise<string>;
 
   /**
-     * Returns the current logged user or service account synchronously.
+     * Returns the business current user synchronously. Saved Endpoints default to
+     * the invoking user, including end users without platform access. The instance
+     * or Endpoint currentUser policy can select EXECUTION_ACCOUNT instead.
+     * Jobs return their captured execution account. Permission checks follow the
+     * saved execution policy independently of this presentation setting.
      * `avatar` is the Storage entry ID, not a signed download URL.
      *
      * Example:

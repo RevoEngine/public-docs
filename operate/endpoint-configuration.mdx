@@ -18,7 +18,55 @@ This reference describes the public Endpoint definition managed through the UI o
 | `componentDigest` | no | Omit to follow the latest active low-code revision, or select a verified content digest for an exact portable pin. Preserve an existing binding unless its migration is intentional. `CUSTOM_NODEJS` targets use their selected ready runtime revision and must omit the digest. |
 | `timeout` | no | Seconds. The minimum is platform-defined and the effective maximum is constrained by the current instance quota. Align it to the caller deadline. |
 | `category`, `desc`, `metadata` | no | Organization and context. Metadata is JSON limited to 16 KiB / 64 top-level keys; `__*` keys are reserved. |
+| `executionPolicy` | no | Saved permission identity and independent `api.currentUser()` behavior. Omit it or use `INHERIT` to follow instance defaults. |
 | `options` | no | Execution, validation, libraries, response shaping, and controlled template input. |
+
+## Execution policy
+
+Open **Settings → Endpoints** to configure instance execution defaults. This is a separate settings tab; shared-library settings remain under **Components**. Instance administrators can select **Caller** or an active **Service Account**, including the protected built-in **System** account. Each Endpoint can inherit those defaults or override its permission identity.
+
+Existing instances without saved execution settings receive **System** execution authority and **Caller** business identity automatically. Existing Component and library versions remain runnable; no client configuration change is required. Saved settings and Job defaults are preserved. New instances start with **Caller** Endpoint authority. Later executable changes remain subject to administrator approval when running with administrator Service Account authority.
+
+The **Execution** section uses three controls:
+
+| Control | What changes |
+| --- | --- |
+| **Execution authority** | The account whose roles and resource access authorize instance operations. |
+| **Execution identity** | The user exposed to business logic through `api.currentUser()`. |
+| **Job execution authority** | The default executor of triggered Jobs. **Initiating execution account** uses the account executing the invoking Endpoint; **Existing job default** preserves the current Job default. Job Templates can override it. |
+
+The **Execution preview** simulates the selected settings for your current user before saving. It shows the caller, execution account, business identity and Job executor, with examples for database and user reads, Storage, Vault, nested Components, Jobs, Events and Webhooks. A known role check does not confirm access to a particular Database or Storage object: resource ACLs, personal ownership, source approval and fresh runtime checks still apply. Missing accounts and unavailable permission details are shown separately.
+
+For an application that needs broad instance access while keeping existing per-user filters, select **System** as authority and **Caller** as execution identity. An invoke-only caller cannot read Users in Caller mode without an IAM read role. Selecting another business identity alone does not change that permission check.
+
+`CALLER` checks runtime operations against the invoking account. Administrator callers retain their own permissions in this mode and do not require Service Account code approval. `SERVICE_ACCOUNT` uses the saved account's current roles and resource access. The authenticated caller still needs `ENDPOINT_INVOKE` or `INSTANCE_ADMIN`; a human application user does not need platform access enabled to invoke an Endpoint. Request input cannot select the execution account.
+
+| Operation inside the Component | Permission boundary |
+| --- | --- |
+| Database data helpers, including `api.getDatabaseData()` | The execution account needs a Database read role and access to the selected Database or View. An invocation role alone is insufficient. |
+| `api.getInstanceData('Users')`, Groups, Permission groups, or Keys | The execution account needs an IAM read role; restricted Service Account visibility remains subject to management access. |
+| Storage and Vault | The operation's roles and target access still apply. Personal namespaces and user-scoped Vault keep their ownership rules. |
+| `api.queryDatabase()` | The execution account needs `INSTANCE_ADMIN`. Raw SQL remains restricted to one read-only `SELECT` or `WITH` statement. |
+| Nested Component execution | It retains the execution authority and business identity. Component execution permissions and applicable source approval still apply. |
+| Job, Event, or Webhook trigger | The execution account needs automation execution permission. A triggered Job then uses its own resolved, persisted execution policy. |
+
+These settings do not change direct Platform API, MCP, or ad-hoc Sandbox authority. Those operations use the authenticated caller. When such a caller explicitly starts a saved Job, that Job's execution policy still determines its executor.
+
+Choose the business identity independently with `currentUser`. `CALLER` is the instance default and keeps `api.currentUser()` compatible with code that filters data or records business actions for the invoking person. `EXECUTION_ACCOUNT` returns the selected execution account instead. Endpoint `INHERIT` follows the instance choice. This setting does not grant permissions or replace the initiating caller in the audit trail.
+
+```json
+{
+  "executionPolicy": {
+    "mode": "SERVICE_ACCOUNT",
+    "serviceAccountUserId": "a6e96a8a-0f13-4865-bb07-64260c3de208",
+    "currentUser": "CALLER"
+  }
+}
+```
+
+The Service Account must remain active and have platform access. Configuring `SERVICE_ACCOUNT` execution with System or another Service Account holding `INSTANCE_ADMIN` approves the instance's current executable Component and library code. Later source changes require instance-administrator approval before that changed code can execute with the configured Service Account's administrator permissions. An unchanged save, or a change only to `currentUser` or metadata, does not approve new source; approval through these settings requires a changed permission identity or executable Component binding.
+
+Native account, key, and permission administration still checks the caller's own authority. Selecting an execution account does not delegate those management operations.
 
 ## `options` fields
 

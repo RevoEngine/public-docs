@@ -16,7 +16,7 @@ Open **Groups**, select **Add**, and provide:
 | Category | No | Groups related access sets in the UI. |
 | Description | No | Scope, approver, and intended resources. |
 | Owner type | Yes | `USER` or `GROUP`. |
-| Owner | Yes | Accountable user or parent ownership group. |
+| Owner | Yes | Accountable user, Service Account, built-in System, or parent ownership Group. |
 | Metadata | No | Searchable ownership, review, system, or environment attributes. |
 
 After saving, reopen the Group and use **Members** to add or remove users and Service Accounts. A Group avatar can be uploaded for discovery; the UI accepts JPG, JPEG, PNG, GIF, or WEBP up to 5 MB.
@@ -47,7 +47,7 @@ Avoid Groups named only `Admins`, `Team 1`, or `Temporary`. The name should stil
 
 ## Ownership and nesting
 
-Owner type expresses accountability. A Group-owned Group is useful when a platform team owns several access sets, but it should not be mistaken for automatic member inheritance unless the target ACL and current membership explicitly provide it.
+Owner type expresses accountability. Use `USER` for a human or Service Account owner, including System, and `GROUP` for a parent ownership Group. The owner reference alone does not add members or grant unrelated runtime permissions. A Group-owned Group is useful when a platform team owns several access sets, but it should not be mistaken for automatic member inheritance unless the target ACL and current membership explicitly provide it.
 
 Use metadata to record an approver, review cadence, ticket reference, and environment. Do not encode credentials or sensitive personal data in Group metadata.
 

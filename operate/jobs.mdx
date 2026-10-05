@@ -47,7 +47,10 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
   "name": "Nightly CRM synchronization",
   "category": "Integrations",
   "componentId": "4d3390ac-2c06-4eb0-8cd4-0b69c3aa531a",
-  "triggerUser": "a6e96a8a-0f13-4865-bb07-64260c3de208",
+  "executionPolicy": {
+    "mode": "SERVICE_ACCOUNT",
+    "serviceAccountUserId": "a6e96a8a-0f13-4865-bb07-64260c3de208"
+  },
   "timeout": 1800,
   "options": {
     "input": { "region": "eu", "mode": "incremental" },
@@ -66,7 +69,25 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 }
 ```
 
-A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration. `triggerUser` is the principal whose roles and resource ACLs apply at execution time; choose a dedicated service account for unattended work.
+A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration.
+
+## Choose and retain the executor
+
+`executionPolicy` selects who executes the Job. A direct Platform API or MCP invocation requires the caller's automation permissions. Triggering a Job inside an Endpoint checks the Endpoint's execution account for those permissions.
+
+| Mode | Executor |
+| --- | --- |
+| `INHERIT` or an omitted policy | Uses the instance Job default. Existing per-template `triggerUser` bindings retain precedence; when no instance Job policy exists, the established instance Job executor is used, with System as its fallback. |
+| `CALLER` | Uses the account initiating the Job. A direct authenticated invocation uses that caller; a Job triggered inside an Endpoint uses the Endpoint's execution account. Unattended triggers without a known initiator cannot use this mode. |
+| `SERVICE_ACCOUNT` | Uses the selected active Service Account, which must have platform access and the required roles and resource ACLs. |
+
+Use a dedicated Service Account for unattended work. An explicit policy and `triggerUser` must agree; clear the legacy alias with `null` when replacing it. The Endpoint compatibility migration preserves existing instance Job defaults and template bindings.
+
+Jobs capture their executor when the durable record is created. `api.currentUser()` returns that executor; Jobs do not have the Endpoint's separate business-identity setting. History distinguishes `executionUserId` from `initiatedByUserId`. A retry keeps the original executor and initiator even if a Template or instance default changes, and rechecks the executor's availability and current permissions before running.
+
+For example, a human user invokes an Endpoint executing as System with Caller business identity. If that Endpoint triggers a `CALLER` Job, the Job executes as System, `api.currentUser()` in the Job is System, and `initiatedByUserId` remains the original human user. A Template selecting a different Service Account uses that account instead.
+
+The Job executor's roles authorize operation families, while resource ACLs determine access to particular Databases, Storage objects, and other restricted targets. Configured administrator Service Account execution also requires approved Component and library code. An approval failure produces a terminal error rather than repeatedly retrying unapproved code; inspect the failure and approve the intended executable version before starting new work.
 
 The platform rejects retry backoff above 30 days before queueing. If an absolute requested run time becomes due while the request is being processed, the Job is dispatched immediately; the queue is never given a timestamp in the past.
 

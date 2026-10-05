@@ -44,6 +44,8 @@ Read [Jobs and durable execution](/operate/jobs) for concrete patterns, instance
 7. Configure sensitive-history, concurrency, and retry options.
 8. Save the template and run a controlled test.
 
+Job Templates can inherit the instance Job policy, select the invoking caller, or select a saved Service Account. Caller execution requires a known authenticated initiator; unattended Schedules and Events need a Service Account. In Job code, `api.currentUser()` is the executor; history records the initiator separately.
+
 The execution principal is evaluated when the job runs. Use a service account for unattended work and grant it only the platform and resource access the Component needs.
 
 <Warning>

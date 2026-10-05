@@ -64,6 +64,8 @@ active principal
 
 The Platform API and governed execution boundaries evaluate current state at request or execution time. UI visibility is only a convenience layer.
 
+Endpoint admission also supports human application users with platform access disabled: they still need `ENDPOINT_INVOKE` or `INSTANCE_ADMIN`. This admits the request, while operations inside its Component check the selected execution account's roles and resource ACLs. In **Caller** mode that account is the invoking user; **Service Account** mode uses the saved executor. A Service Account requires platform access enabled in either mode. The [Endpoint execution identity](/operate/endpoint-configuration#execution-policy) controls `api.currentUser()` for business logic and does not grant permissions.
+
 ## Change and deletion safety
 
 Before removing a role:
