@@ -4,7 +4,7 @@ description: Configure a durable Agent's identity, runtime, permissions, tools, 
 icon: sliders
 ---
 
-An Agent definition combines a stable operational identity with an execution principal, runtime defaults, capabilities, and safety policy. This page documents the configuration accepted by the current Platform API and explains how it maps to the **General**, **Identity**, **Runtime**, and **Tools** sections in the Agents workspace.
+An Agent definition combines a stable operational identity with an execution principal, runtime defaults, capabilities, and safety policy. This page documents the configuration accepted by the current Platform API and explains how it maps to the **General**, **Identity**, **Runtime**, **Tools**, **Plugins**, **Memory**, and **Terminals** sections in the Agents workspace.
 
 ## Configuration model
 
@@ -13,7 +13,7 @@ Agent settings are intentionally split into three layers:
 | Layer | Purpose | Typical fields |
 | --- | --- | --- |
 | Agent record | Identity, ownership, availability, and audit metadata | `name`, `desc`, `status`, owner, service account, metadata |
-| `config` | Normal runtime behavior and Agent-owned capability attachments | model, reasoning, definition, instructions, automation, memory preferences, plugins, limits |
+| `config` | Normal runtime behavior and Agent-owned capability attachments | model, reasoning, definition, instructions, automation, memory instructions, plugins, terminals, limits |
 | `policy` | Operator-enforced permissions and ceilings | default and per-tool access, policy plugins, concurrency and delegation limits |
 
 The effective runtime behavior is derived from platform policy, the Agent policy, the Agent configuration, and the current trigger. A configuration value cannot broaden a permission denied by the service account, tenant policy, or a more restrictive Agent policy.
@@ -110,6 +110,8 @@ There are two attachment layers:
 
 Both accept up to 64 plugin UUIDs. A direct run can add up to 32 registry plugins for that run without changing the Agent definition. Normal product configuration should reference active, reviewed registry plugins rather than embedding private integration configuration in the Agent payload.
 
+The **Plugins** tab shows explicit attachments and inherited active instance defaults. Autonomous Agents discover and execute only plugins in their effective attachment set; they do not automatically discover unrelated installed plugins. `config.eagerPluginIds` selects up to 64 attached or inherited plugin UUIDs to load at the start of work. Loading a plugin does not grant additional permissions.
+
 Plugin safety metadata, approval mode, side-effect classification, and operating limits remain enforceable after attachment. See [Plugins](/ai/plugins).
 
 ## Inbox and trigger delivery
@@ -169,17 +171,17 @@ Start with one root run and two concurrent children. Increase concurrency only a
 
 ## Memory configuration
 
-`config.memoryPolicy` accepts:
+The **Memory** tab edits one Agent-owned text value, `config.memory`, with a live counter and a **20,000-token** limit. The current value is included in the Agent instructions for every model request, including after a memory update during a run. An empty value adds no memory instructions.
 
-| Field | Accepted value | Purpose |
-| --- | --- | --- |
-| `enabled` | Boolean | Stored Agent preference for durable cross-run memory |
-| `maxRecallEntries` | 1–64 | Preferred maximum number of recalled entries |
-| `maxRecallChars` | 128–64,000 | Preferred aggregate character budget for recalled summaries |
-
-The create form enables memory and starts with four entries and 1,200 characters. These are recall preferences, not permission grants. Current memory tools and tenant policy enforce their own bounds and ownership checks, and the runtime does not turn every successful answer into memory automatically.
+Agent memory tools read and update this same text. Updates are version-aware: a concurrent configuration or memory change requires a fresh read rather than silently overwriting newer content. Existing typed Agent memory records remain historical evidence and are not automatically recalled into Autonomous Agent requests. Interactive Assistant user memory keeps its existing behavior.
 
 Use Agent memory for durable operating knowledge, session checkpoints for in-progress continuity, and workspace files for large or exact content. See [Memory and workspaces](/ai/memory-and-workspaces).
+
+## Terminal access
+
+The **Terminals** tab searches terminals available to the Agent's selected service account. `config.agentTerminalIds` selects up to 64 terminal UUIDs; an empty selection grants no terminal access. Unrestricted terminals and restricted terminals accessible through the account's permissions or group membership can appear in this list.
+
+Selection narrows access; it cannot expand the service account's authorization. Terminal execution checks the current account access again before dispatch. Changing the service account requires reviewing its terminal selections. See [Terminals](/ai/terminals) for execution and workspace controls.
 
 ## Workspace configuration
 
@@ -235,11 +237,7 @@ The following creation payload uses registry plugins and keeps policy separate f
         "The final summary links to durable workspace artifacts."
       ]
     },
-    "memoryPolicy": {
-      "enabled": true,
-      "maxRecallEntries": 4,
-      "maxRecallChars": 1200
-    },
+    "memory": "Release summaries lead with validation and rollback status.",
     "automation": {
       "defaultDeliveryMode": "INBOX"
     },

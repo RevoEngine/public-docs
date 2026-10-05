@@ -7,15 +7,17 @@ icon: node-js
 `@revoengine/sdk` exposes the modern RevoEngine runtime to Node.js 22 or newer. It provides:
 
 - `api` for platform-backed runtime operations;
+- `vault` for explicit Secret text and connected account credentials;
+- `serviceAccount` for accounts, management ACL, execution memberships and immutable API-key rotation;
 - `storage` for folders, objects, upload sessions, and retrieval;
 - `transport` for Secret-backed SFTP imports, exports, and commands;
 - `agents` for Agent and related AI operations permitted by the caller;
 - `utils` for local encoding, hashing, identifiers, and other pure helpers;
-- `execute(code, options)` for transient low-code execution with active `lib.Category.Name.ElementKey.X` exports;
+- `execute(code, options)` for transient low-code execution with active `lib.Category.Name.ElementKey.X` exports; pass `readOnly: true` to restrict platform writes for that run. A hosted runtime cannot override an inherited restricted mode.
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk@1.6.2
+npm install @revoengine/sdk@1.6.4
 ```
 
 ## Choose a runtime mode
@@ -35,7 +37,7 @@ Both modes expose the same top-level namespaces, but context methods reflect whe
 | --- | --- | --- |
 | Execution snapshot, cache, debug, and logging | Synchronous | Unavailable; throws synchronously |
 | Current user and instance | Synchronous injected snapshot | Asynchronous lazy discovery |
-| Platform-backed `api`, `storage`, `agents`, and `execute()` | Asynchronous | Asynchronous |
+| Platform-backed `api`, `storage`, `transport`, `vault`, `serviceAccount`, `agents`, and `execute()` | Asynchronous | Asynchronous |
 | Local `utils` and `batch.configure()` | Synchronous unless the utility is inherently async | Same |
 
 The exported `RevoApi` and `RevoStandaloneApi` types preserve this distinction.
@@ -70,7 +72,9 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 ## Contract behavior
 
-SDK 1.6.2 matches the RevoEngine 1.6.2 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+The execution mode is immutable. Pass `readOnly` in sandbox/execute requests; `api.enableDebug()` and `api.disableDebug()` are removed. External HTTP remains real in read-only mode. Native service-account mutations use current IAM, management ACL, target rank and delegation checks. Key create/rotate return the usable credential once; metadata reads never recover it. See [Service accounts](/operate/service-accounts).
+
+SDK 1.6.4 matches the RevoEngine 1.6.4 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 
@@ -82,7 +86,7 @@ Database exports accept CSV, TSV, NDJSON, and XLSX. `api.importDatabase()` previ
 
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
 
-Remote MCP server definitions in SDK 1.6.2 accept public HTTPS destinations. Configure a Vault binding for credentials and review the discovered tools and their permissions before enabling the plugin. See [MCP server plugins](/developers/mcp-plugins) for the connection workflow.
+Remote MCP server definitions in SDK 1.6.4 accept public HTTPS destinations. Configure a Vault binding for credentials and review the discovered tools and their permissions before enabling the plugin. See [MCP server plugins](/developers/mcp-plugins) for the connection workflow.
 
 <Note>
   Runtime method availability does not grant permission. Authentication, roles, instance boundaries, execution context, and platform policy are still enforced by RevoEngine.

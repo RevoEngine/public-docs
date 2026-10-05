@@ -7,6 +7,19 @@ import { deprecatedLowCodeMethods } from '../scripts/check-content.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+test('Service Account reference retains the native camelCase namespace and immutable rotation contract', () => {
+  const reference = readFileSync(join(root, 'low-code/reference/serviceAccount.mdx'), 'utf8');
+  assert.match(reference, /## `serviceAccount\.create\(\)`/);
+  assert.match(reference, /## `serviceAccount\.rotateKey\(\)`/);
+  assert.match(reference, /gracePeriodMs/);
+  assert.match(reference, /newKey\.secret/);
+  assert.match(reference, /expireAt is immutable/);
+  const methods = [...reference.matchAll(/^## `serviceAccount\.([A-Za-z]+)\(\)`$/gm)].map(match => match[1]);
+  assert.deepEqual(methods, ['get', 'list', 'create', 'update', 'delete', 'activate', 'disable', 'restore', 'enablePlatformAccess', 'disablePlatformAccess', 'getKeys', 'getKey', 'createKey', 'updateKey', 'rotateKey', 'revokeKey']);
+  const navigation = JSON.parse(readFileSync(join(root, 'docs.json'), 'utf8'));
+  assert.ok(JSON.stringify(navigation).includes('low-code/reference/serviceAccount'));
+});
+
 test('groups overloaded low-code methods into one reference section', () => {
   const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
 

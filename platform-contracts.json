@@ -14,13 +14,14 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 471
+      "operations": 493
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
       "generated": [
         "low-code/reference/index.mdx",
         "low-code/reference/vault.mdx",
+        "low-code/reference/serviceAccount.mdx",
         "low-code/reference/api.mdx",
         "low-code/reference/storage.mdx",
         "low-code/reference/transport.mdx",

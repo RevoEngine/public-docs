@@ -81,6 +81,10 @@ The upload response and the session state prove different things:
 - `FINALIZED` means Storage published the governed file entry;
 - only the finalized entry should trigger later reads, Events, or Jobs.
 
+## Investigate an upload
+
+Keep the upload session ID and finalized Storage entry ID to find the recorded journey in [Observability](/operate/observability#file-origin-and-upload-timing). The session retains the creating execution across later direct-upload finalization. Its lifecycle duration covers reservation through the terminal state, including waiting for the producer and finalization; it is not a network-transfer benchmark. A replacement records a new origin for the current file version.
+
 ## Incremental generated upload
 
 Incremental mode is the default choice for one producer that appends data in order. Omit `partNumber` during normal writes; Storage assigns it.

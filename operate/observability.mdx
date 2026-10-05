@@ -6,13 +6,21 @@ icon: chart-line
 
 RevoEngine provides several evidence surfaces because configuration changes, synchronous calls, background work, and AI activity answer different operational questions.
 
+## Unified Observability workspace
+
+Open **Security Admin → Observability** with instance-administrator access. Overview, Executions, Performance and Logs share a UTC time window and investigation context. Agents uses its own diagnostic scope. Browsing defaults to the last 24 hours, and population statistics cover up to seven days. Exact Operation, Execution, Job, Event and Schedule identifiers use the native retained correlation index independently of the browsing period, then resolve the dates of the selected execution. Identified journeys can inspect up to 90 days of retained evidence through bounded continuation pages. Sources without that index require an explicit date window; an empty recent search does not establish that an older execution is absent.
+
+Use Operation ID to find related execution roots, then select a result to inspect its recorded journey. Component, Endpoint, Job, Event and Schedule references open the corresponding accessible resource. Lists retain successful reads, filters and selection while switching workspaces. Refresh advances the selected time snapshot while keeping the previous results and selection visible until the new read completes. Repeated refreshes are disabled while the current refresh is running. An expired investigation is retried once with a fresh context; permission and query-limit errors remain explicit. Performance sorting and filtering run on the server; an incomplete duration population is labelled rather than treated as complete.
+
+The journey distinguishes recorded parents, missing or ambiguous edges, retry relationships and absent terminal events. A Job's creation-to-start waiting interval is shown separately when both timestamps exist. A missing correlation in historical logs cannot establish causality. Logs includes all retained visible rows in the window, including application messages without an execution origin. Select a row to load its retained payload.
+
 ## Start with the question
 
 | Question | Start here |
 | --- | --- |
 | Who changed this resource? | Activity and version history. |
-| Why did an Endpoint call fail? | Endpoint statistics, then Trace and Logs. |
-| What happened to an asynchronous run? | Job History, job logs, and retry lineage. |
+| Why did an Endpoint call fail? | Endpoint statistics, then Executions and scoped Logs. |
+| What happened to an asynchronous run? | Job History, its Execution action, and retry lineage. |
 | Which targets received an event? | Event History detail. |
 | Was a webhook delivered? | Webhook detail and masked request history. |
 | Is a Component revision ready? | Component runtime status and deployment history. |
@@ -26,7 +34,7 @@ Collect identifiers before opening a support case:
 | Identifier | Scope |
 | --- | --- |
 | Operation ID | One distributed request or background delivery path. |
-| Execution ID | One Endpoint or Component-backed job execution. |
+| Execution ID | One recorded request, job, or other execution node, including a Storage write. |
 | Job ID | Durable asynchronous job and its lifecycle. |
 | Event history ID | One triggered event and target fan-out. |
 | Webhook ID | One outbound request attempt record. |
@@ -56,7 +64,7 @@ Use broad activity for recent workspace changes and exact resource history when 
 
 ## Logs
 
-Open **Security Admin → Logs** for instance-wide structured logs. Filter early by time and identifiers, then narrow by service, severity, event name, account, or execution context.
+Open **Security Admin → Observability → Logs** for instance-wide structured logs. Filter early by time and identifiers, then narrow by service, severity, event name, account, or execution context.
 
 For searchable fields, the Advanced filter workspace, and practical HTTP, MCP, and execution examples, see [Search instance logs](/operate/logs).
 
@@ -72,7 +80,7 @@ Job details also provide job-scoped logs. Use these when the question starts wit
 
 ## Trace
 
-Open **Security Admin → Trace** to follow an operation across service boundaries. Trace is most useful for:
+Open **Security Admin → Observability → Executions** to follow an operation across service boundaries. Clickable Operation references in Jobs, Assistant messages, audit records and dashboards open this workspace. The older Trace view remains available through existing direct links for comparison, but is hidden from navigation. Execution journeys are most useful for:
 
 - matching ingress to downstream execution;
 - locating the slow or failing segment;
@@ -84,7 +92,7 @@ Trace shows technical execution evidence. Resource Activity shows authored state
 
 ## Endpoint statistics
 
-Endpoint statistics summarize invocation volume and execution outcomes. Use them to locate a regression or traffic change, then open a representative Trace rather than drawing a root-cause conclusion from an aggregate alone.
+Endpoint statistics summarize invocation volume and execution outcomes. Use them to locate a regression or traffic change, then open a representative execution rather than drawing a root-cause conclusion from an aggregate alone.
 
 The statistics surface is cached briefly, so it is optimized for operational trends rather than an exact per-second ledger.
 
@@ -97,12 +105,22 @@ Job status
   -> origin and retry lineage
   -> selected Component version and principal
   -> job-scoped logs
-  -> distributed Trace when necessary
+  -> recorded execution journey when necessary
 ```
 
 For event-driven work, Event History shows resolved targets, concrete executions, and filter-skipped targets. Large messages are loaded only in the detail view.
 
 An accepted schedule, event, export, or refresh request means the work has been queued or started. Confirm a terminal state or finalized artifact before reporting success.
+
+## File origin and upload timing
+
+Use a Storage entry ID or upload session ID in the Observability search and select the **Storage** identifier type. Choose the UTC window containing the upload or replacement, then open the recorded journey. Accessible Storage references open the file. To locate a file by name first, use the [Storage Explorer](/operate/storage), then investigate its entry ID.
+
+Upload sessions and native Storage writes record their creating execution as a parent. This also connects a managed direct upload to the original operation when finalization arrives in a later request. SFTP and HTTP imports retain their recorded source classification. Upload lifecycle logs distinguish reservation, finalization, failure, cancellation, expiry and replacement.
+
+An upload session's duration runs from reservation to its terminal state: it includes producer waiting, byte transfer and finalization. Native write timing covers preparation, writing and the committed file entry. These durations do not measure network transfer alone. Follow the recorded child Event or Job to assess later processing separately.
+
+Replacement gives the current file version its own write origin. Later metadata edits, reads or deletion retain the execution that performed that action. Historical files without a recorded origin remain uncorrelated; matching a name or timestamp does not prove their source.
 
 ## Database audit
 
@@ -112,16 +130,17 @@ Use the cross-Table **Databases → Audit** grid for investigation and the Table
 
 ## Instance Usage
 
-Instance Usage combines current inventory and consumption signals, including:
+Open **Settings → Usage** for AI, Transfer, Storage, Database, Jobs, Endpoints and Webhooks. The view combines current capacity with measured consumption and period comparisons. Inventory counters also cover accounts, groups, API keys, Components and automation definitions. Legacy Files APIs remain available; native Storage uses physical inventory and observed transfer.
 
-- accounts, groups, permissions, and API keys;
-- database, materialized-view, and audit storage;
-- file transfer and size;
-- Components, Endpoints, templates, schedules, events, webhooks, and processing time;
-- Secret counts;
-- Assistant token usage by period, model, account, and day.
+One UTC period applies to charts and drill-downs. The lower bound is inclusive, the upper bound exclusive; no range selects the current UTC month through now. Select resources, accounts or executions to inspect recorded consumption. Compact execution details have a minimum 90-day retention. Older resource summaries use whole UTC days and return their effective bounds; unavailable account/execution history is shown explicitly. Elapsed execution time is not CPU time, and Webhook delivery duration is unavailable.
 
-Assistant analytics use one normalized UTC period. The lower bound is inclusive and the upper bound is exclusive. When no range is provided, the current UTC month through now is selected.
+Transfer records deduplicate repeated exports, including historical terminal logs without provider insert IDs. External, internal and unclassified native Storage traffic remain distinct. Incomplete provider coverage is disclosed, and unclassified traffic is excluded from the external transfer threshold. Monthly thresholds use a UTC calendar month and are soft: exceeding them does not itself reject uploads or executions. This surface does not calculate prices or collect payment.
+
+The administrator APIs are `GET /api/v1/config/instance/usage` and `GET /api/v1/config/instance/usage/executions`. AI analytics continue to use retained model-call evidence. Usage and Observability answer different questions: measured consumption versus recorded execution evidence. See [Limits and quotas](/platform/limits-and-quotas) for configuration semantics.
+
+## Historical coverage
+
+Historical recovery can restore execution summaries and recorded consumption without restoring every detailed log payload. Recovered summaries remain labelled as partial evidence; missing messages, diagnostic fields and lineage are not reconstructed. Import progress and retained source coverage determine which dates are available. Ninety-day retention is a retention boundary, not a promise that data predating collection has already been recovered. Current capacity charts cannot be reconstructed from execution logs alone.
 
 ## Sensitive data
 

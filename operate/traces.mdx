@@ -4,7 +4,9 @@ description: Follow a request across RevoEngine services without exposing applic
 icon: timeline
 ---
 
-Trace answers a different question from Activity, database audit, and logs: it follows the technical path of one operation across service boundaries. Use it when you need to know where a request spent time, where it failed, or whether asynchronous work was accepted versus completed.
+An execution journey answers a different question from Activity, database audit, and logs: it follows the technical path of one operation across service boundaries. Use it when you need to know where a request spent time, where it failed, or whether asynchronous work was accepted versus completed.
+
+Open **Security Admin → Observability → Executions**. Operation references from Jobs, Assistant messages, audit records and dashboards open the same execution investigation. The older Trace view is hidden from navigation and remains available through existing direct links for comparison.
 
 ## Start with the right identifier
 
@@ -22,13 +24,19 @@ For HTTP endpoint support, capture the UTC timestamp, method/path, response stat
 
 ```text
 caller timestamp and outcome
-  -> Operation ID trace
+  -> Operation ID in Executions
   -> Execution or Job record
   -> scoped logs and selected component/version
   -> durable result or finalized Storage artifact
 ```
 
 An accepted asynchronous request only establishes that work was queued or started. Confirm a terminal Job/run state, delivery result, or finalized Storage artifact before concluding that work succeeded.
+
+## Resolve dates before loading logs
+
+An exact identifier is independent of the list's default 24-hour period. Native retained evidence resolves execution dates across up to 90 days; a Job created days before it starts uses its persisted execution timestamps. Missing or long execution windows are disclosed as partial coverage. A source without the native index needs an explicit UTC window.
+
+Choose **Logs for this operation** to inspect bounded log evidence after selecting the journey. Open payloads only for the entries needed to answer the question. Historical summary recovery can provide a journey or usage aggregate without detailed messages; absence of those messages does not prove that an event never happened.
 
 ## What to look for
 
@@ -43,7 +51,7 @@ An accepted asynchronous request only establishes that work was queued or starte
 
 | Surface | Use it for | Do not infer |
 | --- | --- | --- |
-| Trace | Cross-service path, timing, correlation | Business data history or unmasked request bodies. |
+| Executions | Cross-service path, timing, correlation | Business data history or unmasked request bodies. |
 | Logs | Structured details emitted by services or application code | Complete distributed ordering without correlation IDs. |
 | Activity | Versioned resource changes and author identity | Runtime execution outcome. |
 | Database audit | Row changes recorded after audit is enabled | Endpoint route or queue behavior. |
@@ -54,5 +62,5 @@ An accepted asynchronous request only establishes that work was queued or starte
 Provide a narrow time range, IDs, sanitized status/error text, resource name/ID, selected version, and reproducible non-secret input shape. Redact headers, cookies, API keys, Secret values, private prompts, Storage download URLs, and customer payloads unless an approved secure support channel specifically requires them.
 
 <Tip>
-Use the [Observability guide](/operate/observability) for the complete operator workflow, then return here when the investigation needs a trace-first view.
+Use the [Observability guide](/operate/observability) for the complete operator workflow, then return here when the investigation needs a execution-first view.
 </Tip>

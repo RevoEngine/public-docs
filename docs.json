@@ -104,6 +104,7 @@
               "low-code/reference/index",
               "low-code/reference/api",
               "low-code/reference/vault",
+              "low-code/reference/serviceAccount",
               "low-code/reference/storage",
               "low-code/reference/transport",
               "low-code/reference/agent",
@@ -293,6 +294,8 @@
               {
                 "group": "1.6.x",
                 "pages": [
+                  "changelog/1.6.4",
+                  "changelog/1.6.3",
                   "changelog/1.6.2",
                   "changelog/1.6.1",
                   "changelog/1.6.0"

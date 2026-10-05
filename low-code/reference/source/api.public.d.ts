@@ -2,13 +2,13 @@
  * Generated public low-code method contract used by the documentation reference.
  */
 declare class vault {
-  /** Gets the parent and selected revision with revision.value as Buffer of the stored text’s UTF-8 bytes.
+  /** Gets the parent and selected revision with revision.value as the stored text string.
      * With no selector, reads the latest enabled revision whose validFrom is at most now.
      * A version/validFrom selector reads that exact retained revision, including disabled history.
      * Saved personal Component/Tool reads require the exact grant and map its requested name.
      * Example:
      * const secret = await vault.get('TOKEN', { scope: 'user' });
-     * const token = secret.revision.value.toString('utf8');
+     * const token = secret.revision.value;
      */
   static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
 
@@ -62,7 +62,7 @@ declare class vault {
 
   /** Saves the guarded definition and starts interactive OAuth. Returns an authorization URL;
      * the verified initiating user completes consent through the existing frontend callback.
-     * Instance scope requires a verified personal instance administrator. No-op in debug mode.
+     * Instance scope requires a verified personal instance administrator. Unavailable with `readOnly: true` (throws an error).
      * Example:
      * const pending = await vault.connectIntegration('CRM', {
      *   resourceUrl: input.resourceUrl, scopes: ['read'], expectedRevision: null,
@@ -71,9 +71,102 @@ declare class vault {
   static connectIntegration(name: string, data: VaultConnectIntegrationInput, options?: SecretScopeOptions): Promise<VaultIntegrationConnectResult | null>;
 
   /** Disables the stored connection and invalidates credentials, retaining definition/history/grants.
-     * Does not promise revocation at the external provider. No-op in debug mode.
+     * Does not promise revocation at the external provider. Unavailable with `readOnly: true` (throws an error).
      */
   static disconnectIntegration(name: string, options?: SecretScopeOptions): Promise<{ name: string; disabled: boolean } | null>;
+}
+
+declare class serviceAccount {
+  /** Reads a service account admitted by IAM and its management ACL.
+     * Example: const account = await serviceAccount.get({ name: 'erp-sync' });
+     */
+  static get(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Lists visible service accounts; authorization is applied before pagination.
+     * Example: const accounts = await serviceAccount.list({ take: 20, count: true });
+     */
+  static list(query?: ServiceAccountQuery): Promise<CollectionResult<ServiceAccountRecord>>;
+
+  /** Atomic account + ACL + memberships creation; default ACL contains creator and self.
+     * Example:
+     * const account = await serviceAccount.create({ name: 'erp-sync', memberships: { roleGroups: ['Integration runtime'] } });
+     */
+  static create(input: ServiceAccountCreateInput): Promise<ServiceAccountRecord>;
+
+  /** Omitted fields preserve values; [] clears memberships/ACL entries. Requires version.
+     * Example:
+     * const account = await serviceAccount.get('erp-sync');
+     * await serviceAccount.update('erp-sync', { version: account.version, memberships: { roleGroups: [] } });
+     */
+  static update(ref: ServiceAccountRef, input: ServiceAccountUpdateInput): Promise<ServiceAccountRecord>;
+
+  /** Deletes the account and its credentials through the existing account lifecycle.
+     * Example: await serviceAccount.delete('erp-sync');
+     */
+  static delete(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Activates the account within the caller's current delegation ceiling.
+     * Example: await serviceAccount.activate('erp-sync');
+     */
+  static activate(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Disables the account while preserving its API key records.
+     * Example: await serviceAccount.disable('erp-sync');
+     */
+  static disable(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Restores a deleted account as inactive; deleted credentials are not restored.
+     * Example: await serviceAccount.restore('erp-sync');
+     */
+  static restore(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Enables platform access within the current delegation ceiling.
+     * Example: await serviceAccount.enablePlatformAccess('erp-sync');
+     */
+  static enablePlatformAccess(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Disables platform access using the same IAM, ACL and target-rank policy.
+     * Example: await serviceAccount.disablePlatformAccess('erp-sync');
+     */
+  static disablePlatformAccess(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+
+  /** Lists safe key metadata without usable credentials.
+     * Example: const keys = await serviceAccount.getKeys('erp-sync', { take: 20 });
+     */
+  static getKeys(ref: ServiceAccountRef, query?: ServiceAccountQuery): Promise<CollectionResult<ServiceAccountKey>>;
+
+  /** Reads a key by its UUID; the credential value is never returned.
+     * Example: const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+     */
+  static getKey(ref: ServiceAccountRef, userKeyId: string): Promise<ServiceAccountKey>;
+
+  /** Return secret once; store it immediately and never log it.
+     * Example:
+     * const key = await serviceAccount.createKey('erp-sync', { name: 'primary', restricted: false });
+     * await vault.create('ERP_API_KEY', { value: key.secret });
+     */
+  static createKey(ref: ServiceAccountRef, input: ServiceAccountKeyCreateInput): Promise<ServiceAccountKeyCreated>;
+
+  /** expireAt is immutable here; use rotateKey to change the successor expiry.
+     * Example:
+     * const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+     * await serviceAccount.updateKey('erp-sync', key.userKeyId, { version: key.version, name: 'primary' });
+     */
+  static updateKey(ref: ServiceAccountRef, userKeyId: string, input: ServiceAccountKeyUpdateInput): Promise<ServiceAccountKey>;
+
+  /** Creates a new credential; gracePeriodMs defaults to 0, max 365 days.
+     * Omit expireAt to inherit it, pass null for no expiration, or a date at least four hours ahead.
+     * Example:
+     * const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+     * const { newKey } = await serviceAccount.rotateKey('erp-sync', key.userKeyId, { version: key.version, gracePeriodMs: 60000 });
+     * await vault.rotate('ERP_API_KEY', { value: newKey.secret });
+     */
+  static rotateKey(ref: ServiceAccountRef, userKeyId: string, input: ServiceAccountKeyRotateInput): Promise<ServiceAccountKeyRotated>;
+
+  /** Revokes a key without requiring a delegation ceiling; role, ACL and target rank still apply.
+     * Example: await serviceAccount.revokeKey('erp-sync', input.userKeyId);
+     */
+  static revokeKey(ref: ServiceAccountRef, userKeyId: string): Promise<ServiceAccountKey>;
 }
 
 declare class api {
@@ -82,7 +175,7 @@ declare class api {
      * never generate or send those values. A normal database needs at least one definition.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.createDatabase({
@@ -105,7 +198,7 @@ declare class api {
      * Clones a logical database by name.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - By default waits for the clone and returns cloned database metadata.
      * - Set `{ async: true }` to start a backend clone task and return immediately with an accepted response.
      * - Omit `name` to use the backend default source-name plus `_Clone`.
@@ -134,7 +227,7 @@ declare class api {
      * The root and every structured join may independently target any of these relation types.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - By default waits for the export, final compose, and storage entry persistence.
      * - CSV is the default and its dialect, headers, and byte map are indexed during upload.
      * - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
@@ -167,7 +260,20 @@ declare class api {
           : ExportDatabaseResponse
     >;
 
-  /** Validates a Storage file against current Database definitions and creates an import operation. */
+  /**
+     * Explicitly starts an UPDATE, DELETE, reviewed view mutation, or TRUNCATE in Operations.
+     * Existing mutation methods remain synchronous. This call cannot join transactionDatabase.
+     * System messages are suppressed by default; set skipNotification: false to opt in.
+     * Retry resumes the remaining durable workset without repeating committed batches.
+     * Example:
+     * const operation = await api.startDatabaseOperation('orders', {
+     *   action: 'UPDATE', request: { filter: { field: 'status', op: 'eq', value: 'READY' } },
+     *   data: { status: 'PROCESSED' }, skipNotification: false,
+     * });
+     */
+  static startDatabaseOperation(name: string, options: Omit<DatabaseOperationInput, 'databaseName'>): Promise<{ accepted: true; jobId: string; status: string }>;
+
+  /** Validates a Storage file and creates an import operation; System messages default off. */
   static importDatabase(name: string, options: ImportDatabaseOptions): Promise<{ importId: string; jobId: string; status: string }>;
 
   /** Revalidates a corrected source-to-target mapping. */
@@ -184,7 +290,7 @@ declare class api {
      * copy server-owned databaseId, timestamps, or size into this payload.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.updateDatabase('orders', {
@@ -198,7 +304,7 @@ declare class api {
      * Soft-deletes a logical database and its active partition subtree by name.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.deleteDatabase('orders');
@@ -211,7 +317,7 @@ declare class api {
      * names select the database by ID through REST or the UI. Strings always mean names.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.restoreDatabase('orders');
@@ -222,7 +328,7 @@ declare class api {
      * Removes all rows from a logical database selected by name.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - TRUNCATE does not create row audit events, even when database audit is enabled.
      * - Use an ordinary filtered delete, such as primary key IS NOT NULL, to preserve row audit events.
      * - Identity counters are preserved by default.
@@ -315,14 +421,14 @@ declare class api {
      * Processes a large database, view, or materialized-view result in sequential,
      * awaited batches without collecting
      * all rows in the isolate. Specify query.take or options.fullScan:true.
-     * Every non-final batch has exactly batchSize rows when available.
+     * Every non-final batch has exactly batchSize rows when available (default 10,000).
      * The callback may await writes; do not accumulate batches in an array.
      *
      * Example:
      * await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },
      *   async (batch) => {
      *     await api.upsertDatabaseData('customer_export', batch, { return: false });
-     *   }, { batchSize: 2000 });
+     *   }, { batchSize: 10000 });
      */
   static walkDatabaseData<T = any>(
       name: string,
@@ -359,7 +465,7 @@ declare class api {
      * - A call accepts at most 100,000 rows and executes atomically in one transaction.
      * - return defaults to true and includes full rows. return: false omits data; onlyKeys
      *   returns primary keys only. Returning full rows has a higher response-memory cost.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.insertDatabaseData('customers', [
@@ -383,7 +489,7 @@ declare class api {
      * - A call accepts at most 100,000 rows and executes atomically in one transaction.
      * - return defaults to true and includes full rows. return: false omits data; onlyKeys
      *   returns primary keys only. Returning full rows has a higher response-memory cost.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.upsertDatabaseData('customers', [
@@ -403,7 +509,7 @@ declare class api {
      * structured-filter bulk PATCH.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.updateDatabaseData(
@@ -427,7 +533,7 @@ declare class api {
      *   it avoids loading and transferring every matching primary key to the runtime.
      * - Structured query and mutation filters are rejected before SQL execution when they exceed
      *   8 MiB, 1,000 nodes, 100,000 values, 16 nested levels, or 10,000 bound parameters.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.deleteDatabaseData('customers', [
@@ -440,7 +546,7 @@ declare class api {
      * Bulk-updates rows matched by an advanced structured filter.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.updateDatabaseDataRequest(
@@ -460,7 +566,7 @@ declare class api {
      * Bulk-deletes rows matched by an advanced structured filter.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.deleteDatabaseDataRequest('customers', {
@@ -477,6 +583,9 @@ declare class api {
      * Executes raw SELECT/WITH SQL when the structured helpers are not enough.
      * Do not use this for writes; use insert/upsert/update/delete helpers or
      * transactionDatabase for write flows.
+     * Requires current INSTANCE_ADMIN membership. Always runs exactly one SELECT/WITH
+     * in a READ ONLY database transaction. Mutating CTEs and multiple statements are rejected.
+     * Use parameters for values. Typed data and ORM helpers retain their own resource permissions.
      *
      * Example:
      * const rows = await api.queryDatabase('SELECT NOW() AS now');
@@ -548,6 +657,7 @@ declare class api {
 
   /**
      * Generates a signed upload URL.
+     * Unavailable with readOnly: true because the URL grants a file-write capability.
      *
      * @deprecated Use `storage.createUploadSession({ uploadMode: 'direct', ... })`.
      *
@@ -587,7 +697,7 @@ declare class api {
      * Appends text, arrays, or buffers to an existing file.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * @deprecated Use storage upload sessions for append-style writes.
      *
@@ -614,7 +724,7 @@ declare class api {
      * Deletes one or more files.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * @deprecated Use `storage.deleteEntry(storageEntryId, { version })`.
      *
@@ -630,7 +740,7 @@ declare class api {
      * Creates and optionally uploads a file in one call.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * @deprecated Use `storage.putObject(...)` for simple writes or storage upload sessions for large writes.
      *
@@ -669,7 +779,7 @@ declare class api {
      * Creates an empty file placeholder.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * @deprecated Use `storage.createUploadSession({ uploadMode: 'direct', ... })`.
      *
@@ -695,7 +805,7 @@ declare class api {
      * Creates a folder placeholder.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * @deprecated Use `storage.createFolder({ name, parentStorageEntryId })`.
      *
@@ -721,30 +831,12 @@ declare class api {
   static currentUser(): LoggedUser;
 
   /**
-     * Returns true when debug mode is enabled.
+     * Returns true when this execution restricts platform writes (readOnly: true).
      *
      * Example:
-     * if (api.isDebug()) {
-     *   api.log('Debug mode', 'WARN');
-     * }
+     * const restricted = api.isDebug();
      */
   static isDebug(): boolean;
-
-  /**
-     * Disables debug mode for the current execution.
-     *
-     * Example:
-     * api.disableDebug();
-     */
-  static disableDebug(): void;
-
-  /**
-     * Enables debug mode for the current execution.
-     *
-     * Example:
-     * api.enableDebug();
-     */
-  static enableDebug(): void;
 
   /**
      * Reads request-scoped in-memory cache.
@@ -977,7 +1069,7 @@ declare class api {
      * Publishes a realtime message.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Currently only the 'ALL' channel is supported.
      *
      * Example:
@@ -997,7 +1089,7 @@ declare class api {
      * Writes instance-scoped cache.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.setInstanceCache('sync:state', { step: 'loading' }, 300);
@@ -1012,7 +1104,7 @@ declare class api {
      * Writes instance-scoped cache only when the key does not exist.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const created = await api.setInstanceCacheIfNotExists('sync:state', { step: 'queued' }, 300);
@@ -1039,7 +1131,7 @@ declare class api {
      * Removes cache keys.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.removeInstanceCache('sync:*', true);
@@ -1058,7 +1150,7 @@ declare class api {
      * Makes a cache key persistent.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.persistInstanceCache('sync:state');
@@ -1069,7 +1161,7 @@ declare class api {
      * Sets cache TTL in seconds.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.expireInstanceCache('sync:state', 600);
@@ -1096,7 +1188,7 @@ declare class api {
      * Atomically increments an integer cache key.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - 'by' must be an integer.
      *
      * Example:
@@ -1112,7 +1204,7 @@ declare class api {
      * Atomically decrements an integer cache key.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - 'by' must be an integer.
      *
      * Example:
@@ -1128,7 +1220,7 @@ declare class api {
      * Atomically updates a cache key only when the current value matches 'expected'.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const swapped = await api.compareAndSetInstanceCache('sync:state', { step: 'queued' }, { step: 'running' }, 300);
@@ -1144,7 +1236,7 @@ declare class api {
    * Acquires an idempotency key in the instance-scoped managed cache.
    *
    * Notes:
-   * - No-op in debug mode.
+   * - Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
    *
    * Example:
    * const first = await api.acquireIdempotencyKey('orders:123', 600, { state: 'running' });
@@ -1173,7 +1265,7 @@ declare class api {
      * - Never release in a generic catch/finally merely because processing threw or timed out:
      *   a partial effect or committed operation could then be executed twice.
      * - A late cleanup after TTL expiry may delete a key acquired by another worker.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * // This attempt acquired the key, no business operation started, and the key has not expired.
@@ -1189,7 +1281,7 @@ declare class api {
      * - Each successful admission acquires one slot. Release it exactly once with releaseConcurrencyLimit.
      * - TTL applies to the shared counter and is refreshed on successful admission; it is not a per-worker lease.
      *   Processing must finish before expiry. There is no ownership token to protect against late cleanup.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const locked = await api.concurrencyLimit('sync:customers', 1, 300);
@@ -1204,7 +1296,7 @@ declare class api {
      * Acquires an instance-scoped rate-limit token.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const allowed = await api.rateLimit('outbound:crm', 10, 60);
@@ -1215,7 +1307,7 @@ declare class api {
      * Resets the entire rate-limit key, including all consumed tokens.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.releaseRateLimit('outbound:crm');
@@ -1230,7 +1322,7 @@ declare class api {
      * - Call exactly once after a successful admission; do not release after admission returned false.
      * - This key-only API has no ownership token. Duplicate release or cleanup after expiry/reacquisition
      *   can release another worker's slot. It does not provide an ownership-safe lease.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * // Once, for this worker's successful admission, before the counter expires.
@@ -1247,7 +1339,7 @@ declare class api {
      * - Use the options object's `scheduleFor`; legacy delay properties are ignored.
      * - New code should use `scheduleFor` with a Date, ISO 8601 date-time, or Unix timestamp in milliseconds.
      * - The absolute time cannot be in the past or more than 30 days ahead.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const eventId = await api.triggerEvent(
@@ -1272,7 +1364,7 @@ declare class api {
      * - Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
      * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - Retired positional date and relative-delay arguments are ignored.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
      *   The third argument is copied directly into the
      *   target job's flat `api.input().templateInputs`. It is shallow-spread over
@@ -1298,7 +1390,7 @@ declare class api {
      * Schedules an active job template by its exact ID or exact unique name.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
      * - The input argument is copied directly into the target job's flat
      *   `api.input().templateInputs`, shallow-spread over template defaults.
@@ -1326,7 +1418,7 @@ declare class api {
      * Notes:
      * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
      * - Retired positional date and relative-delay arguments are ignored.
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const webhook = await api.triggerWebhook({
@@ -1344,38 +1436,38 @@ declare class api {
       options?: AutomationScheduleOptions,
     ): Promise<Webhook>;
 
-  /** Cancel by jobIds OR a non-empty platform filter. No-op in debug mode.
+  /** Cancel by jobIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error).
      * Returns a durable operation over frozen IDs; counters describe requests processed, not downstream completion.
      * Example:
      * const operation = await api.cancelJobs({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
      */
   static cancelJobs(input: JobsBulkInput): Promise<AutomationOperation>;
 
-  /** Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. No-op in debug mode.
+  /** Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. Unavailable with `readOnly: true` (throws an error).
      * Example:
      * const operation = await api.retryJobs({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
      */
   static retryJobs(input: JobsBulkInput): Promise<AutomationOperation>;
 
-  /** Delete by jobIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+  /** Delete by jobIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
      * Example:
      * const operation = await api.deleteJobs({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
      */
   static deleteJobs(input: JobsBulkInput): Promise<AutomationOperation>;
 
-  /** Cancel by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+  /** Cancel by webhookIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
      * Example:
      * const operation = await api.cancelWebhooks({ filter: { field: 'status', op: 'eq', value: 'SCHEDULED' } });
      */
   static cancelWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
 
-  /** Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. No-op in debug mode.
+  /** Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. Unavailable with `readOnly: true` (throws an error).
      * Example:
      * const operation = await api.retryWebhooks({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
      */
   static retryWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
 
-  /** Delete by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+  /** Delete by webhookIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
      * Example:
      * const operation = await api.deleteWebhooks({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
      */
@@ -1417,8 +1509,10 @@ declare class api {
      * Performs an outbound HTTP request.
      *
      * Notes:
-     * - No-op in debug mode and returns `null`; call `api.disableDebug()` only when this external side effect is intentionally allowed.
+     * - External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
+     * - Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
      * - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
+     * - With `proxy: true`, `responseType` may only be omitted, undefined, null or 'json'; other values fail before credential resolution or transport. The JSON proxy envelope still carries upstream text in `response.data` and parses upstream application/json bodies when possible. Prefer `{ proxy: true, requestType: 'json' }` and check `response.status` explicitly.
      * - Use `source: { storageEntryId }` when streaming an Explorer Storage file into an HTTP request.
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
@@ -1433,7 +1527,7 @@ declare class api {
      *   unconfirmed Revo headers are removed from the public response.
      * - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
      * - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
-     * - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
+     * - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and, without proxy, may be combined with any supported response type because it does not declare a request body.
      *
      * Example:
      * const response = await api.httpCall(
@@ -1536,12 +1630,12 @@ declare class api {
      * @deprecated Legacy. Use transport.sftpCommands(commands, secretNameOrId) for new code.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await api.sftpExec([['mkdir', '/archive']], connection);
      * const secret = await vault.get('SFTP');
-     * await api.sftpExec([['ls', '/incoming']], JSON.parse(secret.revision.value.toString('utf8')));
+     * await api.sftpExec([['ls', '/incoming']], JSON.parse(secret.revision.value));
      */
   static sftpExec(commands: any[], config: SFTPConnection): Promise<any>;
 
@@ -1552,7 +1646,7 @@ declare class api {
      * @deprecated Legacy. Use transport.sftpExport(path, { storageEntryId }, secretNameOrId) for new code.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Prefer `{ storageEntryId, namespace? }` for Storage files. String inputs are legacy fileIds.
      * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
      *
@@ -1574,7 +1668,7 @@ declare class api {
      * @deprecated Legacy. Use transport.sftpImport(path, storage, secretNameOrId) for new code.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Prefer `{ storage: ... }` to create a Storage entry in one call or `{ storageEntryId, replace: true }` to replace one. String inputs are legacy fileIds.
      * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
      * - New Storage targets accept the create-upload fields except `uploadMode` and `replaceStorageEntryId`; SFTP always uses a native direct upload.
@@ -2098,7 +2192,7 @@ declare class storage {
      * Resolves a folder path and idempotently creates any missing segments.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Existing folders are never mutated.
      * - ACL options apply to every newly created segment.
      *
@@ -2237,7 +2331,7 @@ declare class storage {
      * Creates a folder in the default `explorer` namespace.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const folder = await storage.createFolder({ name: 'Exports' });
@@ -2250,7 +2344,7 @@ declare class storage {
      * Uploads a small object in one request in the default `explorer` namespace.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const file = await storage.putObject({
@@ -2268,7 +2362,7 @@ declare class storage {
      * Opens an upload session for a file in the default `explorer` namespace.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - A session is a temporary, durable upload control record. It reserves the
      *   intended file name and destination, stores upload policy, ACL, retention,
      *   schema, and progress, but it is not a readable Storage file. The durable
@@ -2367,7 +2461,7 @@ declare class storage {
      * Extends the TTL for an active upload session.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - uploadPart renews the durable session lease automatically; call this only across idle gaps.
      *
      * Example:
@@ -2386,7 +2480,7 @@ declare class storage {
      * Returns the current upload session state together with uploaded part manifests.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Available with `readOnly: true` because it only reads session state.
      * - Multipart sessions expose uploaded parts with computed byte ranges.
      *
      * Example:
@@ -2405,7 +2499,7 @@ declare class storage {
      * Uploads one part into an active multipart upload session.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      * - Renews the durable session lease before processing and after committing the part.
      * - Accepted part manifests remain durable across worker restarts.
      *
@@ -2446,7 +2540,7 @@ declare class storage {
      * observed with `getUploadSession()` instead of calling this method.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const result = await storage.finalizeUploadSession(storageUploadSessionId);
@@ -2466,7 +2560,7 @@ declare class storage {
      * Cancels an active upload session.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await storage.abortUploadSession(storageUploadSessionId);
@@ -2484,7 +2578,7 @@ declare class storage {
      * Updates mutable storage entry fields such as name, metadata, or ACLs.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const entry = await storage.updateEntry(storageEntryId, {
@@ -2507,7 +2601,7 @@ declare class storage {
      * Moves an entry to another folder or registered Storage root.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const entry = await storage.moveEntry(storageEntryId, {
@@ -2530,7 +2624,7 @@ declare class storage {
      * Archives an entry without deleting its backing object.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const entry = await storage.archiveEntry(storageEntryId, { version: currentVersion });
@@ -2550,7 +2644,7 @@ declare class storage {
      * Restores an archived or deleted storage entry.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const entry = await storage.restoreEntry(storageEntryId, { version: currentVersion });
@@ -2570,7 +2664,7 @@ declare class storage {
      * Soft-deletes a storage entry.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const entry = await storage.deleteEntry(storageEntryId, { version: currentVersion });
@@ -2720,7 +2814,7 @@ declare class agent {
      * timestamps, and version; supply an existing service-account user id only.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const created = await agent.create({
@@ -2734,7 +2828,7 @@ declare class agent {
      * Updates mutable agent fields such as config, policy, or profile.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const updated = await agent.update(agentId, {
@@ -2766,7 +2860,7 @@ declare class agent {
      * Enqueues a new inbox item for an agent.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const item = await agent.pushInbox(agentId, {
@@ -2782,7 +2876,7 @@ declare class agent {
      * Updates an existing inbox item.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const item = await agent.updateInboxItem(agentId, agentInboxItemId, {
@@ -2799,7 +2893,7 @@ declare class agent {
      * Removes an inbox item.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.removeInboxItem(agentId, agentInboxItemId);
@@ -2864,7 +2958,7 @@ declare class agent {
      * Starts a new agent run.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const run = await agent.startRun(agentId, {
@@ -2877,7 +2971,7 @@ declare class agent {
      * Resumes a paused run.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const run = await agent.resumeRun(agentRunId);
@@ -2888,7 +2982,7 @@ declare class agent {
      * Retries a failed or completed run from its retry policy.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const run = await agent.retryRun(agentRunId);
@@ -2899,7 +2993,7 @@ declare class agent {
      * Forces one autonomous tick for a run.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const run = await agent.tickRun(agentRunId);
@@ -2910,7 +3004,7 @@ declare class agent {
      * Cancels a run, optionally recording a reason.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const run = await agent.cancelRun(agentRunId, { reason: 'Operator stop' });
@@ -2924,7 +3018,7 @@ declare class agent {
      * Reconciles stalled runs with the loop scheduler.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.reconcileRuns();
@@ -2976,7 +3070,7 @@ declare class agent {
      * Creates or re-enables a stable share link for a thread owned by the current user.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const share = await agent.enableThreadShare(assistantThreadId);
@@ -2989,7 +3083,7 @@ declare class agent {
      * Disables the stable share link for a thread owned by the current user.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.disableThreadShare(assistantThreadId);
@@ -3046,7 +3140,7 @@ declare class agent {
      * Forks a shared thread from a selected visible message.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const fork = await agent.forkSharedThreadMessage(shareId, assistantMessageId);
@@ -3061,7 +3155,7 @@ declare class agent {
      * Creates a new assistant thread and first message.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.createThread({ content: 'Draft a release note.' });
@@ -3074,7 +3168,7 @@ declare class agent {
      * Soft-deletes a thread.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.deleteThread(assistantThreadId);
@@ -3085,7 +3179,7 @@ declare class agent {
      * Restores a deleted thread.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.restoreThread(assistantThreadId);
@@ -3107,7 +3201,7 @@ declare class agent {
      * Sends a new message into an existing thread.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.sendMessage(assistantThreadId, {
@@ -3123,7 +3217,7 @@ declare class agent {
      * Retries one assistant message.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.retryMessage(assistantThreadId, assistantMessageId);
@@ -3137,7 +3231,7 @@ declare class agent {
      * Cancels in-flight work on a thread.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * await agent.cancelThread(assistantThreadId, thread.version);
@@ -3148,7 +3242,7 @@ declare class agent {
      * Forks a thread from a selected message.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const fork = await agent.forkMessage(assistantThreadId, assistantMessageId);
@@ -3163,7 +3257,7 @@ declare class agent {
      * Renames a thread.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const thread = await agent.renameThread(assistantThreadId, {
@@ -3179,7 +3273,7 @@ declare class agent {
      * Resolves an action-required checkpoint with an explicit payload.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.resolveAction(assistantThreadId, actionId, {
@@ -3196,7 +3290,7 @@ declare class agent {
      * Approves an action-required checkpoint.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.approveAction(assistantThreadId, actionId);
@@ -3211,7 +3305,7 @@ declare class agent {
      * Rejects an action-required checkpoint.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.rejectAction(assistantThreadId, actionId, {
@@ -3228,7 +3322,7 @@ declare class agent {
      * Submits operator input for an action-required checkpoint.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const response = await agent.submitAction(assistantThreadId, actionId, {
@@ -3245,7 +3339,7 @@ declare class agent {
      * Triggers thread compaction.
      *
      * Notes:
-     * - No-op in debug mode.
+     * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
      * const thread = await agent.compactThread(assistantThreadId, {

@@ -26,7 +26,7 @@ This page contains **11 methods**. Search the docs for an exact method name, or 
 
 ## `vault.get()`
 
-Gets the parent and selected revision with revision.value as Buffer of the stored text’s UTF-8 bytes.
+Gets the parent and selected revision with revision.value as the stored text string.
 With no selector, reads the latest enabled revision whose validFrom is at most now.
 A version/validFrom selector reads that exact retained revision, including disabled history.
 Saved personal Component/Tool reads require the exact grant and map its requested name.
@@ -40,7 +40,7 @@ static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
 
 ```ts
 const secret = await vault.get('TOKEN', { scope: 'user' });
-const token = secret.revision.value.toString('utf8');
+const token = secret.revision.value;
 ```
 
 <span id="vault-create" aria-hidden="true"></span>
@@ -176,7 +176,7 @@ static discoverIntegration(name: string, data: VaultIntegrationConfig, options?:
 
 Saves the guarded definition and starts interactive OAuth. Returns an authorization URL;
 the verified initiating user completes consent through the existing frontend callback.
-Instance scope requires a verified personal instance administrator. No-op in debug mode.
+Instance scope requires a verified personal instance administrator. Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -196,7 +196,7 @@ const pending = await vault.connectIntegration('CRM', {
 ## `vault.disconnectIntegration()`
 
 Disables the stored connection and invalidates credentials, retaining definition/history/grants.
-Does not promise revocation at the external provider. No-op in debug mode.
+Does not promise revocation at the external provider. Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 

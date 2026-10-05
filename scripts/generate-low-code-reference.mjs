@@ -9,6 +9,7 @@ const referenceRoot = join(root, 'low-code', 'reference');
 const snapshot = join(referenceRoot, 'source', 'api.public.d.ts');
 const surfaces = [
   ['vault', 'Vault reference', 'Unified instance and user Secret lifecycle, revision values and OAuth integration management.'],
+  ['serviceAccount', 'Service Account reference', 'Service Account lifecycle, management ACLs, execution memberships, and immutable API-key rotation.'],
   ['api', 'api reference', 'Execution, platform, Database, HTTP, automation, and compatibility methods.'],
   ['storage', 'storage reference', 'Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.'],
   ['transport', 'SFTP transport reference', 'Storage-backed SFTP import, export, and remote file operations with Secret-backed connections.'],
@@ -96,7 +97,7 @@ const [pricing, taxes] = await Promise.all([
 Acquires an idempotency key in the instance-scoped managed cache.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
 
 Example:
 const first = await api.acquireIdempotencyKey('orders:123', 600, { state: 'running' });`);
@@ -104,7 +105,7 @@ const first = await api.acquireIdempotencyKey('orders:123', 600, { state: 'runni
 Streams an Explorer Storage entry directly to SFTP without loading file bytes into low-code memory.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
 - Prefer { storageEntryId } for Explorer Storage files. String inputs are legacy fileIds.
 - SFTP references use Explorer Storage; namespace is not part of this API.
 
@@ -114,7 +115,7 @@ await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);`);
 Streams an SFTP file directly into Explorer Storage and returns the finalized Storage entry.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
 - Use { storage: ... } to create an entry or { storageEntryId, replace: true } to replace one.
 - Repeated finalization signals are idempotent.
 - For text files, computeStats: 'sync' makes line statistics available immediately.

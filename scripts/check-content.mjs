@@ -4,6 +4,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { permitsHistoricalMethod } from './historical-release-policy.mjs';
+import { publicOpenApiPrivacyIssues, publicTextPrivacyIssues } from './public-content-privacy.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ignoredDirectories = new Set(['.git', 'node_modules']);
@@ -153,8 +154,8 @@ function main() {
     }
     if (!bodyWithoutFrontmatter(content)) issues.push(`MDX page has no body content: ${relative(root, file)}`);
     if (/\bRun API\b/i.test(content)) issues.push(`Legacy product name "Run API" found in ${relative(root, file)}.`);
-    if (/(?:\d{1,3}\.){3}\d{1,3}/.test(content)) {
-      issues.push(`Public documentation contains a literal IP address: ${relative(root, file)}.`);
+    for (const category of publicTextPrivacyIssues(content)) {
+      issues.push(`Public documentation privacy: ${relative(root, file)}: ${category}.`);
     }
   }
 
@@ -266,6 +267,20 @@ function main() {
     if (/\/api\/v1\/storage\/provider-configs|\bGCS\b|Provider bucket\/container name/i.test(publicOpenApi)) {
       issues.push('Public OpenAPI exposes replaceable Storage infrastructure configuration.');
     }
+  }
+
+  for (const file of [generatedReference, join(root, 'api-reference/source/platform.openapi.json')]) {
+    for (const issue of publicOpenApiPrivacyIssues(JSON.parse(readFileSync(file, 'utf8')))) {
+      issues.push(`Public API privacy: ${relative(root, file)}: ${issue}.`);
+    }
+  }
+  for (const file of [join(root, 'docs.json'), ...filesUnder(root).filter(file => extname(file) === '.svg')]) {
+    for (const category of publicTextPrivacyIssues(readFileSync(file, 'utf8'))) {
+      issues.push(`Public configuration/asset privacy: ${relative(root, file)}: ${category}.`);
+    }
+  }
+  for (const category of publicTextPrivacyIssues(readFileSync(join(root, 'low-code/reference/source/api.public.d.ts'), 'utf8'))) {
+    issues.push(`Public low-code declaration privacy: ${category}.`);
   }
 
   if (issues.length > 0) throw new Error(`Content quality gate failed:\n- ${issues.join('\n- ')}`);

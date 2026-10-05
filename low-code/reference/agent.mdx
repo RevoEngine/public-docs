@@ -99,7 +99,7 @@ Creates a new agent. The server creates agentId, status, managed workspace,
 timestamps, and version; supply an existing service-account user id only.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -122,7 +122,7 @@ const created = await agent.create({
 Updates mutable agent fields such as config, policy, or profile.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -181,7 +181,7 @@ const item = await agent.getInboxItem(agentId, agentInboxItemId);
 Enqueues a new inbox item for an agent.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -206,7 +206,7 @@ const item = await agent.pushInbox(agentId, {
 Updates an existing inbox item.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -232,7 +232,7 @@ const item = await agent.updateInboxItem(agentId, agentInboxItemId, {
 Removes an inbox item.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -360,7 +360,7 @@ const threads = await agent.listRunThreads(agentRunId);
 Starts a new agent run.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -382,7 +382,7 @@ const run = await agent.startRun(agentId, {
 Resumes a paused run.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -402,7 +402,7 @@ const run = await agent.resumeRun(agentRunId);
 Retries a failed or completed run from its retry policy.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -422,7 +422,7 @@ const run = await agent.retryRun(agentRunId);
 Forces one autonomous tick for a run.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -442,7 +442,7 @@ const run = await agent.tickRun(agentRunId);
 Cancels a run, optionally recording a reason.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -465,7 +465,7 @@ const run = await agent.cancelRun(agentRunId, { reason: 'Operator stop' });
 Reconciles stalled runs with the loop scheduler.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -562,7 +562,7 @@ const share = await agent.getThreadShare(assistantThreadId);
 Creates or re-enables a stable share link for a thread owned by the current user.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -584,7 +584,7 @@ const share = await agent.enableThreadShare(assistantThreadId);
 Disables the stable share link for a thread owned by the current user.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -686,7 +686,7 @@ const artifact = await agent.getSharedThreadMessageArtifact(shareId, assistantMe
 Forks a shared thread from a selected visible message.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -710,7 +710,7 @@ const fork = await agent.forkSharedThreadMessage(shareId, assistantMessageId);
 Creates a new assistant thread and first message.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -732,7 +732,7 @@ const response = await agent.createThread({ content: 'Draft a release note.' });
 Soft-deletes a thread.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -752,7 +752,7 @@ await agent.deleteThread(assistantThreadId);
 Restores a deleted thread.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -792,7 +792,7 @@ const messages = await agent.listThreadMessages(assistantThreadId, { take: 50 })
 Sends a new message into an existing thread.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -817,7 +817,7 @@ const response = await agent.sendMessage(assistantThreadId, {
 Retries one assistant message.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -840,7 +840,7 @@ const response = await agent.retryMessage(assistantThreadId, assistantMessageId)
 Cancels in-flight work on a thread.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -860,7 +860,7 @@ await agent.cancelThread(assistantThreadId, thread.version);
 Forks a thread from a selected message.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -884,7 +884,7 @@ const fork = await agent.forkMessage(assistantThreadId, assistantMessageId);
 Renames a thread.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -909,7 +909,7 @@ const thread = await agent.renameThread(assistantThreadId, {
 Resolves an action-required checkpoint with an explicit payload.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -935,7 +935,7 @@ const response = await agent.resolveAction(assistantThreadId, actionId, {
 Approves an action-required checkpoint.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -959,7 +959,7 @@ const response = await agent.approveAction(assistantThreadId, actionId);
 Rejects an action-required checkpoint.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -985,7 +985,7 @@ const response = await agent.rejectAction(assistantThreadId, actionId, {
 Submits operator input for an action-required checkpoint.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1011,7 +1011,7 @@ const response = await agent.submitAction(assistantThreadId, actionId, {
 Triggers thread compaction.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 

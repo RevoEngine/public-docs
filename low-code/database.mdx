@@ -40,7 +40,7 @@ if (!customer) api.throw(404, { message: 'Customer not found' });
 
 ## Process large results
 
-Use `walkDatabaseData()` for a Job that processes many rows. Specify either a non-negative `take` or `fullScan: true`; a missing `take` does not silently scan the whole table. The default `batchSize` is 2,000 (accepted range: 2,000–10,000). Each non-final callback receives exactly that many rows if available, and callbacks are awaited sequentially.
+Use `walkDatabaseData()` for a Job that processes many rows. Specify either a non-negative `take` or `fullScan: true`; a missing `take` does not silently scan the whole table. The default `batchSize` is 10,000 (accepted range: 1,000–10,000). Each non-final callback receives exactly that many rows if available, and callbacks are awaited sequentially.
 
 ```js
 const result = await api.walkDatabaseData(
@@ -54,7 +54,7 @@ const result = await api.walkDatabaseData(
 return result; // { processed, batches }
 ```
 
-Process each batch before the next one arrives; do not accumulate every row in an array. Use `fullScan: true` only when processing until the end is intentional. A single wide row can still be expensive: select only the columns needed. Jobs remain subject to their timeout and resource limits. The walker targets PostgreSQL-backed databases. For complex sorting or joins, it uses a cursor; its `auto` strategy chooses keyset pagination only when the query shape is safe for it. There is usually no need to select a strategy manually.
+Process each batch before the next one arrives; do not accumulate every row in an array. Use `fullScan: true` only when processing until the end is intentional. A single wide row can still be expensive: select only the columns needed. Jobs remain subject to their timeout and resource limits. The walker selects a pagination strategy appropriate to the query. There is usually no need to select a strategy manually.
 
 For a count without loading rows, use one call:
 

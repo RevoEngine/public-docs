@@ -22,21 +22,15 @@ Use this state for live progress. Do not copy every intermediate action into mem
 
 ## How runtime memory works
 
-Runtime memory is a bounded digest of stable knowledge. RevoEngine can provide at most one current digest for each active owner scope:
+Interactive Assistant memory remains a bounded digest for its authorized `USER` context. Historical `WORKSPACE` records do not add an automatic runtime memory scope. These digests are soft context: they never override the current request, access controls, approval policy, or verified action results.
 
-| Scope | What it represents | Example |
-| --- | --- | --- |
-| `USER` | Preferences and working conventions for one user | “Lead with validation results.” |
-| `AGENT` | Operating knowledge for one Agent | “Reconcile settlement totals against the approved finance View.” |
-| `WORKSPACE` | Context shared by work attached to one workspace | “Use the quarterly report template stored in this workspace.” |
+Autonomous Agent `AGENT` memory is one text value in the **Memory** tab, limited to **20,000 tokens**. Its current text is included in the Agent instructions for every model request. The memory tools read and update the same value; older typed Agent records are retained for historical evidence and are not automatically recalled.
 
-The runtime can use these digests as soft context. They never override the current request, access controls, approval policy, verified action results, or the Agent definition.
-
-Administrators can enable or disable memory, allow governed writeback, and set a bounded context budget. A larger budget can preserve more useful context, but it also increases model input and makes poorly maintained memory more expensive. Keep the digest compact.
+Keep memory compact. A larger value increases model input on every request. Store large or exact material as workspace files and retain only the durable convention or reference in memory.
 
 ## Memory writeback
 
-When writeback is enabled, an Agent can propose a durable update when it discovers stable knowledge that will matter later. Updates are version-aware and use one of three operations:
+An Agent can update its memory when it discovers stable knowledge that will matter later. Updates are version-aware and use one of three operations:
 
 - **append** — add a new durable fact or convention;
 - **edit** — change a specific existing part;
@@ -55,9 +49,7 @@ Do not save credentials, access tokens, raw reasoning, full documents, transient
 
 ## Search and deeper recall
 
-The digest is the normal runtime entry point. When a task needs older or more specific context, an authorized Agent can search or load governed memory records instead of placing the entire history into every model request.
-
-This separation keeps the default context predictable while retaining a path to deeper recall.
+Interactive Assistant memory retains its governed digest and deeper recall behavior. Autonomous Agent memory tools operate on the current configured text. They do not search historical typed records as an implicit second memory source. Use conversation history and workspace files when exact prior work is needed.
 
 ## Agent workspaces
 

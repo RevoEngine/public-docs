@@ -48,7 +48,7 @@ Disconnect normally requests cancellation. Cancellation is cooperative: an exter
 
 ## Debug safety
 
-Some side-effect methods are suppressed in debug mode and produce a warning. Do not assume every integration is simulated; review the runtime declaration and the result before using production data or credentials in a debug run.
+`readOnly: true` rejects protected platform mutations with `READ_ONLY_OPERATION_FORBIDDEN`; it does not silently skip them. External HTTP requests remain real. HTTP responses written to Storage and legacy upload URLs require `readOnly: false`. Raw SQL runs in a read-only database transaction in restricted mode. Choose full execution deliberately when testing writes, and verify consequential effects before retrying.
 
 ## Test the boundary, not only the happy path
 

@@ -1,0 +1,48 @@
+---
+title: "1.6.3 — Vault workflows, database operations and clearer runtime evidence"
+sidebarTitle: "1.6.3"
+icon: "tag"
+description: "2 October 2026"
+---
+
+RevoEngine 1.6.3 extends the approved-terminal foundation with native Vault workflows, tracked database mutations and clearer Assistant evidence. It includes the Studio and automation improvements delivered with this platform milestone and Node.js SDK 1.6.3.
+
+## Highlights
+
+- Use one asynchronous Vault namespace for Secrets and connected integration accounts.
+- Follow database import and mutation operations through their durable operation state.
+- Compare configuration history and revert supported Component configuration with version checks.
+- Enable, disable or remove selected automation resources through bulk lifecycle actions.
+- Keep Studio debugger configuration and processing feedback consistent across navigation.
+- Use improved Assistant evidence recovery and terminal activity without replaying completed effects.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Use explicit Vault credentials" defaultOpen={true}>
+
+Read a Secret with `await vault.get(...)` or a connected account token with `await vault.getAccessToken(...)`, then pass the explicit credential into the outbound request. Saved consumers retain their grants, and connected accounts retain provider consent and owner checks. Secret rotation creates an immutable revision; a future activation time schedules its use. SDK 1.6.3 carries the generated Vault contract for hosted and standalone applications.
+
+  </Accordion>
+  <Accordion title="Track database changes and configuration history">
+
+Database mutation and import workflows expose tracked operation state and keep explicit commit separate from import preview. Configuration history supports comparison, and supported Component configuration can be restored under a version guard. Database grid filters and resource identity remain in workspace URLs. Downloads preserve the active workspace while opening their destination separately.
+
+  </Accordion>
+  <Accordion title="Continue Assistant and automation work">
+
+Assistant investigations use bounded recorded evidence and retain references needed to reload full results. Context compaction preserves pending work and source recovery. Terminal activity follows recorded command state and owner-approved access. Studio keeps debugger state across navigation and presents processing completion consistently. Bulk automation lifecycle operations retain their permission checks and give operators one workflow for selected resources.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Vault](/operate/vault)
+- [Database imports](/operate/databases)
+- [Automation](/operate/automation)
+- [Studio](/build/web-ide)
+
+## Continue through the releases
+
+[Newer: 1.6.4](/changelog/1.6.4) · [All releases](/releases/changelog) · [Earlier: 1.6.2](/changelog/1.6.2)

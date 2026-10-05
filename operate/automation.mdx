@@ -188,7 +188,7 @@ Replay resumes the selected historical event through its current target definiti
 
 ## Outbound webhooks
 
-Webhooks send an asynchronous HTTP request with a method, URL, optional headers, and optional body. You can configure retry attempts, request-detail retention, masked fields, metadata, and a static outbound network path when your integration requires allowlisting.
+Webhooks send an asynchronous HTTP request with a method, URL, optional headers, and optional body. You can configure additional retries with `maxRetries` (`0` disables retries; `-1` permits retries while delivery remains retained), request-detail retention, masked fields, metadata, and a static outbound network path when your integration requires allowlisting.
 
 Use `maskDetails` for fields that should not be persisted in readable webhook history. Prefer resolving credentials from Secrets inside a Component when you need stronger control than a stored static header.
 

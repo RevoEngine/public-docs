@@ -54,10 +54,14 @@ Disabling an account retains its API-key records, but admission rejects keys who
 | Action | Role |
 | --- | --- |
 | List and inspect | `USER_READ`, `USER_WRITE`, or `USER_ADMIN` |
-| Edit profile and membership | `USER_WRITE` or `USER_ADMIN` |
+| Create or edit profile | `USER_WRITE` or `USER_ADMIN` |
+| Add or remove Group memberships | `USER_ADMIN` or `INSTANCE_ADMIN` |
+| Add or remove Permission groups | `USER_ADMIN`, limited to groups the operator currently belongs to; `INSTANCE_ADMIN` can assign any group |
 | Activate, disable, change platform access, or delete | `USER_ADMIN` |
 
 The UI hides or disables actions the current operator cannot perform. The API independently enforces authorization; hidden controls are not the security boundary.
+
+Mutating an account with `INSTANCE_ADMIN` requires an instance administrator; mutating an account with `USER_ADMIN` requires a user administrator. Personal API-key creation still accepts an expiration, while an existing key's expiration cannot be edited.
 
 ## Enterprise onboarding pattern
 

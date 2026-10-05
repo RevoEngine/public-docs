@@ -65,10 +65,10 @@ Sandbox and Playground executions have separate validation intended for interact
 Capacity is not limited to CPU time and memory. Instance settings also govern product areas such as:
 
 - numbers of accounts, Permission groups, Components, Endpoints, and automation definitions;
-- API and automation rate or concurrency policy;
-- Storage and legacy File capacity;
-- audit, log, and history retention;
-- webhook scheduling and feature availability;
+- execution deadlines, memory, and supported concurrency policy;
+- native Storage and Database capacity thresholds;
+- audit and log retention;
+- webhook retry policy;
 - Agent, Assistant, and integration entitlements.
 
 Some payloads have structural limits independent of instance capacity. For example, user metadata is bounded to 16 KiB and 64 top-level keys, and top-level keys beginning with `__` are reserved by the platform.
@@ -78,12 +78,25 @@ Some payloads have structural limits independent of instance capacity. For examp
 | Boundary | Expected behavior |
 | --- | --- |
 | Invalid configuration | The create or update request is rejected; no execution is scheduled. |
-| Instance quota exceeded | Admission fails with a quota or validation error. Increasing a form value does not bypass it. |
+| Enforced quota exceeded | Admission fails with a quota or validation error. Increasing a form value does not bypass it. |
+| Soft usage threshold exceeded | Usage shows an overdraft. Capacity or monthly usage alone does not block writes or execution. |
 | Runtime timeout | The attempt reaches a terminal failure or expiry boundary; external side effects may already have occurred. |
 | Runtime memory exhausted | The attempt fails; inspect logs and Trace before retrying with a larger budget. |
 | Concurrency unavailable | Work waits, is retried according to its delivery contract, or fails when its lease/admission policy cannot be satisfied. |
 
 Timeout and infrastructure failure are ambiguous around remote systems. Before retrying, verify whether the external call committed and use a durable idempotency key.
+
+## Usage and soft thresholds
+
+Open **Settings → Usage** for AI, Transfer, Storage, Database, Jobs, Endpoints, and Webhooks. Use **Quick**, **Custom**, or **Range** to inspect up to 366 days. A selected analysis range is independent of the fixed UTC calendar month used for monthly usage comparisons. API ranges include `from` and exclude `to`.
+
+Storage, Database, monthly external transfer, Job processing hours, and Endpoint processing hours use soft thresholds. Exceeding one does not prevent a Database write or execution. Timeout, memory, structural validation, and other enforced quotas continue to apply.
+
+Native Storage reports physical bytes across namespaces, including retained versions, archives, temporary upload objects, and soft-deleted objects until they are physically destroyed. A reference to the same stored object is not an additional object. Storage does not have a separate legacy Files capacity quota. The technical per-upload ceiling is 100 GiB.
+
+Transfer separates observed incoming and outgoing traffic into **external**, **internal · free**, and **unclassified** categories. Creating a file is not a transfer measurement. Partial coverage and source timestamps are visible; missing measurements must not be interpreted as zero traffic. Capacity snapshots and imported traffic can arrive later than the operation itself.
+
+Component version history is always retained. RAW_SQL and low-code database queries are available without an instance feature switch; roles and query safety rules still apply. Realtime transport has no channel or message quota statistics in Usage.
 
 ## Operator workflow
 

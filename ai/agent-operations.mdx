@@ -33,12 +33,13 @@ The Agents workspace is the operating console for durable AI work. It combines t
 
 | Surface | Operator question |
 | --- | --- |
-| **Overview** | Is the Agent healthy, active, and completing its responsibility? |
-| **Runs** | Which task is running, waiting, finished, failed, or cancelled? |
-| **Inbox** | What queued work is available, delayed, claimed, or de-duplicated? |
-| **Storage** | Which durable inputs and outputs belong to this Agent? |
-| **Config** | Which identity, principal, runtime, tools, plugins, and limits are effective? |
-| **Activity and trace** | Which actions, child runs, and terminal results explain the outcome? |
+| **Agents conversation list** | Which conversation belongs to each Agent, and what is its current state? |
+| **Observability → Agents → Overview** | Is the Agent completing its responsibility, and how much model and workspace storage usage does it have? |
+| **Observability → Agents → Runs** | Which durable task is running, waiting, finished, failed, or cancelled? |
+| **Manage → Inbox** | What queued work is available, delayed, claimed, or de-duplicated? |
+| **Manage → Storage** | Which durable inputs and outputs belong to this Agent? |
+| **Manage → Config** | Which identity, principal, runtime, tools, plugins, and limits are effective? |
+| **Conversation activity and trace** | Which live messages, tools, child runs, and terminal results explain the outcome? |
 
 ## Choose the entry path
 
@@ -49,6 +50,14 @@ The Agents workspace is the operating console for durable AI work. It combines t
 | Schedule | Work recurs by time | Decide whether the schedule wakes Inbox work or creates a concrete recurring task |
 | Event | A platform or external event contains the task payload | Preserve source and event identifiers for traceability and retries |
 | Handoff | Another Agent delegates governed work | Keep the parent-child lineage and do not assume the receiving Agent has broader access |
+
+### Start work from the conversation list
+
+Open the Agent group menu and choose **New conversation** for direct work in the inline composer, or **New Inbox message** for queued work. Write the task in **Instructions**; a title is generated when omitted. For Inbox deliveries, **Schedule** adds a delay or date and **Advanced** exposes priority, structured input, and an optional **Duplication key**. Open **Configure** or **Storage** from the same Agent menu to manage the definition or workspace without losing the conversation list.
+
+A conversation’s options menu archives terminal conversations while preserving durable Runs. Complete or cancel active work first. Messages and tool activity use the live conversation stream, including reconnection from the last retained event.
+
+Respond to an approval, clarification, or plan in the conversation using the same controls as Assistant Threads. RevoEngine checks your Agent permissions and the current decision version, then queues a successor Run under the original execution principal. Repeating the same response returns that Run; a conflicting or outdated response requires refreshing the conversation. Tools execute in the durable worker, and their progress continues in the same conversation. Secure credential actions require their dedicated flow.
 
 ### Inbox-first pattern
 
@@ -152,7 +161,7 @@ Use an Agent for bounded changes to RevoEngine application definitions such as C
 - conservative child concurrency to avoid overlapping changes;
 - workspace-scoped artifact writes and approval for changes outside the assigned boundary.
 
-This Autonomous Agent workflow does not currently provide unrestricted repository shell access. An Interactive Agent can use a [terminal approved by its owner](/ai/terminals), including one running in a virtual machine. Use a repository-first coding agent when the task requires a workspace and toolchain that are not connected to RevoEngine.
+An Autonomous Agent can use explicitly selected terminals within its service account permissions. An Interactive Agent can use a [terminal approved by its owner](/ai/terminals), including one running in a virtual machine. Terminal access remains governed by the selected terminal and workspace controls. Use a repository-first coding agent when the task requires a workspace and toolchain that are not connected to RevoEngine.
 
 ### Integration operations coordinator
 

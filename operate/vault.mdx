@@ -59,7 +59,7 @@ This flow works with compatible OAuth authorization servers, including providers
 
 ## Read a credential in a Component
 
-Use the flat asynchronous `vault.*` manager. Read a Secret with `vault.get` (its value is a UTF-8 Buffer) or an OAuth access token with `vault.getAccessToken`:
+Use the flat asynchronous `vault.*` manager. Read a Secret with `vault.get` (its value is a string) or an OAuth access token with `vault.getAccessToken`:
 
 ```js
 const token = await vault.getAccessToken('ORDERS_ACCOUNT', { scope: 'user' });
@@ -76,7 +76,7 @@ Scope defaults to `instance`; use `user` for the verified current account. Saved
 
 `getIntegrationMetadata` returns definition metadata and its revision. `discoverIntegration` validates provider metadata without connecting. `connectIntegration` accepts provider configuration and the required `expectedRevision`: null creates a definition; otherwise use its exact current revision. It returns an `authorizationUrl` which the initiating user opens to grant consent. The existing callback completes the connection.
 
-`getAccessToken` returns `{ accessToken, expiresAt, tokenType: 'Bearer' }` and refreshes when necessary. `disconnectIntegration` disables the stored connection, retaining definition, history and grants; it does not promise revocation at the provider. Instance lifecycle requires a verified personal instance administrator. Writes return null in debug mode.
+`getAccessToken` returns `{ accessToken, expiresAt, tokenType: 'Bearer' }` and refreshes when necessary. `disconnectIntegration` disables the stored connection, retaining definition, history and grants; it does not promise revocation at the provider. Instance lifecycle requires a verified personal instance administrator. Writes throw `READ_ONLY_OPERATION_FORBIDDEN` with `readOnly: true`.
 
 ## Use Vault with Agent plugins and remote MCP
 
@@ -99,7 +99,7 @@ new revision metadata, without value. Its optional validFrom accepts null, Date,
 ISO or epoch milliseconds; a future timestamp keeps the current value available
 until activation. Exact get/delete versions are normalized activation timestamps.
 No owner override is accepted; reading through a grant confers no management
-rights. Debug writes return null. Protect execution captures and never log values.
+rights. Writes throw `READ_ONLY_OPERATION_FORBIDDEN` with `readOnly: true`. Protect execution captures and never log values.
 See [Manage Secrets from low-code](/operate/secrets#manage-secrets-from-low-code).
 
 ## Rotate, revoke, and diagnose

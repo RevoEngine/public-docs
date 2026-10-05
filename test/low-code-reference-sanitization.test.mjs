@@ -60,3 +60,17 @@ test('keeps undocumented namespace overloads beside their documented Storage met
   assert.equal(sanitized.match(/static oldRead\(/g)?.length, 2);
   assert.match(sanitized, /@deprecated Use getFileData/);
 });
+
+test('public sanitization preserves rejection of restricted platform writes', () => {
+  const source = `declare class api {
+    /** Acquires a key. */
+    static acquireIdempotencyKey(key: string, ttl: number): Promise<boolean>;
+    /** Uploads a file. */
+    static sftpPut(source: string, target: string): Promise<void>;
+    /** Downloads a file into Storage. */
+    static sftpGet(target: string, source: string): Promise<void>;
+  }`;
+  const sanitized = sanitizeDeclarationSource(source);
+  assert.doesNotMatch(sanitized, /no-op in debug mode/i);
+  assert.equal(sanitized.match(/throws READ_ONLY_OPERATION_FORBIDDEN/g)?.length, 3);
+});

@@ -1,10 +1,10 @@
 ---
 title: Search instance logs
-description: Find requests, MCP tool calls, executions, users, and failures in Security Admin Logs.
+description: Find requests, MCP tool calls, executions, users, and failures in the Observability Logs workspace.
 icon: magnifying-glass
 ---
 
-Use **Security Admin → Logs** to investigate activity in the current instance. Start with a time window, then search a grid column or open **Advanced filter** to combine conditions. This guide covers the Logs screen and its [Platform API operation](/api-reference/config/get-instance-logs), `GET /api/v1/config/logs`.
+Use **Security Admin → Observability → Logs** to investigate activity in the current instance. Start with a time window, then search a grid column or open **Advanced filter** to combine conditions. This guide covers the Logs workspace. The compatibility [Platform API operation](/api-reference/config/get-instance-logs), `GET /api/v1/config/logs`, remains available for bounded structured-log reads. Existing links to the older Logs screen open Observability Logs.
 
 ## Find a log entry
 
@@ -12,7 +12,7 @@ Use **Security Admin → Logs** to investigate activity in the current instance.
 2. Search a visible grid column when you know one value, such as an Endpoint name or HTTP method.
 3. For several conditions, open **Advanced filter → Builder**. Add a group, choose **All conditions (AND)** or **Any condition (OR)**, then add conditions or nested groups.
 4. Select **Apply filter**. Use **Clear filter** on the Logs toolbar to return to the time-only view.
-5. Open a matching row to inspect its details. Use its Trace ID to follow the wider operation in [Trace](/operate/traces).
+5. Open a matching row to inspect its details. Use its Operation reference to open the wider journey in [Executions](/operate/traces).
 
 The **Search guide** tab in the filter dialog contains a short example table. The full field and scenario tables below cover more investigations.
 
@@ -61,6 +61,10 @@ For a field your application writes into **Args (JSON)**, choose that field's pa
   Not every field is present on every log entry. A request can have an HTTP method without an RPC method; a discovery request can have an RPC method without a tool name. A blank field does not by itself mean that the request failed.
 </Note>
 
+## Bound the read
+
+Log searches keep an explicit UTC range. If you know an exact Operation or Job ID but not its date, first resolve it in Observability Executions, then open **Logs for this operation**. The native retained index can resolve older executions independently of the default browsing period. Raw-source searches without a retained index require dates and do not silently scan all history. If a query exceeds its limit, narrow the period or inspect execution metadata first.
+
 ## When a search returns nothing
 
 - Confirm the selected time range and the instance you are viewing.
@@ -69,4 +73,4 @@ For a field your application writes into **Args (JSON)**, choose that field's pa
 - Open a related row and copy its exact Trace ID, Execution ID, or resource ID into Builder.
 - For Endpoint and Job Template names, use the searchable grid column. Builder compares their IDs.
 
-Logs are operational evidence, not a complete resource-change history. Use [Activity and observability](/operate/observability) for changes, [Trace](/operate/traces) for cross-service timing, and Job History for durable automation state.
+Logs are operational evidence, not a complete resource-change history. Use [Activity and observability](/operate/observability) for changes, [Executions](/operate/traces) for cross-service timing, and Job History for durable automation state.

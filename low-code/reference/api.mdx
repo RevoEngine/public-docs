@@ -8,11 +8,12 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **76 methods**. Search the docs for an exact method name, or use this index:
+This page contains **75 methods**. Search the docs for an exact method name, or use this index:
 
 - [`api.createDatabase()`](#api-createDatabase)
 - [`api.cloneDatabase()`](#api-cloneDatabase)
 - [`api.exportDatabase()`](#api-exportDatabase)
+- [`api.startDatabaseOperation()`](#api-startDatabaseOperation)
 - [`api.importDatabase()`](#api-importDatabase)
 - [`api.updateDatabaseImportMapping()`](#api-updateDatabaseImportMapping)
 - [`api.commitDatabaseImport()`](#api-commitDatabaseImport)
@@ -35,8 +36,6 @@ This page contains **76 methods**. Search the docs for an exact method name, or 
 - [`api.queryDatabase()`](#api-queryDatabase)
 - [`api.currentUser()`](#api-currentUser)
 - [`api.isDebug()`](#api-isDebug)
-- [`api.disableDebug()`](#api-disableDebug)
-- [`api.enableDebug()`](#api-enableDebug)
 - [`api.getCache()`](#api-getCache)
 - [`api.setCache()`](#api-setCache)
 - [`api.getContext()`](#api-getContext)
@@ -95,7 +94,7 @@ Creates a logical database. The server assigns databaseId, version, and timestam
 never generate or send those values. A normal database needs at least one definition.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -127,7 +126,7 @@ await api.createDatabase({
 Clones a logical database by name.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - By default waits for the clone and returns cloned database metadata.
 - Set `&#123; async: true &#125;` to start a backend clone task and return immediately with an accepted response.
 - Omit `name` to use the backend default source-name plus `_Clone`.
@@ -165,7 +164,7 @@ Exports a logical table, saved view, or materialized view by name directly into 
 The root and every structured join may independently target any of these relation types.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - By default waits for the export, final compose, and storage entry persistence.
 - CSV is the default and its dialect, headers, and byte map are indexed during upload.
 - XLSX streams directly from the database through the native Storage writer into the final resumable upload,
@@ -204,11 +203,34 @@ const result = await api.exportDatabase('contracts', {
 return result.storageEntryId;
 ```
 
+<span id="api-startDatabaseOperation" aria-hidden="true"></span>
+
+## `api.startDatabaseOperation()`
+
+Explicitly starts an UPDATE, DELETE, reviewed view mutation, or TRUNCATE in Operations.
+Existing mutation methods remain synchronous. This call cannot join transactionDatabase.
+System messages are suppressed by default; set skipNotification: false to opt in.
+Retry resumes the remaining durable workset without repeating committed batches.
+
+### Signature
+
+```ts
+static startDatabaseOperation(name: string, options: Omit<DatabaseOperationInput, 'databaseName'>): Promise<{ accepted: true; jobId: string; status: string }>;
+```
+### Example
+
+```ts
+const operation = await api.startDatabaseOperation('orders', {
+  action: 'UPDATE', request: { filter: { field: 'status', op: 'eq', value: 'READY' } },
+  data: { status: 'PROCESSED' }, skipNotification: false,
+});
+```
+
 <span id="api-importDatabase" aria-hidden="true"></span>
 
 ## `api.importDatabase()`
 
-Validates a Storage file against current Database definitions and creates an import operation.
+Validates a Storage file and creates an import operation; System messages default off.
 
 ### Signature
 
@@ -248,7 +270,7 @@ version for optimistic locking; send only the fields that should change. Do not
 copy server-owned databaseId, timestamps, or size into this payload.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -271,7 +293,7 @@ await api.updateDatabase('orders', {
 Soft-deletes a logical database and its active partition subtree by name.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -293,7 +315,7 @@ The name must identify exactly one accessible deleted database; for ambiguous
 names select the database by ID through REST or the UI. Strings always mean names.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -313,7 +335,7 @@ await api.restoreDatabase('orders');
 Removes all rows from a logical database selected by name.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - TRUNCATE does not create row audit events, even when database audit is enabled.
 - Use an ordinary filtered delete, such as primary key IS NOT NULL, to preserve row audit events.
 - Identity counters are preserved by default.
@@ -439,7 +461,7 @@ static countDatabase(name: string, query?: DatabaseCountQuery): Promise<number>;
 Processes a large database, view, or materialized-view result in sequential,
 awaited batches without collecting
 all rows in the isolate. Specify query.take or options.fullScan:true.
-Every non-final batch has exactly batchSize rows when available.
+Every non-final batch has exactly batchSize rows when available (default 10,000).
 The callback may await writes; do not accumulate batches in an array.
 
 ### Signature
@@ -458,7 +480,7 @@ static walkDatabaseData<T = any>(
 await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },
   async (batch) => {
     await api.upsertDatabaseData('customer_export', batch, { return: false });
-  }, { batchSize: 2000 });
+  }, { batchSize: 10000 });
 ```
 
 <span id="api-getDatabaseAudit" aria-hidden="true"></span>
@@ -488,7 +510,7 @@ Notes:
 - A call accepts at most 100,000 rows and executes atomically in one transaction.
 - return defaults to true and includes full rows. return: false omits data; onlyKeys
   returns primary keys only. Returning full rows has a higher response-memory cost.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -521,7 +543,7 @@ Notes:
 - A call accepts at most 100,000 rows and executes atomically in one transaction.
 - return defaults to true and includes full rows. return: false omits data; onlyKeys
   returns primary keys only. Returning full rows has a higher response-memory cost.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -550,7 +572,7 @@ explicitly clears a nullable property. Use updateDatabaseDataRequest for a
 structured-filter bulk PATCH.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -583,7 +605,7 @@ Notes:
   it avoids loading and transferring every matching primary key to the runtime.
 - Structured query and mutation filters are rejected before SQL execution when they exceed
   8 MiB, 1,000 nodes, 100,000 values, 16 nested levels, or 10,000 bound parameters.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -605,7 +627,7 @@ await api.deleteDatabaseData('customers', [
 Bulk-updates rows matched by an advanced structured filter.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -634,7 +656,7 @@ await api.updateDatabaseDataRequest(
 Bulk-deletes rows matched by an advanced structured filter.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -660,6 +682,9 @@ await api.deleteDatabaseDataRequest('customers', {
 Executes raw SELECT/WITH SQL when the structured helpers are not enough.
 Do not use this for writes; use insert/upsert/update/delete helpers or
 transactionDatabase for write flows.
+Requires current INSTANCE_ADMIN membership. Always runs exactly one SELECT/WITH
+in a READ ONLY database transaction. Mutating CTEs and multiple statements are rejected.
+Use parameters for values. Typed data and ORM helpers retain their own resource permissions.
 
 ### Signature
 
@@ -694,7 +719,7 @@ const user = api.currentUser();
 
 ## `api.isDebug()`
 
-Returns true when debug mode is enabled.
+Returns true when this execution restricts platform writes (readOnly: true).
 
 ### Signature
 
@@ -704,43 +729,7 @@ static isDebug(): boolean;
 ### Example
 
 ```ts
-if (api.isDebug()) {
-  api.log('Debug mode', 'WARN');
-}
-```
-
-<span id="api-disableDebug" aria-hidden="true"></span>
-
-## `api.disableDebug()`
-
-Disables debug mode for the current execution.
-
-### Signature
-
-```ts
-static disableDebug(): void;
-```
-### Example
-
-```ts
-api.disableDebug();
-```
-
-<span id="api-enableDebug" aria-hidden="true"></span>
-
-## `api.enableDebug()`
-
-Enables debug mode for the current execution.
-
-### Signature
-
-```ts
-static enableDebug(): void;
-```
-### Example
-
-```ts
-api.enableDebug();
+const restricted = api.isDebug();
 ```
 
 <span id="api-getCache" aria-hidden="true"></span>
@@ -1060,7 +1049,7 @@ const details = api.getInstanceDetails();
 Publishes a realtime message.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - Currently only the 'ALL' channel is supported.
 
 ### Signature
@@ -1098,7 +1087,7 @@ const state = await api.getInstanceCache('sync:state');
 Writes instance-scoped cache.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1122,7 +1111,7 @@ await api.setInstanceCache('sync:state', { step: 'loading' }, 300);
 Writes instance-scoped cache only when the key does not exist.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1167,7 +1156,7 @@ const state = await api.getOrSetInstanceCache('sync:state', { step: 'queued' }, 
 Removes cache keys.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1204,7 +1193,7 @@ const exists = await api.existsInstanceCache('sync:state');
 Makes a cache key persistent.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1224,7 +1213,7 @@ await api.persistInstanceCache('sync:state');
 Sets cache TTL in seconds.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1278,7 +1267,7 @@ const keys = await api.listInstanceCache('sync:*');
 Atomically increments an integer cache key.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - 'by' must be an integer.
 
 ### Signature
@@ -1303,7 +1292,7 @@ const count = await api.incrementInstanceCache('sync:counter', 1, 300);
 Atomically decrements an integer cache key.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - 'by' must be an integer.
 
 ### Signature
@@ -1328,7 +1317,7 @@ const count = await api.decrementInstanceCache('sync:counter');
 Atomically updates a cache key only when the current value matches 'expected'.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1353,7 +1342,7 @@ const swapped = await api.compareAndSetInstanceCache('sync:state', { step: 'queu
 Acquires an idempotency key in the instance-scoped managed cache.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
 
 ### Signature
 
@@ -1400,7 +1389,7 @@ Notes:
 - Never release in a generic catch/finally merely because processing threw or timed out:
   a partial effect or committed operation could then be executed twice.
 - A late cleanup after TTL expiry may delete a key acquired by another worker.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1425,7 +1414,7 @@ Notes:
 - Each successful admission acquires one slot. Release it exactly once with releaseConcurrencyLimit.
 - TTL applies to the shared counter and is refreshed on successful admission; it is not a per-worker lease.
   Processing must finish before expiry. There is no ownership token to protect against late cleanup.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1449,7 +1438,7 @@ const locked = await api.concurrencyLimit('sync:customers', 1, 300);
 Acquires an instance-scoped rate-limit token.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1469,7 +1458,7 @@ const allowed = await api.rateLimit('outbound:crm', 10, 60);
 Resets the entire rate-limit key, including all consumed tokens.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1493,7 +1482,7 @@ Notes:
 - Call exactly once after a successful admission; do not release after admission returned false.
 - This key-only API has no ownership token. Duplicate release or cleanup after expiry/reacquisition
   can release another worker's slot. It does not provide an ownership-safe lease.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1519,7 +1508,7 @@ Notes:
 - Use the options object's `scheduleFor`; legacy delay properties are ignored.
 - New code should use `scheduleFor` with a Date, ISO 8601 date-time, or Unix timestamp in milliseconds.
 - The absolute time cannot be in the past or more than 30 days ahead.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1553,7 +1542,7 @@ Notes:
 - Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
 - Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
 - Retired positional date and relative-delay arguments are ignored.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
   The third argument is copied directly into the
   target job's flat `api.input().templateInputs`. It is shallow-spread over
@@ -1588,7 +1577,7 @@ const jobId = await api.triggerTarget(
 Schedules an active job template by its exact ID or exact unique name.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
 - The input argument is copied directly into the target job's flat
   `api.input().templateInputs`, shallow-spread over template defaults.
@@ -1625,7 +1614,7 @@ Schedules a webhook delivery.
 Notes:
 - Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
 - Retired positional date and relative-delay arguments are ignored.
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1653,7 +1642,7 @@ const webhook = await api.triggerWebhook({
 
 ## `api.cancelJobs()`
 
-Cancel by jobIds OR a non-empty platform filter. No-op in debug mode.
+Cancel by jobIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error).
 Returns a durable operation over frozen IDs; counters describe requests processed, not downstream completion.
 
 ### Signature
@@ -1671,7 +1660,7 @@ const operation = await api.cancelJobs({ filter: { field: 'status', op: 'eq', va
 
 ## `api.retryJobs()`
 
-Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. No-op in debug mode.
+Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1688,7 +1677,7 @@ const operation = await api.retryJobs({ filter: { field: 'status', op: 'eq', val
 
 ## `api.deleteJobs()`
 
-Delete by jobIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+Delete by jobIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
 
 ### Signature
 
@@ -1705,7 +1694,7 @@ const operation = await api.deleteJobs({ filter: { field: 'status', op: 'eq', va
 
 ## `api.cancelWebhooks()`
 
-Cancel by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+Cancel by webhookIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
 
 ### Signature
 
@@ -1722,7 +1711,7 @@ const operation = await api.cancelWebhooks({ filter: { field: 'status', op: 'eq'
 
 ## `api.retryWebhooks()`
 
-Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. No-op in debug mode.
+Retry ERROR/CANCELLED webhooks by webhookIds OR a non-empty platform filter. requestPatch supplies replacements; masked original values are unavailable. Unavailable with `readOnly: true` (throws an error).
 
 ### Signature
 
@@ -1739,7 +1728,7 @@ const operation = await api.retryWebhooks({ filter: { field: 'status', op: 'eq',
 
 ## `api.deleteWebhooks()`
 
-Delete by webhookIds OR a non-empty platform filter. No-op in debug mode. Returns a durable operation with progress and per-item outcomes.
+Delete by webhookIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
 
 ### Signature
 
@@ -1804,8 +1793,10 @@ const page = await api.getAutomationOperationItems(input.operationId);
 Performs an outbound HTTP request.
 
 Notes:
-- No-op in debug mode and returns `null`; call `api.disableDebug()` only when this external side effect is intentionally allowed.
+- External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
+- Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
 - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
+- With `proxy: true`, `responseType` may only be omitted, undefined, null or 'json'; other values fail before credential resolution or transport. The JSON proxy envelope still carries upstream text in `response.data` and parses upstream application/json bodies when possible. Prefer `&#123; proxy: true, requestType: 'json' &#125;` and check `response.status` explicitly.
 - Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
 - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
@@ -1820,7 +1811,7 @@ Notes:
   unconfirmed Revo headers are removed from the public response.
 - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
 - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
-- JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and may be combined with any response type because it does not declare a request body.
+- JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and, without proxy, may be combined with any supported response type because it does not declare a request body.
 
 ### Overloads
 

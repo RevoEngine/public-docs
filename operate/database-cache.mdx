@@ -144,7 +144,7 @@ scope the prefix narrowly and run them as an explicit operator action.
 | --- | --- |
 | Key expired or was deleted | Treat the cache miss as normal and rebuild from the durable source. |
 | Cached shape is from an older release | Ignore it, write under a versioned prefix, and expire the old namespace. |
-| A write was suppressed in debug mode | Do not infer production cache state from the debug result. |
+| A write was rejected with `readOnly: true` | Use full execution only when the cache mutation is intended and authorized. |
 | Wildcard invalidation was too broad | Rebuild affected entries from Tables or providers; cache deletion is not recoverable by itself. |
 | Cache is unavailable | Fail safely or use the durable fallback required by the business workflow. |
 

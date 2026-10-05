@@ -35,6 +35,7 @@ curl "$REVO_SANDBOX_URL/v1/debug" \
     "type": "CODE_TS",
     "timeout": 10,
     "memory": 128,
+    "readOnly": true,
     "inputs": { "customerId": "customer-123" },
     "elements": [
       {
@@ -58,14 +59,16 @@ curl "$REVO_SANDBOX_URL/v1/execute" \
   --header "Content-Type: application/json" \
   --data '{
     "componentId": "11111111-1111-4111-8111-111111111111",
-    "production": false,
+    "readOnly": true,
     "inputs": { "customerId": "customer-123" },
     "timeout": 30,
     "memory": 256
   }'
 ```
 
-Omit `componentVersion` to use the normal resolved version for that execution mode, or provide it when a workflow intentionally verifies an exact low-code revision.
+Pass `readOnly: true` to block platform writes or `readOnly: false` for authorized full execution. The requested mode is fixed before code runs. External HTTP requests remain real in either mode; non-GET requests to Revo hosts require full execution. Full execution requires a component execution role or equivalent. Omit `componentVersion` to use the normal resolved version, or provide it when a workflow intentionally verifies an exact low-code revision.
+
+CLI 1.0.19 sends the explicit mode with `revo component debug <id> --read-only=true|false`; its default is read-only. The old sandbox `production` field and runtime debug toggles are removed. Upgrade callers together with the backend.
 
 ## Streaming contract
 

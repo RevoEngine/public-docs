@@ -84,7 +84,7 @@ const folder = await storage.resolveFolderPath('exports/daily');
 Resolves a folder path and idempotently creates any missing segments.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - Existing folders are never mutated.
 - ACL options apply to every newly created segment.
 
@@ -275,7 +275,7 @@ const entry = await storage.getEntry(storageEntryId);
 Creates a folder in the default `explorer` namespace.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -297,7 +297,7 @@ const folder = await storage.createFolder({ name: 'Exports' });
 Uploads a small object in one request in the default `explorer` namespace.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -324,7 +324,7 @@ const file = await storage.putObject({
 Opens an upload session for a file in the default `explorer` namespace.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - A session is a temporary, durable upload control record. It reserves the
   intended file name and destination, stores upload policy, ACL, retention,
   schema, and progress, but it is not a readable Storage file. The durable
@@ -440,7 +440,7 @@ const result = await storage.finalizeUploadSession(
 Extends the TTL for an active upload session.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - uploadPart renews the durable session lease automatically; call this only across idle gaps.
 
 ### Overloads
@@ -468,7 +468,7 @@ const session = await storage.extendUploadSession(storageUploadSessionId);
 Returns the current upload session state together with uploaded part manifests.
 
 Notes:
-- No-op in debug mode.
+- Available with `readOnly: true` because it only reads session state.
 - Multipart sessions expose uploaded parts with computed byte ranges.
 
 ### Overloads
@@ -496,7 +496,7 @@ const state = await storage.getUploadSession(storageUploadSessionId);
 Uploads one part into an active multipart upload session.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 - Renews the durable session lease before processing and after committing the part.
 - Accepted part manifests remain durable across worker restarts.
 
@@ -552,7 +552,7 @@ Storage entry. Managed direct uploads finalize automatically and should be
 observed with `getUploadSession()` instead of calling this method.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -581,7 +581,7 @@ const result = await storage.finalizeUploadSession(storageUploadSessionId);
 Cancels an active upload session.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -608,7 +608,7 @@ await storage.abortUploadSession(storageUploadSessionId);
 Updates mutable storage entry fields such as name, metadata, or ACLs.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -640,7 +640,7 @@ const entry = await storage.updateEntry(storageEntryId, {
 Moves an entry to another folder or registered Storage root.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -672,7 +672,7 @@ const entry = await storage.moveEntry(storageEntryId, {
 Archives an entry without deleting its backing object.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -701,7 +701,7 @@ const entry = await storage.archiveEntry(storageEntryId, { version: currentVersi
 Restores an archived or deleted storage entry.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 
@@ -730,7 +730,7 @@ const entry = await storage.restoreEntry(storageEntryId, { version: currentVersi
 Soft-deletes a storage entry.
 
 Notes:
-- No-op in debug mode.
+- Unavailable with `readOnly: true` (throws an error).
 
 ### Overloads
 

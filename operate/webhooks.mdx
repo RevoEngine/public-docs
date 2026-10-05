@@ -17,7 +17,7 @@ Open **Webhooks** and select **Trigger webhook**. The form exposes:
 | Field | Required | Meaning |
 | --- | --- | --- |
 | Custom ID | No | Caller-provided UUID for correlation and duplicate control. |
-| Maximum attempts | No | Delivery-attempt ceiling. Choose according to receiver idempotency. |
+| Maximum retries | No | Additional attempts after the initial delivery: `0` disables retries, a positive value caps retries, and `-1` permits retries while delivery remains retained. Omission inherits instance policy. |
 | Save details | No | Retain request details for later inspection. |
 | URL | Yes | Absolute `http` or `https` destination. Use HTTPS in production. |
 | Method | Yes | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`. |
@@ -30,7 +30,7 @@ The Platform API also supports searchable `metadata`, static-egress `proxy`, `ma
 {
   "customId": "f395a713-0948-4d60-926e-25d3cd09ec88",
   "saveDetails": true,
-  "maxAttempts": 5,
+  "maxRetries": 4,
   "proxy": true,
   "metadata": {
     "integration": "warehouse",
@@ -50,6 +50,8 @@ The Platform API also supports searchable `metadata`, static-egress `proxy`, `ma
   }
 }
 ```
+
+The webhook request field is `maxRetries`; `maxAttempts` is rejected. An instance retry policy can impose a lower cap. Job and Agent retry policies keep their separate `maxAttempts` contract.
 
 ## Credentials and sensitive details
 
@@ -75,7 +77,7 @@ request accepted
   -> attempt scheduled
   -> HTTP delivery
   -> response or transport failure recorded
-  -> retry until success, cancellation, or max attempts
+  -> retry until success, cancellation, or the retry limit
 ```
 
 Cancellation stops eligible future processing; it cannot recall a request already accepted by the remote server. Delete and restore change platform visibility, not remote state.

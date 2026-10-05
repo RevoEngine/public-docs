@@ -472,7 +472,7 @@ const provider = await api.httpCall(
     url: 'https://payments.example.com/v1/settlements',
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${(await vault.get('PAYMENTS_API_KEY')).revision.value.toString('utf8')}`,
+      Authorization: `Bearer ${(await vault.get('PAYMENTS_API_KEY')).revision.value}`,
       'Idempotency-Key': transaction.transactionId,
       'X-Correlation-ID': operationId,
     },

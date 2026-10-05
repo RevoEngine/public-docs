@@ -41,7 +41,7 @@ Use JSON for private-key authentication:
   "host": "sftp.example.com",
   "port": 22,
   "username": "integration",
-  "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----...",
+  "privateKey": "<private-key-pem>",
   "passphrase": "optional",
   "hostKeyFingerprint": "SHA256:..."
 }
@@ -184,6 +184,7 @@ If finalization succeeds but the remote rename fails, the next poll can see the 
 - Import creates or replaces a finalized Storage entry. Export reads an existing authorized entry.
 - Healthy connections can be reused internally, but code must not rely on connection affinity or session state between calls.
 - Debug execution does not perform the external SFTP side effect.
+- Transfer failures retain status and a safe error category. Credentials, signed URLs and destination error bodies are omitted from returned diagnostics.
 - Never log credentials, private keys, signed Storage URLs, or unrestricted directory listings.
 - A timeout or disconnect can be ambiguous around a remote mutation. Inspect the remote path before repeating a destructive or overwriting command.
 

@@ -59,6 +59,8 @@ Plugin installation, attachment, loading, and execution are separate decisions:
 5. **Admitted** — current identity and policy allow the exact operation to be proposed.
 6. **Executed** — validation and any required approval succeeded for the concrete arguments and target.
 
+Interactive Assistants can use configured automatic discovery. Autonomous Agents use a closed set of explicit run, Agent, policy, and inherited active instance-default attachments; unrelated installed plugins remain unavailable. The Agent **Plugins** tab separately selects which effective attachments load at the start.
+
 An auto-discovered plugin is deferred by default: the model can recognize when it may be relevant without receiving every complete schema up front. Explicit attachment makes the plugin part of the current working context, but it still does not authorize a call.
 
 Full skill and package guidance can be loaded on demand. Executable component and MCP tools are exposed with their reviewed local contracts only when selected and admitted. Credentials remain in [Vault](/operate/vault) and are never supplied as model-visible plugin context.

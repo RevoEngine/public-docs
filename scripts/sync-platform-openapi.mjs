@@ -15,6 +15,10 @@ const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
 ]);
 const NON_PUBLIC_DIAGNOSTIC_PATHS = new Set([
   '/api/v1/assistant/reports/{reportId}/evidence',
+  '/api/v1/assistant/reports/{reportId}/conversation',
+  '/api/v1/assistant/reports/{reportId}/conversation/messages',
+  '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/details',
+  '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/artifacts/{artifactId}',
   '/api/v1/assistant/threads/{id}/evidence',
   '/api/v1/assistant/evidence/threads',
 ]);
@@ -23,7 +27,7 @@ const isPublicPath = (path) => path.startsWith(PUBLIC_PATH_PREFIX)
   && !NON_PUBLIC_DIAGNOSTIC_PATHS.has(path);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
-const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier']);
+const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier', 'x-max-tokens']);
 const PUBLIC_STANDALONE_SCHEMA_NAMES = new Set([
   'JobTemplateRequestDto',
   'UpdateJobTemplate',
@@ -36,7 +40,7 @@ const PUBLIC_SCHEMA_PROPERTIES = Object.freeze({
   CreateMessageDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds'],
   CreateThreadDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds', 'version'],
   CreateThreadlessResponseDto: ['content', 'preflightMessageId', 'model', 'reasoningEffort', 'reasoning', 'backgroundProcessing', 'interruptActive', 'goal', 'executionMode', 'planningPolicy', 'permissions', 'toolPermissions', 'toolNames', 'pluginIds', 'version', 'context', 'persistThread'],
-  AgentConfigDto: ['model', 'reasoningEffort', 'executionMode', 'planningPolicy', 'workMode', 'persona', 'systemInstructions', 'definition', 'memoryPolicy', 'release', 'automation', 'toolNames', 'pluginIds', 'plugins', 'maxActiveRootRuns', 'maxChildRuns', 'maxConcurrentChildRuns', 'maxTicks', 'childFailureMode'],
+  AgentConfigDto: ['model', 'reasoningEffort', 'executionMode', 'planningPolicy', 'workMode', 'persona', 'systemInstructions', 'definition', 'memory', 'memoryPolicy', 'release', 'automation', 'toolNames', 'pluginIds', 'eagerPluginIds', 'agentTerminalIds', 'plugins', 'maxActiveRootRuns', 'maxChildRuns', 'maxConcurrentChildRuns', 'maxTicks', 'childFailureMode'],
   AgentReleaseConfigDto: ['versionLabel', 'changeSummary'],
   AgentPluginComponentToolConfigDto: ['enabled', 'deferLoading', 'alias', 'title', 'description', 'entrypoint', 'inputs', 'popResult', 'inputSchema', 'outputSchema', 'approvalPolicy', 'mutationIntent', 'reversibility', 'targetScope', 'sideEffectSummary', 'sideEffectCategories'],
   AgentPluginMcpToolConfigDto: ['enabled', 'deferLoading', 'alias', 'approvalPolicy', 'mutationIntent', 'reversibility', 'targetScope', 'sideEffectSummary'],
@@ -198,6 +202,7 @@ const TAG_DESCRIPTIONS = Object.freeze({
   Files: 'Compatibility file listing, preview, download, and deletion operations.',
   Groups: 'Groups, membership, avatars, and lifecycle.',
   Me: 'Current user profile, keys, avatar, and session information.',
+  Observability: 'Authorized execution, performance, graph, and log evidence.',
   Preferences: 'User and instance preference values.',
   'Role Groups': 'Role groups, members, assigned roles, and lifecycle.',
   Roles: 'Available platform roles and role details.',
@@ -228,6 +233,7 @@ const TAG_GUIDES = Object.freeze({
   'Instance Vault': ['Secrets and Vault guide', '/operate/secrets'],
   Groups: ['Groups guide', '/operate/groups'],
   Me: ['Authentication guide', '/developers/authentication'],
+  Observability: ['Observability guide', '/operate/observability'],
   Preferences: ['Platform UI guide', '/platform/ui-tour'],
   'Role Groups': ['Permissions guide', '/operate/permissions'],
   Roles: ['Permissions guide', '/operate/permissions'],

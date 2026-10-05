@@ -12,7 +12,7 @@ Open **Permissions**, select **Add**, and configure:
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| Name | Yes | Job-function or workload-capability name. |
+| Name | Yes | Exact unique policy name, including names of deleted policies. |
 | Category | No | Groups related policies in the UI. |
 | Description | No | Intended principals, scope, owner, and exclusions. |
 | Metadata | No | Searchable governance and review attributes. |
@@ -78,7 +78,11 @@ Permission-group deletion is recoverable, but active principals can lose capabil
 
 ## Required administration roles
 
-The Permissions route is available to user administrators and writers according to the current user-management policy. Creating, editing, membership changes, role assignment, deletion, and restore are enforced again by the API.
+`USER_READ`, `USER_WRITE`, and `USER_ADMIN` can inspect Permission groups through the IAM hierarchy. `INSTANCE_ADMIN` is required to create, rename, edit, delete, restore, or change a Permission group's role set.
+
+`USER_ADMIN` can assign or remove ordinary account members only for Permission groups they currently belong to. `INSTANCE_ADMIN` can assign any group. Service Account writers with management access can edit their workload's Permission-group memberships, bounded by the writer's own current memberships.
+
+An account with `INSTANCE_ADMIN` requires an instance administrator to mutate it. An account with `USER_ADMIN` requires a user administrator. These protections also apply when changing memberships; administration access does not remove the delegation ceiling.
 
 ## Production checklist
 

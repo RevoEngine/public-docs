@@ -179,6 +179,10 @@ test('publishes conversation feedback receipts and message anchors without priva
   source.paths['/api/v1/assistant/threads/{id}'] = { get: { operationId: 'AssistantController_getThread', tags: ['Assistant'], summary: 'Get a conversation.', description: 'Get an authorized conversation.', security: [{ bearer: [] }], responses: { 200: { description: 'Conversation.', content: { 'application/json': { schema: { $ref: '#/components/schemas/CustomerThreadDto' } } } } } } };
   const privatePaths = [
     '/api/v1/assistant/reports/{reportId}/evidence',
+    '/api/v1/assistant/reports/{reportId}/conversation',
+    '/api/v1/assistant/reports/{reportId}/conversation/messages',
+    '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/details',
+    '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/artifacts/{artifactId}',
     '/api/v1/assistant/threads/{id}/evidence',
     '/api/v1/assistant/evidence/threads',
   ];
@@ -214,4 +218,23 @@ test('publishes conversation feedback receipts and message anchors without priva
   const polluted = structuredClone(output);
   polluted.paths[privatePaths[0]] = source.paths[privatePaths[0]];
   assert.match(auditPlatformOpenApi(polluted, source).join('\n'), /Private diagnostic path published/);
+});
+
+
+test('publishes reviewed Agent memory, eager-plugin and terminal scopes without internal policy fields', () => {
+  const source = fixture();
+  source.components.schemas.AgentConfigDto = { properties: {
+    memory: { type: 'string', 'x-max-tokens': 20000, description: 'Persistent memory included on every turn.' },
+    eagerPluginIds: { type: 'array', maxItems: 64, items: { type: 'string', format: 'uuid' } },
+    agentTerminalIds: { type: 'array', maxItems: 64, items: { type: 'string', format: 'uuid' } },
+    cheapTurnPolicy: { type: 'object', description: 'Internal scheduling policy.' },
+  } };
+  source.paths['/api/v1/agents'].get.responses[200].content = {
+    'application/json': { schema: { $ref: '#/components/schemas/AgentConfigDto' } },
+  };
+  const properties = enrichPlatformOpenApi(source).components.schemas.AgentConfigDto.properties;
+  for (const field of ['memory', 'eagerPluginIds', 'agentTerminalIds']) {
+    assert.deepEqual(properties[field], source.components.schemas.AgentConfigDto.properties[field]);
+  }
+  assert.equal(properties.cheapTurnPolicy, undefined);
 });

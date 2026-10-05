@@ -54,7 +54,7 @@ const response = await api.httpCall(
     url: 'https://crm.example.com/v2/customers',
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${(await vault.get('CRM_API_TOKEN')).revision.value.toString('utf8')}`,
+      Authorization: `Bearer ${(await vault.get('CRM_API_TOKEN')).revision.value}`,
       Accept: 'application/json',
     },
     params: [
@@ -104,7 +104,7 @@ const response = await api.httpCall(
     url: 'https://payments.example.com/v1/collections',
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${(await vault.get('PAYMENTS_TOKEN')).revision.value.toString('utf8')}`,
+      Authorization: `Bearer ${(await vault.get('PAYMENTS_TOKEN')).revision.value}`,
       'Idempotency-Key': paymentKey,
     },
     data: {
@@ -212,7 +212,7 @@ const response = await api.httpCall(
   {
     url: 'https://ai.example.com/v1/runs',
     method: 'POST',
-    headers: { Authorization: `Bearer ${(await vault.get('AI_PROVIDER_TOKEN')).revision.value.toString('utf8')}` },
+    headers: { Authorization: `Bearer ${(await vault.get('AI_PROVIDER_TOKEN')).revision.value}` },
     data: { task: api.input('task'), stream: true },
   },
   {
@@ -265,7 +265,7 @@ const response = await api.httpCall(
   {
     url: `https://bank.example.com/v2/statements/${api.input('statementId')}`,
     method: 'GET',
-    headers: { 'X-API-Key': (await vault.get('BANK_API_KEY')).revision.value.toString('utf8') },
+    headers: { 'X-API-Key': (await vault.get('BANK_API_KEY')).revision.value },
   },
   {
     responseType: 'storage',
@@ -292,7 +292,7 @@ await api.httpCall(
   {
     url: 'https://signature.example.com/v1/documents',
     method: 'POST',
-    headers: { Authorization: `Bearer ${(await vault.get('SIGNATURE_TOKEN')).revision.value.toString('utf8')}` },
+    headers: { Authorization: `Bearer ${(await vault.get('SIGNATURE_TOKEN')).revision.value}` },
   },
   {
     requestType: 'storage',
@@ -340,7 +340,7 @@ Use an Event after acceptance when several Jobs or Agents should react independe
 
 ## Runtime constraints
 
-- `api.httpCall()` is a no-op in debug mode and returns `null`; do not disable debug protection casually for a real external side effect.
+- `api.httpCall()` sends real external requests in either execution mode. `readOnly: true` rejects a Storage response target and protected Platform API writes before transport; it does not simulate third-party side effects.
 - One deadline covers request preparation, response headers, and the body. Receiving data does not reset it.
 - A Component cancellation or timeout does not recall a request already accepted by the remote service.
 - Storage and live-stream response modes cannot be combined with proxy mode.

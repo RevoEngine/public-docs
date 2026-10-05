@@ -1,0 +1,100 @@
+---
+title: "1.6.4 — Instance usage, operational journeys and managed service accounts"
+sidebarTitle: "1.6.4"
+icon: "tag"
+description: "5 October 2026"
+---
+
+RevoEngine 1.6.4 brings Instance Usage, a unified Observability workspace and native service-account management into the builder and operator workflow. It also makes sandbox read-only execution explicit and aligns the editor, Platform API and Node.js SDK contracts. Roll out the coordinated backend, frontend and SDK changes together; preparing this release does not deploy it.
+
+## Highlights
+
+- Inspect instance capacity, measured consumption and execution details for a selected UTC period.
+- Investigate requests, Components, automation and Agent activity from one Observability workspace, with server-side Performance filtering.
+- Manage service-account access and execution memberships atomically, and rotate API keys through native low-code methods.
+- Review immutable key expiration and rotation grace periods, with the new credential displayed once.
+- Use explicit sandbox read-only settings in Studio and CLI 1.0.19, with SDK 1.6.4 for the updated runtime contract.
+- Keep Assistant questions, public activity and conversation selection consistent across workspace navigation.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Measure usage and investigate executions" defaultOpen={true}>
+
+Instance Usage combines current capacity with durable measured consumption. Select a UTC interval to compare periods and inspect resources, accounts or individual executions. Detailed execution records have a minimum 90-day retention; older resource summaries cover complete UTC days. Missing account or execution history is reported as unavailable. Elapsed execution time is distinct from CPU time, and Webhook delivery duration remains unavailable.
+
+Observability joins recorded request, Component, Job, Event and Agent evidence through Operation IDs and execution references. Overview, Executions, Performance, Logs and Agent views reuse successful reads and keep filters and selection while switching workspaces. Performance uses bounded server-side sorting and filtering over measured logs. Recorded queue waiting time is shown separately from execution duration. Historical logs with missing relationships do not acquire invented links; inspect the available evidence and time bounds before concluding that a journey is complete. Exact identifiers resolve native retained execution dates independently of the browsing period. Refresh keeps previous results visible while fetching updates; Operation references across Jobs, Assistant messages, audit and dashboards open the same execution workspace. Logs is part of Observability, and the older Trace route remains available for comparison.
+
+Historical summary and usage recovery is available within source retention, with partial coverage shown when detailed logs or capacity samples cannot be restored. Recovery is a separate operator action; this release does not automatically populate dates before collection began.
+
+  </Accordion>
+  <Accordion title="Manage service accounts and rotate credentials">
+
+The native `serviceAccount` namespace uses the same IAM policy as the Platform API. Management access is separate from execution memberships. Assignment respects the caller's current delegation ceiling and target rank; the last active human instance administrator is protected. Reads expose safe metadata, and account disable preserves credential records while blocking their use. Disabling the account or its platform access also revokes active Realtime connections and runners after the tenant state is committed; durable recovery repeats the revocation when synchronization is interrupted. Account deletion removes credentials.
+
+Read metadata without requesting a credential value:
+
+```js
+const account = await serviceAccount.get({ name: 'erp-sync' });
+const keys = await serviceAccount.getKeys({ id: account.userId }, { take: 20 });
+return { accountId: account.userId, keys: keys.data };
+```
+
+Key rotation creates a successor with its own UUID and credential. Omit `expireAt` to inherit expiration, use `null` for no expiration, or provide an allowed future date. Grace defaults to zero and is bounded by the predecessor's expiration. Capture the new credential immediately; later metadata reads cannot recover it. Updating a key cannot extend its expiration.
+
+```js
+const keys = await serviceAccount.getKeys('erp-sync', { take: 1 });
+const key = keys.data[0];
+if (!key) throw new Error('No key available for rotation');
+const rotated = await serviceAccount.rotateKey('erp-sync', key.userKeyId, {
+  version: key.version,
+  gracePeriodMs: 60000,
+});
+await vault.rotate('ERP_API_KEY', { value: rotated.newKey.secret });
+return { userKeyId: rotated.newKey.userKeyId };
+```
+
+Credential rotation and updating the consuming Vault Secret are separate operations. Preserve the issued value securely if the second operation fails; repeating rotation is not a recovery mechanism.
+
+  </Accordion>
+  <Accordion title="Make execution permissions explicit">
+
+Sandbox requests now declare `readOnly`; the choice remains fixed for the execution. The old `production` request field and `api.enableDebug()` / `api.disableDebug()` methods are removed. `api.isDebug()` remains a context read. Studio and CLI expose the execution setting directly. Read-only database queries run in read-only transactions; platform mutation operations fail before the attempted effect. Outbound HTTP requests remain real and can still change external systems. Raw SQL additionally requires instance-administrator access and one admitted SELECT/WITH statement.
+
+Vault returns stored text through `revision.value`, so outbound HTTP requests can use the explicit value without implicit credential substitution:
+
+```js
+const secret = await vault.get('ERP_API_KEY');
+const response = await api.httpCall({
+  url: 'https://integration.example.com/status',
+  method: 'GET',
+  headers: { 'x-api-key': secret.revision.value },
+});
+return response.status;
+```
+
+SDK 1.6.4 includes `serviceAccount`, the immutable execution setting and current generated declarations. New hosted Custom Node.js Components pin SDK 1.6.4; existing deployed revisions retain their recorded SDK version. Publish the matching SDK before creating or deploying new hosted revisions. CLI 1.0.19 sends the explicit sandbox setting and migrates the old local debug configuration. Service-account synchronization maps a single portable manager to the current access ACL, preserves target-local execution memberships and refuses to overwrite a complex ACL. Pruning protects its management and execution dependencies.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Webhooks use `maxRetries` for retries after the initial delivery: zero permits one initial attempt, and minus one permits unlimited retries within provider retention. Upgrade configuration clients from `maxAttempts`; Jobs and Agents retain their existing `maxAttempts` contract.
+- Support can provision an instance through a configured profile and resume its durable staged operation. Profile infrastructure and permissions must be configured before enabling creation.
+- Agent conversations use a mixed, visibility-scoped metadata rail with bounded paging and search.
+- API-key authentication logs record the public key identifier; public account/key projections preserve one-time secret disclosure.
+- Partial database upserts preserve unspecified existing fields and continue validating insert requirements.
+- Assistant activity, completed questions, hidden diagnostics and retained Studio debugger state receive contract and lifecycle fixes.
+
+## Related guides
+
+- [Observability](/operate/observability)
+- [Limits and quotas](/platform/limits-and-quotas)
+- [Service accounts](/operate/service-accounts)
+- [Sandbox API](/developers/sandbox-api)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.3](/changelog/1.6.3)

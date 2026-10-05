@@ -38,13 +38,20 @@ test('Agent documentation separates product modes and states the current executi
   assert.match(comparison, /Claude Code/);
 });
 
-test('memory documentation describes only active runtime digest scopes', () => {
+test('memory documentation separates Assistant digests from one configured Agent memory text', () => {
   const memory = read('ai/memory-and-workspaces.mdx');
 
   for (const scope of ['`USER`', '`AGENT`', '`WORKSPACE`']) assert.ok(memory.includes(scope));
   assert.doesNotMatch(memory, /\|\s*`(?:INSTANCE|SHARED)`\s*\|/);
   assert.match(memory, /soft context/i);
   assert.match(memory, /version-aware/i);
+  assert.match(memory, /20,000 tokens/);
+  assert.match(memory, /every model request/);
+  assert.match(memory, /not automatically recalled/);
+  assert.match(memory, /Historical `WORKSPACE` records do not add an automatic runtime memory scope/);
+  const config = read('ai/agent-configuration.mdx');
+  assert.match(config, /`config\.memory`/);
+  assert.doesNotMatch(config, /memoryPolicy|maxRecallEntries|maxRecallChars/);
 });
 
 test('plugin documentation separates discovery, loading, admission and execution', () => {
