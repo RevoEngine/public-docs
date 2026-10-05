@@ -28293,6 +28293,11 @@
         "properties": {
           "executionPolicy": {
             "nullable": true,
+            "example": {
+              "mode": "SERVICE_ACCOUNT",
+              "serviceAccountUserId": "00000000-0000-0000-0000-000000000000",
+              "currentUser": "CALLER"
+            },
             "description": "Saved permission and current-user policy. Omit or clear to inherit the instance endpoint defaults.",
             "type": "object",
             "allOf": [
@@ -28382,6 +28387,10 @@
         "properties": {
           "executionPolicy": {
             "nullable": true,
+            "example": {
+              "mode": "INHERIT",
+              "currentUser": "INHERIT"
+            },
             "description": "Saved execution authority and currentUser behavior. Null restores inheritance.",
             "type": "object",
             "allOf": [
@@ -35200,6 +35209,10 @@
         "properties": {
           "executionPolicy": {
             "nullable": true,
+            "example": {
+              "mode": "SERVICE_ACCOUNT",
+              "serviceAccountUserId": "00000000-0000-0000-0000-000000000000"
+            },
             "description": "Saved Job execution policy. Omit or clear to inherit instance defaults. A conflicting legacy triggerUser is rejected.",
             "type": "object",
             "allOf": [
@@ -35326,6 +35339,9 @@
         "properties": {
           "executionPolicy": {
             "nullable": true,
+            "example": {
+              "mode": "INHERIT"
+            },
             "description": "Saved execution authority. Null restores inheritance. Clear legacy triggerUser when changing this policy.",
             "type": "object",
             "allOf": [
@@ -41337,11 +41353,14 @@
               "CALLER",
               "SERVICE_ACCOUNT"
             ],
-            "default": "CALLER"
+            "default": "CALLER",
+            "example": "SERVICE_ACCOUNT",
+            "description": "Permission identity for endpoints inheriting the instance execution policy."
           },
           "serviceAccountUserId": {
             "type": "string",
             "format": "uuid",
+            "example": "00000000-0000-0000-0000-000000000000",
             "description": "Required only when mode is SERVICE_ACCOUNT."
           },
           "currentUser": {
@@ -41351,6 +41370,7 @@
               "EXECUTION_ACCOUNT"
             ],
             "default": "CALLER",
+            "example": "CALLER",
             "description": "Identity returned by api.currentUser() for endpoints inheriting this setting."
           }
         },
@@ -41367,11 +41387,14 @@
               "CALLER",
               "SERVICE_ACCOUNT"
             ],
-            "default": "SERVICE_ACCOUNT"
+            "default": "SERVICE_ACCOUNT",
+            "example": "SERVICE_ACCOUNT",
+            "description": "Execution identity for Jobs inheriting the instance execution policy."
           },
           "serviceAccountUserId": {
             "type": "string",
             "format": "uuid",
+            "example": "00000000-0000-0000-0000-000000000000",
             "description": "Required only when mode is SERVICE_ACCOUNT."
           }
         },
@@ -41383,6 +41406,11 @@
         "type": "object",
         "properties": {
           "endpoints": {
+            "example": {
+              "mode": "SERVICE_ACCOUNT",
+              "serviceAccountUserId": "00000000-0000-0000-0000-000000000000",
+              "currentUser": "CALLER"
+            },
             "description": "Endpoint default permission policy. Omitted endpoints use CALLER with current roles and resource access. Existing populated instances without prior execution configuration migrate to System execution with caller identity.",
             "allOf": [
               {
@@ -41391,6 +41419,10 @@
             ]
           },
           "jobs": {
+            "example": {
+              "mode": "SERVICE_ACCOUNT",
+              "serviceAccountUserId": "00000000-0000-0000-0000-000000000000"
+            },
             "description": "Default Job execution policy. Job templates may override it.",
             "allOf": [
               {
@@ -41487,11 +41519,13 @@
               "CALLER",
               "SERVICE_ACCOUNT"
             ],
+            "example": "SERVICE_ACCOUNT",
             "description": "Permission identity for saved execution. INHERIT uses the instance policy; CALLER uses the invoking account; SERVICE_ACCOUNT uses the selected active service account."
           },
           "serviceAccountUserId": {
             "type": "string",
             "format": "uuid",
+            "example": "00000000-0000-0000-0000-000000000000",
             "description": "Required only for SERVICE_ACCOUNT. Request input cannot choose or override this saved execution account."
           },
           "currentUser": {
@@ -41502,6 +41536,7 @@
               "EXECUTION_ACCOUNT"
             ],
             "default": "INHERIT",
+            "example": "CALLER",
             "description": "Identity returned by api.currentUser(). CALLER retains the invoking business user while permission checks use the execution account."
           }
         },
@@ -41519,11 +41554,13 @@
               "CALLER",
               "SERVICE_ACCOUNT"
             ],
+            "example": "SERVICE_ACCOUNT",
             "description": "Saved Job execution policy. CALLER requires a known invoking account; unattended schedules must use a service account."
           },
           "serviceAccountUserId": {
             "type": "string",
             "format": "uuid",
+            "example": "00000000-0000-0000-0000-000000000000",
             "description": "Required only for SERVICE_ACCOUNT. The resolved account is captured for the Job and retained by retries."
           }
         },
