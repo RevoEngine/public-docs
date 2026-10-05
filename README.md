@@ -2,11 +2,11 @@
 
 This repository contains the public RevoEngine documentation built with the current Mintlify `docs.json` format.
 
-Current product documentation: **RevoEngine 1.5.9**, including Node.js SDK **1.5.9**.
+Current product documentation: **RevoEngine 1.6.4**, including Node.js SDK **1.6.4**.
 
 ## Local preview
 
-Requirements: Node.js 20 or newer.
+Requirements: Node.js 24.21.0. Run `nvm use` to select `.nvmrc`; documentation workflows read the same version file.
 
 ```bash
 npm run dev

@@ -74,7 +74,7 @@ CSV is the default; select `format: 'tsv'`, `'ndjson'`, or `'xlsx'` when the con
 
 ## Import Storage data
 
-Use `api.importDatabase(name, options)` to preview a Storage-backed CSV, TSV, NDJSON, or XLSX file. Supply `storageEntryId`, `format`, `mode` (`insert` or `upsert`), and `onError` (`abort` or `skipRow`). The call returns an import ID and operation job ID; preview validates rows and proposes a source-column mapping without writing to the target. Read the Database operation status and validation report before committing.
+Use `api.importDatabase(name, options)` to preview a Storage-backed CSV, TSV, NDJSON, or XLSX file. Supply `storageEntryId`, `format`, `mode` (`insert` or `upsert`), and `onError` (`abort` or `skipRow`). The call returns an import ID and operation job ID; preview validates rows and proposes a source-column mapping without writing to the target. Read the Database operation status and validation report before committing. System messages and emails are suppressed by default; set `skipNotification: false` to opt in, subject to notification preferences. See [Import from Storage](/operate/databases#import-from-storage) for the browser upload lifecycle and exported-value conventions.
 
 When the mapping needs correction, call `api.updateDatabaseImportMapping(importId, mapping)` and wait for revalidation. Then call `api.commitDatabaseImport(importId)` to start the write. Commit rejects unresolved decisions and checks that the Storage source and target definitions still match the preview. `autoCommit` skips manual approval only after the same full validation; ambiguous mappings still require review. See the [generated low-code API reference](/low-code/reference/api) for the exact method signatures.
 

@@ -30,17 +30,13 @@ The product separates personal preferences, Assistant preferences, API keys, and
 | Section | What it governs | Typical operator question |
 | --- | --- | --- |
 | **General** | Instance identity, organization, plan, expiry, base API address, and SLA | Am I changing the intended tenant and environment? |
-| **IAM & Groups** | Platform users, end users, groups, role groups, and API-key capacity | Can this team onboard another user or service identity? |
-| **Resources** | Databases, audit capacity, Components and revisions, Storage, transfer, per-file size, and Secrets | Is a data or artifact workflow approaching its allowance? |
-| **Jobs** | Job templates and execution time, timeout, Events, Schedules, Realtime, and Webhooks | Can this asynchronous workload complete within policy? |
-| **Endpoints** | Runtime base address, Endpoint count, execution time, request totals, success rate, timeout, and request rate | Is the public workload healthy and within capacity? |
-| **Audit & Logs** | Version history and retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
-| **AI Agents** | Global instructions, default plugins, model output budget, memory, artifact retention, and security rules | What defaults and guardrails apply before an Agent starts? |
-| **Components** | Instance-wide Component and library controls exposed by the current product version | Which reusable-code controls apply across builders and deployments? |
+| **Usage** | Capacity and runtime limits, plus measured AI, Transfer, Storage, Database, Jobs, Endpoints, and Webhooks consumption | Is this workload within its allowance, and what is consuming capacity? |
+| **Agents** | Global instructions, default plugins, model output budget, memory, artifact retention, and security rules | What defaults and guardrails apply before an Agent starts? |
+| **Components** | Instance-wide Component and shared-library controls | Which reusable-code controls apply across builders and deployments? |
+| **Endpoints** | Endpoint permission identity and inherited Job execution defaults | Which account's permissions govern this execution? |
+| **Retention & Audit** | Version history and retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
 
-<Tip>
-  The UI may present a legacy label for a data group while this page uses **Resources** only as a capacity grouping. The application model is Databases, Storage, Components, and Secrets—not the retired public “Resources API”.
-</Tip>
+Identity, data, and automation capacity controls are grouped under **Usage → Limits**. Legacy links to those limits sections open Usage. Configure execution defaults separately under **Endpoints**; see [Endpoint configuration](/operate/endpoint-configuration).
 
 ## Read limits correctly
 

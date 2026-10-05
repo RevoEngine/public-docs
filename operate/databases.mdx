@@ -135,7 +135,19 @@ Exports are managed files in [Storage](/operate/storage). See [1.5.0](/changelog
 
 ### Import from Storage
 
-The Database import API accepts CSV, TSV, NDJSON, and XLSX files already in Storage. Start a preview with the source file, target database name, insert or upsert mode, and row-error policy. Follow the returned operation ID to inspect the validation report and proposed column mapping; preview does not write rows. Correct ambiguous mappings, revalidate, and commit only after reviewing the report. Commit checks that the source file and target definitions have not changed since preview. The same Database operation routes expose progress, result, cancellation, and eligible failed-operation retry. Resource Write or Admin is required to start or change an import; Resource Read can inspect status.
+The import dialog accepts CSV, TSV, NDJSON, and XLSX. Choose insert or upsert mode and the row-error policy before selecting the file. The dialog reserves a Private Storage upload and registers the import operation before transferring bytes. Validation starts automatically after upload finalization; preview does not write rows. Hiding the dialog leaves the upload running in the application. Use Uploads to continue the import or **View operation** to inspect its progress. Closing or reloading the browser cannot resume an unfinished transfer; once the complete file has transferred, server-side validation continues independently.
+
+Review the validation report and proposed column mapping. Correct ambiguous mappings, wait for revalidation, and choose **Commit** to write. Commit checks that the source file and target definitions still match the preview. The Database operation routes also expose status, result, cancellation, and eligible failed-operation retry. Resource Write or Admin is required to start or change an import; Resource Read can inspect status.
+
+For files already in Storage, the Platform API preview accepts the existing `storageEntryId`. The optional `storageUploadSessionId` registers validation while an upload is still in progress: the session must belong to the caller's Private Storage and target that file. Repeating admission with the same upload and options reuses the operation. HTTP 202 confirms admission, not a completed import.
+
+Import validation and commit phases produce in-app System messages. Review-required, success, and error messages can also send email according to notification preferences. Set `skipNotification: true` to suppress both channels; low-code imports suppress these messages by default.
+
+### Preserve exported values
+
+CSV and TSV imports default to the escaped NULL convention used by Database exports: `\N` represents NULL, an empty string remains an empty string, and literal backslashes are escaped. This also applies after downloading and re-uploading an export without its original Storage metadata. For files from another system, select an explicit `mapping.nullMode` when their NULL convention differs.
+
+An explicit nullable NULL remains NULL even when the column has a default. An omitted NDJSON property remains omitted, allowing insert defaults or a partial upsert. Large integers and precise decimals retain their supported text representation; XLSX DATE values must represent valid calendar dates.
 
 Low-code uses `api.importDatabase()`, `api.updateDatabaseImportMapping()`, and `api.commitDatabaseImport()`; see [Database API](/low-code/database) for the workflow and the generated [API reference](/low-code/reference/api) for signatures.
 

@@ -8,7 +8,7 @@ RevoEngine provides several evidence surfaces because configuration changes, syn
 
 ## Unified Observability workspace
 
-Open **Security Admin → Observability** with instance-administrator access. Overview, Executions, Performance and Logs share a UTC time window and investigation context. Agents uses its own diagnostic scope. Browsing defaults to the last 24 hours, and population statistics cover up to seven days. Exact Operation, Execution, Job, Event and Schedule identifiers use the native retained correlation index independently of the browsing period, then resolve the dates of the selected execution. Identified journeys can inspect up to 90 days of retained evidence through bounded continuation pages. Sources without that index require an explicit date window; an empty recent search does not establish that an older execution is absent.
+Open **Security Admin → Observability** with instance-administrator access. The workspace has Overview, Executions, Logs and Agents tabs. Overview, including its performance analysis, shares a UTC time window and investigation context with Executions and Logs. Agents uses its own diagnostic scope. Browsing defaults to the last 24 hours, and population statistics cover up to seven days. Exact Operation, Execution, Job, Event and Schedule identifiers use the native retained correlation index independently of the browsing period, then resolve the dates of the selected execution. Identified journeys can inspect up to 90 days of retained evidence through bounded continuation pages. Sources without that index require an explicit date window; an empty recent search does not establish that an older execution is absent.
 
 Use Operation ID to find related execution roots, then select a result to inspect its recorded journey. Component, Endpoint, Job, Event and Schedule references open the corresponding accessible resource. Lists retain successful reads, filters and selection while switching workspaces. Refresh advances the selected time snapshot while keeping the previous results and selection visible until the new read completes. Repeated refreshes are disabled while the current refresh is running. An expired investigation is retried once with a fresh context; permission and query-limit errors remain explicit. Performance sorting and filtering run on the server; an incomplete duration population is labelled rather than treated as complete.
 
@@ -80,7 +80,7 @@ Job details also provide job-scoped logs. Use these when the question starts wit
 
 ## Trace
 
-Open **Security Admin → Observability → Executions** to follow an operation across service boundaries. Clickable Operation references in Jobs, Assistant messages, audit records and dashboards open this workspace. The older Trace view remains available through existing direct links for comparison, but is hidden from navigation. Execution journeys are most useful for:
+Open **Security Admin → Observability → Executions** to follow an operation across service boundaries. Clickable Operation and Execution references in Jobs, Assistant messages, audit records, logs and dashboards open the shared execution dialog while preserving the current page and URL. Press Escape or click outside to dismiss it. Reopened panels reuse recent successful reads; Refresh requests fresh evidence. Existing Trace URLs redirect to Observability Executions. Execution journeys are most useful for:
 
 - matching ingress to downstream execution;
 - locating the slow or failing segment;
