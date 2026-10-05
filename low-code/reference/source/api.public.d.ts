@@ -482,6 +482,7 @@ declare class api {
      * Creates missing rows and PATCHes only properties present in each conflicting row.
      * This is the default: omit unrelated properties rather than reading a full row first.
      * A present null clears a nullable property; an omitted or undefined property is unchanged.
+     * For a non-nullable property, null uses its declared database default; without a default it fails.
      * Pass { patch: false } only for the legacy full-replacement conflict behavior.
      * Pass { return: false } to skip returned rows, or { onlyKeys: true } for keys only.
      *
