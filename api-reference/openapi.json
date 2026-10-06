@@ -27063,6 +27063,27 @@
       "ObservabilityNodeDto": {
         "type": "object",
         "properties": {
+          "aiInitiated": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
+          },
+          "aiMode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "interactive",
+              "autonomous"
+            ]
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionUserId": {
+            "type": "string",
+            "nullable": true
+          },
           "referenceId": {
             "type": "string",
             "nullable": true
@@ -27236,6 +27257,10 @@
           }
         },
         "required": [
+          "aiInitiated",
+          "aiMode",
+          "assistantThreadId",
+          "executionUserId",
           "parentNodeId",
           "edgeEvidence",
           "nodeId",
@@ -27518,6 +27543,27 @@
       "ObservabilityLogDto": {
         "type": "object",
         "properties": {
+          "aiInitiated": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
+          },
+          "aiMode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "interactive",
+              "autonomous"
+            ]
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionUserId": {
+            "type": "string",
+            "nullable": true
+          },
           "logId": {
             "type": "string"
           },
@@ -27608,6 +27654,10 @@
           }
         },
         "required": [
+          "aiInitiated",
+          "aiMode",
+          "assistantThreadId",
+          "executionUserId",
           "logId",
           "time",
           "nodeId",

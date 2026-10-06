@@ -96,6 +96,14 @@ Endpoint statistics summarize invocation volume and execution outcomes. Use them
 
 The statistics surface is cached briefly, so it is optimized for operational trends rather than an exact per-second ledger.
 
+## Recognize AI-initiated work
+
+The Logs grid includes **AI activity** immediately before Message. **True** means that verified evidence connects the action to a RevoEngine AI invocation, including work queued by that invocation and executed later. **Unknown** means that no such evidence is retained; it does not identify the action as human work.
+
+Filter AI activity to **True** to inspect proven AI-originated actions, or use the empty-value filter for unknown records. AI mode, Assistant thread ID and Execution user ID are additional filterable columns. Log details and the execution inspector show these identifiers when available, connecting the action to its conversation and the account used for execution. Executions and trace navigation retain the execution actor’s avatar or service-account icon with a white AI sparkles icon on a black badge. **Interactive AI** identifies Assistant tool dispatch; **Autonomous agent** identifies autonomous Agent dispatch. The mode is recorded during execution and retained across queued work. Verified AI evidence without a recorded mode shows **AI activity**.
+
+This provenance does not grant permissions. Automations still execute under their configured account, with current account status and permissions checked at execution. Disabling that service account or revoking a required role prevents the action even when its AI provenance is valid.
+
 ## Job and event evidence
 
 For background work, use this order:
