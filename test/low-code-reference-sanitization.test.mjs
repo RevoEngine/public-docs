@@ -22,7 +22,9 @@ declare class api {
 
   assert.doesNotMatch(sanitized, /private/i);
   assert.doesNotMatch(sanitized, /<reference path=/i);
-  assert.match(sanitized, /instance-scoped managed cache/);
+  assert.match(sanitized, /durable instance-scoped idempotency key/);
+  assert.match(sanitized, /Cache outages do not remove duplicate protection/);
+  assert.doesNotMatch(sanitized, /idempotency key in.*cache/);
   assert.match(sanitized, /static acquireIdempotencyKey\(key: string, ttl: number\)/);
 });
 
@@ -73,4 +75,24 @@ test('public sanitization preserves rejection of restricted platform writes', ()
   const sanitized = sanitizeDeclarationSource(source);
   assert.doesNotMatch(sanitized, /no-op in debug mode/i);
   assert.equal(sanitized.match(/throws READ_ONLY_OPERATION_FORBIDDEN/g)?.length, 3);
+});
+
+
+test('public mutation guidance retains atomicity and limits without query optimization mechanics', () => {
+  const source = `declare class api {
+    /**
+     * A call executes atomically in one transaction.
+     * Scalar in/notIn arrays use one typed array parameter. Application guards still enforce
+     * 8 MiB of serialized query input and 16 nested filter levels.
+     * REST/public SDK requests retain the 100,000-row limit per request.
+     */
+    static deleteDatabaseData(databaseId: string, rows: object[]): Promise<void>;
+  }`;
+  const sanitized = sanitizeDeclarationSource(source);
+  assert.doesNotMatch(sanitized, /typed array parameter/);
+  assert.match(sanitized, /atomically in one transaction/);
+  assert.match(sanitized, /8 MiB/);
+  assert.match(sanitized, /16 nested/);
+  assert.match(sanitized, /100,000-row/);
+  assert.match(sanitized, /static deleteDatabaseData/);
 });

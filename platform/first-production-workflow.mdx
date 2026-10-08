@@ -373,7 +373,7 @@ return {
   `api.transactionDatabase()` commits when its callback resolves and rolls back when it throws. Await each `tx.*` call sequentially; parallel transaction operations are rejected. The default timeout is 15 seconds, and explicit `timeoutMs` values are limited to 1–30 seconds.
 </Warning>
 
-The instance-cache idempotency gate suppresses concurrent duplicates. The unique `transactions.requestKey` and existing ledger row are the durable business truth after the cache entry expires.
+The idempotency guard suppresses concurrent duplicates. The unique `transactions.requestKey` and existing ledger row are the durable business truth after the cache entry expires.
 
 ## 4. Configure the Endpoint
 

@@ -6320,7 +6320,7 @@
                     ]
                   },
                   "filter": {
-                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Query limits: 16 levels, 1000 nodes, 100000 array values.",
+                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Application guards: 16 levels and 8388608 UTF-8 input bytes. Managed database queries: no separate node or array-value count limit; at most 65535 bind parameters per compiled statement. Analytics-backed queries retain 1000 nodes, 100000 array values and 10000 bind parameters.",
                     "oneOf": [
                       {
                         "type": "object",
@@ -8447,7 +8447,7 @@
                     ]
                   },
                   "filter": {
-                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Query limits: 16 levels, 1000 nodes, 100000 array values.",
+                    "description": "Structured FilterNode predicate or nested and/or/not tree. A field predicate can use { field, op, value }, { field, op, values }, or shorthand operators. Field names and operation/value combinations are validated against the database at runtime. Application guards: 16 levels and 8388608 UTF-8 input bytes. Managed database queries: no separate node or array-value count limit; at most 65535 bind parameters per compiled statement. Analytics-backed queries retain 1000 nodes, 100000 array values and 10000 bind parameters.",
                     "oneOf": [
                       {
                         "type": "object",
@@ -10200,6 +10200,68 @@
           "Config"
         ],
         "x-revo-safety-tier": "destructive"
+      }
+    },
+    "/api/v1/preferences/api-key-notifications": {
+      "get": {
+        "operationId": "PreferencesController_getApiKeyNotifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyNotificationPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user API key expiry notifications for this instance.",
+        "tags": [
+          "Preferences"
+        ]
+      },
+      "put": {
+        "operationId": "PreferencesController_setApiKeyNotifications",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyNotificationPreferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyNotificationPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set API key notification channels and reminder days. Automation events remain independent of channel opt-out.",
+        "tags": [
+          "Preferences"
+        ]
       }
     },
     "/api/v1/preferences/job-notifications": {
@@ -15188,7 +15250,7 @@
     },
     "/api/v1/automation/job/cancel": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "\n    Records durable cancellation intent. A PROCESSING job remains PROCESSING until its worker acknowledges cancellation or lease reconciliation confirms that the worker lease expired.\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
         "operationId": "AutomationController_cancelJobs",
         "parameters": [],
         "requestBody": {
@@ -16545,6 +16607,68 @@
           }
         ],
         "summary": "Restore event history.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/event-types": {
+      "get": {
+        "operationId": "AutomationController_getSupportedEventTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "JOB_ATTEMPT_FAILED",
+                      "JOB_EXECUTION_FAILED",
+                      "JOB_EXECUTION_SUCCEEDED",
+                      "FILE_DELETED",
+                      "FILE_FINALIZED",
+                      "FILE_ARCHIVED",
+                      "FILE_UPDATED",
+                      "STORAGE_CREATED",
+                      "STORAGE_UPDATED",
+                      "STORAGE_SYNCHRONIZED",
+                      "STORAGE_ARCHIVED",
+                      "STORAGE_RESTORED",
+                      "STORAGE_DELETED",
+                      "SERVICE_ACCOUNT_CREATED",
+                      "SERVICE_ACCOUNT_UPDATED",
+                      "SERVICE_ACCOUNT_ACTIVATED",
+                      "SERVICE_ACCOUNT_DEACTIVATED",
+                      "SERVICE_ACCOUNT_RESTORED",
+                      "SERVICE_ACCOUNT_DELETED",
+                      "USER_CREATED",
+                      "USER_UPDATED",
+                      "USER_ACTIVATED",
+                      "USER_DEACTIVATED",
+                      "USER_RESTORED",
+                      "USER_DELETED",
+                      "ACCOUNT_API_KEY_CREATED",
+                      "ACCOUNT_API_KEY_UPDATED",
+                      "ACCOUNT_API_KEY_DELETED",
+                      "ACCOUNT_API_KEY_EXPIRING",
+                      "ACCOUNT_API_KEY_EXPIRED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List native automation event types with production producers. Custom events are configured separately.",
         "tags": [
           "Automation"
         ]
@@ -25627,7 +25751,7 @@
             "type": "number",
             "default": 100,
             "minimum": 1,
-            "maximum": 200
+            "maximum": 1000
           },
           "investigationId": {
             "type": "string",
@@ -25848,7 +25972,8 @@
             "type": "string",
             "enum": [
               "NORMALIZED",
-              "LEGACY"
+              "LEGACY",
+              "HYBRID"
             ]
           },
           "coverage": {
@@ -25978,7 +26103,7 @@
             "type": "number",
             "default": 100,
             "minimum": 1,
-            "maximum": 200
+            "maximum": 1000
           },
           "investigationId": {
             "type": "string",
@@ -26503,7 +26628,7 @@
             "type": "number",
             "default": 100,
             "minimum": 1,
-            "maximum": 200
+            "maximum": 1000
           },
           "investigationId": {
             "type": "string",
@@ -26594,7 +26719,7 @@
             "type": "number",
             "default": 100,
             "minimum": 1,
-            "maximum": 200
+            "maximum": 1000
           },
           "investigationId": {
             "type": "string",
@@ -29308,6 +29433,7 @@
             "items": {
               "type": "string",
               "enum": [
+                "ASSISTANT_EVIDENCE_READ",
                 "INSTANCE_ADMIN",
                 "ME_KEY_MANAGER",
                 "ME_MODIFY_ADVANCED",
@@ -30252,8 +30378,27 @@
             "example": "instance:feature:flags"
           },
           "value": {
-            "type": "object",
-            "description": "Structured or primitive cache value to store.",
+            "description": "Non-null JSON value to store: an object, array, string, number, or boolean. Nested JSON values may be null.",
+            "nullable": false,
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
             "example": {
               "enabled": true,
               "source": "admin"
@@ -32076,7 +32221,7 @@
         "properties": {
           "maxOutputTokens": {
             "type": "number",
-            "description": "OpenAI Responses max_output_tokens ceiling for normal agent-gateway executor requests.",
+            "description": "Maximum output tokens allowed for an Assistant turn.",
             "minimum": 10240,
             "maximum": 128000
           }
@@ -32086,7 +32231,7 @@
         "type": "object",
         "properties": {
           "pluginIds": {
-            "description": "Plugin identifiers attached to Agent Gateway by default. Values are free-form plugin IDs.",
+            "description": "Plugin identifiers enabled by default for Assistants.",
             "type": "array",
             "items": {
               "type": "string"
@@ -33546,6 +33691,39 @@
           "tools",
           "skills",
           "plugins"
+        ]
+      },
+      "ApiKeyNotificationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "inAppEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "emailEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "firstReminderDays": {
+            "type": "integer",
+            "default": 7,
+            "minimum": 2,
+            "maximum": 365,
+            "description": "First reminder in days before expiry. A second reminder is always 24 hours before expiry, followed by an expired notice."
+          },
+          "customReminderDays": {
+            "type": "integer",
+            "nullable": true,
+            "default": null,
+            "minimum": 1,
+            "maximum": 365,
+            "description": "Optional additional automation event in days before expiry; does not send another notification."
+          }
+        },
+        "required": [
+          "inAppEnabled",
+          "emailEnabled",
+          "firstReminderDays"
         ]
       },
       "JobNotificationPreferenceDto": {
@@ -36722,7 +36900,7 @@
           },
           "version": {
             "type": "string",
-            "description": "Optional assistant runtime selector. v2 routes the request through agent-gateway. v1 is expired and rejected.",
+            "description": "Optional Assistant API version. Use v2; v1 is expired and rejected.",
             "enum": [
               "v1",
               "v2"
@@ -36942,7 +37120,7 @@
           },
           "version": {
             "type": "string",
-            "description": "Optional assistant runtime selector. v2 routes the request through agent-gateway. v1 is expired and rejected.",
+            "description": "Optional Assistant API version. Use v2; v1 is expired and rejected.",
             "enum": [
               "v1",
               "v2"

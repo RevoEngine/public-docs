@@ -185,6 +185,9 @@ test('publishes conversation feedback receipts and message anchors without priva
     '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/artifacts/{artifactId}',
     '/api/v1/assistant/threads/{id}/evidence',
     '/api/v1/assistant/evidence/threads',
+    '/api/v1/assistant/evidence/threads/export',
+    '/api/v1/assistant/threads/{threadId}/evidence/export',
+    '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/new-diagnostic',
   ];
   privatePaths.forEach((path, index) => {
     source.paths[path] = { get: { operationId: `PrivateSupportEvidence_${index}`, tags: ['Assistant'], responses: { 200: { description: 'Private support payload.', content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantEvidenceResponseDto' } } } } } } };
@@ -237,4 +240,39 @@ test('publishes reviewed Agent memory, eager-plugin and terminal scopes without 
     assert.deepEqual(properties[field], source.components.schemas.AgentConfigDto.properties[field]);
   }
   assert.equal(properties.cheapTurnPolicy, undefined);
+});
+
+
+test('public Assistant settings preserve fields and limits without executor routing details', () => {
+  const source = fixture();
+  const schemas = {
+    InstanceConfigKindAiAgentGatewayValueDto: { properties: { maxOutputTokens: { type: 'number', minimum: 10240, maximum: 128000, description: 'OpenAI Responses max_output_tokens ceiling for normal agent-gateway executor requests.' } } },
+    InstanceConfigKindAiPluginsDefaultValueDto: { properties: { pluginIds: { type: 'array', items: { type: 'string' }, description: 'Plugin identifiers attached to Agent Gateway by default. Values are free-form plugin IDs.' } } },
+    CreateThreadDto: { properties: { version: { type: 'string', enum: ['v1', 'v2'], description: 'Optional assistant runtime selector. v2 routes the request through agent-gateway. v1 is expired and rejected.' } } },
+  };
+  Object.assign(source.components.schemas, schemas);
+  source.paths['/api/v1/agents'].get.responses[200].content = { 'application/json': { schema: { oneOf: Object.keys(schemas).map(name => ({ $ref: `#/components/schemas/${name}` })) } } };
+  const output = enrichPlatformOpenApi(source);
+  for (const name of Object.keys(schemas)) for (const property of Object.values(output.components.schemas[name].properties)) assert.doesNotMatch(property.description, /agent[- ]gateway|executor requests|max_output_tokens/i);
+  assert.equal(output.components.schemas.InstanceConfigKindAiAgentGatewayValueDto.properties.maxOutputTokens.maximum, 128000);
+  assert.equal(output.components.schemas.InstanceConfigKindAiAgentGatewayValueDto.properties.maxOutputTokens.minimum, 10240);
+  assert.deepEqual(output.components.schemas.CreateThreadDto.properties.version.enum, ['v1', 'v2']);
+  assert.match(output.components.schemas.CreateThreadDto.properties.version.description, /v1.*rejected/);
+  assert.match(output.components.schemas.InstanceConfigKindAiPluginsDefaultValueDto.properties.pluginIds.description, /Plugin identifiers/);
+});
+
+
+test('inline query schemas retain input limits without binding optimization prose', () => {
+  const source = fixture();
+  source.paths['/api/v1/databases/{databaseId}/data/request'] = { post: {
+    operationId: 'DatabaseController_getDataRequest', tags: ['Databases'],
+    requestBody: { content: { 'application/json': { schema: { properties: {
+      filter: { type: 'object', description: 'Query limits: 16 levels, 8388608 input bytes and 65535 parameters. Scalar in/notIn arrays use one typed array parameter.' },
+    } } } } }, responses: { 200: { description: 'Query results.' } },
+  } };
+  const output = enrichPlatformOpenApi(source);
+  const filter = output.paths['/api/v1/databases/{databaseId}/data/request'].post.requestBody.content['application/json'].schema.properties.filter;
+  assert.equal(filter.type, 'object');
+  assert.doesNotMatch(filter.description, /typed array/);
+  for (const limit of ['16 levels', '8388608 input bytes', '65535 parameters']) assert(filter.description.includes(limit));
 });

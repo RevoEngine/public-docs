@@ -327,3 +327,70 @@ Event delivery can be repeated by infrastructure or by an operator replay. Targe
 - Review configured definitions and active quotas periodically; remove obsolete subscribers instead of leaving ambiguous filters active.
 
 See [Event History](/operate/event-history) for fan-out evidence and replay, [Jobs](/operate/jobs) for durable target execution, and [Storage](/operate/storage) for lifecycle, ACL, retention, and batching semantics.
+
+## Available native event types
+
+The Event editor retrieves the currently supported native types from
+`GET /api/v1/automation/event-types`. The catalogue covers existing Storage,
+legacy Files (including `FILE_UPDATED`), user, Service Account and API-key lifecycle
+producers. It excludes unavailable autonomous inbox types. Previously saved types
+remain visible for inspection; a catalogue loading failure disables type selection.
+Choose `CUSTOM` for application-owned events.
+
+## API key expiry events
+
+`ACCOUNT_API_KEY_EXPIRING` announces an upcoming expiry at a planned reminder
+instant. `ACCOUNT_API_KEY_EXPIRED` is emitted when the key's expiry becomes due.
+The native lifecycle includes 7-day, 24-hour and expiry instants; authorized human
+preferences can add first-reminder and custom automation-only offsets. Events
+at an identical offset for the same key and expiry share one occurrence.
+Notification email/System-message opt-out does not stop these events.
+
+| Message field | Meaning |
+| --- | --- |
+| `noticeId` | Stable occurrence identity for retry-safe processing. |
+| `userKeyId` | API-key record to inspect; never the credential. |
+| `userId` | Account that owns the key. |
+| `name` | API-key display name. |
+| `expireAt` | Current absolute expiry, as an ISO 8601 UTC timestamp. |
+| `scheduledFor` | Planned reminder instant, as an ISO 8601 UTC timestamp. |
+| `reminderDays` | Days before expiry; `1` is the fixed 24-hour notice and `0` means expired. |
+| `reason` | `EXPIRATION` or `ROTATION_GRACE` for a predecessor key. |
+
+For a reminder one day before expiry, select `ACCOUNT_API_KEY_EXPIRING` and add
+this filter in the visual editor:
+
+```text
+reminderDays          eq       1
+```
+
+The Platform API filter uses `message.reminderDays`. Add `message.userId` or
+`message.userKeyId` to scope the integration. The target should reload current
+key/account metadata under its execution principal and make its reaction
+idempotent with `noticeId`. Do not assume that a replacement has already been
+installed in the consumer merely because rotation created it.
+
+Reminders are published when due, after current key-state validation. Revocation
+or a changed rotation cutoff suppresses obsolete occurrences; uncertain account
+changes defer processing. Existing-key adoption schedules future stages only.
+
+
+## Chain Component Jobs from execution outcomes
+
+Use these native types to start a follow-up Job from a committed execution outcome:
+
+| Type | When it is published |
+| --- | --- |
+| `JOB_ATTEMPT_FAILED` | Each failed attempt, including an attempt with an automatic retry scheduled. |
+| `JOB_EXECUTION_FAILED` | A failed attempt with no further automatic retry committed. |
+| `JOB_EXECUTION_SUCCEEDED` | A Component Job finishes successfully. |
+
+These types cover ordinary Component Jobs. Cancellation, platform operations and Webhook delivery do not publish these events. Existing terminal Jobs are not replayed when the feature is enabled.
+
+For a success chain, select `JOB_EXECUTION_SUCCEEDED`, choose the follow-up Job template and filter by the source `jobTemplateId`. In the visual filter editor enter `jobTemplateId`; the API filter uses `message.jobTemplateId`. An unfiltered definition accepts outcomes from every matching Job template.
+
+The message carries `jobId` and `executionId` for the source attempt, `executionSeriesId` for the execution series, `jobTemplateId`, `name`, `category`, `status`, `completedAt`, `processingTime`, `executionUserId`, `initiatedByUserId`, `requestedFrom` and retry context: `retryRootJobId`, `retryParentJobId`, `retryAttempt`, `retryMode`, `retryScheduled`, `retryScheduledFor` and `final`. Failed outcomes include a bounded `errorCode` and may include a processing recovery reason. Inputs, outputs, secret values, error messages and stack traces are excluded.
+
+Automatic retries retain `executionSeriesId`. A manual retry starts a new execution series, while historical retry links and the attempt counter remain available. A final failure describes the automatic retry policy at that point; an operator can still retry manually afterward. The target executes with its configured principal and must load any source data it needs through authorized APIs.
+
+Event delivery may be retried. Targets should make their business side effects idempotent. Lifecycle chains retain their Event-definition ancestry: a repeated definition is skipped with `JOB_EVENT_CHAIN_CYCLE`, and a chain beyond 32 definitions is skipped with `JOB_EVENT_CHAIN_DEPTH_EXCEEDED`. Event History records these skipped deliveries, including when replaying an outcome. Manual Job execution or manual retry starts fresh ancestry.

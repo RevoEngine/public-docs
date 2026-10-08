@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isPrivateDiagnosticApiPath } from './public-content-privacy.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const sourceSnapshotPath = join(root, 'api-reference', 'source', 'platform.openapi.json');
@@ -13,18 +14,9 @@ const PUBLIC_PATH_PREFIX = '/api/v1/';
 const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
   '/api/v1/storage/provider-configs',
 ]);
-const NON_PUBLIC_DIAGNOSTIC_PATHS = new Set([
-  '/api/v1/assistant/reports/{reportId}/evidence',
-  '/api/v1/assistant/reports/{reportId}/conversation',
-  '/api/v1/assistant/reports/{reportId}/conversation/messages',
-  '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/details',
-  '/api/v1/assistant/reports/{reportId}/conversation/messages/{messageId}/artifacts/{artifactId}',
-  '/api/v1/assistant/threads/{id}/evidence',
-  '/api/v1/assistant/evidence/threads',
-]);
 const isPublicPath = (path) => path.startsWith(PUBLIC_PATH_PREFIX)
   && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
-  && !NON_PUBLIC_DIAGNOSTIC_PATHS.has(path);
+  && !isPrivateDiagnosticApiPath(path);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
 const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier', 'x-max-tokens']);
@@ -546,6 +538,15 @@ export function sanitizePlatformOpenApiSource(source) {
     storageTextContentVersion.description = 'Immutable content version returned by the text read operation. Metadata version alone is insufficient.';
   }
 
+  const assistantOutputTokens = schemaProperties(output, 'InstanceConfigKindAiAgentGatewayValueDto')?.maxOutputTokens;
+  if (assistantOutputTokens) assistantOutputTokens.description = 'Maximum output tokens allowed for an Assistant turn.';
+  const defaultPluginIds = schemaProperties(output, 'InstanceConfigKindAiPluginsDefaultValueDto')?.pluginIds;
+  if (defaultPluginIds) defaultPluginIds.description = 'Plugin identifiers enabled by default for Assistants.';
+  for (const schemaName of ['CreateThreadDto', 'CreateThreadlessResponseDto']) {
+    const version = schemaProperties(output, schemaName)?.version;
+    if (version) version.description = 'Optional Assistant API version. Use v2; v1 is expired and rejected.';
+  }
+
   const instanceConfig = schemaProperties(output, 'InstanceConfigOverviewDto')?.config;
   if (instanceConfig) instanceConfig.description = 'Instance configuration values keyed by supported configuration kind.';
   const databaseViewIndexName = schemaProperties(output, 'DatabaseViewIndexDto')?.name;
@@ -573,6 +574,16 @@ export function sanitizePlatformOpenApiSource(source) {
   const updateAgentConfig = schemaProperties(output, 'UpdateAgentDto')?.config;
   if (updateAgentConfig) updateAgentConfig.description = 'Replacement Agent identity and runtime defaults.';
 
+  const sanitizeDescriptions = (value) => {
+    if (Array.isArray(value)) value.forEach(sanitizeDescriptions);
+    else if (value && typeof value === 'object') {
+      if (typeof value.description === 'string') {
+        value.description = value.description.replace(/Scalar in\/notIn arrays use one typed array parameter\. ?/g, '');
+      }
+      Object.values(value).forEach(sanitizeDescriptions);
+    }
+  };
+  sanitizeDescriptions(output);
   sanitizeModelProperties(output);
   pruneUnreferencedSchemas(output);
   return output;
@@ -581,7 +592,7 @@ export function sanitizePlatformOpenApiSource(source) {
 export function auditPublicSanitization(document) {
   const issues = new Set();
   for (const path of Object.keys(document.paths ?? {})) {
-    if (NON_PUBLIC_DIAGNOSTIC_PATHS.has(path)) issues.add(`Private diagnostic path published: ${path}`);
+    if (isPrivateDiagnosticApiPath(path)) issues.add(`Private diagnostic path published: ${path}`);
   }
   const visit = (value) => {
     if (Array.isArray(value)) {

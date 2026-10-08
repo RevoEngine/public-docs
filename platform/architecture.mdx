@@ -30,11 +30,11 @@ Execution behavior depends on the workload contract:
 - realtime delivery distributes resource and activity changes;
 - Interactive and Autonomous Agent turns use the shared Agent Harness over governed platform capabilities.
 
-Every path resolves the current execution principal and current definition. A version or permission that existed when a caller began authoring is not treated as permanent authority at later execution time.
+Each execution uses the configured identity, permissions and selected definition. Deployment status and execution history identify the version that served a request.
 
 ## Consistency model
 
-Durable instance state is authoritative. Managed caches accelerate lookup but do not replace persisted definitions. Changes invalidate derived state automatically, while connected clients treat realtime delivery as a freshness signal rather than the source of truth.
+Persisted definitions and business records are the source of truth. Realtime updates notify connected clients of changes; clients can reload the persisted state when needed. Use operation identifiers and execution history to investigate failures and recovery.
 
 ## Failure boundaries
 

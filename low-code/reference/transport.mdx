@@ -68,6 +68,8 @@ await transport.sftpExport('/outgoing/daily.csv', { storageEntryId }, 'SFTP_PROD
 ## `transport.sftpCommands()`
 
 Runs allowed file commands in one leased SFTP session, without a remote shell.
+With `readOnly: true`, permits only pwd, ls, stat, lstat, cat, readlink, readat, and glob.
+The full batch is validated before dispatch; any mutating command requires `readOnly: false`.
 Automatic execution.log identifies the call in details.source.
 Inspect command errors even when batch HTTP succeeds.
 

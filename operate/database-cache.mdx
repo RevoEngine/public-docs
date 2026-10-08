@@ -1,6 +1,6 @@
 ---
 title: Database Cache
-description: Use the instance-scoped application cache for fast reads, TTL-based state, idempotency, counters, and coordination.
+description: Use the instance-scoped application cache for derived state and durable helpers for idempotency and admission.
 icon: bolt
 ---
 
@@ -14,12 +14,19 @@ history, or external system of record.
 | Boundary | Lifetime and visibility | Use it for |
 | --- | --- | --- |
 | `api.getCache()` / `api.setCache()` | One low-code execution | Reusing a computed value between elements in the current run |
-| Database Cache / `api.*InstanceCache()` | Instance-scoped and available across executions until expiry or deletion | Short-lived lookup results, idempotency records, counters, leases, and coordination |
+| Database Cache / `api.*InstanceCache()` | Instance-scoped and available across executions until expiry or deletion | Rebuildable lookup results and cache counters |
+| Idempotency, concurrency and rate-limit helpers | Durable instance storage with expiry and explicit release | Duplicate protection and admission across executions, including cache outages |
 | Table or Storage | Durable, governed application state | Business records, audit evidence, large payloads, and recoverable artifacts |
 
 The platform enforces the application cache root server-side. Customers work with
 logical keys such as `pricing:eur:2026-09-05`; they cannot use this surface to browse
 unrelated operational cache namespaces.
+
+## Application cache availability
+
+Application cache values must be rebuildable from a durable source. Do not rely on
+them as the sole record of a business operation or as duplicate protection. Use
+the dedicated idempotency, concurrency and rate-limit helpers for execution admission.
 
 ## Key design
 
@@ -77,7 +84,10 @@ primitive when duplicate upstream work is expensive.
 
 ## Idempotency and atomic coordination
 
-Use the dedicated helpers instead of encoding a lock with normal get/set calls:
+Use the dedicated helpers instead of encoding a lock with normal get/set calls.
+Idempotency, concurrency and rate-limit state is stored durably per instance; a
+cache outage or deletion does not remove their protection. Durable storage failure
+rejects admission. These helpers are not transactions with external side effects:
 
 ```js
 const requestKey = api.input('requestKey');
@@ -96,18 +106,22 @@ try {
   // Perform one bounded, retry-safe workflow.
   return { duplicate: false, operationId: api.getOperationId() };
 } catch (error) {
-  // Release only when retrying the entire workflow is known to be safe.
-  await api.releaseIdempotencyKey(key);
+  // Keep the guard when the outcome is uncertain, including a timeout.
+  // Release only if no side effect occurred or rollback has been confirmed.
   throw error;
 }
 ```
 
 `incrementInstanceCache()` and `decrementInstanceCache()` update integer counters
 atomically. `compareAndSetInstanceCache()` changes a value only when the current
-serialized value matches the expected value. `concurrencyLimit()` admits a bounded
-number of callers for a key within its TTL window. Choose that TTL as part of the
-admission policy; there is no separate concurrency-token release method on this
-surface.
+serialized value matches the expected value. These operations affect cache state.
+
+`concurrencyLimit()` admits a bounded number of callers using a separate durable
+owner and expiry for each slot. After successful admission, call
+`releaseConcurrencyLimit()` exactly once from the same invocation. Across separate
+SDK requests, supply the same unique `leaseOwnerId` to acquisition and release.
+Finish before expiry; reusing an owner does not renew its TTL. Do not release a slot
+when admission returned false. `rateLimit()` also uses durable admission state.
 
 ## TTL and persistence
 
@@ -150,7 +164,9 @@ scope the prefix narrowly and run them as an explicit operator action.
 
 Do not make authorization, financial truth, or irreversible side effects depend only
 on the continued existence of a cache key. For idempotency around an external write,
-pair the cache guard with a durable business record or provider idempotency key.
+pair the durable guard with a business record or provider idempotency key. Retain
+the guard after success or an uncertain outcome; releasing it does not undo an
+external effect and can allow that effect to run again.
 
 ## Production checklist
 

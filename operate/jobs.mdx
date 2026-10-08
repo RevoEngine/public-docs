@@ -145,3 +145,23 @@ Use **Jobs → Job History** to inspect an exact Job ID, its status, current/sel
     Use durable Agents when the work requires planning and tool selection, not one fixed Component.
   </Card>
 </CardGroup>
+
+
+## Cancellation and recovery
+
+Cancelling a pending Job prevents execution. Cancelling a running Job records a durable
+request; its status remains `PROCESSING` until the worker acknowledges that request or
+recovery confirms that its execution lease expired. The details panel shows cancellation
+as pending during that interval. A cancellation request cannot undo an external action
+that already completed.
+
+Accepted Jobs retain their payload, delivery intent and retry lineage independently of
+transient cache availability. Delivery retries do not create another business attempt.
+A lost worker with an unknown effect is reported as requiring recovery; inspect the
+original target before explicitly retrying a write. Automatic retry settings remain
+separate from infrastructure delivery and do not guarantee exactly-once external effects.
+
+
+## Follow-up execution through Events
+
+Ordinary Component Jobs publish native success, failed-attempt and final-failure signals. Use `JOB_EXECUTION_SUCCEEDED` to chain a follow-up Job, `JOB_ATTEMPT_FAILED` to react to each failed attempt, or `JOB_EXECUTION_FAILED` to act only when no automatic retry remains. Filter by the source Job template and make the follow-up action idempotent. See [Job execution Events](/operate/events#chain-component-jobs-from-execution-outcomes) for the payload, execution-series identity and cycle protection.

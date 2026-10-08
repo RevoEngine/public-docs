@@ -7,6 +7,20 @@ for (const [name, content, category] of [
   ['compressed IPv6', 'host: [2001:db8::17]', 'IP address literal'],
   ['mapped IPv6', 'host: [::ffff:192.0.2.17]', 'IP address literal'],
   ['private provider', 'Replay redis events.', 'private implementation prose'],
+  ['internal L0 strategy', 'Warm executions use L0 first.', 'private implementation prose'],
+  ['internal bytecode caching', 'Retain cachedData across requests.', 'private implementation prose'],
+  ['internal snapshot policy', 'A canonical source snapshot has a fixed 15-second age.', 'private implementation prose'],
+  ['internal artifact addressing', 'Compiled artifacts are digest-addressed.', 'private implementation prose'],
+  ['internal source hash', 'Compiled code is reused by source hash.', 'private implementation prose'],
+  ['internal source hashes', 'Source hashes select immutable runtime artifacts.', 'private implementation prose'],
+  ['internal source-read timing', 'The deadline starts at the source-read start.', 'private implementation prose'],
+  ['internal source singleflight', 'Runtime loads use singleflight.', 'private implementation prose'],
+  ['internal cache fencing', 'Cache generation fences prevent stale refill.', 'private implementation prose'],
+  ['private executor routing', 'Requests route through agent-gateway.', 'private implementation prose'],
+  ['private query optimization', 'Use one typed array parameter.', 'private implementation prose'],
+  ['private event recovery', 'Publication uses durable outcome receipts.', 'private implementation prose'],
+  ['private evidence route', 'Read /api/v1/assistant/threads/{id}/evidence/export.', 'private diagnostic API'],
+  ['private report route', 'Read /api/v1/assistant/reports/{reportId}/conversation.', 'private diagnostic API'],
   ['private class', 'QueryService generates results.', 'private implementation prose'],
   ['private repo path', 'packages/platform/src/internal.ts', 'private repository path'],
   ['private locator', 'rediss://cache.internal:6379', 'private infrastructure locator'],
@@ -26,7 +40,7 @@ for (const [name, content, category] of [
 }
 
 test('allows field names, version numbers and explicit credential placeholders', () => {
-  for (const content of ['version 1.6.4', 'Store credentials in an approved secret manager.', 'https://example.com/file?sig=%3Csigned-url-signature%3E', 'src/normalize-order.js optional relative module', 'password: "<password>"', 'apiKey: "${API_KEY}"', 'Authorization: Bearer <TOKEN>', 'Authorization: Basic <CREDENTIALS>', 'authorization: "Basic ${BASIC_CREDENTIALS}"', 'Basic authentication uses an Authorization header.', 'sftp://user:password@sftp.example.com', 'privateKey: "<private-key-pem>"', 'fields: password, token, privateKey']) {
+  for (const content of ['version 1.6.4', 'Use a finite TTL for application cache values.', 'Transactions accept a 15-second timeout.', 'Use version history to inspect the active Component.', 'Store credentials in an approved secret manager.', 'https://example.com/file?sig=%3Csigned-url-signature%3E', 'src/normalize-order.js optional relative module', 'password: "<password>"', 'apiKey: "${API_KEY}"', 'Authorization: Bearer <TOKEN>', 'Authorization: Basic <CREDENTIALS>', 'authorization: "Basic ${BASIC_CREDENTIALS}"', 'Basic authentication uses an Authorization header.', 'sftp://user:password@sftp.example.com', 'privateKey: "<private-key-pem>"', 'fields: password, token, privateKey']) {
     assert.deepEqual(publicTextPrivacyIssues(content), []);
   }
 });
@@ -71,4 +85,15 @@ test('preserves ordinary schema information for credential fields', () => {
 test('rejects encoded Basic credentials without returning the encoded or decoded value', () => {
   const encoded = Buffer.from('fixture:synthetic-password').toString('base64');
   assert.deepEqual(publicTextPrivacyIssues('Authorization: Basic '+encoded), ['credential literal']);
+});
+
+
+test('privacy audit rejects private diagnostic paths while preserving public feedback and configuration APIs', () => {
+  assert.deepEqual(publicOpenApiPrivacyIssues({ paths: { '/api/v1/assistant/evidence/threads/export': {} } }), ['$.paths: private diagnostic API']);
+  assert.deepEqual(publicOpenApiPrivacyIssues({ paths: {
+    '/api/v1/assistant/threads/{id}/report': {},
+    '/api/v1/agents/runs/{agentRunId}/report': {},
+    '/api/v1/config/cache': {},
+    '/api/v1/agents/reconcile': {},
+  } }), []);
 });

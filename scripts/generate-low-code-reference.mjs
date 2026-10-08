@@ -66,6 +66,8 @@ export function sanitizeDeclarationSource(source) {
     .replace(/^\/\/\/\s*<reference\s+path=["'][^"']+["']\s*\/?>\s*$/gm, '')
     .replace(/The backend fetches one extra row internally to determine next-page availability\./g, 'Pagination reports whether more rows are available.')
     .replace(/Full internal query shape used by the ORM service\.\s*\n\s*\* Unlike SelectInput, this includes from\.definition metadata\./g, 'Complete structured query shape, including source definition metadata.')
+    .replace(/Scalar in\/notIn arrays use one typed array parameter\. /g, '')
+    .replace(/In the JavaScript isolate, large calls are automatically chunked within the execution\s*\n\s*\*\s*memory\/time budget, atomically in one transaction\. Internal transactions use the\s*\n\s*\*\s*remaining execution time; an explicit caller transaction retains its own timeout\./g, 'Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.')
     .replace(/The Swagger DTO requires/g, 'The public contract requires')
     .replace(/\n{3,}/g, '\n\n');
 
@@ -94,9 +96,10 @@ const [pricing, taxes] = await Promise.all([
   api.executeComponent({ componentId: taxComponentId, inputs: { customerId }, timeoutMs: 9000 }),
 ]);`);
   output = replaceMethodDocumentation(output, 'acquireIdempotencyKey', `
-Acquires an idempotency key in the instance-scoped managed cache.
+Acquires a durable instance-scoped idempotency key.
 
 Notes:
+- Cache outages do not remove duplicate protection; durable storage failure rejects admission.
 - Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
 
 Example:

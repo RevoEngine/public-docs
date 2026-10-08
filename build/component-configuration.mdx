@@ -54,9 +54,11 @@ return { customerId: customer.customerId, status: customer.status };
 
 ## Versioning and activation
 
-Saving creates a versioned low-code definition. A caller can follow the current active version or explicitly pin a version where the consuming surface supports it. Changing a definition invalidates executable caches, but an activation decision remains deliberate.
+Saving creates a versioned low-code definition. A caller can follow the current active version or explicitly pin a version where the consuming surface supports it. Saving a definition and activating it are separate actions.
 
 For `CUSTOM_NODEJS`, source save and availability are separate: the platform builds/deploys a revision, exposes its status, and only a ready selected revision may serve an Endpoint. A failed or pending revision does not replace the previously serving revision.
+
+Use deployment status and execution history to confirm which version is ready and which version served a request.
 
 ## Debug configuration
 

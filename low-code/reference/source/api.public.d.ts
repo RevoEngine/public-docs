@@ -462,7 +462,8 @@ declare class api {
      * row required for creation; patch is not an insert option.
      *
      * Notes:
-     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+     * - REST/public SDK requests retain the 100,000-row limit per request.
      * - return defaults to true and includes full rows. return: false omits data; onlyKeys
      *   returns primary keys only. Returning full rows has a higher response-memory cost.
      * - Unavailable with `readOnly: true` (throws an error).
@@ -487,7 +488,8 @@ declare class api {
      * Pass { return: false } to skip returned rows, or { onlyKeys: true } for keys only.
      *
      * Notes:
-     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+     * - REST/public SDK requests retain the 100,000-row limit per request.
      * - return defaults to true and includes full rows. return: false omits data; onlyKeys
      *   returns primary keys only. Returning full rows has a higher response-memory cost.
      * - Unavailable with `readOnly: true` (throws an error).
@@ -529,11 +531,14 @@ declare class api {
      * Deletes an explicit list of rows identified by primary key.
      *
      * Notes:
-     * - A call accepts at most 100,000 rows and executes atomically in one transaction.
+     * - Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+     * - REST/public SDK requests retain the 100,000-row limit per request.
      * - Prefer deleteDatabaseDataRequest() when the rows can be described by a filter;
      *   it avoids loading and transferring every matching primary key to the runtime.
-     * - Structured query and mutation filters are rejected before SQL execution when they exceed
-     *   8 MiB, 1,000 nodes, 100,000 values, 16 nested levels, or 10,000 bound parameters.
+     * - Managed database structured reads and mutations accept up to 65,535 bound parameters per
+     *   compiled statement, with no separate filter-node or array-value count limit.
+     *   Application guards still enforce
+     *   8 MiB of serialized query input and 16 nested filter levels.
      * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
@@ -1242,9 +1247,10 @@ declare class api {
     ): Promise<boolean>;
 
   /**
-   * Acquires an idempotency key in the instance-scoped managed cache.
+   * Acquires a durable instance-scoped idempotency key.
    *
    * Notes:
+   * - Cache outages do not remove duplicate protection; durable storage failure rejects admission.
    * - Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
    *
    * Example:
@@ -1288,8 +1294,11 @@ declare class api {
      * Notes:
      * - Returns whether admission succeeded; ttl is in seconds.
      * - Each successful admission acquires one slot. Release it exactly once with releaseConcurrencyLimit.
-     * - TTL applies to the shared counter and is refreshed on successful admission; it is not a per-worker lease.
-     *   Processing must finish before expiry. There is no ownership token to protect against late cleanup.
+     * - Stored durably per instance with a separate owner and expiry for each admitted slot.
+     * - Without leaseOwnerId, release through the same runtime invocation that acquired the slot.
+     * - For separate SDK requests, pass a unique leaseOwnerId for this execution to acquisition and release.
+     *   Reusing that owner renews neither its TTL nor business idempotency. Finish before TTL.
+     * - Durable storage unavailability throws before admission; an optional cache is not required.
      * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
@@ -1299,6 +1308,7 @@ declare class api {
       key: string,
       limit: number,
       ttl: number,
+      leaseOwnerId?: string,
     ): Promise<boolean>;
 
   /**
@@ -1327,17 +1337,18 @@ declare class api {
      * Atomically releases one acquired concurrency slot, preserving slots held by other workers.
      *
      * Notes:
-     * - Decrements the counter by one and deletes the key only when no slots remain. A missing key is a no-op.
+     * - Releases only a slot acquired by this runtime invocation; a missing local ownership token is a no-op.
+     * - For a slot acquired with leaseOwnerId, pass that same owner to release it from another SDK request.
      * - Call exactly once after a successful admission; do not release after admission returned false.
-     * - This key-only API has no ownership token. Duplicate release or cleanup after expiry/reacquisition
-     *   can release another worker's slot. It does not provide an ownership-safe lease.
+     * - Owner fencing prevents late cleanup from releasing a slot acquired by another invocation.
+     * - Each invocation may acquire several slots; each release consumes one of its own tokens.
      * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
-     * // Once, for this worker's successful admission, before the counter expires.
+     * // In the same runtime invocation, once for each successful admission.
      * await api.releaseConcurrencyLimit('sync:customers');
      */
-  static releaseConcurrencyLimit(key: string): Promise<void>;
+  static releaseConcurrencyLimit(key: string, leaseOwnerId?: string): Promise<void>;
 
   /**
      * Schedules a custom event.
@@ -1639,7 +1650,8 @@ declare class api {
      * @deprecated Legacy. Use transport.sftpCommands(commands, secretNameOrId) for new code.
      *
      * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
+     * - With `readOnly: true`, permits only pwd, ls, stat, lstat, cat, readlink, readat, and glob.
+     * - The full batch is validated before dispatch; any mutating command requires `readOnly: false`.
      *
      * Example:
      * await api.sftpExec([['mkdir', '/archive']], connection);
@@ -2792,6 +2804,8 @@ declare class transport {
 
   /**
      * Runs allowed file commands in one leased SFTP session, without a remote shell.
+     * With `readOnly: true`, permits only pwd, ls, stat, lstat, cat, readlink, readat, and glob.
+     * The full batch is validated before dispatch; any mutating command requires `readOnly: false`.
      * Automatic execution.log identifies the call in details.source.
      * Inspect command errors even when batch HTTP succeeds.
      */
