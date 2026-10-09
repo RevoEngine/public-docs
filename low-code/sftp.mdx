@@ -82,6 +82,8 @@ return {
 
 The Storage identity, namespace policy, restricted ancestors, and entry ACL are enforced exactly as they are for `storage.*`. A namespace or folder ID is a target selector, not a permission grant.
 
+For a known CSV feed, pass `csv` dialect settings such as `delimiter`, `recordDelimiter`, `encoding`, `quote` and `escape` in the import options. With `computeStats: 'sync'`, malformed CSV fails finalization with `STORAGE_CSV_INVALID` before a file is published for downstream processing. The remote source remains in place; archive or rename it only after successful validation. Do not switch to `quote: false` as an automatic fallback for invalid standard CSV. See [CSV dialect and validation](/operate/storage-structured-files#csv-and-tsv-dialect).
+
 To replace an existing entry, make replacement explicit:
 
 ```js

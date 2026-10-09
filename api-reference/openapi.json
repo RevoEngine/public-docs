@@ -35198,7 +35198,7 @@
           },
           "additionalProperties": {
             "type": "string",
-            "description": "How undeclared source columns are handled. allow retains them, strip omits them from structured rows, and reject fails indexing. Defaults to allow for fallback and reject for strict. The raw file is preserved.",
+            "description": "How undeclared source columns are handled. allow retains them, strip omits them from structured rows, and reject fails indexing. Defaults to allow for fallback and reject for strict. Already committed files retain their raw bytes; synchronous validation failures before publication do not create a readable entry.",
             "enum": [
               "allow",
               "strip",
@@ -35236,13 +35236,31 @@
             "example": "\r\n"
           },
           "quote": {
-            "type": "string",
-            "description": "Quote character.",
+            "description": "Quote character, default double quote. Set false to disable CSV quoting; quotes and backslashes then remain literal and escape is ignored.",
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1
+              },
+              {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              }
+            ],
             "example": "\""
+          },
+          "maxRecordBytes": {
+            "type": "integer",
+            "description": "Maximum source bytes in one logical CSV record, including multiline quoted fields. Defaults to 64 MiB; independent of callback/read batch size. Larger records reject indexing with STORAGE_CSV_INVALID and a RecordTooLarge diagnostic.",
+            "minimum": 1,
+            "default": 67108864
           },
           "escape": {
             "type": "string",
-            "description": "Quote escape character.",
+            "description": "Quote escape character. Ignored when quote is false.",
             "example": "\""
           },
           "escapeFormulae": {

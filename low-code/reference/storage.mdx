@@ -145,6 +145,10 @@ Reads storage file content.
 
 Notes:
 - CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
+- mode: "lines" returns physical string lines, including headers and the final empty line; encoding and separator are detected or overridden.
+- CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false keeps quotes/backslashes literal and ignores escape.
+- maxRecordBytes defaults to 64 MiB per logical CSV record, independently of page/callback sizes. Oversized, malformed or wrong-width records reject indexing with STORAGE_CSV_INVALID before rows are returned.
+- CSV errors include errorCount, at most 100 safe location diagnostics and diagnosticsTruncated; no raw row/cell values. Physical counters are distinct from logical rowCount.
 - Other text file batch reads reuse cached line stats and auto-build them if missing.
 - Binary reads return a base64 string.
 - Direct binary reads are limited to 10 MiB unless you request a ranged buffer.
@@ -175,11 +179,13 @@ const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
 
 Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
 or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
-and binary files are not supported.
+and binary files are not supported in record mode. mode: "lines" supports physical text lines without parsing CSV fields.
 Omitted take scans all rows. XLSX uses the first visible sheet by default;
 XML requires recordPath.
 Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
-Source changes or callback errors stop the scan. Keep only aggregates.
+Source changes or callback errors stop the scan. Invalid CSV rejects indexing
+with STORAGE_CSV_INVALID before the first business callback; diagnostics contain no raw data.
+Keep only aggregates.
 
 ### Overloads
 
@@ -216,6 +222,12 @@ return { processed };
 Builds reusable record or worksheet indexes and returns file statistics.
 
 Notes:
+- mode: "lines" builds a separate physical-line index with lineCount, map, batches, encoding and separator.
+- CSV stats include physicalLineCount, blankLineCount and endsWithRecordDelimiter independently of logical rowCount.
+- CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false disables quoting and ignores escape.
+- maxRecordBytes defaults to 64 MiB per logical record, independently of batch size. Invalid syntax, source field counts or oversized records reject indexing with STORAGE_CSV_INVALID.
+- The error contains errorCount, at most 100 location diagnostics and diagnosticsTruncated, never raw rows/cells; RecordTooLarge may report only the inspected prefix.
+- physicalLineCount counts actual lines including headers, blank lines and multiline fields. Legacy lineCount retains the synthetic terminal empty line when present.
 - Derived stats are cached on the storage entry metadata for later batch reads.
 
 ### Overloads
@@ -758,6 +770,8 @@ const entry = await storage.deleteEntry(storageEntryId, { version: currentVersio
 
 Generates a signed download URL for a storage file. Without an explicit
 namespace the entry is resolved by its globally unique id, matching REST.
+Optional ttlSeconds accepts integer seconds from 1 to 604800 (seven days).
+Omit it to retain the configured default; file retention can shorten the TTL.
 
 ### Overloads
 
@@ -765,18 +779,20 @@ namespace the entry is resolved by its globally unique id, matching REST.
 static getDownload(
       storageEntryId: string,
       preview?: boolean,
+      ttlSeconds?: number,
     ): Promise<StorageDownload>;
 
 static getDownload(
       namespace: string,
       storageEntryId: string,
       preview?: boolean,
+      ttlSeconds?: number,
     ): Promise<StorageDownload>;
 ```
 ### Example
 
 ```ts
-const download = await storage.getDownload(storageEntryId, true);
+const download = await storage.getDownload(storageEntryId, false, 604800);
 ```
 
 <span id="storage-getDocument" aria-hidden="true"></span>

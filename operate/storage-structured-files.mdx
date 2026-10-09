@@ -120,7 +120,7 @@ Strict validation requires `table.columns` when the session is created. A missin
 
 For example, `{ profile: 'strict', additionalProperties: 'strip' }` accepts a file with extra source columns, omits those columns from structured rows, and still rejects missing declared columns, invalid typed values, and sheet mismatches. `strip` and `reject` require declared `table.columns` even with the fallback profile.
 
-The raw uploaded file is preserved for download and diagnosis; it is not silently transformed or deleted. Downstream processing must require successful structured indexing before it consumes rows.
+An already finalized file is preserved for download and diagnosis when later indexing fails. With synchronous CSV validation, malformed raw input fails before publication. A failed upload session can retain temporary bytes; failure does not always mean they were removed. Downstream processing must require successful structured indexing before it consumes rows.
 
 <Warning>
   Strict validates the declared tabular contract, not business rules such as “price must be positive” or “SKU must exist.” Apply those rules after reading typed rows.
@@ -156,6 +156,62 @@ const { session } = await storage.createUploadSession({
 ```
 
 Declare the delimiter and encoding when the source is known. Automatic detection remains available for ordinary imports, but an explicit dialect prevents ambiguity and is reused by indexed reads.
+
+Quoting defaults to `"`; `escape` also defaults to `"`. Quoted fields can contain delimiters, escaped quotes and line breaks. Use `quote: false` only when the source contract treats quotes and backslashes as literal characters. In that dialect, `escape` is ignored; a backslash does not protect an unquoted delimiter. Native row generation rejects values containing a delimiter or line break when quoting is disabled.
+
+The same dialect must be used for indexing and reading. Upload sessions accept it under `csv`; `getFileStats()` and record readers accept read-time dialect options directly:
+
+```js
+const csv = {
+  delimiter: '|',
+  recordDelimiter: '\r\n',
+  quote: '"',
+  escape: '"',
+};
+
+await storage.walkFileData(
+  storageEntryId,
+  csv,
+  async (rows) => {
+    await processRows(rows);
+  },
+  { fullScan: true, batchSize: 100_000, readBatchSize: 100_000 },
+);
+```
+
+Set `encoding` when known. Otherwise, native detection reads the source encoding and BOM. A read does not rewrite the file's encoding or line endings. Empty or whitespace-only source lines outside quoted fields are skipped as records; quoted empty fields and blank lines inside a multiline field remain part of the CSV data.
+
+Optional `maxRecordBytes` is a positive integer limiting the source bytes in one logical CSV record, including multiline quoted fields. The default is 64 MiB. It is independent of file size, `batchSize` and `readBatchSize`; raise it explicitly only when the source legitimately contains larger records.
+
+## CSV errors stop record processing
+
+Invalid quote syntax or a source record with the wrong number of fields rejects CSV indexing with `STORAGE_CSV_INVALID`. This validation happens before schema projection and before the first record-walker callback. Neither schema fallback nor `additionalProperties: 'strip'` permits dropping or padding fields in a malformed source record.
+
+The error contains `errorCount`, up to 100 location diagnostics, and `diagnosticsTruncated`. Each diagnostic identifies the parser `recordNumber`, physical `lineStart` and `lineEnd`, `startByte`, and an error code. Field-count errors can include expected and actual counts. A parser record number can differ from a physical line number because of headers, skipped blank lines and multiline fields. Diagnostics contain no raw rows or cell values and remain available in execution and Job errors.
+
+`RecordTooLarge` aborts parsing as soon as `maxRecordBytes` is exceeded, including for an unterminated quoted field. In this case, counts and diagnostics describe only the inspected prefix. Correct the source file and retry the intended dialect; do not silently disable quoting to make a malformed standard CSV pass.
+
+For raw CSV input with `computeStats: 'sync'`, validation is part of finalization and failure prevents publication. A failed object write through `putObject()` attempts to clean up its uncommitted object; cleanup failure is logged. Upload-session finalization, including the session used by SFTP import, can retain temporary bytes until explicit abort or later expiry cleanup. Inspect the session state and abort an abandoned session rather than assuming a validation error removed its bytes or changed its status to `FAILED`. A raw multipart upload may already have consumed its parts before validation fails, so do not blindly retry finalization; upload the corrected source through a verified new or repaired session. SFTP import leaves the remote source in place. When an already finalized file fails later indexing, its Storage bytes remain available to an authorized operator. With asynchronous indexing, require successful synchronization before writing business data.
+
+## Records and physical lines
+
+CSV statistics distinguish data records from physical source layout:
+
+| Statistic | Meaning |
+| --- | --- |
+| `rowCount` | Logical data records, excluding the header and skipped blank records |
+| `physicalLineCount` | Actual lines, including the header, blank lines and lines inside multiline fields |
+| `blankLineCount` | Physical lines that are empty or contain only whitespace |
+| `endsWithRecordDelimiter` | Whether the source ends with the configured record delimiter |
+| `lineCount` | Existing line-window count, retaining the terminal empty element for compatibility |
+
+For `id|name\n1|A\n`, `rowCount` is 1, `physicalLineCount` is 2 and legacy `lineCount` is 3. The terminating delimiter does not add a third actual physical line. An empty file has zero physical lines.
+
+Synchronous raw CSV finalization validates records and counts physical lines in one scan. Native generated row parts capture counts while encoding, and finalization reuses those counts without rereading the generated file just to count lines. A physical line index can still be built lazily when a line-window read is requested.
+
+Use record mode for CSV, TSV, XLSX, NDJSON/JSONL, JSON arrays and record-oriented XML. Explicit `mode: 'lines'` is a separate text-window contract for custom raw-line workflows: it returns strings without parsing fields and preserves headers, blank lines and the terminal empty element. It is not an automatic recovery mode for malformed CSV. For mixed line endings, line windows follow their selected or detected separator; physical CSV metrics count the actual CR, LF and CRLF boundaries.
+
+Once synchronization has built statistics for the same source and dialect, record reads reuse them. A normal walker needs no extra `getFileStats()` call. Use explicit statistics for discovery or validation before separate preparatory work, and `reloadStats: true` only when recomputation is required. Preserve established processing sizes; file size alone is not a reason to shrink callback batches or split the file into extra transfers.
 
 ## Generate typed rows
 
@@ -234,7 +290,7 @@ return {
 
 Omit `sheet` to use the first visible XLSX worksheet. Omit `columns` to read every source column. The read-time `columns` option projects, renames, or casts a result; it does not replace the schema declared on the upload session.
 
-Use `storage.walkFileData()` for a complete structured scan without accumulating every row in memory. It accepts CSV/TSV, XLSX, NDJSON/JSONL, a top-level JSON array, and record-oriented XML. It does not walk arbitrary plain text, a top-level JSON object, or binary files as rows. For XML, pass `recordPath`; for XLSX, select a worksheet with `sheet` or use the first visible one. The callback is awaited for each batch; omitting `take` scans all records.
+Use `storage.walkFileData()` for a complete structured scan without accumulating every row in memory. Record mode accepts CSV/TSV, XLSX, NDJSON/JSONL, a top-level JSON array, and record-oriented XML. It does not walk arbitrary plain text, a top-level JSON object, or binary files as rows; explicit `mode: 'lines'` handles text windows separately. For XML, pass `recordPath`; for XLSX, select a worksheet with `sheet` or use the first visible one. The callback is awaited for each batch; omitting `take` scans all records.
 
 ```js
 let total = 0;
@@ -245,7 +301,7 @@ await storage.walkFileData(
   async (rows) => {
     total += rows.length;
   },
-  { fullScan: true, batchSize: 2_000 },
+  { fullScan: true, batchSize: 100_000, readBatchSize: 100_000 },
 );
 
 return { total };

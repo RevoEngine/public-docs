@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -7,6 +8,53 @@ import {
   operationEntries,
   publicOperationKeys,
 } from '../scripts/sync-platform-openapi.mjs';
+
+test('public projection retains CSV quote union and the independent record byte limit', () => {
+  const source = fixture();
+  source.paths['/api/v1/storage/uploads'] = {
+    post: {
+      operationId: 'StorageController_createUploadSession',
+      tags: ['Storage'],
+      security: [{ bearer: [] }],
+      requestBody: {
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/StorageCsvOptionsDto' } } },
+      },
+      responses: { 201: { description: 'Created' } },
+    },
+  };
+  const quote = {
+    oneOf: [
+      { type: 'string', minLength: 1, maxLength: 1 },
+      { type: 'boolean', enum: [false] },
+    ],
+  };
+  const maxRecordBytes = { type: 'integer', minimum: 1, default: 64 * 1024 * 1024 };
+  source.components.schemas.StorageCsvOptionsDto = {
+    type: 'object', properties: { quote, maxRecordBytes },
+  };
+  const published = enrichPlatformOpenApi(source);
+  const properties = published.components.schemas.StorageCsvOptionsDto.properties;
+  assert.deepEqual(properties.quote, quote);
+  assert.deepEqual(properties.maxRecordBytes, maxRecordBytes);
+  assert.equal(published.components.schemas.StorageCsvOptionsDto.required, undefined);
+});
+
+test('published CSV schema matches the supported native dialect in both snapshots', () => {
+  for (const file of ['../api-reference/source/platform.openapi.json', '../api-reference/openapi.json']) {
+    const document = JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
+    const schema = document.components.schemas.StorageCsvOptionsDto;
+    assert.deepEqual(schema.properties.quote.oneOf, [
+      { type: 'string', minLength: 1, maxLength: 1 },
+      { type: 'boolean', enum: [false] },
+    ]);
+    assert.equal(schema.properties.maxRecordBytes.minimum, 1);
+    assert.equal(schema.properties.maxRecordBytes.type, 'integer');
+    assert.equal(schema.properties.maxRecordBytes.default, 64 * 1024 * 1024);
+    assert.equal(schema.properties.maxRecordBytes.maximum, undefined);
+    assert.ok(!schema.required?.includes('quote'));
+    assert.ok(!schema.required?.includes('maxRecordBytes'));
+  }
+});
 
 function fixture() {
   return {
