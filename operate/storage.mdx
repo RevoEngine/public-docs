@@ -70,9 +70,11 @@ Use the narrowest reader that matches the file:
 | Reusable row, worksheet, or line index | `storage.getFileStats()` |
 | Temporary download or preview | `storage.getDownload()` |
 
-Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `nextCursor`. Copy the cursor exactly and keep pages bounded. `walkFileData()` processes the same record formats in awaited batches; it does not treat plain text, a top-level JSON object, or binary files as rows. For XML, provide `recordPath`; for a specific Excel worksheet, provide `sheet`.
+Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `nextCursor`. Copy the cursor exactly and keep pages bounded. In record mode, `walkFileData()` processes the same record formats in awaited batches; it does not treat plain text, a top-level JSON object, or binary files as rows. For XML, provide `recordPath`; for a specific Excel worksheet, provide `sheet`.
 
 Do not parse CSV by splitting on commas or newlines. Quoted separators, escaped quotes, and multiline records are valid CSV.
+
+CSV syntax and source field counts are validated before record processing. Invalid input fails with `STORAGE_CSV_INVALID` and bounded location diagnostics. CSV statistics distinguish logical `rowCount` from actual physical lines, including headers and blanks. Explicit `mode: 'lines'` is available for custom text workflows; it returns raw strings without CSV interpretation. See [Structured files](/operate/storage-structured-files#csv-errors-stop-record-processing) for dialect, validation and line-count semantics.
 
 ## Workspaces and access
 

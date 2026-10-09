@@ -139,13 +139,9 @@ Upload URLs and headers are temporary credentials. Do not log, persist, or pass 
 
 CSV, TSV, XLSX, NDJSON/JSONL, JSON arrays, and record-oriented XML return structured pages. Follow the opaque cursor instead of assuming the result is an array of text lines.
 
-This example reads a CSV file. For XML, pass the same `recordPath` to `getFileStats()` and `getFileData()`.
+This example reads a CSV file. For XML, pass `recordPath` to `getFileData()` and to any explicit `getFileStats()` call.
 
 ```ts
-await revo.storage.getFileStats(storageEntryId, {
-  batchSize: 25_000,
-});
-
 let cursor: string | undefined;
 
 do {
@@ -163,7 +159,9 @@ do {
 
 `getFileData()` builds missing structured statistics when needed. If the persisted mapping must be recomputed, call `getFileStats(storageEntryId, { reloadStats: true })` first; `reloadStats` is not a `getFileData()` option. For XLSX, select `sheet` when the first visible worksheet is not the intended source. XML requires `recordPath`.
 
-Plain text can still be read through line windows. That Storage batch is unrelated to SDK request batching.
+CSV indexing validates quote syntax and source field counts before returning records. `STORAGE_CSV_INVALID` includes bounded location diagnostics without raw rows or cell values. Its per-record `maxRecordBytes` guard defaults to 64 MiB independently of read size. Set the same dialect for indexing and reading; `quote: false` deliberately keeps literal quotes and backslashes and ignores `escape`. See [CSV validation and physical counts](/operate/storage-structured-files#csv-errors-stop-record-processing).
+
+Plain text can still be read through line windows. Explicit `mode: 'lines'` also reads a CSV as strings without interpreting its fields, preserving headers, blanks and the terminal empty element. That mode is for custom text processing, rather than automatic recovery from malformed CSV. Storage record/line batches are unrelated to SDK request batching.
 
 For binary data, `getFileData()` returns base64. Direct reads are limited to 10 MiB; use `buffer: true` with an explicit byte `start` and `end` for a bounded range.
 
