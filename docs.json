@@ -294,6 +294,7 @@
               {
                 "group": "1.6.x",
                 "pages": [
+                  "changelog/1.6.5",
                   "changelog/1.6.4",
                   "changelog/1.6.3",
                   "changelog/1.6.2",
