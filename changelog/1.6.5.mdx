@@ -1,0 +1,114 @@
+---
+title: "1.6.5 — Reliable file processing and clearer operational workflows"
+sidebarTitle: "1.6.5"
+icon: "tag"
+description: "10 October 2026"
+---
+
+RevoEngine 1.6.5 improves Storage recovery, makes CSV error handling explicit, and connects automation history to the definitions that actually triggered work. The workspace adds precise JSON filters, consistent saved layouts and clearer confirmation and progress flows.
+
+## Highlights
+
+- Process large structured files with bounded reads, stable source checks and recovery from transient Storage failures.
+- Choose strict CSV validation or skip records with the wrong field count, with safe source-location diagnostics.
+- Follow matched Event definitions and named Event or Schedule triggers from execution history.
+- Keep JSON paths and typed filters intact across navigation, including literal keys containing dots or brackets.
+- Review bulk and database operations with explicit confirmations, retained inputs and visible progress.
+- Use Node.js SDK 1.6.7 for the corresponding file-processing contract.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Process structured files with an explicit error policy" defaultOpen={true}>
+
+CSV reads remain strict by default. Set `onError: 'skipRow'` to omit source records with an incorrect field count. Invalid quoting and records exceeding `maxRecordBytes` still stop processing. The default per-record limit is 64 MiB, independently of page and callback sizes.
+
+The returned `csvReport` describes the entire source: skipped records, bounded source-location diagnostics and whether diagnostics were truncated. Repeated page reports must not be added together. Diagnostics exclude raw row and cell values.
+
+Read a bounded page from an existing CSV entry:
+
+```js
+const page = await storage.getFileData(api.input().body.storageEntryId, {
+  onError: 'skipRow',
+  limit: 100,
+});
+if (typeof page === 'string' || Array.isArray(page)) {
+  throw new Error('Expected a structured file');
+}
+return { returnedRows: page.rows.length, csvReport: page.csvReport };
+```
+
+For larger inputs, await each callback and retain aggregates rather than collecting every row:
+
+```js
+let processed = 0;
+const result = await storage.walkFileData(
+  api.input().body.storageEntryId,
+  { onError: 'skipRow' },
+  async rows => { processed += rows.length; },
+  { fullScan: true, batchSize: 2000 },
+);
+return { processed, csvReport: result.csvReport };
+```
+
+Transient source reads resume against the original object generation. Processing does not replay rows already delivered to callbacks. Upload and finalization recovery verifies the completed content before accepting an uncertain acknowledgment. Invalid CSV still prevents publication of the indexed result.
+
+Physical line counts, blank-line counts and the trailing record delimiter are distinct from logical row counts. Download links accept a bounded lifetime, while entry retention can shorten it. The shared retention control preserves the chosen amount and unit in uploads, entry updates and exports.
+
+  </Accordion>
+  <Accordion title="Investigate the trigger that created the work">
+
+Event History shows the Event definitions that actually matched, separately from skipped targets and downstream Job executions. Empty states distinguish absent definitions, no matches and unavailable executions.
+
+Job History includes named Event and Schedule triggers. Definitions are resolved from the recorded occurrence and execution mapping, so two Events using the same Job template remain distinguishable. Missing historical relations remain unavailable. Trigger-name filtering and distinct counts are applied on the server.
+
+The Event form uses an explicit **Internal** switch and a required **Type** field. Internal types use the lifecycle catalogue; custom definitions keep the application type entered by the operator. Observability distinguishes warnings belonging to the selected journey from broader discovery warnings.
+
+  </Accordion>
+  <Accordion title="Filter and operate the workspace consistently">
+
+JSON filters preserve paths, scalar types and casts in URLs and refreshed queries. A nested path such as `metadata.purpose` differs from the literal key `["metadata.purpose"]`. Equivalent spellings of one path cannot silently replace another condition. Invalid typed operands return a validation error before the query runs.
+
+Saved-layout controls use one shared selector across supported workspaces. Existing grid layouts reset once during upgrade to rebuild the updated columns; other preference families remain intact.
+
+Bulk confirmations and database operation dialogs retain entered values, show progress and prevent stale completion from changing the newly selected resource. Navigation and breadcrumbs use the current route and shared resource references.
+
+  </Accordion>
+  <Accordion title="Validate inputs and preserve execution evidence">
+
+Use the same strict validator contract as Endpoint guards when preparing runtime inputs:
+
+```js
+const checked = await util.validate(api.input().body, {
+  profile: 'strict',
+  additionalProperties: 'reject',
+  schema: {
+    type: 'object',
+    required: true,
+    objectSchema: [
+      { property: 'status', schema: {
+        type: 'string', required: true, enum: ['pending', 'ready'],
+      } },
+    ],
+  },
+});
+return { valid: checked.valid, issues: checked.issues };
+```
+
+Assistant clarification, correction and reviewed execution preserve the originating context. Storage, database and Job diagnostics retain the useful error cause, while operational reads and durable processing tolerate unavailable optional caches.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Structured files](/operate/storage-structured-files)
+- [Events](/operate/events)
+- [Event History](/operate/event-history)
+- [Jobs](/operate/jobs)
+- [Observability](/operate/observability)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.4](/changelog/1.6.4)

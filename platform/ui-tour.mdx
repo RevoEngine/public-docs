@@ -20,6 +20,26 @@ The RevoEngine workspace is an enterprise execution control plane. Its persisten
 
 Actions are role-aware, but the API enforces access independently. A hidden button is a UI affordance, not the security boundary.
 
+## Filter and save a grid view
+
+Use each column's filter for its data type. JSON columns offer **Simple** property/value conditions and **Advanced** typed comparisons. In Simple mode, `metadata.purpose` addresses a nested property, `items[0].code` addresses an array element, and `["metadata.purpose"]` addresses one literal key containing a dot. Choose the value type deliberately: the number `12` differs from the text `"12"`. Equivalent spellings of the same path cannot be entered twice.
+
+Combine JSON conditions with **All**, **Any** or **None**, then apply the filter. Shared grid links retain typed paths and comparison settings, so reopen the link before using its selection for a bulk action.
+
+The grid footer joins the saved-layout selector with layout management and a Save action that appears while there are unsaved changes. Select a layout to restore it or use the management action to maintain saved layouts. These preferences change presentation, not resource access or data.
+
+<Note>
+  Version 1.6.5 resets existing saved grid layouts once to apply the current column arrangement. Save preferred grid layouts again after the update. Dashboard preferences are retained, and layouts saved after the reset are not removed by subsequent upgrades.
+</Note>
+
+## Confirm and follow an operation
+
+Review the target and scope before submitting a consequential action. When a confirmation asks for text, copy or enter the displayed phrase exactly. Submission remains disabled until it matches; while the request is being accepted, the dialog prevents duplicate submission. An admission error remains visible so you can correct the issue and retry.
+
+An accepted background request is followed through its progress action or operation link. Completion and per-record failures are reported separately from acceptance. Check the retained operation before submitting the same work again after a lost response.
+
+A Database import can continue after its dialog is dismissed. Reopen it from the upload queue to recover the current draft, upload state and accepted validation reference. If an upload fails, its error remains visible; select the file again when requested instead of starting another validation blindly.
+
 ## Build application logic
 
 <CardGroup cols={2}>
@@ -114,6 +134,7 @@ These surfaces have separate persistence and access models. A Chat message is no
 ## Navigation practices
 
 - Confirm the active instance and environment before every consequential action.
+- Select the instance breadcrumb to return to the instance landing dashboard; use the main navigation to choose another workspace.
 - Save recurring views as favourites or dashboards.
 - Keep list filters while opening details in the side panel.
 - Share deep links containing the exact resource or execution ID.

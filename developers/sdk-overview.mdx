@@ -17,7 +17,7 @@ icon: node-js
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk@1.6.4
+npm install @revoengine/sdk@1.6.7
 ```
 
 ## Choose a runtime mode
@@ -74,7 +74,7 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 The execution mode is immutable. Pass `readOnly` in sandbox/execute requests; `api.enableDebug()` and `api.disableDebug()` are removed. External HTTP remains real in read-only mode. Native service-account mutations use current IAM, management ACL, target rank and delegation checks. Key create/rotate return the usable credential once; metadata reads never recover it. See [Service accounts](/operate/service-accounts).
 
-SDK 1.6.4 matches the RevoEngine 1.6.4 platform contract. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+SDK 1.6.7 matches the RevoEngine 1.6.5 platform contract. The SDK has an independent release version. Newly created hosted Components use this exact SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 
@@ -86,7 +86,7 @@ Database exports accept CSV, TSV, NDJSON, and XLSX. `api.importDatabase()` previ
 
 Remote calls use a versioned, generated contract and correlate every result by call ID. Deprecated low-code aliases and callback-based transaction methods are intentionally excluded. The SDK validates protocol and contract revisions and surfaces incompatible responses as protocol errors.
 
-Remote MCP server definitions in SDK 1.6.4 accept public HTTPS destinations. Configure a Vault binding for credentials and review the discovered tools and their permissions before enabling the plugin. See [MCP server plugins](/developers/mcp-plugins) for the connection workflow.
+Remote MCP server definitions in SDK 1.6.7 accept public HTTPS destinations. Configure a Vault binding for credentials and review the discovered tools and their permissions before enabling the plugin. See [MCP server plugins](/developers/mcp-plugins) for the connection workflow.
 
 <Note>
   Runtime method availability does not grant permission. Authentication, roles, instance boundaries, execution context, and platform policy are still enforced by RevoEngine.

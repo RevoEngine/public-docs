@@ -129,6 +129,10 @@ Do not increase timeout, memory, or retry count merely to hide a failing workflo
 
 Use **Jobs → Job History** to inspect an exact Job ID, its status, current/selected version, logs, timing, and retry root. “Accepted” means the request created or scheduled durable work; it is not a success result. Confirm `FINISHED` or a finalized artifact before notifying users or triggering a dependent business process.
 
+The **Trigger** reference identifies the Event or Schedule definition that started the Job; the history reference identifies its particular occurrence. For Event Jobs, the definition is resolved from the receipt for that exact Job execution, so two Events targeting the same template remain distinguishable. The list exposes this reference as `triggerId` and its display name as `triggerName`. A missing retained definition is shown as unavailable rather than inferred from the template.
+
+For a bulk action, review the selected or filtered scope and eligible count before confirmation. After acceptance, **View progress** opens the background operation. Review processed, skipped and failed counts: a finished operation can include individual failures. Closing its progress view does not cancel accepted work.
+
 ## Related guides
 
 <CardGroup cols={2}>
