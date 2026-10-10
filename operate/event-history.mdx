@@ -16,12 +16,14 @@ The detail panel provides:
 
 - the full JSON message;
 - searchable metadata;
-- resolved Job templates;
+- matched Event definition references and their Job templates;
 - related Job executions;
 - the history identifier used for correlation;
 - deletion state and available operator actions.
 
 For Job targets, open the related Job rather than diagnosing Component failure from the event row alone. The Event history proves dispatch lineage; Job history owns runtime result, attempts, logs, and terminal state.
+
+Matched definitions, mapped templates and created executions are separate evidence. A definition rejected by its filter is excluded from the matched references. Empty states distinguish no configured Events, no message matches, and no eligible Events; a matched definition does not establish that a Job execution completed.
 
 ## Follow one delivery end to end
 
@@ -42,6 +44,8 @@ jobEventHistoryId
 ## Replay
 
 Users with `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN` can select one or more history rows and choose **Replay**. RevoEngine creates a new dispatch lineage and reports how many selected events were requested and replayed.
+
+The API receipt includes `batchId`, `triggerId`, and a `replays` list pairing each new `eventId` with its `sourceEventHistoryId`. These identifiers confirm acceptance for dispatch. Follow the new Event History rows to verify target creation and the related Jobs to verify completion.
 
 <Warning>
   Replay evaluates the saved message against the **current** Event definitions and current target configuration. It does not restore an old Component, principal, filter, or external-system state.

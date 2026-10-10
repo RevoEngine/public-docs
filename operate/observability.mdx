@@ -14,6 +14,8 @@ Use Operation ID to find related execution roots, then select a result to inspec
 
 The journey distinguishes recorded parents, missing or ambiguous edges, retry relationships and absent terminal events. A Job's creation-to-start waiting interval is shown separately when both timestamps exist. A missing correlation in historical logs cannot establish causality. Logs includes all retained visible rows in the window, including application messages without an execution origin. Select a row to load its retained payload.
 
+Review the selected execution's coverage notes alongside its journey. Older records may be unavailable, details may be redacted or truncated, and some parents may be outside the selected window or inaccessible. Refresh to include newly retained evidence; an incomplete journey is not proof that the omitted step never happened.
+
 ## Start with the question
 
 | Question | Start here |
@@ -117,6 +119,8 @@ Job status
 ```
 
 For event-driven work, Event History shows resolved targets, concrete executions, and filter-skipped targets. Large messages are loaded only in the detail view.
+
+Follow the exact Event or Schedule occurrence from Job History, then open its definition separately. A shared template or matching display name alone does not prove which definition dispatched an execution.
 
 An accepted schedule, event, export, or refresh request means the work has been queued or started. Confirm a terminal state or finalized artifact before reporting success.
 

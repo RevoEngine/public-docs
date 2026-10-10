@@ -17,7 +17,7 @@ Use an Event when work should begin because state changed, not because a person 
 | Process a finalized Storage upload | `STORAGE_CREATED` → validation Job |
 | Generate a preview after a Storage write | `STORAGE_CREATED` → rendering Job |
 | Reconcile access after an identity change | `USER_UPDATED` → governance Job |
-| React to a domain signal | `CUSTOM` with `customType` such as `ORDER_APPROVED` |
+| React to a domain signal | `type: "ORDER_APPROVED", custom: true` |
 
 <Tip>
   Publish small event envelopes and let the target load authoritative data by ID. Event metadata is searchable, but it is not a replacement for a Table or Storage object.
@@ -32,8 +32,8 @@ Open **Jobs → Events**, select **Add**, and configure the definition.
 | Name | Yes | Operator-facing name used in lists and history. |
 | Category | No | Presentation grouping for larger automation estates. |
 | Description | No | Why the subscription exists and what it is expected to start. |
-| Type | Yes | A built-in lifecycle type or `CUSTOM`. |
-| Custom type | For `CUSTOM` | The application event name. Use a stable, namespaced value. |
+| Internal | Yes | Enabled for a platform lifecycle event; disabled for an application-defined event. |
+| Type | Yes | Select a supported internal type, or enter the application event name when Internal is disabled. |
 | Target type | Yes | `JOB_TEMPLATE` or `AGENT`. |
 | Target | Yes | The Job template or Agent that receives matching work. |
 | Delivery mode | Agent only | `INBOX` queues durable Agent work; `DIRECT_RUN` starts a run directly. |
@@ -45,7 +45,7 @@ For a Job target, the selected template carries the Component, execution princip
 
 ## Operate configured Events
 
-The **Jobs → Events** grid is the inventory of current and deleted definitions. It exposes name, category, description, active state, event type, target type, target ID, metadata, creation/update ownership, version, and deletion state. Every visible column can be used as an operator filter where its data type allows it.
+The **Jobs → Events** grid is the inventory of current and deleted definitions. It exposes name, category, description, active state, Internal classification, Type, target references, metadata, creation/update ownership, version, and deletion state. Every visible column can be used as an operator filter where its data type allows it.
 
 Open a row to review the effective target, delivery mode, metadata, and filter before changing lifecycle state. The header links directly to **History**, so the definition and its observed deliveries remain separate:
 
@@ -62,7 +62,9 @@ Instance settings govern the total and active Event-definition quotas. An active
 
 ## Create a custom business event
 
-Choose **Type → Custom** when the signal belongs to your application rather than a RevoEngine resource lifecycle. In the **Custom type** field enter the event type, for example `ORDER_APPROVED`. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added.
+Disable **Internal** when the signal belongs to your application rather than a RevoEngine resource lifecycle, then enter `ORDER_APPROVED` in **Type**. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added. Event names are normalized to uppercase.
+
+With **Internal** enabled, Type is a selector populated from the supported platform catalogue. Switching back to Internal clears a custom name that is not in that catalogue. The usage hint shows `api.input('message')` for internal messages and `api.triggerEvent()` for a custom event.
 
 Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `SEND_EMAIL_NOW`.
 
@@ -180,7 +182,7 @@ Saved active custom Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION
 1. Open the Event and select **Run**.
 2. Enter a JSON `message` representative of production traffic.
 3. Optionally set `scheduleFor` to an ISO 8601 date-time with timezone or Unix timestamp in milliseconds, from acceptance through 30 days ahead.
-4. Submit and retain the returned Event history identifier.
+4. Submit and retain the returned `eventId` and `triggerId` acceptance receipt.
 5. Open **Event History** and confirm which targets were scheduled or skipped.
 
 ```json
@@ -239,7 +241,7 @@ The current catalogue includes lifecycle events for:
 - User and Service Account create, update, activate, deactivate, restore, and delete;
 - account API-key create, update, and delete.
 
-The `custom` boolean is the only classifier. `custom: true` permits a dynamic business message; `custom: false` selects a supported platform lifecycle event and can only be replayed from existing history. Matching uses both `type` and `custom`, so identical names in different classes do not collide. The UI's Custom selector is only a presentation control.
+The `custom` boolean is the only API classifier. `custom: true` permits a dynamic business message; `custom: false` selects a supported platform lifecycle event and can only be replayed from existing history. Matching uses both `type` and `custom`, so identical names in different classes do not collide. The UI's Internal control presents the inverse of `custom`.
 
 ### Storage lifecycle cookbook
 
@@ -335,7 +337,7 @@ The Event editor retrieves the currently supported native types from
 legacy Files (including `FILE_UPDATED`), user, Service Account and API-key lifecycle
 producers. It excludes unavailable autonomous inbox types. Previously saved types
 remain visible for inspection; a catalogue loading failure disables type selection.
-Choose `CUSTOM` for application-owned events.
+Disable **Internal** and enter **Type** for application-owned events.
 
 ## API key expiry events
 
