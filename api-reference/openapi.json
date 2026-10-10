@@ -3305,6 +3305,56 @@
         ]
       }
     },
+    "/api/v1/component/sync-manifests": {
+      "get": {
+        "description": "Returns live portable properties, versions and backend content digests for components and elements. Includes inactive components, excludes deleted components. Pages by component ID; source remains available from the existing component detail endpoint. ROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN",
+        "operationId": "ComponentController_getSyncManifests",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "default": 200,
+              "type": "number"
+            }
+          },
+          {
+            "name": "afterComponentId",
+            "required": false,
+            "in": "query",
+            "description": "Last component ID from the previous page.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComponentSyncPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List component sync manifests without source.",
+        "tags": [
+          "Components"
+        ]
+      }
+    },
     "/api/v1/component/navigation/search": {
       "get": {
         "operationId": "ComponentController_searchNavigation",
@@ -29625,6 +29675,109 @@
           "method"
         ]
       },
+      "ComponentSyncElementDto": {
+        "type": "object",
+        "properties": {
+          "componentElementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "number"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Includes backend-owned __digest; excludes element source."
+          }
+        },
+        "required": [
+          "componentElementId",
+          "key",
+          "desc",
+          "order",
+          "hidden",
+          "metadata"
+        ]
+      },
+      "ComponentSyncManifestDto": {
+        "type": "object",
+        "properties": {
+          "componentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "elements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentSyncElementDto"
+            }
+          }
+        },
+        "required": [
+          "componentId",
+          "name",
+          "category",
+          "desc",
+          "type",
+          "active",
+          "version",
+          "metadata",
+          "elements"
+        ]
+      },
+      "ComponentSyncPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentSyncManifestDto"
+            }
+          },
+          "nextComponentId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "data",
+          "nextComponentId"
+        ]
+      },
       "ComponentNavigationSearchItemDto": {
         "type": "object",
         "properties": {
@@ -35210,6 +35363,15 @@
       "StorageCsvOptionsDto": {
         "type": "object",
         "properties": {
+          "onError": {
+            "type": "string",
+            "description": "CSV read/index policy. abort rejects invalid records; skipRow skips only source field-count mismatches and reports their count and locations. Syntax and oversized-record errors always abort.",
+            "enum": [
+              "abort",
+              "skipRow"
+            ],
+            "default": "abort"
+          },
           "encoding": {
             "type": "string",
             "description": "Output character encoding. Input encoding is detected when omitted.",

@@ -81,7 +81,7 @@ The upload response and the session state prove different things:
 - `FINALIZED` means Storage published the governed file entry;
 - only the finalized entry should trigger later reads, Events, or Jobs.
 
-For raw CSV with `computeStats: 'sync'`, finalization also validates CSV syntax and source field counts. `STORAGE_CSV_INVALID` prevents publication; successful byte transfer alone does not prove that the CSV is valid. A failed session can retain temporary bytes, so inspect its state and explicitly abort it when abandoning the upload. Native generated row parts retain row and physical-line counts during encoding, so finalization can reuse those counts. See [CSV validation](/operate/storage-structured-files#csv-errors-stop-record-processing).
+For raw CSV with `computeStats: 'sync'`, finalization also validates CSV syntax and source field counts. `STORAGE_CSV_INVALID` prevents publication; successful byte transfer alone does not prove that the CSV is valid. Set `csv.onError: 'skipRow'` explicitly to skip source field-count mismatches with diagnostics. Syntax and record-size errors still abort, and readers need the same explicit policy. A failed session can retain temporary bytes, so inspect its state and explicitly abort it when abandoning the upload. Native generated row parts retain row and physical-line counts during encoding, so finalization can reuse those counts. See [CSV validation](/operate/storage-structured-files#csv-errors-stop-record-processing).
 
 ## Investigate an upload
 

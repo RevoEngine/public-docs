@@ -74,7 +74,7 @@ Structured reads return a page with `rows`, `headers`, `columns`, `next`, and `n
 
 Do not parse CSV by splitting on commas or newlines. Quoted separators, escaped quotes, and multiline records are valid CSV.
 
-CSV syntax and source field counts are validated before record processing. Invalid input fails with `STORAGE_CSV_INVALID` and bounded location diagnostics. CSV statistics distinguish logical `rowCount` from actual physical lines, including headers and blanks. Explicit `mode: 'lines'` is available for custom text workflows; it returns raw strings without CSV interpretation. See [Structured files](/operate/storage-structured-files#csv-errors-stop-record-processing) for dialect, validation and line-count semantics.
+CSV syntax and source field counts are validated before record processing. Invalid input fails with `STORAGE_CSV_INVALID` and bounded location diagnostics by default. Explicit `onError: 'skipRow'` skips only records with the wrong field count and reports their original locations; syntax and record-size errors still abort. CSV statistics distinguish logical `rowCount` from actual physical lines, including headers and blanks. Explicit `mode: 'lines'` is available for custom text workflows; it returns raw strings without CSV interpretation. See [Structured files](/operate/storage-structured-files#csv-errors-stop-record-processing) for dialect, validation and line-count semantics.
 
 ## Workspaces and access
 

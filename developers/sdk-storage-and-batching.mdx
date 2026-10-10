@@ -161,6 +161,8 @@ do {
 
 CSV indexing validates quote syntax and source field counts before returning records. `STORAGE_CSV_INVALID` includes bounded location diagnostics without raw rows or cell values. Its per-record `maxRecordBytes` guard defaults to 64 MiB independently of read size. Set the same dialect for indexing and reading; `quote: false` deliberately keeps literal quotes and backslashes and ignores `escape`. See [CSV validation and physical counts](/operate/storage-structured-files#csv-errors-stop-record-processing).
 
+For CSV/TSV, readers default to `onError: 'abort'`. Set `onError: 'skipRow'` on statistics and every page read to skip records with the wrong source field count. The returned `csvReport` contains the exact skipped count and bounded original-file locations for the whole source; do not sum it across pages. Invalid syntax and oversized records still abort. See [CSV record error policy](/operate/storage-structured-files#handle-csv-records-with-the-wrong-column-count) for upload settings, walkers, and diagnostic fields.
+
 Plain text can still be read through line windows. Explicit `mode: 'lines'` also reads a CSV as strings without interpreting its fields, preserving headers, blanks and the terminal empty element. That mode is for custom text processing, rather than automatic recovery from malformed CSV. Storage record/line batches are unrelated to SDK request batching.
 
 For binary data, `getFileData()` returns base64. Direct reads are limited to 10 MiB; use `buffer: true` with an explicit byte `start` and `end` for a bounded range.

@@ -185,7 +185,7 @@ Optional `maxRecordBytes` is a positive integer limiting the source bytes in one
 
 ## CSV errors stop record processing
 
-Invalid quote syntax or a source record with the wrong number of fields rejects CSV indexing with `STORAGE_CSV_INVALID`. This validation happens before schema projection and before the first record-walker callback. Neither schema fallback nor `additionalProperties: 'strip'` permits dropping or padding fields in a malformed source record.
+Invalid quote syntax rejects CSV indexing with `STORAGE_CSV_INVALID`. A source record with the wrong number of fields also rejects indexing under the default `onError: 'abort'` policy; `onError: 'skipRow'` skips those complete records and reports their locations. This validation happens before schema projection and before the first record-walker callback. Neither schema fallback nor `additionalProperties: 'strip'` permits dropping or padding fields in a malformed source record.
 
 The error contains `errorCount`, up to 100 location diagnostics, and `diagnosticsTruncated`. Each diagnostic identifies the parser `recordNumber`, physical `lineStart` and `lineEnd`, `startByte`, and an error code. Field-count errors can include expected and actual counts. A parser record number can differ from a physical line number because of headers, skipped blank lines and multiline fields. Diagnostics contain no raw rows or cell values and remain available in execution and Job errors.
 
@@ -212,6 +212,39 @@ Synchronous raw CSV finalization validates records and counts physical lines in 
 Use record mode for CSV, TSV, XLSX, NDJSON/JSONL, JSON arrays and record-oriented XML. Explicit `mode: 'lines'` is a separate text-window contract for custom raw-line workflows: it returns strings without parsing fields and preserves headers, blank lines and the terminal empty element. It is not an automatic recovery mode for malformed CSV. For mixed line endings, line windows follow their selected or detected separator; physical CSV metrics count the actual CR, LF and CRLF boundaries.
 
 Once synchronization has built statistics for the same source and dialect, record reads reuse them. A normal walker needs no extra `getFileStats()` call. Use explicit statistics for discovery or validation before separate preparatory work, and `reloadStats: true` only when recomputation is required. Preserve established processing sizes; file size alone is not a reason to shrink callback batches or split the file into extra transfers.
+
+## Handle CSV records with the wrong column count
+
+CSV and TSV record reads default to `onError: 'abort'`. A record whose field count differs from the source header makes indexing fail before rows are returned or a walker callback runs. Without a header, the first data record establishes the expected width. Schema fallback does not pad short records or discard surplus cells.
+
+Choose `onError: 'skipRow'` when processing the valid records is acceptable and the skipped records will be reviewed. This skips complete records with the wrong field count. Invalid quote syntax and records exceeding `maxRecordBytes` still abort; the default record-size limit is 64 MiB.
+
+Pass the policy to `getFileStats()`, `getFileData()`, or `walkFileData()`. Upload sessions accept `csv: { onError: 'skipRow' }` for finalization and background indexing. Each reader still defaults to `abort`, so use `skipRow` explicitly on every read, including continuation pages. Keep the policy unchanged while following a cursor; restart pagination to change it.
+
+```js
+let acceptedRows = 0;
+
+const result = await storage.walkFileData(
+  storageEntryId,
+  { onError: 'skipRow' },
+  async (rows) => {
+    acceptedRows += rows.length;
+  },
+  { fullScan: true, batchSize: 100_000, readBatchSize: 100_000 },
+);
+
+return { acceptedRows, csvReport: result.csvReport };
+```
+
+Statistics, pages, walker callback contexts, and the walker result expose `csvReport`:
+
+- `skippedRows` is the exact number of skipped records in the complete source.
+- `diagnostics` contains up to 100 samples with `recordNumber`, physical `lineStart`/`lineEnd`, `startByte`, and expected/actual field counts. Locations refer to the original file; samples contain no cell values.
+- `diagnosticsTruncated` indicates that further diagnostic samples were omitted.
+
+The report describes the whole indexed file even when a read selects only part of it. Do not sum repeated reports across pages or callbacks. Pagination, `rowCount`, `totalRows`, and walker counters count accepted records. If every data record is skipped, the result still includes the report and no walker callback runs. The original file remains unchanged.
+
+This CSV parser policy is separate from database import `onError`, which controls validation and database write failures. It does not skip business-rule failures or apply to XLSX, other structured formats, physical-line mode, or byte reads.
 
 ## Generate typed rows
 

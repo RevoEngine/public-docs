@@ -2259,7 +2259,7 @@ declare class storage {
      * - CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
      * - mode: "lines" returns physical string lines, including headers and the final empty line; encoding and separator are detected or overridden.
      * - CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false keeps quotes/backslashes literal and ignores escape.
-     * - maxRecordBytes defaults to 64 MiB per logical CSV record, independently of page/callback sizes. Oversized, malformed or wrong-width records reject indexing with STORAGE_CSV_INVALID before rows are returned.
+     * - maxRecordBytes defaults to 64 MiB per logical CSV record, independently of page/callback sizes. Oversized or malformed records reject indexing with STORAGE_CSV_INVALID before rows are returned. Wrong-width records also reject by default; onError: "skipRow" skips them with csvReport diagnostics.
      * - CSV errors include errorCount, at most 100 safe location diagnostics and diagnosticsTruncated; no raw row/cell values. Physical counters are distinct from logical rowCount.
      * - Other text file batch reads reuse cached line stats and auto-build them if missing.
      * - Binary reads return a base64 string.
@@ -2286,7 +2286,7 @@ declare class storage {
      * Omitted take scans all rows. XLSX uses the first visible sheet by default;
      * XML requires recordPath.
      * Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
-     * Source changes or callback errors stop the scan. Invalid CSV rejects indexing
+     * Source changes or callback errors stop the scan. Invalid CSV syntax rejects indexing
      * with STORAGE_CSV_INVALID before the first business callback; diagnostics contain no raw data.
      * Keep only aggregates.
      *
@@ -2320,7 +2320,7 @@ declare class storage {
      * - mode: "lines" builds a separate physical-line index with lineCount, map, batches, encoding and separator.
      * - CSV stats include physicalLineCount, blankLineCount and endsWithRecordDelimiter independently of logical rowCount.
      * - CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false disables quoting and ignores escape.
-     * - maxRecordBytes defaults to 64 MiB per logical record, independently of batch size. Invalid syntax, source field counts or oversized records reject indexing with STORAGE_CSV_INVALID.
+     * - maxRecordBytes defaults to 64 MiB per logical record, independently of batch size. Invalid syntax or oversized records reject indexing with STORAGE_CSV_INVALID. Wrong source field counts reject by default; onError: "skipRow" skips them with csvReport diagnostics.
      * - The error contains errorCount, at most 100 location diagnostics and diagnosticsTruncated, never raw rows/cells; RecordTooLarge may report only the inspected prefix.
      * - physicalLineCount counts actual lines including headers, blank lines and multiline fields. Legacy lineCount retains the synthetic terminal empty line when present.
      * - Derived stats are cached on the storage entry metadata for later batch reads.
