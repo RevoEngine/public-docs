@@ -750,7 +750,9 @@ const restricted = api.isDebug();
 
 ## `api.getCache()`
 
-Reads request-scoped in-memory cache.
+Reads execution-scoped in-memory cache. Returns a detached mutable copy by
+default, or the same value when written with `&#123; reference: true &#125;`.
+Missing keys return `undefined`. Entries never cross execution boundaries.
 
 ### Signature
 
@@ -767,17 +769,21 @@ const token = api.getCache('token');
 
 ## `api.setCache()`
 
-Writes request-scoped in-memory cache.
+Writes execution-scoped in-memory cache. Copies the value by default.
+`&#123; reference: true &#125;` retains the same object: later mutations of the input
+or returned value change the cached value. Use only for intentional reuse
+within this execution; refresh or overwrite after a write to the source.
 
 ### Signature
 
 ```ts
-static setCache(key: string, value: any): void;
+static setCache(key: string, value: any, options?: { reference?: boolean }): void;
 ```
 ### Example
 
 ```ts
 api.setCache('token', 'abc');
+api.setCache('rows', rows, { reference: true });
 ```
 
 <span id="api-getContext" aria-hidden="true"></span>
