@@ -54,7 +54,11 @@ The execution principal is evaluated when the job runs. Use a service account fo
 
 ## Inputs and history
 
-Template input is a JSON object. Each run may supply its own structured job input, while the Component can also read stable template values. New integrations should not send JSON encoded as a string.
+Template Runtime input is a JSON object stored under `options.input` and read through `api.input('templateInputs')`. Each run may also carry its own structured Job input. New integrations should not send JSON encoded as a string.
+
+For Job targets, Events and Schedules expose **Options → Runtime input** with **Override** (default) and **Replace**. Override shallowly overlays the automation object onto Job defaults, with automation keys winning. Replace uses only the automation object; `{}` clears the defaults for that execution. Existing definitions retain their effective input after migration. The input does not change the template's execution policy, concurrency, or retries.
+
+Use several Schedules or Events with one Job template when only input differs, such as weekday partial exports and weekend full exports. See [Schedule Runtime input](/operate/schedules#configure-runtime-input-for-a-job-target) and [Event Runtime input](/operate/events#configure-runtime-input-for-a-job-target) for UI steps, examples, and accepted-execution behavior.
 
 Use `hideRequest` or `hideResponse` when an execution payload should not be retained in job history. These options reduce persisted visibility; they are not a substitute for avoiding secrets in application payloads.
 

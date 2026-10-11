@@ -40,8 +40,47 @@ Open **Jobs → Events**, select **Add**, and configure the definition.
 | Activate upon creation | New definitions | Whether matching begins immediately. |
 | Metadata | No | Searchable ownership, service, environment, or cost-centre labels. |
 | Filter | No | Conditions evaluated against the normalized message. Empty means match all. |
+| Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
+| Input mode | Job only | **Override** overlays Job defaults; **Replace** replaces them entirely. Defaults to **Override**. |
 
 For a Job target, the selected template carries the Component, execution principal, input defaults, limits, concurrency, and retry policy. For an Agent target, delivery uses the current Agent definition.
+
+## Configure Runtime input for a Job target
+
+Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override** and **Replace**, with icons and descriptions.
+
+| Mode | Effective `templateInputs` |
+| --- | --- |
+| **Override** (default) | `{ ...jobTemplateInput, ...eventInput }`: Event keys take precedence; other Job defaults remain. |
+| **Replace** | Only the Event input. An empty `{}` removes all Job template defaults for this execution. |
+
+Override is shallow: a supplied nested object or array replaces the whole value at that key. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
+
+For example, a Job template with `{ "region": "eu", "mode": "incremental" }` and an Event with `{ "mode": "full" }` in Override mode execute with `{ "region": "eu", "mode": "full" }`.
+
+The Platform API uses these fields on the Event definition:
+
+```json
+{
+  "input": { "mode": "full" },
+  "inputMode": "override"
+}
+```
+
+Read the resolved values in the Component:
+
+```js
+const templateInputs = api.input('templateInputs');
+const message = api.input('message');
+```
+
+Event Runtime input configures `templateInputs`; it does not replace the Event `message`, `type`, or user `metadata`. Agent delivery remains configured through its target settings.
+
+The Platform API uses `inputMode: "override"` for **Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+
+New definitions default to `input: {}` and `inputMode: "override"`, preserving Job defaults. On an API update, omitted fields retain their stored values. Send both `input: {}` and `inputMode: "override"` to restore the default configuration.
+
+Each accepted delivery retains its Runtime input and mode. Editing the Event changes future deliveries; it does not rewrite the input of Jobs already queued or running, or their retry attempts. The Job template continues to own execution policy, concurrency, and retry settings.
 
 ## Operate configured Events
 

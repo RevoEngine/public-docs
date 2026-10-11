@@ -71,6 +71,17 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 
 A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration.
 
+## Runtime input from Events and Schedules
+
+The template's **Runtime input** is stored as `options.input` and exposed to the Component through `api.input('templateInputs')`. A Job-targeting [Event](/operate/events#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedules#configure-runtime-input-for-a-job-target) can configure its own Runtime input in **Options**:
+
+- **Override** (default) shallowly overlays the automation input onto template defaults; Event or Schedule keys win.
+- **Replace** replaces the whole template input for that execution; `{}` clears it.
+
+This lets several automations reuse one Job template while selecting different Component behavior. The template still owns the execution principal, limits, concurrency, and retry policy. Event messages remain separate from `templateInputs`.
+
+Existing automation definitions retain their effective input after migration; definitions using the former default keep Job defaults. The resolved input is retained with the Job; later Event or Schedule edits do not change queued or running Jobs, or their retry input.
+
 ## Choose and retain the executor
 
 `executionPolicy` selects who executes the Job. A direct Platform API or MCP invocation requires the caller's automation permissions. Triggering a Job inside an Endpoint checks the Endpoint's execution account for those permissions.

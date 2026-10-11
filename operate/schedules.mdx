@@ -45,6 +45,8 @@ Open **Jobs → Schedule**, select **Add**, then provide:
 | Target | Yes | Existing target selected from the relevant catalogue. |
 | Activate upon creation | New definitions | Whether scheduling begins immediately. |
 | Metadata | No | Searchable ownership, environment, or cost labels. |
+| Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
+| Input mode | Job only | **Override** overlays Job defaults; **Replace** replaces them entirely. Defaults to **Override**. |
 
 The editor displays a human-readable cron description after validation.
 
@@ -76,6 +78,42 @@ This fires at 09:30 on weekdays in Warsaw time and follows daylight-saving chang
 
 The expression describes cadence; the timezone decides how wall-clock times map to real instants. For DST-sensitive business jobs, test the spring and autumn transitions and decide whether a skipped or repeated local hour is acceptable.
 
+## Configure Runtime input for a Job target
+
+For a Job target, use the expanded **Options** section at the bottom of the Schedule editor. Enter a JSON object in **Runtime input**, using the same editor as Job templates, and select **Override** or **Replace** from the dropdown with icons and descriptions.
+
+| Mode | Effective `templateInputs` |
+| --- | --- |
+| **Override** (default) | `{ ...jobTemplateInput, ...scheduleInput }`: Schedule keys take precedence; other Job defaults remain. |
+| **Replace** | Only the Schedule input. An empty `{}` clears all Job template defaults for this execution. |
+
+Override is shallow: nested objects and arrays replace the value at their top-level key rather than merging recursively. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
+
+The Component reads the resolved object through `api.input('templateInputs')`. These settings apply to both cron occurrences and manual **Run**. They do not change the Job template's execution policy, concurrency, or retry settings, and do not configure Agent or Materialized View targets.
+
+The Platform API uses `inputMode: "override"` for **Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+
+New definitions use `input: {}` and `inputMode: "override"` by default, preserving Job defaults. API updates retain stored fields when those fields are omitted. Send both fields to return to the defaults.
+
+### One export Job, two cadences
+
+Keep one price-list export Job template with Runtime input:
+
+```json
+{ "region": "eu", "full": false }
+```
+
+Create two Schedules targeting that same template:
+
+| Schedule | Cron | Runtime input | Input mode |
+| --- | --- | --- | --- |
+| Weekday partial export | `0 2 * * MON-FRI` | `{ "full": false }` | Override |
+| Weekend full export | `0 2 * * SAT` | `{ "full": true }` | Override |
+
+Both keep `region: "eu"` and share the template's Component, principal, concurrency, and retry policy. The Component selects the export path from `api.input('templateInputs').full`.
+
+An accepted occurrence retains its Runtime input and mode. Later Schedule edits affect subsequent occurrences, not Jobs already queued or running or their retry attempts.
+
 ## Public configuration shape
 
 The Platform API stores the same effective model shown in the UI:
@@ -90,6 +128,8 @@ The Platform API stores the same effective model shown in the UI:
   "timezone": "Europe/Warsaw",
   "targetType": "JOB_TEMPLATE",
   "targetId": "e8250fe1-f0e1-4d2b-b8c4-10494cb23f15",
+  "input": { "region": "eu" },
+  "inputMode": "override",
   "metadata": {
     "owner": "payments-platform",
     "runbook": "settlement-v3"
