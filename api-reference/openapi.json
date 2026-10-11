@@ -26144,7 +26144,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.6.4",
+    "version": "1.6.5",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -36969,6 +36969,21 @@
       "ScheduleRequestDto": {
         "type": "object",
         "properties": {
+          "input": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": true,
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+          },
+          "inputMode": {
+            "type": "string",
+            "enum": [
+              "override",
+              "replace"
+            ],
+            "default": "override",
+            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+          },
           "name": {
             "type": "string",
             "description": "Display name of the schedule.",
@@ -37046,6 +37061,21 @@
       "UpdateScheduleRequestDto": {
         "type": "object",
         "properties": {
+          "input": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": true,
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+          },
+          "inputMode": {
+            "type": "string",
+            "enum": [
+              "override",
+              "replace"
+            ],
+            "default": "override",
+            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+          },
           "name": {
             "type": "string",
             "description": "Provide name of result resource and automation itself."
@@ -37159,6 +37189,21 @@
       "JobEventRequestDto": {
         "type": "object",
         "properties": {
+          "input": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": true,
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+          },
+          "inputMode": {
+            "type": "string",
+            "enum": [
+              "override",
+              "replace"
+            ],
+            "default": "override",
+            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+          },
           "custom": {
             "type": "boolean",
             "description": "true: user-triggerable custom event; false: native platform event, replayable only from history."
@@ -37256,6 +37301,21 @@
       "UpdateJobEventRequestDto": {
         "type": "object",
         "properties": {
+          "input": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": true,
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+          },
+          "inputMode": {
+            "type": "string",
+            "enum": [
+              "override",
+              "replace"
+            ],
+            "default": "override",
+            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+          },
           "custom": {
             "type": "boolean",
             "description": "Whether this is a user-triggerable custom event."
