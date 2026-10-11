@@ -3131,8 +3131,8 @@
             "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
             "schema": {
               "minimum": 0,
-              "type": "number",
-              "example": 0
+              "example": 0,
+              "type": "number"
             }
           },
           {
@@ -3141,10 +3141,10 @@
             "in": "query",
             "description": "Maximum number of rows to return. Parsed from a query-string integer. Most list endpoints default to 100 when omitted.",
             "schema": {
-              "type": "number",
               "minimum": 0,
               "maximum": 10000,
-              "example": 100
+              "example": 100,
+              "type": "number"
             }
           },
           {
@@ -3153,8 +3153,8 @@
             "in": "query",
             "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
-              "type": "boolean",
-              "example": true
+              "example": true,
+              "type": "boolean"
             }
           },
           {
@@ -3406,8 +3406,8 @@
             "in": "query",
             "description": "Literal substring of a component name or element key.",
             "schema": {
-              "type": "string",
-              "maxLength": 120
+              "maxLength": 120,
+              "type": "string"
             }
           },
           {
@@ -3434,9 +3434,9 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number",
               "minimum": 0,
-              "default": 0
+              "default": 0,
+              "type": "number"
             }
           },
           {
@@ -3444,10 +3444,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number",
               "minimum": 1,
               "maximum": 100,
-              "default": 50
+              "default": 50,
+              "type": "number"
             }
           }
         ],
@@ -3536,9 +3536,9 @@
             "in": "query",
             "description": "Maximum matches returned per page (default 20, maximum 100).",
             "schema": {
-              "type": "number",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 100,
+              "type": "number"
             }
           },
           {
@@ -3547,8 +3547,8 @@
             "in": "query",
             "description": "Local version from the previous page cursor; provide with afterDigest and afterComponentId.",
             "schema": {
-              "type": "number",
-              "minimum": 0
+              "minimum": 0,
+              "type": "number"
             }
           },
           {
@@ -3743,23 +3743,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -3838,23 +3838,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "responses": {
@@ -3923,9 +3923,9 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
             "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -3933,13 +3933,13 @@
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -4027,9 +4027,9 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
             "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -4037,13 +4037,13 @@
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -4127,23 +4127,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -4210,33 +4210,33 @@
           },
           {
             "name": "x-revo-operation-id",
-            "required": false,
             "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected."
+            }
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -4305,23 +4305,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "responses": {
@@ -4389,23 +4389,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "responses": {
@@ -4474,23 +4474,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "responses": {
@@ -4535,8 +4535,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           }
         ],
@@ -4576,8 +4576,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -4585,10 +4585,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number",
               "minimum": 1,
               "maximum": 100,
-              "default": 25
+              "default": 25,
+              "type": "number"
             }
           },
           {
@@ -4596,9 +4596,9 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number",
               "minimum": 0,
-              "default": 0
+              "default": 0,
+              "type": "number"
             }
           },
           {
@@ -4654,8 +4654,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -4705,8 +4705,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -4730,23 +4730,23 @@
           },
           {
             "name": "x-revo-studio-session-id",
-            "required": false,
             "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
             "schema": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+              "type": "string",
+              "format": "uuid"
+            }
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "responses": {
@@ -4794,8 +4794,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -4820,13 +4820,13 @@
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -4885,8 +4885,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -4911,13 +4911,13 @@
           },
           {
             "name": "x-revo-base-version",
-            "required": false,
             "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
             "schema": {
               "type": "integer",
               "minimum": 0
-            },
-            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
+            }
           }
         ],
         "requestBody": {
@@ -15768,7 +15768,7 @@
     },
     "/api/v1/studio/sessions/{sessionId}": {
       "get": {
-        "description": "Returns persisted resources, file revisions, participants, test results, proposals and release state. linkedChats distinguishes automatically associated session-born conversations (SESSION_THREAD/MEMBERS) from explicitly consented shared history (SHARED_HISTORY/SHARED). Member history is never granted by a public Studio share.",
+        "description": "Without query returns persisted resources, file revisions, participants, test results, proposals and release state. view=summary returns bounded counts, candidate review metadata and runtime state. view=proposal requires proposalId and exposes complete pinned candidate/TestRun evidence through bounded JSON-pointer pages with digest-checked continuation. linkedChats distinguishes automatically associated session-born conversations (SESSION_THREAD/MEMBERS) from explicitly consented shared history (SHARED_HISTORY/SHARED). Member history is never granted by a public Studio share.",
         "operationId": "StudioController_get",
         "parameters": [
           {
@@ -15777,6 +15777,94 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "view",
+            "required": false,
+            "in": "query",
+            "description": "Bounded summary or exact pinned proposal evidence. Omit for the existing full workspace response.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "summary",
+                "proposal"
+              ]
+            }
+          },
+          {
+            "name": "proposalId",
+            "required": false,
+            "in": "query",
+            "description": "Required for proposal view; selects one candidate within this session.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "pointer",
+            "required": false,
+            "in": "query",
+            "description": "RFC 6901 pointer into {proposal,testRuns}. Defaults to /proposal. Read /proposal/resources, /proposal/files, /proposal/dependencyManifest or /testRuns/<run UUID> for pinned evidence.",
+            "schema": {
+              "maxLength": 1024,
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "UTF-16 character offset into the selected JSON value. Continuation requires its returned contentDigest.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum JSON characters per proposal page; no manifest fields are discarded.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 8192,
+              "default": 4096,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "contentDigest",
+            "required": false,
+            "in": "query",
+            "description": "Read digest binding the selected pointer to the complete pinned document and review metadata; required when offset > 0. Drift returns STUDIO_READ_STALE.",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Candidate summary page size.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Candidate summary page offset.",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "integer"
             }
           }
         ],
@@ -16196,16 +16284,20 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The authorized studioSessionId UUID."
           },
           {
             "name": "fileId",
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The studioFileId UUID from the session file list, not its digest or component ID."
           },
           {
             "name": "startLine",
@@ -32846,6 +32938,119 @@
           "active"
         ]
       },
+      "StudioWriteTestGapDto": {
+        "type": "object",
+        "properties": {
+          "gapId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "waivable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "gapId",
+          "code",
+          "message",
+          "waivable"
+        ]
+      },
+      "StudioWriteTestPolicyDto": {
+        "type": "object",
+        "properties": {
+          "requiredTestComponentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioWriteTestGapDto"
+            }
+          }
+        },
+        "required": [
+          "requiredTestComponentIds",
+          "gaps"
+        ]
+      },
+      "StudioComponentWritePendingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "STUDIO_REVIEW_REQUIRED"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studioSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studioProposalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposalDigest": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mutationApplied": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "nextAction": {
+            "type": "string",
+            "enum": [
+              "REVIEW",
+              "PREPARE"
+            ]
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "runtimeReady": {
+            "type": "boolean"
+          },
+          "testPolicy": {
+            "$ref": "#/components/schemas/StudioWriteTestPolicyDto"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "operationId",
+          "studioSessionId",
+          "studioProposalId",
+          "proposalDigest",
+          "revision",
+          "mutationApplied",
+          "nextAction",
+          "runtimeReady"
+        ]
+      },
       "UpdateComponentDto": {
         "type": "object",
         "properties": {
@@ -39371,6 +39576,17 @@
       "StudioCreateResourceDto": {
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "UPSERT",
+              "DELETE",
+              "RESTORE",
+              "DEPLOY"
+            ],
+            "default": "UPSERT",
+            "description": "Reviewed component lifecycle operation. DELETE and RESTORE require an existing observed component base."
+          },
           "componentId": {
             "type": "string",
             "format": "uuid"
@@ -39390,17 +39606,6 @@
                 "$ref": "#/components/schemas/StudioProposedComponentDto"
               }
             ]
-          },
-          "action": {
-            "type": "string",
-            "enum": [
-              "UPSERT",
-              "DELETE",
-              "RESTORE",
-              "DEPLOY"
-            ],
-            "default": "UPSERT",
-            "description": "Reviewed component lifecycle operation. DELETE and RESTORE require an existing observed component base."
           }
         },
         "required": [
@@ -46703,119 +46908,6 @@
         },
         "required": [
           "url"
-        ]
-      },
-      "StudioWriteTestGapDto": {
-        "type": "object",
-        "properties": {
-          "gapId": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "waivable": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "gapId",
-          "code",
-          "message",
-          "waivable"
-        ]
-      },
-      "StudioWriteTestPolicyDto": {
-        "type": "object",
-        "properties": {
-          "requiredTestComponentIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "gaps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StudioWriteTestGapDto"
-            }
-          }
-        },
-        "required": [
-          "requiredTestComponentIds",
-          "gaps"
-        ]
-      },
-      "StudioComponentWritePendingDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "STUDIO_REVIEW_REQUIRED"
-            ]
-          },
-          "message": {
-            "type": "string"
-          },
-          "operationId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "studioSessionId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "studioProposalId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "proposalDigest": {
-            "type": "string"
-          },
-          "revision": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "mutationApplied": {
-            "type": "boolean",
-            "enum": [
-              false
-            ]
-          },
-          "nextAction": {
-            "type": "string",
-            "enum": [
-              "REVIEW",
-              "PREPARE"
-            ]
-          },
-          "releaseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "runtimeReady": {
-            "type": "boolean"
-          },
-          "testPolicy": {
-            "$ref": "#/components/schemas/StudioWriteTestPolicyDto"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "operationId",
-          "studioSessionId",
-          "studioProposalId",
-          "proposalDigest",
-          "revision",
-          "mutationApplied",
-          "nextAction",
-          "runtimeReady"
         ]
       }
     }
