@@ -16147,21 +16147,21 @@
             "name": "sessionId",
             "required": true,
             "in": "path",
+            "description": "The authorized studioSessionId UUID.",
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "The authorized studioSessionId UUID."
+              "format": "uuid",
+              "type": "string"
+            }
           },
           {
             "name": "fileId",
             "required": true,
             "in": "path",
+            "description": "The studioFileId UUID from the session file list, not its digest or component ID.",
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "The studioFileId UUID from the session file list, not its digest or component ID."
+              "format": "uuid",
+              "type": "string"
+            }
           },
           {
             "name": "startLine",
@@ -28380,12 +28380,7 @@
     },
     "termsOfService": "https://docs.revoengine.com/tos"
   },
-  "tags": [
-    {
-      "name": "Studio",
-      "description": "Shared coding workspaces, native test evidence, candidate review and explicit runtime activation on enabled instances."
-    }
-  ],
+  "tags": [],
   "servers": [
     {
       "url": "https://api.revoengine.com",
