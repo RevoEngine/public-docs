@@ -3115,8 +3115,8 @@
             "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
             "schema": {
               "minimum": 0,
-              "example": 0,
-              "type": "number"
+              "type": "number",
+              "example": 0
             }
           },
           {
@@ -3125,10 +3125,10 @@
             "in": "query",
             "description": "Maximum number of rows to return. Parsed from a query-string integer. Most list endpoints default to 100 when omitted.",
             "schema": {
+              "type": "number",
               "minimum": 0,
               "maximum": 10000,
-              "example": 100,
-              "type": "number"
+              "example": 100
             }
           },
           {
@@ -3137,8 +3137,8 @@
             "in": "query",
             "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
             "schema": {
-              "example": true,
-              "type": "boolean"
+              "type": "boolean",
+              "example": true
             }
           },
           {
@@ -3253,7 +3253,38 @@
       "post": {
         "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
         "operationId": "ComponentController_createComponents",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-base-version",
+            "in": "header",
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3273,6 +3304,16 @@
           },
           "403": {
             "description": "Forbidden."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Custom runtime lifecycle migration is required for CUSTOM_NODEJS."
@@ -3349,8 +3390,8 @@
             "in": "query",
             "description": "Literal substring of a component name or element key.",
             "schema": {
-              "maxLength": 120,
-              "type": "string"
+              "type": "string",
+              "maxLength": 120
             }
           },
           {
@@ -3365,6 +3406,8 @@
                 "CODE_TS_LIB",
                 "CODE_JS",
                 "CODE_TS",
+                "CODE_JS_TEST",
+                "CODE_TS_TEST",
                 "JSON_VALIDATOR",
                 "CUSTOM_NODEJS"
               ]
@@ -3375,9 +3418,9 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "number",
               "minimum": 0,
-              "default": 0,
-              "type": "number"
+              "default": 0
             }
           },
           {
@@ -3385,10 +3428,10 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "number",
               "minimum": 1,
               "maximum": 100,
-              "default": 50,
-              "type": "number"
+              "default": 50
             }
           }
         ],
@@ -3476,9 +3519,9 @@
             "in": "query",
             "description": "Maximum matches returned per page (default 20, maximum 100).",
             "schema": {
+              "type": "number",
               "minimum": 1,
-              "maximum": 100,
-              "type": "number"
+              "maximum": 100
             }
           },
           {
@@ -3487,8 +3530,8 @@
             "in": "query",
             "description": "Local version from the previous page cursor; provide with afterDigest and afterComponentId.",
             "schema": {
-              "minimum": 0,
-              "type": "number"
+              "type": "number",
+              "minimum": 0
             }
           },
           {
@@ -3670,6 +3713,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -3694,6 +3767,16 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3725,6 +3808,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "responses": {
@@ -3736,6 +3849,16 @@
           },
           "403": {
             "description": "Forbidden."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3770,6 +3893,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -3797,6 +3950,16 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Custom runtime lifecycle migration is required for CUSTOM_NODEJS."
@@ -3834,6 +3997,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -3858,6 +4051,16 @@
           },
           "404": {
             "description": "Component or element not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Custom runtime lifecycle migration is required for CUSTOM_NODEJS."
@@ -3894,6 +4097,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -3907,8 +4140,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3950,6 +4190,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected."
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -3963,8 +4233,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3998,6 +4275,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "responses": {
@@ -4009,6 +4316,16 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4042,6 +4359,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "responses": {
@@ -4053,6 +4400,16 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4087,6 +4444,36 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "responses": {
@@ -4098,6 +4485,16 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4121,8 +4518,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -4162,8 +4559,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -4171,10 +4568,10 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "number",
               "minimum": 1,
               "maximum": 100,
-              "default": 25,
-              "type": "number"
+              "default": 25
             }
           },
           {
@@ -4182,9 +4579,9 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "number",
               "minimum": 0,
-              "default": 0,
-              "type": "number"
+              "default": 0
             }
           },
           {
@@ -4240,8 +4637,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -4290,8 +4687,8 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -4302,6 +4699,36 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically."
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "responses": {
@@ -4311,6 +4738,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ComponentDeploymentDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
                 }
               }
             }
@@ -4339,9 +4776,39 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -4366,7 +4833,14 @@
             }
           },
           "409": {
-            "description": "Runtime generation changed."
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Runtime lifecycle migration is not available."
@@ -4392,9 +4866,39 @@
             "required": true,
             "in": "path",
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
+          },
+          {
+            "name": "x-revo-operation-id",
+            "in": "header",
+            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-studio-session-id",
+            "in": "header",
+            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "x-revo-base-version",
+            "required": false,
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Observed component version for an action without a version field. Conflicts never overwrite source."
           }
         ],
         "requestBody": {
@@ -4419,7 +4923,14 @@
             }
           },
           "409": {
-            "description": "Runtime generation changed or activation mode is not MANUAL."
+            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioComponentWritePendingDto"
+                }
+              }
+            }
           },
           "422": {
             "description": "Revision has no READY artifact."
@@ -14870,6 +15381,2266 @@
         "summary": "Search messages across accessible threads.",
         "tags": [
           "Chat"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions": {
+      "get": {
+        "description": "Returns accessible sessions and creation capabilities. Archived sessions are listed explicitly; saved drafts remain available.",
+        "operationId": "StudioController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List Studio sessions",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "post": {
+        "description": "Persists a working workspace and its shared discussion without publishing source or activating runtime. Promotion requires the observed component bases; identical operation retries reuse the session.",
+        "operationId": "StudioController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioCreateSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a Studio session",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/shared/{shareId}": {
+      "get": {
+        "description": "Returns the read-only snapshot for an enabled revocable share. Sharing grants no editing, execution, upload, or ordinary chat membership.",
+        "operationId": "StudioController_shared",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a shared Studio session",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/shared/{shareId}/linked-chats/{linkId}/messages": {
+      "get": {
+        "description": "Reads only explicitly attached shareable conversation history through the session share. Revocation of either grant denies access.",
+        "operationId": "StudioController_sharedLinked",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioLinkedChatMessagesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read shared linked conversation messages",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/shared/{shareId}/chat": {
+      "get": {
+        "description": "Returns a bounded read-only page of the session discussion while its share remains enabled.",
+        "operationId": "StudioController_sharedChat",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a shared Studio discussion",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}": {
+      "get": {
+        "description": "Returns persisted resources, file revisions, participants, test results, proposals and release state. linkedChats distinguishes automatically associated session-born conversations (SESSION_THREAD/MEMBERS) from explicitly consented shared history (SHARED_HISTORY/SHARED). Member history is never granted by a public Studio share.",
+        "operationId": "StudioController_get",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio workspace",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "patch": {
+        "description": "Updates title, intent, archive state or pinning. Changing reviewed intent supersedes previous candidates; archived activated work continues through a fork.",
+        "operationId": "StudioController_update",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioSessionUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a Studio session",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "delete": {
+        "description": "Marks an authorized workspace for deletion under retention policy. Protected deployment evidence and runtime references remain retained.",
+        "operationId": "StudioController_remove",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a Studio workspace",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/fork": {
+      "post": {
+        "description": "Creates an independently editable session from retained workspace content without deploying it or duplicating linked conversation history.",
+        "operationId": "StudioController_fork",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioForkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fork a Studio workspace",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/linked-chats": {
+      "post": {
+        "description": "Requires ownership and explicit consent to expose the available history of an already shared conversation to authorized Studio readers.",
+        "operationId": "StudioController_linkChat",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioLinkChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Attach a shareable conversation",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/linked-chats/{linkId}/revoke": {
+      "post": {
+        "description": "Revokes the Studio projection without deleting the original conversation.",
+        "operationId": "StudioController_unlinkChat",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Detach a linked conversation",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/linked-chats/{linkId}/messages": {
+      "get": {
+        "description": "Returns sanitized visible history for an authorized member: either an automatically associated session-born conversation or explicitly consented shared history. Binding an existing private thread does not publish its history. Private reasoning and diagnostic snapshots are excluded; this read projection grants no writing or forking.",
+        "operationId": "StudioController_linkedChat",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudioLinkedChatMessagesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read linked conversation messages",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/resources": {
+      "post": {
+        "description": "Adds a component with its observed base or a new workspace identity. This modifies the draft only.",
+        "operationId": "StudioController_resource",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioAttachResourceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a Studio resource",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/patch": {
+      "post": {
+        "description": "Applies full-content changes or a V4A patch atomically using each affected file revision and digest. A conflict preserves the existing workspace and returns merge information.",
+        "operationId": "StudioController_patch",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioPatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Patch Studio working files",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/files": {
+      "get": {
+        "description": "Lists stable file identities, virtual paths, revisions and digests in the authorized workspace.",
+        "operationId": "StudioController_files",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List Studio files",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/files/{fileId}": {
+      "get": {
+        "description": "Reads the selected virtual workspace file or a bounded line range. Paths do not expose host files.",
+        "operationId": "StudioController_file",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startLine",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "endLine",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio file",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/diff": {
+      "get": {
+        "description": "Returns the complete base-to-working changes for code and component configuration.",
+        "operationId": "StudioController_diff",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the Studio working diff",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/events": {
+      "get": {
+        "description": "Returns ordered durable events after a cursor. Clients use snapshots and cursor replay to recover after reconnect or duplicate notifications.",
+        "operationId": "StudioController_events",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read Studio events",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/search": {
+      "get": {
+        "description": "Searches the authorized workspace with bounded matches. A shared viewer does not gain access to unrelated platform resources.",
+        "operationId": "StudioController_search",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search Studio files",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/rebase": {
+      "get": {
+        "description": "Compares original base, working draft and current component state without overwriting working changes.",
+        "operationId": "StudioController_previewRebase",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview a Studio rebase",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "post": {
+        "description": "Refreshes resource bases and applies explicit conflict resolutions. Concurrent source, configuration and element changes are checked together.",
+        "operationId": "StudioController_rebase",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioRebaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rebase a Studio workspace",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/participants": {
+      "post": {
+        "description": "Adds, changes or revokes session roles. Membership does not grant additional component, secret or execution permissions.",
+        "operationId": "StudioController_participant",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioParticipantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Manage Studio participants",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-batches": {
+      "post": {
+        "description": "Creates a durable Team Chat upload batch under the verified actor and current session write access.",
+        "operationId": "StudioController_createUploadBatch",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatUploadBatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a Studio chat upload batch",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-batches/{batchId}": {
+      "get": {
+        "description": "Returns the existing upload batch lifecycle only for its verified owning actor.",
+        "operationId": "StudioController_getUploadBatch",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "batchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio chat upload batch",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-batches/{batchId}/heartbeat": {
+      "post": {
+        "description": "Extends pending upload reservations through the native Team Chat upload pipeline after fresh session and actor checks.",
+        "operationId": "StudioController_heartbeatUploadBatch",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "batchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatActorOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Extend a Studio chat upload batch",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-batches/{batchId}/discard": {
+      "post": {
+        "description": "Discards only the verified actor’s unbound upload batch and records the session operation.",
+        "operationId": "StudioController_discardUploadBatch",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "batchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatActorOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Discard a Studio chat upload batch",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-sessions/{uploadSessionId}/complete": {
+      "post": {
+        "description": "Finalizes the native upload reservation belonging to this session and verified actor before attachment binding.",
+        "operationId": "StudioController_completeUploadSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadSessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatActorOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Finalize a Studio chat upload",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/upload-sessions/{uploadSessionId}": {
+      "get": {
+        "description": "Returns the native upload lifecycle under current session access and owning actor scope.",
+        "operationId": "StudioController_getUploadSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadSessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio chat upload reservation",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/messages/{messageId}/attachments/{entryId}/{representation}": {
+      "get": {
+        "description": "Returns a short-lived signed download, preview or thumbnail only for a retained attachment bound to this message and session.",
+        "operationId": "StudioController_attachment",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "representation",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio message attachment",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/shared/{shareId}/chat/messages/{messageId}/attachments/{entryId}/{representation}": {
+      "get": {
+        "description": "Checks the current read-only session grant and exact message attachment binding before issuing a short-lived provider URL.",
+        "operationId": "StudioController_sharedAttachment",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "representation",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a shared Studio message attachment",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/messages/{messageId}": {
+      "get": {
+        "description": "Read a message and its reply context after verifying current session membership.",
+        "operationId": "StudioController_readMessage",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a Studio chat message",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "patch": {
+        "description": "Edit message text as its verified original actor and journal the change without changing the working source revision.",
+        "operationId": "StudioController_editMessage",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatMessageUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit an authored Studio message",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/shared/{shareId}/chat/messages/{messageId}": {
+      "get": {
+        "description": "Read a message through a current read-only session grant without access to private actor conversations.",
+        "operationId": "StudioController_sharedMessage",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a shared Studio chat message",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/messages/{messageId}/delete": {
+      "post": {
+        "description": "Soft-delete a message as its verified original actor with durable operation replay and session invalidation.",
+        "operationId": "StudioController_deleteMessage",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatActorOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an authored Studio message",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/messages/{messageId}/reactions": {
+      "post": {
+        "description": "Add or remove one emoji reaction as an authorized session participant and journal the touched message.",
+        "operationId": "StudioController_reactMessage",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatReactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change a Studio message reaction",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/share": {
+      "post": {
+        "description": "Creates a read-only session grant for working artifacts, shared discussion and consented sanitized linked history.",
+        "operationId": "StudioController_share",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Share a Studio session",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/share/{shareId}/revoke": {
+      "post": {
+        "description": "Revokes subsequent API, realtime and linked-history access through this share.",
+        "operationId": "StudioController_revoke",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke a Studio share",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/presence": {
+      "post": {
+        "description": "Reports a verified participant activity and optional active file. Actor identity and authority remain assigned by the service.",
+        "operationId": "StudioController_presence",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioPresenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update Studio presence",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat": {
+      "get": {
+        "description": "Returns a bounded page of shared coordination messages for an authorized participant.",
+        "operationId": "StudioController_chat",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterCursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the Studio discussion",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/claims": {
+      "get": {
+        "description": "Shows declarations of work by verified participants. Claims may overlap; they neither lock files nor grant editing, execution or review authority.",
+        "operationId": "StudioController_claims",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List advisory Studio work claims",
+        "tags": [
+          "Studio"
+        ]
+      },
+      "post": {
+        "description": "Declares work on exactly one session file or task using the authenticated host-derived actor. Concurrent claims are allowed and do not supersede reviewed candidates.",
+        "operationId": "StudioController_claim",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioWorkClaimDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Claim advisory Studio work",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/claims/{claimId}/release": {
+      "post": {
+        "description": "Releases the authenticated actor’s declaration, or lets the session owner clear abandoned advisory work. The journal records the original claimant and actual releasing actor separately; no impersonation or execution authority is granted.",
+        "operationId": "StudioController_releaseClaim",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "claimId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioReleaseWorkClaimDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Release an advisory Studio work claim",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/chat/message": {
+      "post": {
+        "description": "Adds a coordination message with its verified author. Message text is context and does not grant execution or approval authority.",
+        "operationId": "StudioController_message",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioChatMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Post a Studio message",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/proposals": {
+      "post": {
+        "description": "Captures immutable before-and-after source, configuration, intent, dependencies, validation and exact test evidence for review.",
+        "operationId": "StudioController_freeze",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioFreezeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Freeze a Studio candidate",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/proposals/{proposalId}/review": {
+      "post": {
+        "description": "Approves or rejects the exact candidate digest. Every waivable test gap requires a recorded reason; integration-test approvals bind the selected immutable manifest.",
+        "operationId": "StudioController_review",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "proposalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Review a Studio candidate",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/commit": {
+      "post": {
+        "description": "Rechecks permissions, bases, policy and candidate digest, then saves the whole resource batch atomically. Source commit preserves the active runtime.",
+        "operationId": "StudioController_commit",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioCommitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Commit an approved Studio candidate",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/prepare": {
+      "post": {
+        "description": "Validates the selected release and prepares required immutable artifacts. Readiness and preparation failures are durable; preparation does not activate runtime.",
+        "operationId": "StudioController_prepare",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioPrepareDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Prepare a Studio runtime release",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/activate": {
+      "post": {
+        "description": "Requires a fully ready release and the expected active generation. A successful compare-and-swap activation archives the session; identical retries return the saved outcome.",
+        "operationId": "StudioController_activate",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioActivateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate a Studio runtime release",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/runtime/baseline": {
+      "post": {
+        "description": "Instance administrators capture the currently selected component and library graph with ready immutable runtime artifacts before pinned execution is enabled.",
+        "operationId": "StudioController_baseline",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create the Studio runtime baseline",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/runtime/rollback": {
+      "post": {
+        "description": "Selects a previously ready release using the expected active generation. A concurrent activation fails rather than overwriting newer runtime state.",
+        "operationId": "StudioController_rollback",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioActivateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Roll back the active runtime release",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/test-runs": {
+      "post": {
+        "description": "Persists and executes the exact workspace manifest. Fixture mode isolates effects; integration execution requires candidate-bound approval and existing execution permissions. Only host-recorded cases and assertions count as evidence.",
+        "operationId": "StudioController_test",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioTestRunDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run native Studio tests",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/test-runs/{testRunId}/cancel": {
+      "post": {
+        "description": "Cancels a queued test before execution or stops collecting the result of a running test. Running integration effects may continue and are not rolled back. Cancelled evidence cannot become PASS; retries use the same operationId.",
+        "operationId": "StudioController_cancelTest",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testRunId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudioOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel native test result collection",
+        "tags": [
+          "Studio"
         ]
       }
     },
@@ -25517,7 +28288,12 @@
     },
     "termsOfService": "https://docs.revoengine.com/tos"
   },
-  "tags": [],
+  "tags": [
+    {
+      "name": "Studio",
+      "description": "Shared coding workspaces, native test evidence, candidate review and explicit runtime activation on enabled instances."
+    }
+  ],
   "servers": [
     {
       "url": "https://api.revoengine.com",
@@ -28939,6 +31715,8 @@
               "CODE_TS_LIB",
               "CODE_JS",
               "CODE_TS",
+              "CODE_JS_TEST",
+              "CODE_TS_TEST",
               "JSON_VALIDATOR",
               "CUSTOM_NODEJS"
             ]
@@ -29102,9 +31880,50 @@
           "order"
         ]
       },
+      "ComponentTestConfigDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fixture",
+              "integration"
+            ],
+            "default": "fixture"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 100,
+            "description": "Component names covered by this test. Execution resolves names exclusively against the captured source manifest."
+          },
+          "fixtures": {
+            "type": "object",
+            "description": "Named JSON fixtures. These are input data, never test results."
+          }
+        },
+        "required": [
+          "mode",
+          "targets"
+        ]
+      },
       "CreateComponentDto": {
         "type": "object",
         "properties": {
+          "testConfig": {
+            "nullable": true,
+            "description": "Native test configuration. Only CODE_JS_TEST and CODE_TS_TEST accept it.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          },
           "name": {
             "type": "string",
             "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). At most one active, non-deleted library of either type may have this name; inspect existing active libraries before creating an active one. Inactive libraries may share a name.",
@@ -29129,7 +31948,17 @@
           },
           "type": {
             "type": "string",
-            "description": "Type of component must be one of: CODE_JS,CODE_TS,CODE_JS_LIB,CODE_TS_LIB,JSON_VALIDATOR,CUSTOM_NODEJS."
+            "description": "Type of component must be one of: CODE_JS,CODE_TS,CODE_JS_TEST,CODE_TS_TEST,CODE_JS_LIB,CODE_TS_LIB,JSON_VALIDATOR,CUSTOM_NODEJS.",
+            "enum": [
+              "CODE_JS",
+              "CODE_TS",
+              "CODE_JS_TEST",
+              "CODE_TS_TEST",
+              "CODE_JS_LIB",
+              "CODE_TS_LIB",
+              "JSON_VALIDATOR",
+              "CUSTOM_NODEJS"
+            ]
           },
           "active": {
             "type": "boolean",
@@ -29158,6 +31987,16 @@
       "UpdateComponentDto": {
         "type": "object",
         "properties": {
+          "testConfig": {
+            "nullable": true,
+            "description": "Replacement native test configuration; accepts null to clear it on test components.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          },
           "name": {
             "type": "string",
             "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). An active, non-deleted library cannot be renamed to the name of another active, non-deleted library of either library type; inactive libraries may share a name.",
@@ -35490,7 +38329,8 @@
             "type": "string",
             "description": "Single emoji reaction. Text aliases and custom labels are not accepted.",
             "example": "👍",
-            "maxLength": 32
+            "maxLength": 32,
+            "pattern": "^(?:(?:[\\u00A9\\u00AE\\u203C\\u2049\\u2122\\u2139\\u2194-\\u2199\\u21A9-\\u21AA\\u231A-\\u231B\\u2328\\u23CF\\u23E9-\\u23F3\\u23F8-\\u23FA\\u24C2\\u25AA-\\u25AB\\u25B6\\u25C0\\u25FB-\\u25FE\\u2600-\\u2604\\u260E\\u2611\\u2614-\\u2615\\u2618\\u261D\\u2620\\u2622-\\u2623\\u2626\\u262A\\u262E-\\u262F\\u2638-\\u263A\\u2640\\u2642\\u2648-\\u2653\\u265F-\\u2660\\u2663\\u2665-\\u2666\\u2668\\u267B\\u267E-\\u267F\\u2692-\\u2697\\u2699\\u269B-\\u269C\\u26A0-\\u26A1\\u26A7\\u26AA-\\u26AB\\u26B0-\\u26B1\\u26BD-\\u26BE\\u26C4-\\u26C5\\u26C8\\u26CE-\\u26CF\\u26D1\\u26D3-\\u26D4\\u26E9-\\u26EA\\u26F0-\\u26F5\\u26F7-\\u26FA\\u26FD\\u2702\\u2705\\u2708-\\u270D\\u270F\\u2712\\u2714\\u2716\\u271D\\u2721\\u2728\\u2733-\\u2734\\u2744\\u2747\\u274C\\u274E\\u2753-\\u2755\\u2757\\u2763-\\u2764\\u2795-\\u2797\\u27A1\\u27B0\\u27BF\\u2934-\\u2935\\u2B05-\\u2B07\\u2B1B-\\u2B1C\\u2B50\\u2B55\\u3030\\u303D\\u3297\\u3299]|[\\uD83C][\\uDC04\\uDC2C-\\uDC2F\\uDC94-\\uDC9F\\uDCAF-\\uDCB0\\uDCC0\\uDCCF-\\uDCD0\\uDCF6-\\uDCFF\\uDD70-\\uDD71\\uDD7E-\\uDD7F\\uDD8E\\uDD91-\\uDD9A\\uDDAE-\\uDDE5\\uDE01-\\uDE0F\\uDE1A\\uDE2F\\uDE32-\\uDE3A\\uDE3C-\\uDE3F\\uDE49-\\uDE5F\\uDE66-\\uDF21\\uDF24-\\uDF93\\uDF96-\\uDF97\\uDF99-\\uDF9B\\uDF9E-\\uDFF0\\uDFF3-\\uDFF5\\uDFF7-\\uDFFA]|[\\uD83D][\\uDC00-\\uDCFD\\uDCFF-\\uDD3D\\uDD49-\\uDD4E\\uDD50-\\uDD67\\uDD6F-\\uDD70\\uDD73-\\uDD7A\\uDD87\\uDD8A-\\uDD8D\\uDD90\\uDD95-\\uDD96\\uDDA4-\\uDDA5\\uDDA8\\uDDB1-\\uDDB2\\uDDBC\\uDDC2-\\uDDC4\\uDDD1-\\uDDD3\\uDDDC-\\uDDDE\\uDDE1\\uDDE3\\uDDE8\\uDDEF\\uDDF3\\uDDFA-\\uDE4F\\uDE80-\\uDEC5\\uDECB-\\uDED2\\uDED5-\\uDEE5\\uDEE9\\uDEEB-\\uDEF0\\uDEF3-\\uDEFF\\uDFDA-\\uDFFF]|[\\uD83E][\\uDC0C-\\uDC0F\\uDC48-\\uDC4F\\uDC5A-\\uDC5F\\uDC88-\\uDC8F\\uDCAE-\\uDCAF\\uDCBC-\\uDCBF\\uDCC2-\\uDCCF\\uDCD9-\\uDCFF\\uDD0C-\\uDD3A\\uDD3C-\\uDD45\\uDD47-\\uDDFF\\uDE58-\\uDE5F\\uDE6E-\\uDEFF]|[\\uD83F][\\uDC00-\\uDFFD])(?:\\uFE0F|\\uD83C[\\uDFFB-\\uDFFF])?(?:\\u200D(?:[\\u00A9\\u00AE\\u203C\\u2049\\u2122\\u2139\\u2194-\\u2199\\u21A9-\\u21AA\\u231A-\\u231B\\u2328\\u23CF\\u23E9-\\u23F3\\u23F8-\\u23FA\\u24C2\\u25AA-\\u25AB\\u25B6\\u25C0\\u25FB-\\u25FE\\u2600-\\u2604\\u260E\\u2611\\u2614-\\u2615\\u2618\\u261D\\u2620\\u2622-\\u2623\\u2626\\u262A\\u262E-\\u262F\\u2638-\\u263A\\u2640\\u2642\\u2648-\\u2653\\u265F-\\u2660\\u2663\\u2665-\\u2666\\u2668\\u267B\\u267E-\\u267F\\u2692-\\u2697\\u2699\\u269B-\\u269C\\u26A0-\\u26A1\\u26A7\\u26AA-\\u26AB\\u26B0-\\u26B1\\u26BD-\\u26BE\\u26C4-\\u26C5\\u26C8\\u26CE-\\u26CF\\u26D1\\u26D3-\\u26D4\\u26E9-\\u26EA\\u26F0-\\u26F5\\u26F7-\\u26FA\\u26FD\\u2702\\u2705\\u2708-\\u270D\\u270F\\u2712\\u2714\\u2716\\u271D\\u2721\\u2728\\u2733-\\u2734\\u2744\\u2747\\u274C\\u274E\\u2753-\\u2755\\u2757\\u2763-\\u2764\\u2795-\\u2797\\u27A1\\u27B0\\u27BF\\u2934-\\u2935\\u2B05-\\u2B07\\u2B1B-\\u2B1C\\u2B50\\u2B55\\u3030\\u303D\\u3297\\u3299]|[\\uD83C][\\uDC04\\uDC2C-\\uDC2F\\uDC94-\\uDC9F\\uDCAF-\\uDCB0\\uDCC0\\uDCCF-\\uDCD0\\uDCF6-\\uDCFF\\uDD70-\\uDD71\\uDD7E-\\uDD7F\\uDD8E\\uDD91-\\uDD9A\\uDDAE-\\uDDE5\\uDE01-\\uDE0F\\uDE1A\\uDE2F\\uDE32-\\uDE3A\\uDE3C-\\uDE3F\\uDE49-\\uDE5F\\uDE66-\\uDF21\\uDF24-\\uDF93\\uDF96-\\uDF97\\uDF99-\\uDF9B\\uDF9E-\\uDFF0\\uDFF3-\\uDFF5\\uDFF7-\\uDFFA]|[\\uD83D][\\uDC00-\\uDCFD\\uDCFF-\\uDD3D\\uDD49-\\uDD4E\\uDD50-\\uDD67\\uDD6F-\\uDD70\\uDD73-\\uDD7A\\uDD87\\uDD8A-\\uDD8D\\uDD90\\uDD95-\\uDD96\\uDDA4-\\uDDA5\\uDDA8\\uDDB1-\\uDDB2\\uDDBC\\uDDC2-\\uDDC4\\uDDD1-\\uDDD3\\uDDDC-\\uDDDE\\uDDE1\\uDDE3\\uDDE8\\uDDEF\\uDDF3\\uDDFA-\\uDE4F\\uDE80-\\uDEC5\\uDECB-\\uDED2\\uDED5-\\uDEE5\\uDEE9\\uDEEB-\\uDEF0\\uDEF3-\\uDEFF\\uDFDA-\\uDFFF]|[\\uD83E][\\uDC0C-\\uDC0F\\uDC48-\\uDC4F\\uDC5A-\\uDC5F\\uDC88-\\uDC8F\\uDCAE-\\uDCAF\\uDCBC-\\uDCBF\\uDCC2-\\uDCCF\\uDCD9-\\uDCFF\\uDD0C-\\uDD3A\\uDD3C-\\uDD45\\uDD47-\\uDDFF\\uDE58-\\uDE5F\\uDE6E-\\uDEFF]|[\\uD83F][\\uDC00-\\uDFFD])(?:\\uFE0F|\\uD83C[\\uDFFB-\\uDFFF])?)*|(?:\\uD83C[\\uDDE6-\\uDDFF]){2})$"
           }
         },
         "required": [
@@ -35596,6 +38436,966 @@
         "required": [
           "clientDraftId",
           "files"
+        ]
+      },
+      "StudioProposedComponentDto": {
+        "type": "object",
+        "properties": {
+          "testConfig": {
+            "nullable": true,
+            "description": "Native test configuration. Only CODE_JS_TEST and CODE_TS_TEST accept it.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). At most one active, non-deleted library of either type may have this name; inspect existing active libraries before creating an active one. Inactive libraries may share a name.",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional category appropriate for the selected component type. Pass null to leave it empty.",
+            "maxLength": 32
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional component description. Pass null to leave it empty."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of component must be one of: CODE_JS,CODE_TS,CODE_JS_TEST,CODE_TS_TEST,CODE_JS_LIB,CODE_TS_LIB,JSON_VALIDATOR,CUSTOM_NODEJS.",
+            "enum": [
+              "CODE_JS",
+              "CODE_TS",
+              "CODE_JS_TEST",
+              "CODE_TS_TEST",
+              "CODE_JS_LIB",
+              "CODE_TS_LIB",
+              "JSON_VALIDATOR",
+              "CUSTOM_NODEJS"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Activate upon creation. If type is CODE_JS_LIB or CODE_TS_LIB and active is true, no other active, non-deleted library of either library type may have the same name."
+          },
+          "elements": {
+            "description": "Complete authored source elements. Generated overrides and audit fields are never accepted.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentElementsDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "active",
+          "elements"
+        ]
+      },
+      "StudioCreateResourceDto": {
+        "type": "object",
+        "properties": {
+          "componentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "baseDigest": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "proposed": {
+            "description": "Complete authored component definition. Studio draft storage does not activate this component.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StudioProposedComponentDto"
+              }
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "UPSERT",
+              "DELETE",
+              "RESTORE",
+              "DEPLOY"
+            ],
+            "default": "UPSERT",
+            "description": "Reviewed component lifecycle operation. DELETE and RESTORE require an existing observed component base."
+          }
+        },
+        "required": [
+          "proposed"
+        ]
+      },
+      "StudioCreateFileDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "source",
+              "test",
+              "fixture",
+              "poc",
+              "configuration",
+              "scratch"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000000
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "content"
+        ]
+      },
+      "StudioCreateSessionDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "intent": {
+            "type": "string",
+            "maxLength": 100000
+          },
+          "resources": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioCreateResourceDto"
+            }
+          },
+          "files": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioCreateFileDto"
+            }
+          }
+        },
+        "required": [
+          "operationId",
+          "title"
+        ]
+      },
+      "StudioLinkedChatDto": {
+        "type": "object",
+        "properties": {
+          "studioLinkedChatId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Stable Studio conversation association identity, not an Assistant share ID."
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "linkedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "linkedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SESSION_THREAD",
+              "SHARED_HISTORY"
+            ],
+            "description": "SESSION_THREAD was created with this session and is automatically associated. SHARED_HISTORY was explicitly linked with history consent."
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "MEMBERS",
+              "SHARED"
+            ],
+            "description": "MEMBERS requires authenticated session membership. SHARED is explicitly consented history also available through an enabled Studio share."
+          }
+        },
+        "required": [
+          "studioLinkedChatId",
+          "assistantThreadId",
+          "title",
+          "linkedBy",
+          "linkedAt",
+          "kind",
+          "access"
+        ]
+      },
+      "StudioConversationPermissionsDto": {
+        "type": "object",
+        "properties": {
+          "canWrite": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "canFork": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        },
+        "required": [
+          "canWrite",
+          "canFork"
+        ]
+      },
+      "StudioLinkedChatMessagesDto": {
+        "type": "object",
+        "properties": {
+          "link": {
+            "$ref": "#/components/schemas/StudioLinkedChatDto"
+          },
+          "data": {
+            "description": "Sanitized visible Assistant messages. Private reasoning and diagnostic snapshots are excluded.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "next": {
+            "type": "boolean"
+          },
+          "results": {
+            "type": "number"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/StudioConversationPermissionsDto"
+          }
+        },
+        "required": [
+          "link",
+          "data",
+          "next",
+          "results",
+          "permissions"
+        ]
+      },
+      "StudioSessionUpdateDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "intent": {
+            "type": "string",
+            "maxLength": 100000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "ARCHIVED"
+            ]
+          },
+          "pinned": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioOperationDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioForkDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioLinkChatDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assistantShareId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "consentToHistory": {
+            "type": "boolean",
+            "description": "Explicitly consent to exposing the existing sanitized shared history to session members and session read-only shares."
+          }
+        },
+        "required": [
+          "operationId",
+          "assistantThreadId",
+          "assistantShareId",
+          "consentToHistory"
+        ]
+      },
+      "StudioAttachResourceDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "resource": {
+            "$ref": "#/components/schemas/StudioCreateResourceDto"
+          }
+        },
+        "required": [
+          "operationId",
+          "resource"
+        ]
+      },
+      "StudioFileChangeDto": {
+        "type": "object",
+        "properties": {
+          "studioFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expectedDigest": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000000
+          }
+        },
+        "required": [
+          "studioFileId",
+          "expectedRevision",
+          "expectedDigest",
+          "content"
+        ]
+      },
+      "StudioExpectedFileDto": {
+        "type": "object",
+        "properties": {
+          "studioFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expectedDigest": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "studioFileId",
+          "expectedRevision",
+          "expectedDigest"
+        ]
+      },
+      "StudioPatchDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "changes": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioFileChangeDto"
+            }
+          },
+          "createFiles": {
+            "maxItems": 100,
+            "minItems": 1,
+            "description": "Create absent workspace paths with exact text, preserving line endings and the final newline. Can be combined with revision-guarded changes, up to 100 total operations; cannot be combined with a V4A patch.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioCreateFileDto"
+            }
+          },
+          "patch": {
+            "type": "string",
+            "description": "Complete V4A patch. Creates/updates/deletes workspace files only.",
+            "maxLength": 4000000
+          },
+          "expectedFiles": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioExpectedFileDto"
+            }
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioRebaseResolutionDto": {
+        "type": "object",
+        "properties": {
+          "studioFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "studioFileId",
+          "content"
+        ]
+      },
+      "StudioRebaseDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolutions": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioRebaseResolutionDto"
+            }
+          }
+        },
+        "required": [
+          "operationId",
+          "expectedRevision"
+        ]
+      },
+      "StudioParticipantDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "EDITOR",
+              "REVIEWER",
+              "COMMENTER",
+              "VIEWER"
+            ]
+          },
+          "revoke": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operationId",
+          "userId",
+          "role"
+        ]
+      },
+      "StudioChatUploadBatchDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional expected actor identity. The host derives the actual actor from verified execution ancestry."
+          },
+          "clientDraftId": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "draft-01hx3k4z7pq9"
+          },
+          "files": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateChatUploadBatchFileDto"
+            }
+          }
+        },
+        "required": [
+          "operationId",
+          "clientDraftId",
+          "files"
+        ]
+      },
+      "StudioChatActorOperationDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional expected actor identity. The host derives the actual actor from verified execution ancestry."
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioChatMessageUpdateDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional expected actor identity. The host derives the actual actor from verified execution ancestry."
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 10000
+          }
+        },
+        "required": [
+          "operationId",
+          "text"
+        ]
+      },
+      "StudioChatReactionDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional expected actor identity. The host derives the actual actor from verified execution ancestry."
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Single emoji reaction. Text aliases and custom labels are not accepted.",
+            "example": "👍",
+            "maxLength": 32,
+            "pattern": "^(?:(?:[\\u00A9\\u00AE\\u203C\\u2049\\u2122\\u2139\\u2194-\\u2199\\u21A9-\\u21AA\\u231A-\\u231B\\u2328\\u23CF\\u23E9-\\u23F3\\u23F8-\\u23FA\\u24C2\\u25AA-\\u25AB\\u25B6\\u25C0\\u25FB-\\u25FE\\u2600-\\u2604\\u260E\\u2611\\u2614-\\u2615\\u2618\\u261D\\u2620\\u2622-\\u2623\\u2626\\u262A\\u262E-\\u262F\\u2638-\\u263A\\u2640\\u2642\\u2648-\\u2653\\u265F-\\u2660\\u2663\\u2665-\\u2666\\u2668\\u267B\\u267E-\\u267F\\u2692-\\u2697\\u2699\\u269B-\\u269C\\u26A0-\\u26A1\\u26A7\\u26AA-\\u26AB\\u26B0-\\u26B1\\u26BD-\\u26BE\\u26C4-\\u26C5\\u26C8\\u26CE-\\u26CF\\u26D1\\u26D3-\\u26D4\\u26E9-\\u26EA\\u26F0-\\u26F5\\u26F7-\\u26FA\\u26FD\\u2702\\u2705\\u2708-\\u270D\\u270F\\u2712\\u2714\\u2716\\u271D\\u2721\\u2728\\u2733-\\u2734\\u2744\\u2747\\u274C\\u274E\\u2753-\\u2755\\u2757\\u2763-\\u2764\\u2795-\\u2797\\u27A1\\u27B0\\u27BF\\u2934-\\u2935\\u2B05-\\u2B07\\u2B1B-\\u2B1C\\u2B50\\u2B55\\u3030\\u303D\\u3297\\u3299]|[\\uD83C][\\uDC04\\uDC2C-\\uDC2F\\uDC94-\\uDC9F\\uDCAF-\\uDCB0\\uDCC0\\uDCCF-\\uDCD0\\uDCF6-\\uDCFF\\uDD70-\\uDD71\\uDD7E-\\uDD7F\\uDD8E\\uDD91-\\uDD9A\\uDDAE-\\uDDE5\\uDE01-\\uDE0F\\uDE1A\\uDE2F\\uDE32-\\uDE3A\\uDE3C-\\uDE3F\\uDE49-\\uDE5F\\uDE66-\\uDF21\\uDF24-\\uDF93\\uDF96-\\uDF97\\uDF99-\\uDF9B\\uDF9E-\\uDFF0\\uDFF3-\\uDFF5\\uDFF7-\\uDFFA]|[\\uD83D][\\uDC00-\\uDCFD\\uDCFF-\\uDD3D\\uDD49-\\uDD4E\\uDD50-\\uDD67\\uDD6F-\\uDD70\\uDD73-\\uDD7A\\uDD87\\uDD8A-\\uDD8D\\uDD90\\uDD95-\\uDD96\\uDDA4-\\uDDA5\\uDDA8\\uDDB1-\\uDDB2\\uDDBC\\uDDC2-\\uDDC4\\uDDD1-\\uDDD3\\uDDDC-\\uDDDE\\uDDE1\\uDDE3\\uDDE8\\uDDEF\\uDDF3\\uDDFA-\\uDE4F\\uDE80-\\uDEC5\\uDECB-\\uDED2\\uDED5-\\uDEE5\\uDEE9\\uDEEB-\\uDEF0\\uDEF3-\\uDEFF\\uDFDA-\\uDFFF]|[\\uD83E][\\uDC0C-\\uDC0F\\uDC48-\\uDC4F\\uDC5A-\\uDC5F\\uDC88-\\uDC8F\\uDCAE-\\uDCAF\\uDCBC-\\uDCBF\\uDCC2-\\uDCCF\\uDCD9-\\uDCFF\\uDD0C-\\uDD3A\\uDD3C-\\uDD45\\uDD47-\\uDDFF\\uDE58-\\uDE5F\\uDE6E-\\uDEFF]|[\\uD83F][\\uDC00-\\uDFFD])(?:\\uFE0F|\\uD83C[\\uDFFB-\\uDFFF])?(?:\\u200D(?:[\\u00A9\\u00AE\\u203C\\u2049\\u2122\\u2139\\u2194-\\u2199\\u21A9-\\u21AA\\u231A-\\u231B\\u2328\\u23CF\\u23E9-\\u23F3\\u23F8-\\u23FA\\u24C2\\u25AA-\\u25AB\\u25B6\\u25C0\\u25FB-\\u25FE\\u2600-\\u2604\\u260E\\u2611\\u2614-\\u2615\\u2618\\u261D\\u2620\\u2622-\\u2623\\u2626\\u262A\\u262E-\\u262F\\u2638-\\u263A\\u2640\\u2642\\u2648-\\u2653\\u265F-\\u2660\\u2663\\u2665-\\u2666\\u2668\\u267B\\u267E-\\u267F\\u2692-\\u2697\\u2699\\u269B-\\u269C\\u26A0-\\u26A1\\u26A7\\u26AA-\\u26AB\\u26B0-\\u26B1\\u26BD-\\u26BE\\u26C4-\\u26C5\\u26C8\\u26CE-\\u26CF\\u26D1\\u26D3-\\u26D4\\u26E9-\\u26EA\\u26F0-\\u26F5\\u26F7-\\u26FA\\u26FD\\u2702\\u2705\\u2708-\\u270D\\u270F\\u2712\\u2714\\u2716\\u271D\\u2721\\u2728\\u2733-\\u2734\\u2744\\u2747\\u274C\\u274E\\u2753-\\u2755\\u2757\\u2763-\\u2764\\u2795-\\u2797\\u27A1\\u27B0\\u27BF\\u2934-\\u2935\\u2B05-\\u2B07\\u2B1B-\\u2B1C\\u2B50\\u2B55\\u3030\\u303D\\u3297\\u3299]|[\\uD83C][\\uDC04\\uDC2C-\\uDC2F\\uDC94-\\uDC9F\\uDCAF-\\uDCB0\\uDCC0\\uDCCF-\\uDCD0\\uDCF6-\\uDCFF\\uDD70-\\uDD71\\uDD7E-\\uDD7F\\uDD8E\\uDD91-\\uDD9A\\uDDAE-\\uDDE5\\uDE01-\\uDE0F\\uDE1A\\uDE2F\\uDE32-\\uDE3A\\uDE3C-\\uDE3F\\uDE49-\\uDE5F\\uDE66-\\uDF21\\uDF24-\\uDF93\\uDF96-\\uDF97\\uDF99-\\uDF9B\\uDF9E-\\uDFF0\\uDFF3-\\uDFF5\\uDFF7-\\uDFFA]|[\\uD83D][\\uDC00-\\uDCFD\\uDCFF-\\uDD3D\\uDD49-\\uDD4E\\uDD50-\\uDD67\\uDD6F-\\uDD70\\uDD73-\\uDD7A\\uDD87\\uDD8A-\\uDD8D\\uDD90\\uDD95-\\uDD96\\uDDA4-\\uDDA5\\uDDA8\\uDDB1-\\uDDB2\\uDDBC\\uDDC2-\\uDDC4\\uDDD1-\\uDDD3\\uDDDC-\\uDDDE\\uDDE1\\uDDE3\\uDDE8\\uDDEF\\uDDF3\\uDDFA-\\uDE4F\\uDE80-\\uDEC5\\uDECB-\\uDED2\\uDED5-\\uDEE5\\uDEE9\\uDEEB-\\uDEF0\\uDEF3-\\uDEFF\\uDFDA-\\uDFFF]|[\\uD83E][\\uDC0C-\\uDC0F\\uDC48-\\uDC4F\\uDC5A-\\uDC5F\\uDC88-\\uDC8F\\uDCAE-\\uDCAF\\uDCBC-\\uDCBF\\uDCC2-\\uDCCF\\uDCD9-\\uDCFF\\uDD0C-\\uDD3A\\uDD3C-\\uDD45\\uDD47-\\uDDFF\\uDE58-\\uDE5F\\uDE6E-\\uDEFF]|[\\uD83F][\\uDC00-\\uDFFD])(?:\\uFE0F|\\uD83C[\\uDFFB-\\uDFFF])?)*|(?:\\uD83C[\\uDDE6-\\uDDFF]){2})$"
+          },
+          "remove": {
+            "type": "boolean",
+            "description": "Remove this reaction instead of adding it."
+          }
+        },
+        "required": [
+          "operationId",
+          "emoji"
+        ]
+      },
+      "StudioPresenceDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activeFileId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "openedFileIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioWorkClaimDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "expectedActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional assertion of the actor derived from authenticated host execution. It cannot select another actor."
+          },
+          "studioFileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Existing file within this session. Supply either this file or a task."
+          },
+          "task": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Advisory task description when no file is selected. Claims may overlap and grant no authority."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioReleaseWorkClaimDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "expectedActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional assertion of the authenticated releasing actor, never the original claimant. The session owner may clear another actor’s advisory claim."
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "studioActorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional expected actor identity. The host derives the actual actor from verified execution ancestry."
+          },
+          "text": {
+            "type": "string",
+            "description": "Message body. Maximum 10kB.",
+            "example": "The nightly sync has completed successfully.",
+            "maxLength": 10000
+          },
+          "replyToMessageId": {
+            "type": "string",
+            "description": "Message id this message replies to. Must belong to the same thread.",
+            "example": "00000000-0000-4000-8000-000000000001"
+          },
+          "attachments": {
+            "description": "Attachment descriptors included with the message. Use STORAGE_UPLOAD with storageUploadSessionId for direct uploads that may still be finalizing.",
+            "example": [
+              {
+                "type": "STORAGE_UPLOAD",
+                "storageUploadSessionId": "00000000-0000-4000-8000-000000000001",
+                "chatAttachmentId": "00000000-0000-4000-8000-000000000002",
+                "name": "report.pdf",
+                "mimeType": "application/pdf"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "chatUploadBatchId": {
+            "type": "string",
+            "description": "Upload batch id whose finalized files are bound to this message.",
+            "example": "00000000-0000-4000-8000-000000000003"
+          }
+        },
+        "required": [
+          "operationId"
+        ]
+      },
+      "StudioFreezeDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "operationId",
+          "expectedRevision"
+        ]
+      },
+      "StudioReviewWaiverDto": {
+        "type": "object",
+        "properties": {
+          "gapId": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "gapId",
+          "reason"
+        ]
+      },
+      "StudioReviewDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "CANDIDATE",
+              "INTEGRATION_TESTS"
+            ],
+            "default": "CANDIDATE",
+            "description": "INTEGRATION_TESTS authorizes only selected pinned tests and leaves the candidate frozen; it does not approve source commit."
+          },
+          "proposalDigest": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "approvedIntegrationTestIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Explicit approval to run these exact integration tests against this frozen candidate. No other effects are authorized.",
+            "maxItems": 100
+          },
+          "waivers": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioReviewWaiverDto"
+            }
+          }
+        },
+        "required": [
+          "operationId",
+          "proposalDigest",
+          "decision"
+        ]
+      },
+      "StudioCommitDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "proposalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposalDigest": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "operationId",
+          "proposalId",
+          "proposalDigest"
+        ]
+      },
+      "StudioPrepareDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "operationId",
+          "releaseId"
+        ]
+      },
+      "StudioActivateDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedGeneration": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "operationId",
+          "releaseId",
+          "expectedGeneration"
+        ]
+      },
+      "StudioTestRunDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Caller-generated UUID idempotency key for this exact operation."
+          },
+          "proposalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposalDigest": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "testComponentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "unit",
+              "integration"
+            ]
+          }
+        },
+        "required": [
+          "operationId",
+          "testComponentId"
         ]
       },
       "WebhookRequestDetailsDto": {
@@ -42039,6 +45839,119 @@
         },
         "required": [
           "url"
+        ]
+      },
+      "StudioWriteTestGapDto": {
+        "type": "object",
+        "properties": {
+          "gapId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "waivable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "gapId",
+          "code",
+          "message",
+          "waivable"
+        ]
+      },
+      "StudioWriteTestPolicyDto": {
+        "type": "object",
+        "properties": {
+          "requiredTestComponentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudioWriteTestGapDto"
+            }
+          }
+        },
+        "required": [
+          "requiredTestComponentIds",
+          "gaps"
+        ]
+      },
+      "StudioComponentWritePendingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "STUDIO_REVIEW_REQUIRED"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studioSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studioProposalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposalDigest": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mutationApplied": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "nextAction": {
+            "type": "string",
+            "enum": [
+              "REVIEW",
+              "PREPARE"
+            ]
+          },
+          "releaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "runtimeReady": {
+            "type": "boolean"
+          },
+          "testPolicy": {
+            "$ref": "#/components/schemas/StudioWriteTestPolicyDto"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "operationId",
+          "studioSessionId",
+          "studioProposalId",
+          "proposalDigest",
+          "revision",
+          "mutationApplied",
+          "nextAction",
+          "runtimeReady"
         ]
       }
     }

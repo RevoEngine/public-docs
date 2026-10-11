@@ -853,7 +853,9 @@ declare class api {
   static isDebug(): boolean;
 
   /**
-     * Reads request-scoped in-memory cache.
+     * Reads execution-scoped in-memory cache. Returns a detached mutable copy by
+     * default, or the same value when written with `{ reference: true }`.
+     * Missing keys return `undefined`. Entries never cross execution boundaries.
      *
      * Example:
      * const token = api.getCache('token');
@@ -861,12 +863,16 @@ declare class api {
   static getCache(key: string): any;
 
   /**
-     * Writes request-scoped in-memory cache.
+     * Writes execution-scoped in-memory cache. Copies the value by default.
+     * `{ reference: true }` retains the same object: later mutations of the input
+     * or returned value change the cached value. Use only for intentional reuse
+     * within this execution; refresh or overwrite after a write to the source.
      *
      * Example:
      * api.setCache('token', 'abc');
+     * api.setCache('rows', rows, { reference: true });
      */
-  static setCache(key: string, value: any): void;
+  static setCache(key: string, value: any, options?: { reference?: boolean }): void;
 
   /**
    * Returns the current execution context.

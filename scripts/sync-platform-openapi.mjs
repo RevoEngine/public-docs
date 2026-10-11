@@ -147,6 +147,7 @@ const DESCRIPTION_OVERRIDES = Object.freeze({
 });
 
 const TAG_CONTEXT = Object.freeze({
+  Studio: 'Studio sessions keep shared working code, test evidence and review separate from runtime activation.',
   Accounts: 'The request is scoped to the authenticated instance and enforces account administration policy.',
   Activity: 'The request is scoped to activity visible to the authenticated caller.',
   'Agent Memory': 'The request enforces Agent memory roles, scope, ownership, and lifecycle state.',
@@ -175,6 +176,7 @@ const TAG_CONTEXT = Object.freeze({
 });
 
 const TAG_DESCRIPTIONS = Object.freeze({
+  Studio: 'Manage durable Studio coding sessions, participants, shared discussion, tests, review and explicitly activated releases.',
   Accounts: 'Users, service accounts, API keys, status, and platform access.',
   Activity: 'Snapshot-backed activity and version history.',
   'Agent Memory': 'Administrative access to durable Agent memory.',
@@ -205,6 +207,7 @@ const TAG_DESCRIPTIONS = Object.freeze({
 });
 
 const TAG_GUIDES = Object.freeze({
+  Studio: ['Studio sessions guide', '/build/studio-sessions'],
   Accounts: ['Identity and access guide', '/operate/identity-and-access'],
   Activity: ['Observability guide', '/operate/observability'],
   'Agent Memory': ['Agent memory and workspaces guide', '/ai/memory-and-workspaces'],
