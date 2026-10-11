@@ -17736,6 +17736,219 @@
         ]
       }
     },
+    "/api/v1/native-tests": {
+      "get": {
+        "description": "Paged native test Components by name, including inactive authoring suites. No source or runtime changes.",
+        "operationId": "NativeTestsController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeTestCatalogDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List native test suites",
+        "tags": [
+          "Native tests"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/native-tests/runs": {
+      "post": {
+        "description": "Captures current authoring sources and optional complete workspace/local overlays. Persists an exact test snapshot without creating a Studio session, saving Component source or activating runtime. Only fixture suites are allowed. Reuse operationId for identical capture retries. Execute each queued suite through the returned run handle; results are diagnostics, not deployment approval.",
+        "operationId": "NativeTestsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeTestRunDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeTestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Capture an independent native fixture run",
+        "tags": [
+          "Native tests"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/native-tests/runs/{runId}": {
+      "get": {
+        "description": "Returns durable suite cases, assertions and exact captured manifests. Interrupted execution is never reported as passing. Fresh Component read permission and run ownership are required.",
+        "operationId": "NativeTestsController_get",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeTestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read an owned native fixture run",
+        "tags": [
+          "Native tests"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/native-tests/runs/{runId}/execute": {
+      "post": {
+        "description": "Claims one queued suite and returns its persisted outcome after bounded Sandbox execution. Concurrent retries never dispatch the same suite twice. Repeat while suites remain queued; an abandoned client can resume using the same handle. No integration effects or source writes.",
+        "operationId": "NativeTestsController_execute",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeTestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Execute the next queued native fixture suite",
+        "tags": [
+          "Native tests"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/native-tests/runs/{runId}/cancel": {
+      "post": {
+        "description": "Prevents queued dispatch and stops collection of already dispatched isolated work. A late result cannot replace cancellation.",
+        "operationId": "NativeTestsController_cancel",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeTestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel an owned native fixture run",
+        "tags": [
+          "Native tests"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
     "/api/v1/automation/job": {
       "get": {
         "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -39596,6 +39809,429 @@
         "required": [
           "operationId",
           "testComponentId"
+        ]
+      },
+      "NativeTestCatalogItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CODE_JS_TEST",
+              "CODE_TS_TEST"
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "testConfig": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "version",
+          "active",
+          "category",
+          "testConfig"
+        ]
+      },
+      "NativeTestCapabilitiesDto": {
+        "type": "object",
+        "properties": {
+          "canRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "canRun"
+        ]
+      },
+      "NativeTestCatalogDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestCatalogItemDto"
+            }
+          },
+          "next": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "number"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/NativeTestCapabilitiesDto"
+          }
+        },
+        "required": [
+          "data",
+          "next",
+          "total",
+          "capabilities"
+        ]
+      },
+      "NativeTestElementDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words.",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional representation description, for example Swagger details. Pass null to leave it empty.",
+            "maxLength": 1000
+          },
+          "details": {
+            "type": "string",
+            "description": "Element source/body. Required whenever an explicit element is supplied."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional element metadata. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "hidden": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Hide supporting or large-output elements from normal result projection. Omit or pass null to default to false."
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the element (must be unique)."
+          }
+        },
+        "required": [
+          "key",
+          "details",
+          "order"
+        ]
+      },
+      "NativeTestComponentDto": {
+        "type": "object",
+        "properties": {
+          "testConfig": {
+            "nullable": true,
+            "description": "Native test configuration. Only CODE_JS_TEST and CODE_TS_TEST accept it.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. For CODE_JS_LIB and CODE_TS_LIB, it must be a JavaScript identifier (letters/underscore first, then letters/digits/underscore). At most one active, non-deleted library of either type may have this name; inspect existing active libraries before creating an active one. Inactive libraries may share a name.",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional category appropriate for the selected component type. Pass null to leave it empty.",
+            "maxLength": 32
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional component description. Pass null to leave it empty."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Optional resource metadata. Values may use any JSON type. Maximum 16 KiB and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of component must be one of: CODE_JS,CODE_TS,CODE_JS_TEST,CODE_TS_TEST,CODE_JS_LIB,CODE_TS_LIB,JSON_VALIDATOR,CUSTOM_NODEJS.",
+            "enum": [
+              "CODE_JS",
+              "CODE_TS",
+              "CODE_JS_TEST",
+              "CODE_TS_TEST",
+              "CODE_JS_LIB",
+              "CODE_TS_LIB",
+              "JSON_VALIDATOR",
+              "CUSTOM_NODEJS"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Activate upon creation. If type is CODE_JS_LIB or CODE_TS_LIB and active is true, no other active, non-deleted library of either library type may have the same name."
+          },
+          "elements": {
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Complete transient component source. Instance-specific identifiers are not accepted.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestElementDto"
+            }
+          },
+          "baseName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Observed original name when the transient source renames an existing component."
+          },
+          "baseVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Optional observed target-instance source version. A mismatch rejects the whole capture before execution."
+          },
+          "baseDigest": {
+            "type": "string",
+            "description": "Optional observed portable component digest. A mismatch rejects the entire capture."
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "active",
+          "elements"
+        ]
+      },
+      "NativeTestRunDto": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "description": "Idempotent capture identity. Retry identical input with the same UUID."
+          },
+          "testComponentNames": {
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "Native test Component names. Each Component contains a suite of named test.case cases.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "components": {
+            "maxItems": 100,
+            "description": "Complete workspace/local source overlays by name, including changed targets, libraries and test fixtures. Never persisted as Component source.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestComponentDto"
+            }
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60,
+            "default": 10,
+            "description": "Per-suite isolated execution deadline in seconds."
+          }
+        },
+        "required": [
+          "operationId",
+          "testComponentNames"
+        ]
+      },
+      "NativeTestAssertionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "expected": {
+            "type": "object"
+          },
+          "actual": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "passed"
+        ]
+      },
+      "NativeTestCaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RUNNING",
+              "PASSED",
+              "FAILED",
+              "INCOMPLETE",
+              "SKIPPED"
+            ]
+          },
+          "assertions": {
+            "type": "number"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "assertions"
+        ]
+      },
+      "NativeTestResultDto": {
+        "type": "object",
+        "properties": {
+          "testRunId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "testComponentId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Host captured identity. Suite selection and source authoring use component names."
+          },
+          "testComponentName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "PASSED",
+              "FAILED",
+              "CANCELLED",
+              "ABORTED",
+              "UNAVAILABLE",
+              "INCOMPLETE",
+              "STALE"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "sourceDigest": {
+            "type": "string"
+          },
+          "assertions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestAssertionDto"
+            }
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestCaseDto"
+            }
+          },
+          "result": {
+            "type": "object",
+            "nullable": true,
+            "description": "Host-owned exact source manifest and result evidence; never deployment approval."
+          },
+          "error": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "testRunId",
+          "testComponentId",
+          "testComponentName",
+          "status",
+          "createdAt",
+          "completedAt",
+          "sourceDigest",
+          "assertions",
+          "cases",
+          "result",
+          "error"
+        ]
+      },
+      "NativeTestExecutionDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "PASSED",
+              "FAILED",
+              "CANCELLED",
+              "ABORTED",
+              "UNAVAILABLE",
+              "INCOMPLETE",
+              "STALE"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "snapshotDigest": {
+            "type": "string"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeTestResultDto"
+            }
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "createdAt",
+          "completedAt",
+          "snapshotDigest",
+          "runs"
         ]
       },
       "WebhookRequestDetailsDto": {

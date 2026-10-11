@@ -84,3 +84,7 @@ The interactive update notifier checks for a newer CLI release at most once ever
   <Card title="Environment promotion" icon="arrow-right-arrow-left" href="/developers/cli-environments" />
   <Card title="Connect a terminal" icon="terminal" href="/ai/terminals" />
 </CardGroup>
+
+## Run native fixture suites
+
+Use `revo tests list` to discover native test Components in the local worktree, `revo tests run "Order pricing tests"` to test complete local source through Sandbox, or `revo tests run --all --json` for a fixture suite collection in CI. `--remote` discovers and tests stored authoring source. These commands create a retained diagnostic run without saving Component source or creating a Studio session. Run handles support `revo tests resume "$RUN_ID"` and `revo tests cancel "$RUN_ID"`. Integration suites require reviewed Studio evidence. See [Native tests](/build/native-tests) for the complete flow and fixture examples.

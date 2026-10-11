@@ -84,6 +84,7 @@
               "build/custom-nodejs",
               "build/web-ide",
               "build/studio-sessions",
+              "build/native-tests",
               "build/debugging"
             ]
           },
