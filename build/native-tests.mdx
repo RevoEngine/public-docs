@@ -126,7 +126,7 @@ Add `effects` to the suite's named fixture configuration:
         "scope": "api",
         "method": "httpCall",
         "args": [{"url": "https://erp.example/orders", "method": "GET"}],
-        "result": {"body": {"orders": []}}
+        "result": {"data": {"orders": []}}
       },
       {
         "scope": "storage",
@@ -144,7 +144,7 @@ await test.case('ERP response', async () => {
   const response = await api.httpCall({
     url: 'https://erp.example/orders', method: 'GET'
   });
-  await test.assertEqual(response.body.orders, []);
+  await test.assertEqual(response.data.orders, []);
 });
 
 await test.case('Storage response and utilities', async () => {
@@ -165,6 +165,10 @@ The lower half shows compact runner results: suite status, duration, cases, asse
 Running captures the current complete working changes. If an observed base changed remotely, capture fails before execution and preserves local work. Later edits make the displayed result stale for the current workspace; the original captured outcome remains readable. A disconnected client can resume the same run rather than quietly capturing different code.
 
 ## Run from a local worktree or CI
+
+<Note>
+  The commands below require an updated CLI build that includes Native Tests. They are available in the updated source build; the published `@revoengine/cli@1.0.28` does not include them. Studio and Platform API test execution do not depend on updating the CLI.
+</Note>
 
 The CLI uses the same host runner and source capture. It does not emulate the Revo runtime in Node or publish Components while testing.
 

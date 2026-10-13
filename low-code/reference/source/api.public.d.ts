@@ -1360,6 +1360,9 @@ declare class api {
      * Schedules a custom event.
      * Matches active definitions by `custom: true` and the uppercase event type.
      * No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
+     * Returns an event ID after its immutable publication intent is persisted.
+     * Queue delivery recovers asynchronously after provider/process failures;
+     * this receipt does not mean that Event History or target execution has finished.
      *
      * Notes:
      * - Use the options object's `scheduleFor`; legacy delay properties are ignored.

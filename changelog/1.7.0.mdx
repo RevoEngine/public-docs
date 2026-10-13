@@ -1,0 +1,98 @@
+---
+title: "1.7.0 — Shared Studio workspaces, native tests and reviewed deployment"
+sidebarTitle: "1.7.0"
+icon: "tag"
+description: "13 October 2026"
+---
+
+RevoEngine 1.7.0 brings code editing, collaboration, tests and deployment into one Studio workspace. People and Assistants share durable sessions while keeping local drafts separate from live code. Native JavaScript and TypeScript test Components can also run independently against saved source or a local CLI worktree.
+
+## Highlights
+
+- Create and reopen Studio sessions without losing the ordinary editor, Component tabs or Working diff.
+- Collaborate through Studio Chat, invite members, share a read-only view and open an Assistant directly in the selected session.
+- Save small changes through an automatically created session with explicit tests, review and deployment.
+- Keep JavaScript and TypeScript suites as Components with named targets, fixtures and retained case results.
+- Run fixture suites from Default Studio, a coding session, the Platform API or a local CLI worktree.
+- Review the complete change set and activate one prepared runtime release, with an explicit rollback to an earlier ready release.
+- Resume interrupted Assistant work from recorded outcomes and continue secure browser input without placing credentials in conversations.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Keep code, conversations and changes together" defaultOpen={true}>
+
+Studio retains the existing editor, navigation and Working diff. Its session selector loads a durable workspace, while switching between Components, Scratch and Usage keeps that session selected. Separate workspaces retain code buffers, open tabs and layout. Concurrent edits to different files proceed independently; an edit based on an older revision returns a conflict for resolution.
+
+Studio Chat uses the same conversation controls as Team Chat. Members and sharing are managed through the session cog or the composer. A copied Studio reference lets an Assistant join the authorized workspace. Starting an Assistant from the session binds its conversation automatically; private diagnostics are not published to other participants.
+
+A local save or deployment creates a short session when needed. Saving the draft retains work; it does not activate production source. A frozen candidate includes the changes, configuration and relevant test evidence for review.
+
+  </Accordion>
+  <Accordion title="Write tests once and run them against the chosen source">
+
+`CODE_JS_TEST` and `CODE_TS_TEST` are Component types with their own source history. Their configuration names the Components under test and supplies fixtures. For example, a `Checkout` Component can compute amounts in integer cents:
+
+```js
+const quantity = Number(api.input().body.quantity);
+const unitPriceCents = Number(api.input().body.unitPriceCents);
+if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid quantity');
+if (!Number.isInteger(unitPriceCents) || unitPriceCents < 0) throw new Error('Invalid price');
+return { totalCents: quantity * unitPriceCents };
+```
+
+A suite configured with target `Checkout` and an `order` fixture whose `body` contains quantity 2 and unitPriceCents 2100 checks the executed result:
+
+```js
+await test.case('two items total 4200 cents', async () => {
+  const input = await test.fixture('order');
+  const result = /** @type {{ results: { Main: { totalCents: number } } }} */ (
+    await test.runComponent('Checkout', input)
+  );
+  await test.assertEqual(result.results.Main.totalCents, 4200);
+});
+```
+
+Further cases cover rejected input and inspect the captured source:
+
+```js
+await test.case('zero quantity is rejected', async () => {
+  await test.assertThrows(() => test.runComponent('Checkout', { body: { quantity: 0, unitPriceCents: 2100 } }));
+});
+await test.case('the captured target is JavaScript', async () => {
+  const component = await test.readComponent('Checkout');
+  await test.assertEqual(component.type, 'CODE_JS');
+});
+```
+
+The `test` surface is available during native test execution. Fixture mode intercepts HTTP, Storage and other effects and returns matching simulated JSON results without invoking real integrations. The runner records cases and assertions; a returned success object alone cannot create a passing result. Failed, incomplete, unavailable or cancelled execution remains visible.
+
+Default Studio discovers stored suites asynchronously and can include local unpublished Component changes. Session tests run the saved workspace revision. An updated CLI build with native-test commands supports discovery, running collections, retained run handles, resume and cancellation without publishing source. The currently published CLI 1.0.28 does not include these new commands. Integration tests require the reviewed Studio lifecycle. Remote execution, streaming fixtures and full native Node.js test environments remain outside the supported independent fixture workflow.
+
+  </Accordion>
+  <Accordion title="Review, prepare and activate a complete release">
+
+Review uses the ordinary Deploy comparer with Review and Tests views. Changed source or configuration invalidates an older candidate, and changed test inputs invalidate its evidence. Required test gaps need an explicit, candidate-specific review decision; permissions, validation and source-version checks remain mandatory.
+
+Commit saves the approved source set atomically. Preparation builds its required artifacts, including immutable Custom Node revisions, while the previous runtime remains active. Activation switches the complete ready release using a concurrency check. Endpoints, Jobs and nested Component calls inherit the captured runtime release; a retry keeps its original version. A conflicting baseline or activation state requires refresh and review rather than silently adopting newer source.
+
+Studio is enabled per instance with a prepared runtime baseline. External provider URLs remain outside the platform's release-switch guarantee. Autonomous Agents are not enabled by this release.
+
+  </Accordion>
+  <Accordion title="Continue Assistant work from retained outcomes">
+
+Interrupted work retains known tool outcomes so Resume can verify uncertain effects before another mutation. Secure browser input acknowledges a field fill separately from a submitted login and successful authentication. Progress and subsequent human requests resume in the originating conversation; credentials are not added to its messages or diagnostic evidence.
+
+  </Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- [Studio sessions](/build/studio-sessions)
+- [Native tests](/build/native-tests)
+- [Custom Node.js Components](/build/custom-nodejs)
+- [CLI](/developers/cli)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.5](/changelog/1.6.5)

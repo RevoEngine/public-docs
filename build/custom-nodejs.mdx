@@ -16,7 +16,7 @@ Custom Node.js components are intended for trusted tenant-authored workloads tha
 | Untrusted third-party code | Do not run it as a tenant Component; Custom Node.js is a trusted-code boundary |
 
 Custom Node.js does not replace Endpoints or Jobs. A Component defines the code;
-an Endpoint invokes its active runtime revision synchronously, while a Job provides
+an Endpoint invokes the ready runtime artifact selected by its release synchronously, while a Job provides
 durable background execution, history, retry controls, and a longer execution
 budget.
 
@@ -60,7 +60,7 @@ export async function init(runtime) {
 {
   "type": "module",
   "dependencies": {
-    "@revoengine/sdk": "1.6.2"
+    "@revoengine/sdk": "1.6.7"
   }
 }
 ```
@@ -71,7 +71,7 @@ export async function init(runtime) {
 
 ## Runtime surface
 
-The injected runtime exposes five governed capabilities:
+The injected runtime exposes governed capabilities including:
 
 | Member | Purpose |
 | --- | --- |
@@ -94,9 +94,11 @@ against the active `lib.Category.Name.ElementKey.X` library surface.
 
 ## Deployment lifecycle
 
-Saving source creates an immutable runtime revision and a deployment attempt. The component reports build and readiness state separately from source versioning. In automatic activation mode, a verified ready revision can become active; manual mode lets an operator choose a ready revision for rollout or rollback.
+On instances enabled for [Studio coding sessions](/build/studio-sessions), source changes follow the session's review, commit, preparation and activation lifecycle. The instance needs an immutable runtime baseline. Saving a draft preserves working source; it does not activate code. Existing Component write APIs stage a session for review rather than providing a direct deployment shortcut.
 
-Endpoints execute only the selected ready runtime revision. If no active revision exists, the request fails explicitly rather than using newly saved or failed code.
+Committing an approved candidate saves its sources atomically and records immutable Custom Node.js revisions and their deployment attempts in a runtime release. **Prepare** builds and verifies those artifacts. Each Component retains its own source revision, attempt history and readiness status, while the release also pins the other Components and library dependencies in the reviewed set. All required artifacts must be ready before the release can be activated.
+
+Source commit and preparation keep the previous active release unchanged. Executions through RevoEngine select the artifact pinned by that release; missing or failed artifacts produce an explicit error instead of falling back to newly saved code.
 
 Each attempt moves through customer-visible deployment states:
 
@@ -104,32 +106,45 @@ Each attempt moves through customer-visible deployment states:
 | --- | --- | --- |
 | `QUEUED` | The immutable source revision is waiting for deployment. | Wait or inspect queue health if it remains unchanged. |
 | `DEPLOYING` | The platform is preparing, building, verifying, or promoting the revision. | Follow the stage and deployment timestamps. |
-| `READY` | A verified runtime artifact can be selected for execution. | Smoke-test before broader traffic. |
-| `FAILED` | The attempt did not produce a usable artifact. | Read the sanitized error, correct source or dependencies, and retry or save a new revision. |
+| `READY` | A verified runtime artifact can be included in a ready release. | Inspect the whole release before activation. |
+| `FAILED` | The attempt did not produce a usable artifact. | Read the sanitized error and retry preparation for the reviewed source, or review a corrected candidate. |
 | `SUPERSEDED` | A newer deployment replaced this attempt. | Keep it for history; select only an eligible ready revision. |
 | `CANCELED` or `EXPIRED` | Work ended before readiness. | Confirm no active pointer changed, then retry if still required. |
 
 Deployment progress is separate from Component source versioning. A failed new
 deployment does not make unverified code executable and does not silently replace
-the previous active revision.
+the previous active release. A preparation retry retains the failed attempt and
+prepares the same reviewed source; editing that source requires another review.
 
 ## Activation and rollback
 
-In **automatic** activation mode, a successfully verified desired revision can
-become active. In **manual** mode, an operator selects a ready revision explicitly.
-Activation updates use the current runtime generation so that two administrators
-cannot unknowingly overwrite each other's selection.
+Activate the ready Studio release against the observed active generation. The
+platform switches one release pointer only after every required artifact is ready.
+If another release became active first, activation reports a conflict; inspect the
+new context before proceeding. Per-Component artifact readiness or its recorded
+activation mode does not independently publish a member of a Studio release.
+
+Endpoints pin the release before their guards, validators and handler execute.
+Jobs pin it on the first execution claim and retain it for retries. Nested calls
+and libraries inherit that selection. Explicit version pins for supported bindings
+retain their meaning within the manifest. Custom Node.js Endpoints cannot select an
+independent `componentVersion` or `componentDigest`; their artifact comes from the
+release manifest. Direct requests to an external provider URL do not participate
+in RevoEngine's release selection.
 
 For a rollback:
 
-1. Open the Component runtime and deployment history.
-2. Confirm the previous revision is still `READY`.
-3. In manual mode, select that revision using the current generation.
+1. Inspect the session's release and Component deployment history.
+2. Confirm the previous runtime release and its required artifacts remain ready.
+3. Roll back that complete release using the observed active generation.
 4. Invoke a representative Sandbox or Endpoint request.
 5. Verify the Execution ID, Logs, Trace, output contract, and downstream state.
 
-Custom Node.js Endpoints always follow the Component's active runtime revision;
-they cannot pin an independent low-code `componentVersion`.
+Rollback changes the active release without reverting current authoring source or
+unsaved drafts. Custom Node.js execution uses the immutable artifact bound in the
+selected manifest rather than an independent per-Component activation pointer.
+See [Commit and activate](/build/studio-sessions#commit-and-activate) for the shared
+workflow and conflict handling.
 
 ## Package boundary
 
@@ -142,15 +157,17 @@ they cannot pin an independent low-code `componentVersion`.
 Native dependencies must be compatible with the managed runtime. Prefer small,
 maintained, script-free packages and commit a reviewed lock file when the editor
 workflow supports it. Treat every dependency update as an application change: save
-a new immutable revision, observe deployment, test it, and only then activate it.
+and review a new candidate, commit its sources, prepare the immutable artifacts,
+and activate the complete ready release.
 
 ## Failure and recovery
 
 | Failure | Expected behavior |
 | --- | --- |
-| Source or manifest validation fails | The save is rejected and no deployment is queued. |
-| Dependency installation or build fails | The deployment becomes `FAILED`; the previous active revision remains available. |
-| No active ready revision exists | Endpoint or Job execution fails explicitly as not ready. |
+| Source or manifest validation fails | Review or commit is blocked; the active release remains unchanged. |
+| Dependency installation or build fails | The artifact attempt and preparation fail; the previous active release remains available. |
+| A required artifact is not ready | Release activation is blocked; execution cannot fall back to latest source. |
+| The active generation changed | Activation or rollback reports a conflict instead of overwriting the newer release. |
 | The execution deadline is reached | The caller receives a timeout; remote effects accepted before cancellation may still exist. |
 | A bridge-backed API call is unauthorized | The operation fails under the runtime principal; changing source cannot bypass the policy. |
 | A client disconnects | Cancellation is requested, but external and durable mutations must be verified before retry. |
@@ -166,10 +183,10 @@ system, then retry through a controlled Job or operator action.
 - Resolve Secrets immediately before the target call and never log their values.
 - Add idempotency around every retryable external side effect.
 - Inspect deployment readiness separately from source-save success.
-- Use manual activation when a release requires an explicit promotion decision.
+- Review and activate the complete ready Studio release using its current generation.
 - Test the exact Endpoint or Job principal, not only an editor session.
 - Capture Execution ID and operation ID in application-safe diagnostics.
-- Keep the previous ready revision available until the new one passes production verification.
+- Keep the previous ready release and its required artifacts available until the new one passes production verification.
 
 <Warning>
   This runtime separates customer code from credential handling, but it is not an adversarial-code sandbox. Review tenant code and dependencies before deployment.

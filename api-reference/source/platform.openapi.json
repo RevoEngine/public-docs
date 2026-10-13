@@ -23318,7 +23318,7 @@
         },
         "responses": {
           "200": {
-            "description": "Secure browser input submitted and the assistant turn resumed."
+            "description": "Secure browser input outcome handled; continuation accepted durably in the background. Subscribe to message replay for progress."
           },
           "400": {
             "description": "The input request is invalid, expired, or already submitted."
@@ -28586,7 +28586,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.6.5",
+    "version": "1.7.0",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -31892,6 +31892,37 @@
           "method"
         ]
       },
+      "ComponentTestConfigDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fixture",
+              "integration"
+            ],
+            "default": "fixture"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 100,
+            "description": "Component names covered by this test. Execution resolves names exclusively against the captured source manifest."
+          },
+          "fixtures": {
+            "type": "object",
+            "description": "Named JSON fixtures. These are input data, never test results."
+          }
+        },
+        "required": [
+          "mode",
+          "targets"
+        ]
+      },
       "ComponentSyncElementDto": {
         "type": "object",
         "properties": {
@@ -31956,6 +31987,15 @@
           "metadata": {
             "type": "object"
           },
+          "testConfig": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ComponentTestConfigDto"
+              }
+            ]
+          },
           "elements": {
             "type": "array",
             "items": {
@@ -31972,6 +32012,7 @@
           "active",
           "version",
           "metadata",
+          "testConfig",
           "elements"
         ]
       },
@@ -32178,37 +32219,6 @@
           "key",
           "details",
           "order"
-        ]
-      },
-      "ComponentTestConfigDto": {
-        "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "fixture",
-              "integration"
-            ],
-            "default": "fixture"
-          },
-          "targets": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 60
-            },
-            "maxItems": 100,
-            "description": "Component names covered by this test. Execution resolves names exclusively against the captured source manifest."
-          },
-          "fixtures": {
-            "type": "object",
-            "description": "Named JSON fixtures. These are input data, never test results."
-          }
-        },
-        "required": [
-          "mode",
-          "targets"
         ]
       },
       "CreateComponentDto": {

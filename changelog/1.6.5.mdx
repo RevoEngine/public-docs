@@ -1,0 +1,140 @@
+---
+title: "1.6.5 — Execution identities, key reminders and saved Observability views"
+sidebarTitle: "1.6.5"
+icon: "tag"
+description: "10 October 2026"
+---
+
+RevoEngine 1.6.5 adds configurable execution identities for Endpoints and Jobs, API-key reminders, saved Observability views and native Job lifecycle events. It expands the existing Service Accounts and Vault workflows, restores opt-in Programmatic Tool Calling Preview, and adds physical-line file processing and larger low-code database batches.
+
+## Highlights
+
+- Run Endpoints and Jobs under a configured Service Account with the original initiator retained in the audit trail.
+- Receive API-key expiration and rotation-grace reminders, with direct links to authorized key management.
+- Save personal or shared Observability views and inspect recorded execution events, timings and AI activity.
+- Enable Programmatic Tool Calling Preview independently in instance settings.
+- Trigger automation when a Job attempt fails or a Job execution finishes successfully or unsuccessfully.
+- Read physical file lines or process CSV with an explicit error policy and source-location reports.
+- Walk databases in batches of up to 100,000 records and perform larger atomic writes in the JavaScript runtime.
+- Synchronize Component versions and digests through source-free API manifests.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Choose the execution identity and business user" defaultOpen={true}>
+
+Instance settings define separate default Endpoint and Job execution policies; individual Endpoints and Job templates can inherit their respective default or select an allowed Service Account. Endpoint execution can use the caller's permissions or the configured account. Unattended Jobs use an execution account and retries retain the captured identity. Existing Job executor defaults are retained when no Job policy is configured.
+
+Permission checks follow the execution account. Endpoint policy separately controls whether `api.currentUser()` returns the invoking business user or the execution account. Request payloads cannot choose their own executor. The built-in **System** account provides a protected instance-local identity without login or API keys. Executing approved child Components under an administrator Service Account remains subject to approval of their exact source.
+
+Vault and the native `serviceAccount` namespace already existed before this release. Instance Secrets use the execution account's permissions; personal Secrets and connected accounts retain the invoking owner. Native Service Account and key management still require the actual caller's IAM permissions. Revoked grants and disabled Secrets are checked when credentials are used. Service-account names become available for reuse after rename or deletion; restoring an account checks for a conflicting active name.
+
+  </Accordion>
+  <Accordion title="Act before API keys expire">
+
+Settings → Notifications adds personal in-app and email preferences for API-key expiration and rotation-grace reminders. The first notification defaults to seven days and can be set from two to 365 days. A 24-hour warning and the expiration notice complete the sequence. An optional custom stage from one to 365 days adds an automation event, without adding another email or in-app notification.
+
+Notifications link to the appropriate personal or Service Account key workflow and still enforce access permissions. Key values are never included. Native `ACCOUNT_API_KEY_EXPIRING` and `ACCOUNT_API_KEY_EXPIRED` events let applications respond through automation independently of personal notification-channel preferences. Existing immutable expiration and key-rotation rules remain in place.
+
+  </Accordion>
+  <Accordion title="Save investigations and inspect recorded execution events">
+
+Observability supports personal and shared saved views, including filters, time range, active tab and separate default views. A saved view reopens the browsing configuration; the selected execution and temporary investigation are not saved as part of it.
+
+Recorded execution events add an operation waterfall and an inspector for measured call duration, offsets, parent executions, errors, data sizes and available arguments. Full retained arguments load when an event is selected. Logs and executions expose verified AI activity, Assistant mode, conversation and execution account. Missing provenance stays unknown, and coverage warnings distinguish the selected journey from broader discovery gaps.
+
+Execution browsing combines retained projections with recent log metadata to expose newer work. This is bounded historical browsing, not a promise of real-time delivery. Event and Job references remain navigable from the same investigation.
+
+  </Accordion>
+  <Accordion title="Enable Programmatic Tool Calling Preview">
+
+Settings → Agents → Runtime restores **Programmatic Tool Calling** as an independent, disabled-by-default Preview option. An Assistant can compose available tool calls programmatically for bounded reads and observations while retaining the tools' ordinary permissions and approval requirements. Enabling this Preview does not enable autonomous Agents.
+
+Assistant activity also gains concise summaries for searches, reads, Storage and plugin work, with retained resource and version references. Completed screenshots remain available in the conversation and are stored in the owner's Private Storage. Comparisons load the retained versions when opened.
+
+  </Accordion>
+  <Accordion title="Automate Job outcomes and follow their triggers">
+
+The native lifecycle catalogue adds `JOB_ATTEMPT_FAILED`, `JOB_EXECUTION_FAILED` and `JOB_EXECUTION_SUCCEEDED`. These distinguish a failed attempt that may be retried from a terminal execution outcome. Event data includes bounded, redacted inputs, results or errors, together with availability and retry information.
+
+The Event form provides an **Internal** switch and required **Type** field. Internal definitions select a native lifecycle type; custom definitions keep the application type supplied by the operator. Event History shows the definitions that actually matched separately from skipped targets and downstream executions.
+
+Job History adds named Event and Schedule triggers resolved from their recorded occurrence. Two Events sharing one Job template remain distinguishable, and trigger-name filtering runs on the server. Job runs also accept per-run JSON input; details distinguish a cancellation request from confirmed cancellation and provide direct Logs navigation.
+
+  </Accordion>
+  <Accordion title="Process file lines and CSV records explicitly">
+
+Storage adds `mode: 'lines'` for physical text reads, statistics and walkers. This includes headers and blank lines without interpreting CSV fields. Encoding and line separators can be detected or supplied. Physical line counts, blank-line counts and a trailing delimiter remain distinct from logical record counts.
+
+```js
+let physicalLines = 0;
+await storage.walkFileData(
+  api.input().body.storageEntryId,
+  { mode: 'lines' },
+  async lines => { physicalLines += lines.length; },
+  { fullScan: true, batchSize: 2000 },
+);
+return { physicalLines };
+```
+
+CSV remains strict by default. Set `onError: 'skipRow'` to omit records with the wrong field count. Invalid quoting and records exceeding `maxRecordBytes` still stop processing; the default record limit is 64 MiB. `quote: false` supports files without quote interpretation.
+
+```js
+const page = await storage.getFileData(api.input().body.storageEntryId, {
+  onError: 'skipRow',
+  limit: 100,
+});
+if (typeof page === 'string' || Array.isArray(page)) {
+  throw new Error('Expected a structured file');
+}
+return { returnedRows: page.rows.length, csvReport: page.csvReport };
+```
+
+The `csvReport` describes the whole source with skipped-record counts and bounded source locations, excluding raw row and cell values. Repeated page reports must not be added together. Native low-code download links also accept `ttlSeconds` from one second to seven days; file retention can shorten their lifetime. Node.js SDK **1.6.7** carries the corresponding public file-processing contract and has an independent package version.
+
+  </Accordion>
+  <Accordion title="Process larger database batches and synchronize Components">
+
+`api.walkDatabaseData` raises the maximum callback batch from 10,000 to 100,000 records; its default remains 10,000. Await each callback and retain aggregates rather than accumulating the full database in memory.
+
+```js
+let processed = 0;
+await api.walkDatabaseData(
+  api.input().body.databaseName,
+  {},
+  async rows => { processed += rows.length; },
+  { fullScan: true, batchSize: 100000 },
+);
+return { processed };
+```
+
+Large JavaScript-runtime inserts, upserts and deletes are split into chunks within one atomic transaction, subject to execution time and memory budgets. The existing 100,000-record limit for REST and public SDK requests is unchanged.
+
+`GET /api/v1/component/sync-manifests` exposes Component versions, digests and element metadata in one consistent read without returning source code. Sync clients can compare this manifest before fetching changed source. It includes inactive Components and excludes deleted ones.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Database import drafts survive dismissal and reopening, with **Continue import**, operation navigation and server validation. Upload and export flows preserve retention amounts and units, entered values and progress.
+- JSON filters preserve nested paths, literal dotted keys, scalar types and casts through navigation. Equivalent paths cannot silently replace another condition; invalid typed operands return a validation error.
+- Shared saved-layout controls, confirmations and resource navigation are consistent across supported workspaces. Existing grid layouts reset once during upgrade to rebuild updated columns; other preference families remain intact.
+- Storage replacement clears obsolete structure metadata, and interrupted reads resume without replaying rows already delivered to walker callbacks. Upload and finalization recovery resolves uncertain acknowledgments against the completed content.
+- Read-only SFTP execution supports validated inspection commands through `transport.sftpCommands`; transfers and mutations still require full execution. Concurrency limits accept an optional `leaseOwnerId` for acquisition and release across requests.
+- Assistant fixes preserve completed responses and pending work across context compaction, allow correction after rejected execution when no effects occurred, and retain clarification and approval context. Private attachment migration preserves existing file identity and upload continuation.
+
+## Related guides
+
+- [Service accounts](/operate/service-accounts)
+- [Vault](/operate/vault)
+- [Observability](/operate/observability)
+- [Assistant configuration](/ai/assistant-configuration)
+- [Events](/operate/events)
+- [Jobs](/operate/jobs)
+- [Structured files](/operate/storage-structured-files)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[Newer: 1.7.0](/changelog/1.7.0) · [All releases](/releases/changelog) · [Earlier: 1.6.4](/changelog/1.6.4)

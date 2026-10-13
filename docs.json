@@ -294,8 +294,15 @@
             "group": "Public releases",
             "pages": [
               {
+                "group": "1.7.x",
+                "pages": [
+                  "changelog/1.7.0"
+                ]
+              },
+              {
                 "group": "1.6.x",
                 "pages": [
+                  "changelog/1.6.5",
                   "changelog/1.6.4",
                   "changelog/1.6.3",
                   "changelog/1.6.2",
