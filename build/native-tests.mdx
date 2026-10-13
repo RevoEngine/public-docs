@@ -72,6 +72,10 @@ await test.case('invalid quantity rejects', async () => {
 
 Await cases sequentially. If a case fails or its callback throws, later awaited cases still run and the suite remains failed. Concurrent or nested case registration is rejected. A suite with no cases or no assertions cannot pass. Returning `{ok: true}` is ordinary output, not runner evidence.
 
+`test.runComponent(name, input)` preserves the input you provide, just as stored and ad-hoc Sandbox execution does. The example uses flat business inputs. Code that reads `api.input().body` instead needs a request envelope, such as `{body: input}`, because an Endpoint constructs that envelope itself. When using TypeScript with flat inputs, narrow from `unknown` with runtime validation rather than assuming an HTTP request shape.
+
+A passing native run confirms its executed cases and assertions. Syntax validation and transpilation do not replace semantic TypeScript checks in the editor; resolve editor diagnostics as well as test failures.
+
 ### Test methods
 
 | Method | Purpose |

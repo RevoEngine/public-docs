@@ -15632,7 +15632,7 @@
     },
     "/api/v1/studio/sessions/{sessionId}": {
       "get": {
-        "description": "Without query returns persisted resources, file revisions, participants, test results, proposals and release state. view=summary returns bounded counts, candidate review metadata and runtime state. view=proposal requires proposalId and exposes complete pinned candidate/TestRun evidence through bounded JSON-pointer pages with digest-checked continuation. linkedChats distinguishes automatically associated session-born conversations (SESSION_THREAD/MEMBERS) from explicitly consented shared history (SHARED_HISTORY/SHARED). Member history is never granted by a public Studio share.",
+        "description": "Without query returns persisted resources, file revisions, participants, test results, proposals and release state. view=summary returns bounded counts, candidate review metadata, saved testRuns IDs/revision/status metadata with testRunPage and runtime state. Summary accepts only take/skip paging: omit proposalId, pointer, offset, limit and contentDigest. Read saved results through the separate session TestRun route using the indexed studioTestRunId. view=proposal requires proposalId and exposes complete pinned candidate/TestRun evidence through bounded JSON-pointer pages with digest-checked continuation. linkedChats distinguishes automatically associated session-born conversations (SESSION_THREAD/MEMBERS) from explicitly consented shared history (SHARED_HISTORY/SHARED). Member history is never granted by a public Studio share.",
         "operationId": "StudioController_get",
         "parameters": [
           {
@@ -15690,7 +15690,7 @@
             "name": "limit",
             "required": false,
             "in": "query",
-            "description": "Maximum JSON characters per proposal page; no manifest fields are discarded.",
+            "description": "Maximum JSON characters per selected evidence page; no manifest fields are discarded.",
             "schema": {
               "minimum": 1,
               "maximum": 8192,
@@ -15712,7 +15712,7 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "Candidate summary page size.",
+            "description": "Summary page size for candidate and saved TestRun metadata; excludes full evidence.",
             "schema": {
               "minimum": 1,
               "maximum": 20,
@@ -15724,7 +15724,7 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "Candidate summary page offset.",
+            "description": "Summary offset for the separate candidate and saved TestRun metadata lists.",
             "schema": {
               "minimum": 0,
               "default": 0,
@@ -17683,6 +17683,90 @@
           }
         ],
         "summary": "Run native Studio tests",
+        "tags": [
+          "Studio"
+        ]
+      }
+    },
+    "/api/v1/studio/sessions/{sessionId}/test-runs/{testRunId}": {
+      "get": {
+        "description": "Reads an exact retained session TestRun before or after freeze, including archived sessions. Requires fresh session read access and both session/test-run IDs. Returns bounded RFC 6901 JSON-pointer pages into {testRun}, with exact revision, status, sourceDigest and captured suite name in the header. Default /testRun; no proposal, execution or mutation is required. Continue using nextOffset and contentDigest; changed running results return STUDIO_READ_STALE. Private captured session/authority snapshots are not exposed.",
+        "operationId": "StudioController_readTest",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "testRunId",
+            "required": true,
+            "in": "path",
+            "description": "studioTestRunId from this session; a standalone Native Tests runId uses its separate route.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "pointer",
+            "required": false,
+            "in": "query",
+            "description": "RFC 6901 pointer into {testRun}. Read /testRun/cases, /testRun/assertions, /testRun/result or /testRun/error. Empty pointer reads the complete evidence document in bounded pages; no proposal is required.",
+            "schema": {
+              "maxLength": 1024,
+              "default": "/testRun",
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "UTF-16 character offset into the selected JSON value. Continuation requires its returned contentDigest.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum JSON characters per selected evidence page; no manifest fields are discarded.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 8192,
+              "default": 4096,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "contentDigest",
+            "required": false,
+            "in": "query",
+            "description": "Read digest binding the selected pointer to the complete pinned document and review metadata; required when offset > 0. Drift returns STUDIO_READ_STALE.",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a saved Studio TestRun",
         "tags": [
           "Studio"
         ]
