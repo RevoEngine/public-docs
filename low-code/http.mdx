@@ -343,7 +343,12 @@ Use an Event after acceptance when several Jobs or Agents should react independe
 - `api.httpCall()` sends real external requests in either execution mode. `readOnly: true` rejects a Storage response target and protected Platform API writes before transport; it does not simulate third-party side effects.
 - One deadline covers request preparation, response headers, and the body. Receiving data does not reset it.
 - A Component cancellation or timeout does not recall a request already accepted by the remote service.
-- Storage and live-stream response modes cannot be combined with proxy mode.
+- Proxy mode supports JSON/text requests, text/binary responses and both Storage transfer directions. Use `requestType: 'storage'` with `source` to send a file, and `responseType: 'storage'` with `target` to save a response. They may be combined for conversion.
+- With `proxy: true`, Go calls the provider through the dedicated egress network used for IP allowlisting. It streams the Storage source and sends the response directly to the authorized Storage upload URL. File bytes stay in Go; runtime prepares or claims the target session, verifies the upload receipt against Storage metadata, then finalizes.
+- Only complete 2xx responses are saved. Other statuses abort the unused target session and return bounded diagnostic text. Interrupted source reads and uploads fail without replaying the provider request. A lost upload acknowledgement may be reconciled from a complete receipt, without repeating the provider call.
+- Proxy mode does not expose live byte/SSE iterators, multipart uploads, document responses or current-caller credentials.
+- Explicit text responses retain the provider's text even when its content type is JSON. Buffer/base64 responses preserve binary data. `Set-Cookie` retains every value as an array.
+- Destination parameters and credentials stay within the destination request. HTTP errors return a status to inspect; proxy transport and incomplete-response failures throw.
 - Do not log signed URLs, authorization headers, Secret values, unrestricted request bodies, or provider error payloads.
 
 See the generated [`api.httpCall()` reference](/low-code/reference/api#api-httpCall), [Endpoints](/operate/endpoints), [Outbound webhooks](/operate/webhooks), [Events](/operate/events), and [Storage](/operate/storage).

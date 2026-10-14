@@ -853,7 +853,9 @@ declare class api {
   static isDebug(): boolean;
 
   /**
-     * Reads request-scoped in-memory cache.
+     * Reads execution-scoped in-memory cache. Returns a detached mutable copy by
+     * default, or the same value when written with `{ reference: true }`.
+     * Missing keys return `undefined`. Entries never cross execution boundaries.
      *
      * Example:
      * const token = api.getCache('token');
@@ -861,12 +863,16 @@ declare class api {
   static getCache(key: string): any;
 
   /**
-     * Writes request-scoped in-memory cache.
+     * Writes execution-scoped in-memory cache. Copies the value by default.
+     * `{ reference: true }` retains the same object: later mutations of the input
+     * or returned value change the cached value. Use only for intentional reuse
+     * within this execution; refresh or overwrite after a write to the source.
      *
      * Example:
      * api.setCache('token', 'abc');
+     * api.setCache('rows', rows, { reference: true });
      */
-  static setCache(key: string, value: any): void;
+  static setCache(key: string, value: any, options?: { reference?: boolean }): void;
 
   /**
    * Returns the current execution context.
@@ -1354,6 +1360,9 @@ declare class api {
      * Schedules a custom event.
      * Matches active definitions by `custom: true` and the uppercase event type.
      * No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
+     * Returns an event ID after its immutable publication intent is persisted.
+     * Queue delivery recovers asynchronously after provider/process failures;
+     * this receipt does not mean that Event History or target execution has finished.
      *
      * Notes:
      * - Use the options object's `scheduleFor`; legacy delay properties are ignored.
@@ -1519,8 +1528,8 @@ declare class api {
     }): Promise<HttpStreamResponse<Uint8Array>>;
 
   /** Stores only 2xx bodies and returns after finalization; other statuses return bounded diagnostic text. */
-  static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
-      status: number; statusText: string; time: number; headers: LooseObject<string>;
+  static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: boolean }): Promise<{
+      status: number; statusText: string; time: number; headers: LooseObject<string | string[]>;
       revo?: HttpRevoResponseScope;
       request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
     } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
@@ -1532,11 +1541,12 @@ declare class api {
      * - External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
      * - Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
      * - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
-     * - With `proxy: true`, `responseType` may only be omitted, undefined, null or 'json'; other values fail before credential resolution or transport. The JSON proxy envelope still carries upstream text in `response.data` and parses upstream application/json bodies when possible. Prefer `{ proxy: true, requestType: 'json' }` and check `response.status` explicitly.
+     * - Proxy mode supports JSON/text requests, Storage sources/targets, and json/text/buffer/base64buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
      * - Use `source: { storageEntryId }` when streaming an Explorer Storage file into an HTTP request.
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
      * - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
+     * - With proxy: true, Go calls the provider through the dedicated egress network and uploads successful response bytes directly to a authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
      * - HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
@@ -1632,7 +1642,7 @@ declare class api {
       status: number;
       statusText: string;
       time: number;
-      headers: LooseObject<string>;
+      headers: LooseObject<string | string[]>;
       revo?: HttpRevoResponseScope;
       data: any;
       storage?: { session: StorageUploadSession; entry: StorageEntryView };

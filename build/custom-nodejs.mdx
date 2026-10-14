@@ -84,7 +84,7 @@ The injected runtime exposes five governed capabilities:
 Snapshot context calls such as `api.input()` and `api.getExecutionId()` are
 synchronous. Platform-backed reads and writes return promises and must be awaited.
 Use `runtime.execute()` when Custom Node.js must run a bounded low-code fragment
-against the active `lib.Category.Name.ElementKey.X` library surface.
+against the active `lib.LibraryName.ElementKey.member` library surface.
 
 <Warning>
   Runtime types describe callable operations; they do not grant access. The

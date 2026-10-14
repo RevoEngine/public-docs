@@ -1,0 +1,129 @@
+---
+title: "1.6.6 — Explicit library exports, clearer Job outcomes and browser collaboration"
+sidebarTitle: "1.6.6"
+icon: "tag"
+description: "15 October 2026"
+---
+
+RevoEngine 1.6.6 makes reusable library APIs explicit, separates individual Job attempts from the outcome of their complete execution history, and brings live browser collaboration to Assistant terminal workflows. It also simplifies automation input modes, improves trigger filtering, standardizes account emails and strengthens HTTP and Storage transfer recovery.
+
+## Highlights
+
+- Define JavaScript and TypeScript library APIs with named exports and a permanent default element.
+- Investigate terminal Job outcomes, inspect every attempt and start another manual retry after earlier work has settled.
+- Choose shallow override, recursive override or replacement when supplying automation input.
+- Search trigger names with consistent contains matching across resource filters.
+- Let public web reads fall back to an isolated browser when an ordinary HTTP response is insufficient.
+- Follow an Assistant browser live and take private control when a workflow needs human input.
+- Transfer HTTP content directly to or from authorized Storage files with consistent request and response handling.
+
+## In detail
+
+<AccordionGroup>
+  <Accordion title="Publish a deliberate library API" defaultOpen={true}>
+
+JavaScript and TypeScript library elements now expose named exports rather than treating their final returned object as the public API. This makes the available members explicit to the runtime, Web IDE and developer tooling. The permanent default element appears as *default* in the editor and cannot be renamed or removed. New source starts with guidance instead of a placeholder implementation that looks ready to execute.
+
+Members exported by that element are available as `lib.LibraryName.member`; named elements retain `lib.LibraryName.ElementName.member`. An ordinary element named `DEFAULT` remains an ordinary named element. The platform distinguishes these identities when editing, synchronizing and resolving library declarations.
+
+The upgrade migrates existing supported library definitions while retaining the versions used by historical executions. Source approvals continue to apply to the exact code being executed. Editor completion and library synchronization use the same export contract, so reusable functions have one public shape across authoring and execution.
+
+  </Accordion>
+  <Accordion title="Separate Job attempts from execution outcomes">
+
+Job History exposes the outcome of a complete execution family alongside the status of its individual attempts. An intermediate error can be followed by successful recovery; the history no longer needs to be interpreted as a collection of unrelated failed rows. Operators can filter terminal errors, inspect the attempt list and open an attempt's inputs, results and execution details.
+
+Manual retry starts another series with its own automatic retry budget. If a series is still running or has a pending retry, repeated requests resolve to that active work instead of creating concurrent executions. Once the family has settled, clicking Retry on an older failed or cancelled attempt can start a fresh series, including when its earlier manual retry also failed.
+
+Automatic retries and replayed bulk operations retain their existing identity. Concurrent requests are admitted together with the execution-history update, preserving one active series and a consistent attempt sequence. These distinctions carry through the API, history projection and frontend actions.
+
+  </Accordion>
+  <Accordion title="Choose how automation input is combined">
+
+Events and Schedules use three explicit modes: `override`, `deep_override` and `replace`. Shallow override replaces top-level fields. Recursive override merges nested plain objects while replacing arrays and preserving explicitly supplied null values. Replacement supplies the new input as a whole.
+
+The editor and public request contracts present those same choices. Existing automation definitions are migrated away from the internal input-version marker, so that implementation detail no longer appears as an application input field. The resulting payload follows the selected mode at execution time, including nested input used by downstream Components.
+
+  </Accordion>
+  <Accordion title="Find the trigger behind an execution">
+
+Trigger-name filtering uses the resource's recorded Event or Schedule association, allowing operators to find the execution they need without loading and matching the full history in the client. Distinct-value lookups avoid multiplying history rows when related trigger data contains several matches.
+
+Text filters and selection controls consistently expose contains matching. Matching remains case-insensitive and supports the established pattern semantics. Indexed lookups improve browsing large histories and resource lists while keeping filtering on the server. Existing saved filters continue to describe their selected operation explicitly.
+
+  </Accordion>
+  <Accordion title="Read public pages and collaborate in a browser">
+
+Assistant web reads start with HTTP and can fall back to an isolated browser for public GET or HEAD requests when the page requires browser rendering. Public fallback does not borrow a personal profile, cookies or a one-time interactive approval. Network permissions and destination checks still apply to every requested page, including batched reads.
+
+Interactive browser work adds Live Preview from the terminal activity and interaction card. Operators can follow the session, minimize the preview and return through its compact controller. Private takeover requires acknowledgment, pauses model interaction and recording, and keeps sensitive human input outside the Assistant conversation. Finish and resume waits for a fresh browser state before continuing.
+
+Browser profiles and optional recordings belong to the terminal workspace. Recordings are opt-in and become available through authorized file access. Live image delivery uses a separate bounded channel rather than adding each frame to the conversation history. This workflow complements the existing approval and secure-input controls.
+
+  </Accordion>
+  <Accordion title="Keep HTTP and Storage transfers consistent">
+
+Low-code HTTP calls align header handling, query parameters, JSON, text and binary response behavior across supported execution paths. Request deadlines retain millisecond precision, and cancellation propagates to the transfer. Direct Storage upload and download avoid relaying complete file contents through the managed execution runtime.
+
+Public HTTP calls continue to reject unsupported stream and multipart shapes explicitly. Storage destinations retain ordinary authorization and file-finalization checks; a successful transfer is reported only after its durable result is established.
+
+Read a JSON API with an explicit deadline and check its HTTP status:
+
+```js
+const response = await api.httpCall(
+  { url: 'https://example.com/status', method: 'GET' },
+  { responseType: 'json', proxy: true, timeout: 15000 },
+);
+if (response.status !== 200) throw new Error('Status request failed');
+return response.data;
+```
+
+Keep a successful report in Storage and wait for finalization:
+
+```js
+const response = await api.httpCall(
+  { url: 'https://example.com/report.csv', method: 'GET' },
+  { responseType: 'storage', proxy: true,
+    target: { name: 'report.csv', contentTypeHint: 'text/csv', computeStats: 'sync' } },
+);
+if (!response.storage) throw new Error('Report was not stored');
+return response.storage.entry;
+```
+
+Send an existing authorized file without loading its complete contents into a Component:
+
+```js
+const response = await api.httpCall(
+  { url: 'https://example.com/import', method: 'POST' },
+  { requestType: 'storage', proxy: true,
+    source: { storageEntryId: api.input().body.storageEntryId }, timeout: 60000 },
+);
+if (response.status < 200 || response.status >= 300) throw new Error('Import failed');
+return { status: response.status };
+```
+
+For upload finalization with `computeStats: 'sync'`, the finalized file and its lifecycle event now contain statistics for the same stored generation. Supported indexes are computed before publication. Retryable provider failures preserve accepted upload bytes and return the durable retry state, allowing background recovery without asking callers to upload those bytes again.
+
+  </Accordion>
+</AccordionGroup>
+
+## Also in this release
+
+- Account verification, invitations and other platform emails share consistent structure, sender presentation, action links and plain-text alternatives. Verification and invitation links remain valid for 30 days; password-reset expiry follows the authentication provider's existing policy.
+- Assistant browser continuation and activity retain the relevant interaction context while private control is active. Runtime guidance distinguishes public page reads from interactive sessions and individual Job errors from terminal execution outcomes.
+
+## Related guides
+
+- [Components](/build/components)
+- [Jobs](/operate/jobs)
+- [Events](/operate/events)
+- [Terminals](/ai/terminals)
+- [Storage](/operate/storage)
+
+RevoEngine has grown from early experiments in 2020 into an integrated platform for building and operating applications. The versioned history begins with the connected low-code foundation in late 2022, includes the Closed Production Release in November 2023, and opens the unified public 1.0 release series in April 2026.
+
+Each release describes product capabilities and changes to the builder and operator experience. The CLI, VS Code extension and Node.js SDK have independent package versions, recorded alongside the platform milestone. Linked guides describe the current product; historical entries describe their respective milestone.
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.5](/changelog/1.6.5)

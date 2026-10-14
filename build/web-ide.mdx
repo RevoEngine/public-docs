@@ -39,10 +39,10 @@ Choose **Select preference** to restore a saved arrangement. Open the adjacent p
 
 Set JSON Input, and use Code input when running a JavaScript or TypeScript library. The run controls expose execution mode, configuration and a compact result. Open Terminal for the stream, Output for the returned value, Performance for timings, and recent runs for earlier executions. Working diff shows pending Component changes.
 
-The editor loads runtime declarations and active library namespaces. Library calls use the generated `lib.Category.Name.ElementKey.X` path:
+The editor loads runtime declarations and active library namespaces. Library calls use the generated `lib.LibraryName.ElementKey.member` path:
 
 ```js
-const customer = await lib.CRM.Customers.Queries.getById(customerId);
+const customer = await lib.Customers.Queries.getById(customerId);
 ```
 
 If completion disagrees with deployed behavior, check the active library version and current declarations before changing source. Component deployment and runtime authorization remain governed by the existing roles and resource access rules.
@@ -53,3 +53,5 @@ If completion disagrees with deployed behavior, check the active library version
 - [Low-code API reference](/low-code/reference/api)
 - [Secrets](/operate/secrets)
 - [1.6.1 release notes](/changelog/1.6.1)
+
+The default library element displays a code icon and the lowercase italic label *default*. Its actual key is `@default`; edit its source to add exports, while rename and delete are disabled. Monaco presents default exports at `lib.LibraryName.member`, with the literal bracket alias for runtime values. See [Libraries](/build/libraries).

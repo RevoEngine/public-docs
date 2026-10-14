@@ -18,7 +18,7 @@ Do not begin by choosing a runtime. Begin by deciding what must be true when the
     A reusable unit that imports a file, normalizes records, and returns a durable Storage or Table reference.
   </Card>
   <Card title="Share a rule" icon="books">
-    A library element that exposes calculation or policy logic through `lib.Category.Name.ElementKey.X`.
+    A library element that exposes calculation or policy logic through `lib.LibraryName.ElementKey.member`.
   </Card>
 </CardGroup>
 
@@ -30,8 +30,8 @@ The **Components** workspace is list-first: its grid shows name, category, descr
 | --- | --- | --- |
 | `CODE_JS` | Standard application and integration logic | Isolated JavaScript |
 | `CODE_TS` | TypeScript-authored application logic | Transpiled, then isolated JavaScript |
-| `CODE_JS_LIB` | Shared JavaScript business libraries | Exposed through `lib.Category.Name.ElementKey.X` |
-| `CODE_TS_LIB` | Shared typed business libraries | Exposed through `lib.Category.Name.ElementKey.X` |
+| `CODE_JS_LIB` | Shared JavaScript business libraries | Exposed through `lib.LibraryName.ElementKey.member` |
+| `CODE_TS_LIB` | Shared typed business libraries | Exposed through `lib.LibraryName.ElementKey.member` |
 | `JSON_VALIDATOR` | Reusable JSON input validation | Validation pipeline |
 | `CUSTOM_NODEJS` | Trusted code that needs npm packages or Node.js semantics | Managed custom runtime |
 
@@ -111,3 +111,5 @@ See [Tools, skills, and loading](/ai/tools-and-skills) for the difference betwee
 <Warning>
   Do not place API keys or passwords in source or component metadata. Store them in Secrets and resolve them only when needed at runtime.
 </Warning>
+
+Library components always include a permanent, initially empty `@default` public entry point. Named exports there use `lib.LibraryName.member`; other elements use `lib.LibraryName.ElementKey.member`. See [Libraries](/build/libraries) for examples and privacy rules.

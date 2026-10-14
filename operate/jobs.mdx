@@ -140,6 +140,31 @@ Do not increase timeout, memory, or retry count merely to hide a failing workflo
 
 Use **Jobs → Job History** to inspect an exact Job ID, its status, current/selected version, logs, timing, and retry root. “Accepted” means the request created or scheduled durable work; it is not a success result. Confirm `FINISHED` or a finalized artifact before notifying users or triggering a dependent business process.
 
+## Read attempt status and Job result
+
+Job History separates the status of one attempt from the result of its full retry history:
+
+| Column | Meaning |
+| --- | --- |
+| **Attempt status** | The selected attempt's own status. An earlier `ERROR` remains an error even when a later attempt succeeds. |
+| **Attempts** | That row's attempt number and automatic retry limit, such as **Attempt 2 of 3** or **Attempt 2 of ∞**. Without automatic retry, it starts at **Attempt 1 of 1**. |
+| **Job result** | The current result across the history, including manual retries. |
+
+Filter **Job result** to distinguish **Failed** from **Succeeded after retry**.
+**Retry pending** includes an accepted retry waiting to start; it does not mean the
+history has reached a final failure. **In progress**, **Succeeded**, **Cancelled**
+and **Expired** describe the other outcomes. These filters apply to the complete
+query before pagination, rather than only the rows already loaded.
+
+For example, an earlier row can show **Attempt status: ERROR** and **Job result:
+Succeeded after retry**. Manual retry starts a new run at attempt 1 with a fresh
+automatic retry budget, while its outcome remains part of the same Job history.
+The attempt number displayed on an older row does not become the latest attempt's
+number. Once no attempt is running or scheduled and no automatic retry is pending,
+**Retry** on an earlier failed or cancelled row starts another manual run. Repeated
+clicks while its child is still live reuse that child. Bulk-operation replays retain
+their original result ID, even when that attempt has already finished.
+
 ## Related guides
 
 <CardGroup cols={2}>

@@ -93,7 +93,7 @@ type CustomerSummary = {
 const execution = await revo.execute<CustomerSummary>(
   `
     const customerId = api.input('customerId');
-    return lib.CRM.Customers.Queries.summary(customerId);
+    return lib.Customers.Queries.summary(customerId);
   `,
   {
     inputs: { customerId: 'customer-123' },

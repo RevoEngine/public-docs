@@ -111,6 +111,8 @@ An expired file becomes unavailable and is archived with `TTL_EXPIRED` before la
 | `async` | Publish the file, then build in the background |
 | `none` | Defer work until a later `getFileStats()` or structured read needs it |
 
+With `sync`, finalization persists the supported file statistics with the entry and its `STORAGE_CREATED` or `STORAGE_UPDATED` event. The event and response contain statistics for the same uploaded version, even if another upload later replaces that file. XML uploads initially contain physical text statistics; structured XML indexing requires an explicit `recordPath` on the read.
+
 CSV, TSV, XLSX, and text uploads default to synchronous computation. Other binary uploads default to `none`. Choose `sync` when the next operation immediately needs rows, worksheet metadata, or line ranges. Choose `async` when file availability matters more than immediate indexing.
 
 ## Failure and retry rules

@@ -27,7 +27,7 @@ execution budget.
 | `util` | Local encoding, hashing, cryptography, IDs, comparisons, and sleep helpers |
 | `storage` | Files, folders, uploads, reads, downloads, retention, and metadata |
 | `agent` | Agent, run, inbox, plugin, and Assistant thread operations |
-| `lib.Category.Name.ElementKey.X` | Active reusable low-code libraries and their exported symbols |
+| `lib.LibraryName.member` / `lib.LibraryName.ElementKey.member` | Active reusable low-code libraries and their exported symbols |
 | `inject(name)` | Result of an earlier element in the same component execution |
 | `vault.*` | Async Secret lifecycle, revision values and integration access tokens; instance or user scope |
 
@@ -56,7 +56,7 @@ map, one selected value, no body, or a durable history record.
 ```js
 const request = api.input();
 const validated = inject('validateRequest');
-const normalized = lib.Orders.Validation.Normalizers.normalize(validated);
+const normalized = lib.Orders.Validation.normalize(validated);
 
 return {
   operationId: api.getOperationId(),
@@ -65,8 +65,7 @@ return {
 };
 ```
 
-Library paths are case-sensitive and always include category, library name, element
-key, and exported symbol.
+Library paths are case-sensitive. Named exports from an @default element use `lib.LibraryName.member`; other elements use `lib.LibraryName.ElementKey.member`. The bracket ['@default'] path is an alias of the same export. Helpers without `export` stay local to their element in both JS and TS.
 
 ## Execution rules
 
@@ -105,3 +104,5 @@ remote I/O outside Database transactions, and verify consequential state before 
 Continue with [Runtime API](/low-code/runtime-api), [HTTP integrations](/low-code/http),
 [SFTP integrations](/low-code/sftp), [Database API](/low-code/database), or the generated
 [Low-code runtime reference](/low-code/reference/index).
+
+Every JS/TS library includes a permanent, initially documentation-only `@default`. Its key and identity are protected; edit its source to add named exports. See [Libraries](/build/libraries) for complete JS/TS examples, local private helpers, aliases and migration behavior.

@@ -10,7 +10,7 @@ This page is the field-level companion to [Components](/build/components). A Com
 
 | Field | Required | Rules and operational meaning |
 | --- | --- | --- |
-| `name` | yes | Durable component identifier. In a library, it is a public namespace segment in `lib.Category.Name.ElementKey.X`; use a valid JavaScript identifier and treat a rename as a breaking change. |
+| `name` | yes | Component display name; componentId is its durable identifier. In a library, it is a public namespace segment in `lib.LibraryName.ElementKey.member`; use a valid JavaScript identifier and treat a rename as a breaking change. |
 | `type` | yes | `CODE_JS`, `CODE_TS`, `CODE_JS_LIB`, `CODE_TS_LIB`, `JSON_VALIDATOR`, or `CUSTOM_NODEJS`. Type determines editor, validation, and deployment behavior. |
 | `active` | no | Set false to validate and review before making a low-code version selectable. |
 | `category`, `desc` | no | Operator-facing organization and context; do not use them as runtime identifiers. |
@@ -48,7 +48,7 @@ return { customerId: customer.customerId, status: customer.status };
 | Type | Configuration boundary |
 | --- | --- |
 | `CODE_JS`, `CODE_TS` | One or more ordered executable elements. Standard runtime declarations are supplied by Monaco. |
-| `CODE_JS_LIB`, `CODE_TS_LIB` | Reusable exports reached through `lib.Category.Name.ElementKey.X`, where `X` is a function, class, or const exported by the element. Keep side effects out of module initialization. |
+| `CODE_JS_LIB`, `CODE_TS_LIB` | Reusable exports reached through `lib.LibraryName.ElementKey.member`, where `member` is a function, class, or const explicitly exported by the element. Keep side effects out of module initialization. |
 | `JSON_VALIDATOR` | Exactly one element containing a JSON schema. See [JSON Validator](/low-code/json-validator). |
 | `CUSTOM_NODEJS` | Multi-file Node.js project with manifest/entrypoint and managed deployment. It executes only after a revision is ready and selected. |
 
@@ -71,3 +71,5 @@ Component metadata, source, logs, and debug input are all potential data-exposur
 ## Related reference
 
 The full method inventory shown in the editor is generated under [Low-code runtime reference](/low-code/reference/index). It separates platform calls (`api`), Storage (`storage`), agent controls (`agent`), and pure helpers (`util`).
+
+JS/TS libraries always include a protected `@default` element. It starts with documentation only and exposes named exports as `lib.LibraryName.member`. Other elements retain qualified paths. Category groups navigation and does not appear in library paths. See [Libraries](/build/libraries).

@@ -27,6 +27,6 @@ The low-code runtime is an isolated execution environment, not Node.js or a brow
 - `transport` owns Storage-only protocol adapters. Its SFTP methods resolve connection details from an active Secret reference, so credentials never enter low-code source.
 - `agent` owns Agent, inbox, run, plugin, and Assistant lifecycle operations. Availability depends on instance policy.
 - `util` owns validation and security helpers, including hashing, cryptography, encoding, and identifiers.
-- Active library declarations are resolved through `lib.Category.Name.ElementKey.X`, where `X` is an exported function, class, constant, or other public symbol. `inject()` reads an earlier element in the same ordered component.
+- Active library declarations are resolved through `lib.LibraryName.ElementKey.X`, or `lib.LibraryName.X` for exports from the permanent @default element (initially documentation only), where `X` is an explicitly exported function, class, constant, or other public symbol. `inject()` reads an earlier element in the same ordered component.
 
 Refresh after a declaration change with `npm run sync:low-code-reference`.

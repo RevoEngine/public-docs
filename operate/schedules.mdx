@@ -46,7 +46,7 @@ Open **Jobs → Schedule**, select **Add**, then provide:
 | Activate upon creation | New definitions | Whether scheduling begins immediately. |
 | Metadata | No | Searchable ownership, environment, or cost labels. |
 | Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
-| Input mode | Job only | **Override** overlays Job defaults; **Replace** replaces them entirely. Defaults to **Override**. |
+| Input mode | Job only | **Override** overlays Job defaults; **Deep Override** merges nested objects; **Replace** replaces the input entirely. Defaults to **Override**. |
 
 The editor displays a human-readable cron description after validation.
 
@@ -80,18 +80,21 @@ The expression describes cadence; the timezone decides how wall-clock times map 
 
 ## Configure Runtime input for a Job target
 
-For a Job target, use the expanded **Options** section at the bottom of the Schedule editor. Enter a JSON object in **Runtime input**, using the same editor as Job templates, and select **Override** or **Replace** from the dropdown with icons and descriptions.
+For a Job target, use the expanded **Options** section at the bottom of the Schedule editor. Enter a JSON object in **Runtime input**, using the same editor as Job templates, and select **Override**, **Deep Override** or **Replace** from the dropdown with icons and descriptions.
 
 | Mode | Effective `templateInputs` |
 | --- | --- |
 | **Override** (default) | `{ ...jobTemplateInput, ...scheduleInput }`: Schedule keys take precedence; other Job defaults remain. |
+| **Deep Override** | Recursively combines nested objects with automation values taking precedence. Arrays are replaced in full; `null` stays a value. |
 | **Replace** | Only the Schedule input. An empty `{}` clears all Job template defaults for this execution. |
 
 Override is shallow: nested objects and arrays replace the value at their top-level key rather than merging recursively. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
 
+Use **Deep Override** to change part of a nested configuration. For example, Job defaults `{ "export": { "format": "csv", "encoding": "utf8" } }` and automation input `{ "export": { "format": "xlsx" } }` produce `{ "export": { "format": "xlsx", "encoding": "utf8" } }`. An empty nested object preserves existing nested values; a change of value type replaces the whole value. Arrays are never concatenated, and `null` does not delete a field. Existing **Override** and **Replace** behavior is unchanged.
+
 The Component reads the resolved object through `api.input('templateInputs')`. These settings apply to both cron occurrences and manual **Run**. They do not change the Job template's execution policy, concurrency, or retry settings, and do not configure Agent or Materialized View targets.
 
-The Platform API uses `inputMode: "override"` for **Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+The Platform API uses `inputMode: "override"` for **Override**, `inputMode: "deep_override"` for **Deep Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
 
 New definitions use `input: {}` and `inputMode: "override"` by default, preserving Job defaults. API updates retain stored fields when those fields are omitted. Send both fields to return to the defaults.
 
