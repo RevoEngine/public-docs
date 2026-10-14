@@ -13,7 +13,7 @@ icon: node-js
 - `transport` for Secret-backed SFTP imports, exports, and commands;
 - `agents` for Agent and related AI operations permitted by the caller;
 - `utils` for local encoding, hashing, identifiers, and other pure helpers;
-- `execute(code, options)` for transient low-code execution with active `lib.Category.Name.ElementKey.X` exports; pass `readOnly: true` to restrict platform writes for that run. A hosted runtime cannot override an inherited restricted mode.
+- `execute(code, options)` for transient low-code execution with active `lib.LibraryName.ElementKey.member` exports; pass `readOnly: true` to restrict platform writes for that run. A hosted runtime cannot override an inherited restricted mode.
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash

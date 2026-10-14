@@ -1,64 +1,145 @@
 ---
 title: Libraries
-description: Share typed business logic across low-code components.
+description: Design reusable public APIs with named exports and a permanent default element.
 icon: books
 ---
 
-Library components turn stable business rules into an instance-wide namespace. The runtime resolves a public library export as:
+A JS or TS library shares business logic across components in the same instance. Put its main public API in `@default` for a short, stable caller contract; use ordinary elements to organize additional capabilities. Only active libraries appear in the runtime.
 
-```text
-lib.Category.Name.ElementKey.X
-```
+| Source element | Public access |
+| --- | --- |
+| `@default` in `Customers` | `lib.Customers.normalizeEmail(value)` |
+| `Queries` in `Customers` | `lib.Customers.Queries.findById(id)` |
+| Ordinary element named `DEFAULT` | `lib.Customers.DEFAULT.member` |
 
-`Category` and `Name` identify the library component, `ElementKey` is the library element key, and `X` is the exported function, class, constant, or other public symbol. These identifiers are case-sensitive. Do not shorten the path to a component name alone: that changes the resolved object.
+The library segment is the component **name**, not its category. Names and keys are case-sensitive. `lib` is canonical; the deprecated `libs` namespace resolves to the same bindings.
 
-## Author a library
+## Start with an empty default
 
-Export the symbols from the element source. The platform places them below the complete library path; the source itself does not need to manufacture namespace objects.
+Every new `CODE_JS_LIB` or `CODE_TS_LIB` contains a permanent `@default`, including creation requests that provide other elements. Its generated source contains only a `/* ... */` documentation comment. It exports no values, calls no platform APIs, forwards no other elements and includes no executable sample code.
+
+The starter explains `@public`, `@private`, `@access`, `@alias` and `@protected`. These annotations are documentation, not compiler flags. Public visibility depends on actual `export` statements.
+
+Studio displays the default with a code icon and the lowercase italic label *default*. VS Code uses the same lowercase label and a code icon. The persisted key and CLI/VS Code filename remain `@default`, for example `-1_@default.ts`. Its source and description are editable; renaming, deleting or replacing this element is rejected by the API and blocked in Studio. Deleting the whole library remains a separate resource operation.
+
+## Define the public API
+
+Add your own source to the default element. This TypeScript example exports the input type and one function; `normalize()` and `allowedDomains` remain private local bindings.
 
 ```ts
-// Category: CRM, Name: Customers, Element key: Queries
-export function normalizeEmail(value: string): string {
+// Library: Customers; element: @default
+export interface EmailInput {
+  email: string;
+}
+
+const allowedDomains = new Set(['example.com']);
+
+function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
-export async function load(customerId: string) {
-  const result = await api.getDatabaseData('customers', {
-    filter: { field: 'customerId', op: 'eq', value: customerId },
-    take: 1,
-  });
-  return result.data[0] ?? null;
+export function normalizeEmail(input: EmailInput): string {
+  const email = normalize(input.email);
+  if (!allowedDomains.has(email.split('@')[1])) {
+    throw new Error('Unsupported email domain');
+  }
+  return email;
 }
-
-export const defaultPageSize = 100;
-
-export class CustomerNotFoundError extends Error {}
 ```
 
-The exact authoring shape shown by the editor is authoritative for your instance and active library version.
+A consuming TypeScript component gets the same public types as Monaco:
 
-## Consume a library
+```ts
+const input: lib.Customers.EmailInput = { email: ' USER@EXAMPLE.COM ' };
+return lib.Customers.normalizeEmail(input);
+```
+
+Private helpers are called locally as `normalize(value)`. They are absent from runtime `lib.*`, completion, declaration lookup and definition navigation. Neither `lib.Customers.normalize` nor `lib.Customers['@default'].normalize` is a public method.
+
+JavaScript uses the same named-export rule and can document types with JSDoc:
 
 ```js
-const email = lib.CRM.Customers.Queries.normalizeEmail(api.input('email'));
-const customer = await lib.CRM.Customers.Queries.load(api.input('customerId'));
-const pageSize = lib.CRM.Customers.Queries.defaultPageSize;
+// Library: Formatting; element: @default
+const normalize = value => String(value ?? '').trim();
 
-const error = new lib.CRM.Customers.Queries.CustomerNotFoundError();
+/** @param {string} value @returns {string} */
+function display(value) {
+  return normalize(value).toUpperCase();
+}
 
-return { email, customer, pageSize, errorName: error.name };
+export { display as displayName };
 ```
 
-Use the exact path shown by Monaco for the active library. Public code uses the complete canonical `lib.Category.Name.ElementKey.X` form.
+```js
+return lib.Formatting.displayName(api.input('name'));
+```
 
-## Versioning behavior
+Use `export function`, `export const`, `export class`, exported TypeScript declarations, or a local clause such as `export { display as displayName }`. A technical `@default` element does **not** mean an ES module `export default`: ES default exports, module imports, external re-exports and source `exports.*` / `module.exports` are rejected. Public names in `@default`, including type names, cannot collide with any element key in the same library.
 
-An execution resolves one effective library manifest. Updating or activating a library invalidates the relevant runtime and editor artifacts. A running execution continues with the version it resolved at start; a later execution receives the newly active version.
+## Organize ordinary elements
 
-## Design guidance
+Keep implementation capabilities in ordinary elements when callers benefit from a qualified name:
 
-- Keep libraries focused on reusable domain behavior.
-- Treat category, library name, and element key as public API segments; rename them as a compatibility change.
-- Document public and non-obvious functions with concise JSDoc.
-- Prefer platform `util.*` helpers for generic encoding, hashing, IDs, or sleep.
-- Test the library directly, then test one consuming component to confirm the generated type and runtime export agree.
+```ts
+// Library: Orders; element: Pricing
+export function calculate(prices: number[]): number {
+  return prices.reduce((total, price) => total + price, 0);
+}
+```
+
+If you want a short entry point, explicitly author it in the default. This is user-written code; the platform never generates forwarding exports:
+
+```ts
+// Library: Orders; element: @default
+function normalize(prices: number[]): number[] {
+  return prices.filter(price => Number.isFinite(price) && price >= 0);
+}
+
+export function calculateTotal(prices: number[]): number {
+  return lib.Orders.Pricing.calculate(normalize(prices));
+}
+```
+
+```ts
+const prices = [10, 20, 30];
+return {
+  total: lib.Orders.calculateTotal(prices),
+  raw: lib.Orders.Pricing.calculate(prices),
+};
+```
+
+Each element has its own lexical scope. Another element or library is reached through `lib.*`; its local unexported bindings are inaccessible. Reuse across libraries also uses ordinary runtime calls, for example `lib.Formatting.displayName(value)`, rather than ES imports.
+
+## Default aliases and TypeScript
+
+`lib.Orders.calculateTotal` and `lib.Orders['@default'].calculateTotal` are the same function, not two wrappers. The bracket form is useful when inspecting element identity; prefer the short form in application source. `libs.*` preserves the same identity for existing consumers.
+
+TypeScript types use the canonical namespace, for example `lib.Customers.EmailInput`. The bracket alias types runtime values; a type-only declaration has no runtime property. Monaco uses an internal valid TypeScript projection because `@default` cannot be a namespace identifier. Completion, definition navigation and model-facing declaration lookup project the same public symbols back to `lib.*`; the generated internal namespace is not an authoring API.
+
+An element containing only `export interface`, `export type` or `export {};` is valid. It exposes no executable members and leaves no module marker in the generated runtime initializer.
+
+## Initialization and private state
+
+Element order controls editor sorting. The runtime proxy initializes dependencies lazily, regardless of the default's negative order or another element appearing later. Each element initializes once per execution; circular initialization fails explicitly. Prefer cross-library calls inside exported functions and keep I/O out of initialization.
+
+Exported primitive values are captured during initialization. For mutable state, expose functions over a private local variable:
+
+```js
+let count = 0;
+export function increment() { return ++count; }
+export function currentCount() { return count; }
+```
+
+Exporting an object exposes its properties. TypeScript `private` is a compile-time restriction; use unexported bindings or closures for runtime-private state. Library state belongs to the current execution, not durable instance storage.
+
+## Existing libraries and migration
+
+Migration 228 makes previously public declarations explicit while preserving the former public surface. It adds a documentation-only default to every existing library and its canonical historical execution projections. Existing elements keep their names, orders and qualified paths; an ordinary `DEFAULT` is not reinterpreted as `@default`.
+
+Audit snapshots remain immutable. Current source receives a new version and digest, and only existing exact source approvals transfer to equivalent canonical source. Invalid current source, unsupported valid historical source, or a legacy element already using the reserved `@default` key stops the migration for review rather than silently changing its meaning. Historical JavaScript snapshots whose executable source already failed the old module parser remain unchanged in the audit. Their internal projection records that syntax error and receives no transferred approval; attempts to execute or restore that source are rejected explicitly. These unusable historical revisions do not block valid current libraries.
+
+Pull canonical sources into CLI/VS Code workspaces after the migration before pushing edits. Old workspaces without the required default cannot remove it by saving an outdated manifest. The migration and strict runtime must be rolled out together; documentation does not imply that a tenant migration has already run.
+
+## Choose a library boundary
+
+Use the default for a small, stable business API that callers can recognize. Use ordinary elements for additional named capabilities. Keep validation or normalization helpers local unless they are intentionally part of your public contract. Document public functions with JSDoc, await asynchronous calls, and test both the exported function and a consuming component.

@@ -41,20 +41,23 @@ Open **Jobs → Events**, select **Add**, and configure the definition.
 | Metadata | No | Searchable ownership, service, environment, or cost-centre labels. |
 | Filter | No | Conditions evaluated against the normalized message. Empty means match all. |
 | Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
-| Input mode | Job only | **Override** overlays Job defaults; **Replace** replaces them entirely. Defaults to **Override**. |
+| Input mode | Job only | **Override** overlays Job defaults; **Deep Override** merges nested objects; **Replace** replaces the input entirely. Defaults to **Override**. |
 
 For a Job target, the selected template carries the Component, execution principal, input defaults, limits, concurrency, and retry policy. For an Agent target, delivery uses the current Agent definition.
 
 ## Configure Runtime input for a Job target
 
-Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override** and **Replace**, with icons and descriptions.
+Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override**, **Deep Override** and **Replace**, with icons and descriptions.
 
 | Mode | Effective `templateInputs` |
 | --- | --- |
 | **Override** (default) | `{ ...jobTemplateInput, ...eventInput }`: Event keys take precedence; other Job defaults remain. |
+| **Deep Override** | Recursively combines nested objects with automation values taking precedence. Arrays are replaced in full; `null` stays a value. |
 | **Replace** | Only the Event input. An empty `{}` removes all Job template defaults for this execution. |
 
 Override is shallow: a supplied nested object or array replaces the whole value at that key. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
+
+Use **Deep Override** to change part of a nested configuration. For example, Job defaults `{ "export": { "format": "csv", "encoding": "utf8" } }` and automation input `{ "export": { "format": "xlsx" } }` produce `{ "export": { "format": "xlsx", "encoding": "utf8" } }`. An empty nested object preserves existing nested values; a change of value type replaces the whole value. Arrays are never concatenated, and `null` does not delete a field. Existing **Override** and **Replace** behavior is unchanged.
 
 For example, a Job template with `{ "region": "eu", "mode": "incremental" }` and an Event with `{ "mode": "full" }` in Override mode execute with `{ "region": "eu", "mode": "full" }`.
 
@@ -76,7 +79,7 @@ const message = api.input('message');
 
 Event Runtime input configures `templateInputs`; it does not replace the Event `message`, `type`, or user `metadata`. Agent delivery remains configured through its target settings.
 
-The Platform API uses `inputMode: "override"` for **Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+The Platform API uses `inputMode: "override"` for **Override**, `inputMode: "deep_override"` for **Deep Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
 
 New definitions default to `input: {}` and `inputMode: "override"`, preserving Job defaults. On an API update, omitted fields retain their stored values. Send both `input: {}` and `inputMode: "override"` to restore the default configuration.
 

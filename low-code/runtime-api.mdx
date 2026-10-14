@@ -4,12 +4,14 @@ description: Work with execution context, control flow, utilities, libraries, an
 icon: brackets-curly
 ---
 
-Use the smallest namespace that fits the operation. Platform state and external I/O belong to `api` or `storage`; pure transformation belongs to `util`; reusable domain behavior is addressed through `lib.Category.Name.ElementKey.X`.
+Use the smallest namespace that fits the operation. Platform state and external I/O belong to `api` or `storage`; pure transformation belongs to `util`; reusable domain behavior is addressed through `lib.LibraryName.ElementKey.member`.
 
 Use `lib` for new shared-library calls. The older `libs` alias is deprecated and
 is marked accordingly in editor hints. Existing calls and exported type references
 remain supported; the alias resolves to the same library members.
 
+
+Libraries use named exports in JS and TS. The permanent `@default` element exposes `lib.LibraryName.member`, with `lib.LibraryName['@default'].member` as the same binding. Unexported declarations stay local to their element. @default export names cannot match any element key, including exported types. Use named export declarations or local named export clauses; ES default exports, module imports, external re-exports and source CommonJS exports are unsupported.
 
 <Tip>
 Use the generated [Low-code runtime reference](/low-code/reference/index) when you need an exact signature or editor-provided example. It is organized by `api`, `storage`, `agent`, and `util`, and is synchronized from the declaration source that feeds Monaco.
@@ -88,3 +90,7 @@ The `agent` namespace exposes Agent, run, inbox, plugin, and Assistant-thread op
 <Warning>
   A runtime method appearing in editor types does not bypass role, instance, approval, or policy enforcement. Treat generated types as a callable contract, not a permission grant.
 </Warning>
+
+The technical key `@default` is available only in JS/TS libraries. Ordinary `DEFAULT` nodes keep their existing qualified paths and order. TypeScript type names use the short namespace; the bracket alias exposes runtime values. Primitive exports are captured at initialization; expose functions for mutable state.
+
+Every JS/TS library includes a permanent `@default`, initially a documentation comment only. The API rejects renaming, deleting or replacing it. Node order affects editor sorting; proxy dependency resolution does not require an earlier node. See [Libraries](/build/libraries) for complete authoring and consumption examples.

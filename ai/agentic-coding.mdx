@@ -36,7 +36,7 @@ Before editing, the Assistant can read:
 
 - component metadata, active version, elements, and source;
 - endpoint method, path, component binding, input, validation, timeout, and response behavior;
-- runtime declarations for `api.*`, `storage.*`, `agent.*`, `util.*`, and active `lib.Category.Name.ElementKey.X` dependencies;
+- runtime declarations for `api.*`, `storage.*`, `agent.*`, `util.*`, and active `lib.LibraryName.ElementKey.member` dependencies;
 - historical snapshots and differences between versions;
 - dependent components, endpoints, libraries, and other affected definitions.
 
@@ -48,7 +48,7 @@ Choose the simplest component type that satisfies the requirement:
 | --- | --- |
 | `CODE_JS` | Standard isolated application and integration logic |
 | `CODE_TS` | Typed low-code logic when TypeScript is required |
-| `CODE_JS_LIB` / `CODE_TS_LIB` | Shared business logic exposed through `lib.Category.Name.ElementKey.X` |
+| `CODE_JS_LIB` / `CODE_TS_LIB` | Shared business logic exposed through `lib.LibraryName.ElementKey.member` |
 | `JSON_VALIDATOR` | Reusable JSON input validation |
 | `CUSTOM_NODEJS` | Trusted multi-file Node.js code or npm dependencies |
 

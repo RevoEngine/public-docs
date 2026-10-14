@@ -1529,6 +1529,9 @@ await api.releaseConcurrencyLimit('sync:customers');
 Schedules a custom event.
 Matches active definitions by `custom: true` and the uppercase event type.
 No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
+Returns an event ID after its immutable publication intent is persisted.
+Queue delivery recovers asynchronously after provider/process failures;
+this receipt does not mean that Event History or target execution has finished.
 
 Notes:
 - Use the options object's `scheduleFor`; legacy delay properties are ignored.
@@ -1822,11 +1825,12 @@ Notes:
 - External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
 - Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
 - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
-- With `proxy: true`, `responseType` may only be omitted, undefined, null or 'json'; other values fail before credential resolution or transport. The JSON proxy envelope still carries upstream text in `response.data` and parses upstream application/json bodies when possible. Prefer `&#123; proxy: true, requestType: 'json' &#125;` and check `response.status` explicitly.
+- Proxy mode supports JSON/text requests, Storage sources/targets, and json/text/buffer/base64buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
 - Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
 - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
 - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
+- With proxy: true, Go calls the provider through the dedicated egress network and uploads successful response bytes directly to a authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
 - HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
@@ -1850,8 +1854,8 @@ static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsIn
       responseType: 'stream'; streamFormat?: 'bytes'; timeout?: number; proxy?: false;
     }): Promise<HttpStreamResponse<Uint8Array>>;
 
-static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: false }): Promise<{
-      status: number; statusText: string; time: number; headers: LooseObject<string>;
+static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: boolean }): Promise<{
+      status: number; statusText: string; time: number; headers: LooseObject<string | string[]>;
       revo?: HttpRevoResponseScope;
       request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
     } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
@@ -1866,7 +1870,7 @@ static httpCall(
       status: number;
       statusText: string;
       time: number;
-      headers: LooseObject<string>;
+      headers: LooseObject<string | string[]>;
       revo?: HttpRevoResponseScope;
       data: any;
       storage?: { session: StorageUploadSession; entry: StorageEntryView };

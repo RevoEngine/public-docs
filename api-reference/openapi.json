@@ -20394,7 +20394,7 @@
         },
         "responses": {
           "200": {
-            "description": "Secure browser input submitted and the assistant turn resumed."
+            "description": "Secure browser input outcome handled; continuation accepted durably in the background. Subscribe to message replay for progress."
           },
           "400": {
             "description": "The input request is invalid, expired, or already submitted."
@@ -20410,6 +20410,74 @@
           "Assistant"
         ],
         "description": "Submit a one-time browser credential without persisting the value. The request is scoped to Assistant threads and content accessible to the authenticated caller."
+      }
+    },
+    "/api/v1/assistant/threads/{id}/actions/{actionId}/browser-completion": {
+      "post": {
+        "operationId": "AssistantController_completeBrowserInteraction",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requestId",
+                  "liveSessionId",
+                  "controlEpoch"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "controlEpoch": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Human completion verified; assistant continuation accepted durably."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Continue a pending browser action after verified human completion in Live Preview",
+        "tags": [
+          "Assistant"
+        ],
+        "description": "Continue a pending browser action after verified human completion in Live Preview. The request is scoped to Assistant threads and content accessible to the authenticated caller."
       }
     },
     "/api/v1/assistant/threads/{id}/actions/{actionId}/resolve/stream": {
@@ -20616,6 +20684,376 @@
         "tags": [
           "Assistant"
         ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings/{recordingId}/provision": {
+      "post": {
+        "operationId": "TerminalGrantController_provisionBrowserRecording[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingUploadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Provision an explicitly requested private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Provision an explicitly requested private browser recording upload. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings/{recordingId}/provision": {
+      "post": {
+        "operationId": "TerminalGrantController_provisionBrowserRecording[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingUploadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Provision an explicitly requested private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Provision an explicitly requested private browser recording upload. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings/{recordingId}/finalize": {
+      "post": {
+        "operationId": "TerminalGrantController_finalizeBrowserRecording[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingFinalizedDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify and finalize a finished private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Verify and finalize a finished private browser recording upload. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings/{recordingId}/finalize": {
+      "post": {
+        "operationId": "TerminalGrantController_finalizeBrowserRecording[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingFinalizedDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify and finalize a finished private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Verify and finalize a finished private browser recording upload. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-sessions": {
+      "get": {
+        "operationId": "TerminalGrantController_browserSessions[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current owned browser contexts for Live Preview in one assistant thread",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List current owned browser contexts for Live Preview in one assistant thread. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-sessions": {
+      "get": {
+        "operationId": "TerminalGrantController_browserSessions[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current owned browser contexts for Live Preview in one assistant thread",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List current owned browser contexts for Live Preview in one assistant thread. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
       }
     },
     "/api/v1/agents/terminals/{agentTerminalId}/workspaces/register": {
@@ -26144,7 +26582,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.6.5",
+    "version": "1.6.6",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -29926,7 +30364,7 @@
           },
           "key": {
             "type": "string",
-            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words.",
+            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words. The permanent @default element cannot be renamed, deleted or replaced; its source remains editable. Only CODE_JS_LIB and CODE_TS_LIB additionally accept the reserved technical key @default: its named exports are available as lib.LibraryName.member. An ordinary DEFAULT key remains a regular node.",
             "minLength": 1,
             "maxLength": 32
           },
@@ -30001,7 +30439,7 @@
           },
           "elements": {
             "nullable": true,
-            "description": "Initial component elements. Server ignores/regenerates componentElementId values on create. Omit or pass null to create the default starter content.",
+            "description": "Initial component elements. Server ignores/regenerates componentElementId values on create. Omit or pass null to create the default starter content. CODE_JS_LIB and CODE_TS_LIB always include a permanent @default element, even with explicit elements; an automatically added @default contains documentation only and exposes no members.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ComponentElementsDto"
@@ -36972,17 +37410,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "name": {
             "type": "string",
@@ -37064,17 +37509,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "name": {
             "type": "string",
@@ -37192,17 +37644,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "custom": {
             "type": "boolean",
@@ -37304,17 +37763,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "custom": {
             "type": "boolean",
@@ -38551,6 +39017,266 @@
             "minLength": 1
           }
         }
+      },
+      "TerminalBrowserUploadHeaderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "Content-Type"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      },
+      "TerminalBrowserRecordingUploadDto": {
+        "type": "object",
+        "properties": {
+          "recordingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storageUploadSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "description": "Short-lived bound HTTPS PUT target. Never persist or expose in conversation."
+          },
+          "headers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserUploadHeaderDto"
+            }
+          },
+          "expiresAt": {
+            "type": "integer",
+            "description": "Unix epoch in milliseconds."
+          }
+        },
+        "required": [
+          "recordingId",
+          "storageUploadSessionId",
+          "namespace",
+          "uploadUrl",
+          "headers",
+          "expiresAt"
+        ]
+      },
+      "TerminalBrowserRecordingFinalizedDto": {
+        "type": "object",
+        "properties": {
+          "recordingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storageEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 268435456
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "recordingId",
+          "storageEntryId",
+          "size",
+          "mimeType"
+        ]
+      },
+      "TerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9 ._-]{0,63}$"
+          },
+          "persistent": {
+            "type": "boolean"
+          },
+          "default": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "persistent",
+          "default"
+        ]
+      },
+      "TerminalBrowserTabDto": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "origin": {
+            "type": "string",
+            "description": "HTTP(S) origin only; query and fragment are omitted."
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tabId",
+          "title",
+          "origin",
+          "isActive"
+        ]
+      },
+      "TerminalBrowserObservationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2160
+          }
+        },
+        "required": [
+          "id",
+          "tabId",
+          "width",
+          "height"
+        ]
+      },
+      "TerminalBrowserSessionDto": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "workspaceName": {
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+            }
+          },
+          "tabs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserTabDto"
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "browserObservation": {
+            "$ref": "#/components/schemas/TerminalBrowserObservationDto"
+          }
+        },
+        "required": [
+          "threadId",
+          "agentTerminalId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "deviceName",
+          "workspaceName",
+          "profile",
+          "capabilities"
+        ]
+      },
+      "TerminalBrowserSessionsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserSessionDto"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+            }
+          },
+          "online": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessions",
+          "profiles",
+          "online"
+        ]
       },
       "RegisterTerminalWorkspaceDto": {
         "type": "object",

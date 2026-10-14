@@ -72,11 +72,15 @@ If the runner's connection drops, the CLI retries temporary transport or depende
 
 The Assistant can request a connection refresh while the CLI remains running. Recovery can continue through renewed permission or a clarification when user action is required. It cannot wake a stopped CLI or reconstruct processes that ended when the CLI stopped. Internal status checks are omitted from the visible activity list; the original command still shows its progress and outcome.
 
-The Assistant can apply a workspace patch without asking for each ordinary edit. Browser actions can navigate to an HTTP(S) page, inspect visible page text, interact with forms, and take a screenshot. The CLI installs the required browser runtime; a separate browser installation is not required. The activity shows the visited URL and page output; a screenshot is automatically attached and shown in the Assistant conversation. The Assistant loads its pixels only when visual inspection is needed. Browser access follows the terminal's network grant and any temporary exception. For a password or similar secret field, the Assistant can request a secure input popup: the value goes directly to the connected browser session and is not included in the model-visible tool call. The Assistant must inspect the resulting page to confirm the action. The browser runs as a dedicated controlled action, separate from the shell's operating-system sandbox.
+The Assistant can apply a workspace patch without asking for each ordinary edit. Browser actions can navigate to an HTTP(S) page, inspect visible page text, interact with forms, and take a screenshot. The CLI installs the required browser runtime; a separate browser installation is not required. The activity shows the visited URL and page output. User-facing screenshots are attached to the conversation; private screenshots used by the Assistant for visual inspection do not create a chat attachment. Browser access follows the terminal's network grant and any temporary exception. For a password or similar secret field, the Assistant can request a secure input popup: the value goes directly to the connected browser session and is not included in the model-visible tool call. A successful secure fill confirms only that the field was filled. The Assistant then submits the authorized login form once and checks a fresh result. An error left from the previous attempt is not evidence that the new value was rejected. The conversation shows background progress and the next required action without a manual refresh. The browser runs as a dedicated controlled action, separate from the shell's operating-system sandbox.
 
 ### Browser state and limits
 
-Browser tabs and cookies belong to the current chat, device and workspace. They survive later messages and short connection recovery while the runner and browser remain alive. A session expires after one hour without browser activity. The runner allows four sessions and sixteen tabs per session. At capacity, the Assistant can inspect the permitted session inventory, identify its owning chat, and explicitly close unneeded tabs or sessions. It cannot inspect or close another user's sessions, and active sessions are not silently evicted.
+Browser tabs and cookies belong to the current chat, device and workspace. They survive later messages and short connection recovery while the runner and browser remain alive. The running browser context expires after one hour without browser activity; active use refreshes that idle retention. This is separate from an explicitly saved login profile. The runner allows four sessions and sixteen tabs per session. At capacity, the Assistant can inspect the permitted session inventory, identify its owning chat, and explicitly close unneeded tabs or sessions. It cannot inspect or close another user's sessions, and active sessions are not silently evicted.
+
+Named login profiles are an explicit opt-in for a foreground macOS runner: add `--browser-profile NAME` to `revo terminal connect`. The CLI saves encrypted cookies, local storage and IndexedDB, including Firebase Auth state, and restores them in a separate live context for a later chat. The name is scoped to the same user, instance, device and approved workspace. Encryption keys remain in macOS Keychain. The secure-input bridge does not copy field values from the dialog or page into a profile; the captured site-owned state is sensitive and may contain tokens and other data stored by the website.
+
+Only one live context may write a named profile. Close its previous browser session before using that profile in another chat; a busy profile fails explicitly instead of overwriting newer state. Profile persistence currently requires foreground mode and macOS Keychain; it is unavailable in service mode and on other platforms. Sessions without a user-selected default remain ephemeral. Saved state does not extend network permission, bypass revocation, or guarantee that a website will keep its login valid. Explicitly forget saved state with `revo terminal browser-profile forget --browser-profile NAME`, selecting the original workspace and terminal when needed. Website logout and remote account-session revocation remain separate actions.
 
 Changing between **Local Access** and **Full Network Access** recreates the browser context and loses its cookies and form state. Choose Full Network Access before starting a login flow that uses remote authentication, APIs or assets, even when the initial page is on localhost. After a context change, the Assistant can inspect the remaining tabs, navigate again and request permission or secure credential input when needed. Closing a session, stopping the CLI, browser failure or loss of authorization can also destroy its state. A one-time network exception closes its browser context after that action; use a timed or whole-thread permission for continued browsing.
 
@@ -119,3 +123,49 @@ The terminal settings and conversation show activity for authorized viewers. A p
 - [RevoEngine CLI](/developers/cli)
 - [Approvals and plans](/ai/approvals-and-plans)
 - [Secrets and Vault](/operate/secrets)
+
+
+## Live Preview and human control
+
+On a compatible updated runner, open **Live Preview** from browser activity or the
+browser shortcut beside the terminal control in Composer. The shortcut appears for
+the current chat after a successful browser operation, or while a pinned human
+step is waiting. It returns to the same device, workspace, session and tab after
+you minimize the floating preview. The preview shows the local browser at up to
+five frames per second.
+The browser can reach localhost services on the connected device, subject to its
+network permissions. Observing does not give control. Explicit takeover pauses the
+Assistant's browser actions across that context and lets you click, drag, scroll,
+type or switch tabs. Passwords and one-time codes are handled privately by the
+connected browser. Finish the human step to return control; the Assistant checks
+the fresh page before continuing. Disconnect does not silently hand control back.
+
+The Assistant can inspect a focused image and use coordinate interactions when
+DOM selectors are insufficient. It attempts CAPTCHA solutions with bounded retries
+and checks the result; a blocked challenge falls back to your same-session preview.
+MFA approvals and secret codes still require you.
+
+During takeover, create or select a named encrypted profile and choose it as the
+default for this user, instance, device and workspace. A later chat restores that
+selection automatically; you do not need to ask the Assistant to save it in memory.
+Profiles retain the foreground macOS and single-writer restrictions described above.
+Website authentication and current network permissions still determine access.
+
+Recording is opt-in: select a local file, private Storage, or both. Native WebM
+segments pause around private input and authentication work. Storage files are
+restricted to the owner and verified after upload. Existing repository Playwright
+E2Es continue through terminal commands in their own test contexts; Live Preview
+shows the connected browser's current session.
+
+## Public page retrieval fallback
+
+Public web research tries direct page retrieval first. When a page fails to load
+or needs JavaScript to expose readable content, a compatible connected terminal
+can render it in an isolated browser with existing network authorization. This
+read uses no saved login profile or cookies, cannot interact with the page, and
+closes its temporary browser resources when finished. The chat's interactive
+browser and Live Preview stay available.
+
+The fallback does not grant network access or guarantee access to pages protected
+by authentication, CAPTCHA or other site restrictions. Successful pages in a batch
+keep their direct-retrieval results.

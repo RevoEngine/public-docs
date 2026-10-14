@@ -32,7 +32,7 @@ if (!customerId) {
 }
 
 api.log({ message: 'Loading customer', args: { customerId } });
-return lib.CRM.Customers.Queries.load(customerId);
+return lib.Customers.Queries.load(customerId);
 ```
 
 Configure the debugger with a JSON input, an explicit timeout and memory budget,
