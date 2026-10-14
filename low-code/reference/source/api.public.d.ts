@@ -2684,7 +2684,7 @@ declare class storage {
     ): Promise<StorageEntryView>;
 
   /**
-     * Restores an archived or deleted storage entry.
+     * Restores an archived storage entry. Permanently deleted entries cannot be restored.
      *
      * Notes:
      * - Unavailable with `readOnly: true` (throws an error).
@@ -2704,7 +2704,8 @@ declare class storage {
     ): Promise<StorageEntryView>;
 
   /**
-     * Soft-deletes a storage entry.
+     * Permanently deletes an archived storage entry and its backing objects.
+     * Use archiveEntry for reversible removal and restoreEntry to undo an archive.
      *
      * Notes:
      * - Unavailable with `readOnly: true` (throws an error).
