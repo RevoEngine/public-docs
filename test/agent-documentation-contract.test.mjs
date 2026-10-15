@@ -17,6 +17,10 @@ test('Agent documentation separates product modes and states the current executi
   assert.match(comparison, /does not create a managed VM automatically/);
   assert.match(terminals, /\*\*Workspace Access\*\* is the default command permission/);
   assert.match(terminals, /saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode/);
+  assert.match(terminals, /Full Access\*\* Composer skips RevoShield/);
+  assert.match(terminals, /Finish & resume/);
+  assert.match(terminals, /other browser sessions and terminal commands remain available/);
+  assert.match(terminals, /1,000,000,000 bytes/);
   assert.match(terminals, /runner checks the current grants before each dispatch/);
   for (const mode of ['Workspace Access', 'Full Access', 'No Network', 'Local Access', 'Full Network Access']) {
     assert.match(terminals, new RegExp(`\\*\\*${mode}\\*\\*`));

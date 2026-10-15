@@ -54,7 +54,7 @@ On macOS, supported workspace shell actions can connect to localhost under **Loc
 
 ## Approvals for elevated actions
 
-The Assistant explains why an action needs host-level commands or more network access. Under **Restricted** Composer, you decide directly. Under **Auto Review** or **Full Access**, RevoShield first assesses the exact action against your request and sends it to you if it cannot safely approve it. A saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode. Destructive commands and secret access may still require separate review.
+The Assistant explains why an action needs host-level commands or more network access. Under **Restricted** Composer, you decide directly. Under **Auto Review**, RevoShield assesses the exact action against your request and asks you when it cannot safely approve it. **Full Access** Composer skips RevoShield; missing terminal scopes and detected destructive or risky actions go directly to you. A saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode. Ordinary authorized workspace changes, bounded cleanup and normal temporary build work do not require a prompt for every operation. Full Access remains broad host access, so review the proposed effect when a decision reaches you.
 
 When your decision is needed, you can approve the exact invocation once or grant the missing command or network scope for **15 minutes**, **one hour**, **eight hours**, **24 hours**, or **this thread** on this chat, device and workspace. A timed grant does not change the terminal's permanent settings or authorize a different action after a one-time approval. It ends at expiry, explicit chat disconnect, or a change to the grant. Whole-thread consent has no time expiry, survives later messages and short reconnects, and ends on explicit disconnect, thread deletion or a grant change. It is not copied to a forked chat. A short runner reconnect can preserve a still-valid permission for the same chat, device and workspace. The runner checks authorization again before input or another action; work requiring an expired or revoked scope is stopped.
 
@@ -70,6 +70,12 @@ The Assistant starts a command and waits briefly for its result. A long-running 
 
 If the runner's connection drops, the CLI retries temporary transport or dependency failures and resumes the same execution without starting the command again. Recovery has a two-minute window; unsuccessful reconnects do not restart that window. Authentication failure or confirmed revocation stops recovery. If a dispatched operation has no confirmed outcome, inspect its status and target before repeating a command with side effects. A reconnect alone does not prove that the operation completed.
 
+### Retained output and interrupted work
+
+A compatible runner retains shell output separately from the conversation preview: up to **1 GB** (1,000,000,000 bytes), **1,000,000 output chunks**, for **24 hours**. The visible preview remains bounded to 100 KB. The Assistant can read an exact retained range from the original execution without running its command again. Current access checks still apply. A capture limit or save failure is reported as partial output; it does not mean the command failed or authorize repeating it. The separate local command log has its own 10 MB limit.
+
+Reconnecting a chat renews that chat's attachment to the runner without interrupting other chats. Connection recovery can restore acknowledged output while the original process remains alive; it cannot reconstruct a process after the CLI or computer stops. Interrupted work preserves completed results and uncertain effects. Check the original execution and fresh target state before retrying a mutation.
+
 The Assistant can request a connection refresh while the CLI remains running. Recovery can continue through renewed permission or a clarification when user action is required. It cannot wake a stopped CLI or reconstruct processes that ended when the CLI stopped. Internal status checks are omitted from the visible activity list; the original command still shows its progress and outcome.
 
 The Assistant can apply a workspace patch without asking for each ordinary edit. Browser actions can navigate to an HTTP(S) page, inspect visible page text, interact with forms, and take a screenshot. The CLI installs the required browser runtime; a separate browser installation is not required. The activity shows the visited URL and page output. User-facing screenshots are attached to the conversation; private screenshots used by the Assistant for visual inspection do not create a chat attachment. Browser access follows the terminal's network grant and any temporary exception. For a password or similar secret field, the Assistant can request a secure input popup: the value goes directly to the connected browser session and is not included in the model-visible tool call. A successful secure fill confirms only that the field was filled. The Assistant then submits the authorized login form once and checks a fresh result. An error left from the previous attempt is not evidence that the new value was rejected. The conversation shows background progress and the next required action without a manual refresh. The browser runs as a dedicated controlled action, separate from the shell's operating-system sandbox.
@@ -78,9 +84,11 @@ The Assistant can apply a workspace patch without asking for each ordinary edit.
 
 Browser tabs and cookies belong to the current chat, device and workspace. They survive later messages and short connection recovery while the runner and browser remain alive. The running browser context expires after one hour without browser activity; active use refreshes that idle retention. This is separate from an explicitly saved login profile. The runner allows four sessions and sixteen tabs per session. At capacity, the Assistant can inspect the permitted session inventory, identify its owning chat, and explicitly close unneeded tabs or sessions. It cannot inspect or close another user's sessions, and active sessions are not silently evicted.
 
-Named login profiles are an explicit opt-in for a foreground macOS runner: add `--browser-profile NAME` to `revo terminal connect`. The CLI saves encrypted cookies, local storage and IndexedDB, including Firebase Auth state, and restores them in a separate live context for a later chat. The name is scoped to the same user, instance, device and approved workspace. Encryption keys remain in macOS Keychain. The secure-input bridge does not copy field values from the dialog or page into a profile; the captured site-owned state is sensitive and may contain tokens and other data stored by the website.
+Manage reusable website logins in **Settings → Vault → Browser profiles**. Create a profile, assign it to approved terminal workspaces and choose the users or groups permitted to use it. Sharing a terminal does not share its saved logins. Live Preview lists assigned profiles, and each profile opens an independent browser session. Authorized profiles can run on macOS, Linux and background service runners with compatible server and CLI support.
 
-Only one live context may write a named profile. Close its previous browser session before using that profile in another chat; a busy profile fails explicitly instead of overwriting newer state. Profile persistence currently requires foreground mode and macOS Keychain; it is unavailable in service mode and on other platforms. Sessions without a user-selected default remain ephemeral. Saved state does not extend network permission, bypass revocation, or guarantee that a website will keep its login valid. Explicitly forget saved state with `revo terminal browser-profile forget --browser-profile NAME`, selecting the original workspace and terminal when needed. Website logout and remote account-session revocation remain separate actions.
+Profiles retain encrypted website-owned cookies, local storage and IndexedDB. They do not store values entered through the secure-input dialog as a separate credential record. One live session may write a profile at a time; a busy profile cannot be taken from its current session. Saving state does not prove login succeeded, extend network permission or prevent the website from expiring a login. A failed save retains the last confirmed saved revision.
+
+The older `terminal connect --browser-profile` option is no longer accepted by updated runners. Existing local snapshots remain untouched. On an updated foreground macOS runner, use **Live Preview → Browser settings → Import an older local profile** to create a private Vault profile assigned to that workspace. The original local state is retained unless you explicitly request cleanup after the import succeeds. Removing a saved profile and signing out of the website are separate actions.
 
 Changing between **Local Access** and **Full Network Access** recreates the browser context and loses its cookies and form state. Choose Full Network Access before starting a login flow that uses remote authentication, APIs or assets, even when the initial page is on localhost. After a context change, the Assistant can inspect the remaining tabs, navigate again and request permission or secure credential input when needed. Closing a session, stopping the CLI, browser failure or loss of authorization can also destroy its state. A one-time network exception closes its browser context after that action; use a timed or whole-thread permission for continued browsing.
 
@@ -131,31 +139,22 @@ On a compatible updated runner, open **Live Preview** from browser activity or t
 browser shortcut beside the terminal control in Composer. The shortcut appears for
 the current chat after a successful browser operation, or while a pinned human
 step is waiting. It returns to the same device, workspace, session and tab after
-you minimize the floating preview. The preview shows the local browser at up to
-five frames per second.
-The browser can reach localhost services on the connected device, subject to its
-network permissions. Observing does not give control. Explicit takeover pauses the
-Assistant's browser actions across that context and lets you click, drag, scroll,
-type or switch tabs. Passwords and one-time codes are handled privately by the
-connected browser. Finish the human step to return control; the Assistant checks
-the fresh page before continuing. Disconnect does not silently hand control back.
+you minimize the floating preview. Browser settings let you choose viewport dimensions and a frame rate from 5 to 60 FPS; the default is 15 FPS. Actual delivery depends on browser load and connection capacity.
+
+The browser can reach localhost services on the connected device, subject to its network permissions. Opening Preview only observes. **Take control** reserves that browser session and all its tabs for you; other browser sessions and terminal commands remain available. You can click, drag, scroll, type and switch tabs. Passwords and one-time codes remain private browser input.
+
+If the Assistant needs the occupied session, its dependent task waits without repeatedly requesting screenshots or asking you to hand over again. **Finish & resume** returns that session and resumes the waiting task once, including when Preview was opened before the request for manual interaction appeared. Returning control without a waiting task does not start a new task. The Assistant checks fresh page state before continuing; an interrupted action with an uncertain outcome is not automatically repeated. Minimizing or closing Preview, disconnection and permission expiry do not silently hand control back.
 
 The Assistant can inspect a focused image and use coordinate interactions when
 DOM selectors are insufficient. It attempts CAPTCHA solutions with bounded retries
 and checks the result; a blocked challenge falls back to your same-session preview.
 MFA approvals and secret codes still require you.
 
-During takeover, create or select a named encrypted profile and choose it as the
-default for this user, instance, device and workspace. A later chat restores that
-selection automatically; you do not need to ask the Assistant to save it in memory.
-Profiles retain the foreground macOS and single-writer restrictions described above.
-Website authentication and current network permissions still determine access.
+During takeover, select an assigned Vault profile and choose a default for the approved workspace. Workspace browser settings provide viewport, frame rate and recording defaults; a selected profile can provide its own settings. Current profile permissions and website authentication still determine access.
 
-Recording is opt-in: select a local file, private Storage, or both. Native WebM
-segments pause around private input and authentication work. Storage files are
-restricted to the owner and verified after upload. Existing repository Playwright
-E2Es continue through terminal commands in their own test contexts; Live Preview
-shows the connected browser's current session.
+Recording is opt-in. Choose local files, Revo Storage or both; **Always record** explicitly enables recording for later browser sessions even when Preview is closed. Recording files use WebM. Private input and authentication steps pause recording. Personal Assistant recordings go to the actor's Private Storage; Autonomous Agent recordings go to the Agent's configured workspace and follow that workspace's access rules. The terminal owner does not automatically gain access. Saved recordings remain available in **Sources** after the browser session closes. Connection loss, expired access or an upload failure can stop recording; an uncertain upload is checked before another attempt.
+
+Existing repository browser tests continue through terminal commands in their own test contexts. Live Preview shows the selected connected session.
 
 ## Public page retrieval fallback
 
