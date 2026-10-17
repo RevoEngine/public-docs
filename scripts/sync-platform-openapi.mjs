@@ -218,6 +218,7 @@ const TAG_GUIDES = Object.freeze({
   'Agent Terminals': ['Connect a terminal guide', '/ai/terminals'],
   Agents: ['Autonomous Agents guide', '/ai/agents'],
   Assistant: ['Assistant guide', '/ai/assistant'],
+  'Browser Profiles': ['Browser state and limits guide', '/ai/terminals#browser-state-and-limits'],
   Automation: ['Automation guide', '/operate/automation'],
   Chat: ['Team Chat guide', '/operate/chat'],
   'Component deployments': ['Custom Node.js guide', '/build/custom-nodejs'],

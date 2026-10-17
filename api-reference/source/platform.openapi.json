@@ -3257,7 +3257,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3267,7 +3267,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3306,7 +3306,7 @@
             "description": "Forbidden."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3717,7 +3717,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3727,7 +3727,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3769,7 +3769,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3812,7 +3812,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3822,7 +3822,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3851,7 +3851,7 @@
             "description": "Forbidden."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3897,7 +3897,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3907,7 +3907,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3952,7 +3952,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4001,7 +4001,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4011,7 +4011,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4053,7 +4053,7 @@
             "description": "Component or element not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4101,7 +4101,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4111,7 +4111,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4141,7 +4141,7 @@
         },
         "responses": {
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4194,7 +4194,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4204,7 +4204,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4234,7 +4234,7 @@
         },
         "responses": {
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4279,7 +4279,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4289,7 +4289,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4318,7 +4318,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4363,7 +4363,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4373,7 +4373,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4402,7 +4402,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4448,7 +4448,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4458,7 +4458,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4487,7 +4487,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4703,7 +4703,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4713,7 +4713,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4743,7 +4743,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4783,7 +4783,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4793,7 +4793,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4833,7 +4833,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4873,7 +4873,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Stable write identity. Reuse it for the same request; a different payload is rejected.",
+            "description": "Stable Studio write identity when studio-sessions is enabled. Reuse it for the same request; a different payload is rejected. Classic writes do not use this Studio receipt ledger.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4883,7 +4883,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Existing editable Studio workspace. Omit to create a short coding session automatically.",
+            "description": "Existing editable Studio workspace when studio-sessions is enabled. Omit to create a short session automatically in that mode. A bound workspace cannot fall back to a classic write while Studio is disabled.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4923,7 +4923,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED stages a draft with session/proposal references and the next action. Review, commit, prepare and activate explicitly. A staged draft is not a live save.",
+            "description": "When the verified instance studio-sessions flag is enabled, STUDIO_REVIEW_REQUIRED returns staged session/proposal references and the next review action; it is not a source commit. With the flag absent or disabled, classic writes retain their normal response, unless an immutable Studio runtime baseline or runtime admission requires Studio to remain enabled.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23419,6 +23419,73 @@
         ]
       }
     },
+    "/api/v1/assistant/threads/{id}/actions/{actionId}/browser-completion": {
+      "post": {
+        "operationId": "AssistantController_completeBrowserInteraction",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requestId",
+                  "liveSessionId",
+                  "controlEpoch"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "controlEpoch": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Human completion verified; assistant continuation accepted durably."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Continue a pending browser action after verified human completion in Live Preview",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
     "/api/v1/assistant/threads/{id}/actions/{actionId}/resolve/stream": {
       "post": {
         "description": "Resolve a pending action and stream the resumed assistant turn as server-sent events.",
@@ -23625,6 +23692,1066 @@
         ]
       }
     },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports/catalog": {
+      "post": {
+        "operationId": "TerminalBrowserProfileImportController_catalog",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileImportSourceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Explicitly request local legacy profile names from an authorized foreground runner; personal sessions only",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports": {
+      "post": {
+        "operationId": "TerminalBrowserProfileImportController_create",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import a selected local legacy profile into a new private Vault profile; never overwrites an existing profile",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports/{requestId}": {
+      "get": {
+        "operationId": "TerminalBrowserProfileImportController_status",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read metadata-only progress of the caller own profile import without replaying it",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles": {
+      "get": {
+        "operationId": "BrowserProfileController_list",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfilesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List authorized Vault browser profile metadata without authentication state",
+        "tags": [
+          "Browser Profiles"
+        ]
+      },
+      "post": {
+        "operationId": "BrowserProfileController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfilePolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a private encrypted browser profile; access and assignments are explicit",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}": {
+      "get": {
+        "operationId": "BrowserProfileController_get",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read one authorized profile metadata record without website authentication state",
+        "tags": [
+          "Browser Profiles"
+        ]
+      },
+      "post": {
+        "operationId": "BrowserProfileController_update",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner updates profile metadata and grants; access changes fence previous writers",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/sessions": {
+      "get": {
+        "operationId": "BrowserProfileController_sessions",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active profile leases; owners see all, grantees only their own sessions",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/sessions/{browserSessionId}/close": {
+      "post": {
+        "operationId": "BrowserProfileController_stopSession",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserSessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner or session actor stops one context without clearing the last saved authentication state",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/clear": {
+      "post": {
+        "operationId": "BrowserProfileController_clear",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileRevisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner clears saved website authentication and rotates its data key",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/remove": {
+      "post": {
+        "operationId": "BrowserProfileController_remove",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileRevisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner removes the profile, its assignments and active writer leases",
+        "tags": [
+          "Browser Profiles"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profiles/{browserProfileId}/open": {
+      "post": {
+        "operationId": "TerminalGrantController_openBrowserProfile[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenTerminalBrowserProfileResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-profiles/{browserProfileId}/open": {
+      "post": {
+        "operationId": "TerminalGrantController_openBrowserProfile[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenTerminalBrowserProfileResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings": {
+      "get": {
+        "operationId": "TerminalGrantController_browserRecordingSources[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingSourcesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List owned persisted browser recordings after a session has ended",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings": {
+      "get": {
+        "operationId": "TerminalGrantController_browserRecordingSources[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingSourcesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List owned persisted browser recordings after a session has ended",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings/{recordingId}/provision": {
+      "post": {
+        "operationId": "TerminalGrantController_provisionBrowserRecording[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingUploadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Provision an explicitly requested private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings/{recordingId}/provision": {
+      "post": {
+        "operationId": "TerminalGrantController_provisionBrowserRecording[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingUploadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Provision an explicitly requested private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings/{recordingId}/finalize": {
+      "post": {
+        "operationId": "TerminalGrantController_finalizeBrowserRecording[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingFinalizedDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify and finalize a finished private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings/{recordingId}/finalize": {
+      "post": {
+        "operationId": "TerminalGrantController_finalizeBrowserRecording[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recordingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "liveSessionId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "liveSessionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingFinalizedDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify and finalize a finished private browser recording upload",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-sessions": {
+      "get": {
+        "operationId": "TerminalGrantController_browserSessions[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current owned browser contexts for Live Preview in one assistant thread",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-sessions": {
+      "get": {
+        "operationId": "TerminalGrantController_browserSessions[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current owned browser contexts for Live Preview in one assistant thread",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
     "/api/v1/agents/terminals/{agentTerminalId}/workspaces/register": {
       "post": {
         "operationId": "TerminalGrantController_registerWorkspace[0]",
@@ -23712,6 +24839,114 @@
           }
         ],
         "summary": "Register a pending workspace on an existing owned device without changing its identity",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/workspaces/{workspaceId}/browser-settings": {
+      "post": {
+        "operationId": "TerminalGrantController_updateBrowserSettings[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTerminalBrowserSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update workspace browser preferences without changing execution permissions",
+        "tags": [
+          "Agent Terminals"
+        ]
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/workspaces/{workspaceId}/browser-settings": {
+      "post": {
+        "operationId": "TerminalGrantController_updateBrowserSettings[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTerminalBrowserSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update workspace browser preferences without changing execution permissions",
         "tags": [
           "Agent Terminals"
         ]
@@ -32270,7 +33505,7 @@
           },
           "key": {
             "type": "string",
-            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words.",
+            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words. The permanent @default element cannot be renamed, deleted or replaced; its source remains editable. Only CODE_JS_LIB and CODE_TS_LIB additionally accept the reserved technical key @default: its named exports are available as lib.LibraryName.member. An ordinary DEFAULT key remains a regular node.",
             "minLength": 1,
             "maxLength": 32
           },
@@ -32365,7 +33600,7 @@
           },
           "elements": {
             "nullable": true,
-            "description": "Initial component elements. Server ignores/regenerates componentElementId values on create. Omit or pass null to create the default starter content.",
+            "description": "Initial component elements. Server ignores/regenerates componentElementId values on create. Omit or pass null to create the default starter content. CODE_JS_LIB and CODE_TS_LIB always include a permanent @default element, even with explicit elements; an automatically added @default contains documentation only and exposes no members.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ComponentElementsDto"
@@ -35563,7 +36798,7 @@
         "type": "object",
         "properties": {
           "enabled": {
-            "description": "Enabled experimental feature IDs. revoengine-docs admits the read-only public Docs tools. An empty or omitted array keeps experiments disabled.",
+            "description": "Enabled experimental feature IDs. revoengine-docs admits the read-only public Docs tools, studio-sessions opts into Studio authoring and tool-exec-preview enables Programmatic Tool Calling. Each opt-in is independent; an empty or omitted array keeps experiments disabled.",
             "default": [],
             "type": "array",
             "items": {
@@ -39600,6 +40835,11 @@
             "format": "uuid",
             "description": "Caller-generated UUID idempotency key for this exact operation."
           },
+          "connectionId": {
+            "type": "string",
+            "description": "The current server-owned connectionId received on Studio websocket JOIN. With this ID, activity updates only this active connection. Without it, activity uses a separate actor-scoped 180-second headless lease.",
+            "format": "uuid"
+          },
           "studioActorId": {
             "type": "string",
             "format": "uuid"
@@ -39611,6 +40851,15 @@
           },
           "openedFileIds": {
             "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 100
+          },
+          "editingFileIds": {
+            "type": "array",
+            "description": "Last-reported files with unsaved editor changes. Advisory activity only; no buffer content, exclusive lock or additional authority.",
             "items": {
               "type": "string",
               "format": "uuid"
@@ -39989,7 +41238,7 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words.",
+            "description": "Unique element key. CODE_JS, CODE_TS, CODE_JS_LIB, and CODE_TS_LIB keys must be valid JavaScript identifiers and cannot be JavaScript/TypeScript reserved words. The permanent @default element cannot be renamed, deleted or replaced; its source remains editable. Only CODE_JS_LIB and CODE_TS_LIB additionally accept the reserved technical key @default: its named exports are available as lib.LibraryName.member. An ordinary DEFAULT key remains a regular node.",
             "minLength": 1,
             "maxLength": 32
           },
@@ -40841,17 +42090,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "name": {
             "type": "string",
@@ -40933,17 +42189,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "name": {
             "type": "string",
@@ -41061,17 +42324,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "custom": {
             "type": "boolean",
@@ -41173,17 +42443,24 @@
           "input": {
             "type": "object",
             "default": {},
+            "example": {
+              "export": {
+                "format": "csv"
+              }
+            },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; automation keys take precedence. Does not change the event message, Job execution policy, concurrency or retry settings."
+            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
           },
           "inputMode": {
             "type": "string",
             "enum": [
               "override",
+              "deep_override",
               "replace"
             ],
             "default": "override",
-            "description": "override: overlay input onto Job templateInputs, with automation keys winning; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "example": "override",
+            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
           },
           "custom": {
             "type": "boolean",
@@ -42421,6 +43698,854 @@
           }
         }
       },
+      "BrowserProfileImportSourceDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId"
+        ]
+      },
+      "LegacyBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "BrowserProfileImportStatusDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "preparing",
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "unknown"
+            ]
+          },
+          "profileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "error": {
+            "type": "string"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegacyBrowserProfileDto"
+            }
+          },
+          "localCopy": {
+            "type": "string",
+            "enum": [
+              "retained",
+              "removed",
+              "cleanup_unconfirmed"
+            ]
+          }
+        },
+        "required": [
+          "requestId",
+          "state"
+        ]
+      },
+      "ImportTerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "localProfileId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "object",
+            "maxLength": 2000,
+            "default": ""
+          },
+          "removeLocalCopy": {
+            "type": "object",
+            "default": false,
+            "description": "Delete this local source only after cloud readback and native restoration are verified."
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "localProfileId",
+          "name"
+        ]
+      },
+      "BrowserProfileSettingsDto": {
+        "type": "object",
+        "properties": {
+          "fps": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 60
+          },
+          "width": {
+            "type": "number",
+            "minimum": 320,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "number",
+            "minimum": 480,
+            "maximum": 2160
+          },
+          "alwaysRecord": {
+            "type": "boolean"
+          },
+          "recordingMode": {
+            "type": "string",
+            "enum": [
+              "local",
+              "storage",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "fps",
+          "width",
+          "height",
+          "alwaysRecord",
+          "recordingMode"
+        ]
+      },
+      "BrowserProfileAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "agentTerminalWorkspaceId"
+        ]
+      },
+      "BrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "restricted": {
+            "type": "boolean",
+            "default": true,
+            "description": "False allows active personal users in this instance to use the profile on assigned, independently authorized workspaces. Only the owner manages it."
+          },
+          "browserSettings": {
+            "nullable": true,
+            "description": "Live Preview defaults for this profile. Null inherits workspace defaults. Explicit live controls apply to the current preview.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileSettingsDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "users": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "assignments": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileAssignmentDto"
+            }
+          },
+          "browserProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          },
+          "policyRevision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "busy": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "users",
+          "groups",
+          "assignments",
+          "browserProfileId",
+          "ownerUserId",
+          "revision",
+          "policyRevision",
+          "savedAt",
+          "createdAt",
+          "updatedAt",
+          "busy"
+        ]
+      },
+      "BrowserProfilesDto": {
+        "type": "object",
+        "properties": {
+          "defaultProfile": {
+            "nullable": true,
+            "description": "Authorized workspace default, also returned when its metadata lies on a later catalog page.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileDto"
+              }
+            ]
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "profiles",
+          "nextCursor"
+        ]
+      },
+      "BrowserProfilePolicyDto": {
+        "type": "object",
+        "properties": {
+          "restricted": {
+            "type": "boolean",
+            "default": true,
+            "description": "False allows active personal users in this instance to use the profile on assigned, independently authorized workspaces. Only the owner manages it."
+          },
+          "browserSettings": {
+            "nullable": true,
+            "description": "Live Preview defaults for this profile. Null inherits workspace defaults. Explicit live controls apply to the current preview.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileSettingsDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "users": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "assignments": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileAssignmentDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "users",
+          "groups",
+          "assignments"
+        ]
+      },
+      "BrowserProfileSessionDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "actorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalName": {
+            "type": "string"
+          },
+          "workspaceName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canClose": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "actorUserId",
+          "assistantThreadId",
+          "terminalName",
+          "workspaceName",
+          "createdAt",
+          "expiresAt",
+          "canClose"
+        ]
+      },
+      "BrowserProfileSessionsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileSessionDto"
+            }
+          }
+        },
+        "required": [
+          "sessions"
+        ]
+      },
+      "BrowserProfileMutationDto": {
+        "type": "object",
+        "properties": {
+          "updated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "updated"
+        ]
+      },
+      "UpdateBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "expectedPolicyRevision": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2147483646
+          },
+          "policy": {
+            "$ref": "#/components/schemas/BrowserProfilePolicyDto"
+          }
+        },
+        "required": [
+          "expectedPolicyRevision",
+          "policy"
+        ]
+      },
+      "BrowserProfileRevisionDto": {
+        "type": "object",
+        "properties": {
+          "expectedPolicyRevision": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2147483646
+          }
+        },
+        "required": [
+          "expectedPolicyRevision"
+        ]
+      },
+      "OpenTerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId"
+        ]
+      },
+      "OpenTerminalBrowserProfileResultDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "opening",
+              "ready",
+              "failed"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "error": {
+            "type": "string",
+            "description": "Safe terminal error code; no page content or authentication data."
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "TerminalBrowserRecordingSourceDto": {
+        "type": "object",
+        "properties": {
+          "storageEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "storageEntryId",
+          "name",
+          "size",
+          "mimeType"
+        ]
+      },
+      "TerminalBrowserRecordingSourcesDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserRecordingSourceDto"
+            }
+          },
+          "next": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "next"
+        ]
+      },
+      "TerminalBrowserUploadHeaderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "Content-Type"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      },
+      "TerminalBrowserRecordingUploadDto": {
+        "type": "object",
+        "properties": {
+          "recordingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storageUploadSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "description": "Short-lived bound HTTPS PUT target. Never persist or expose in conversation."
+          },
+          "headers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserUploadHeaderDto"
+            }
+          },
+          "expiresAt": {
+            "type": "integer",
+            "description": "Unix epoch in milliseconds."
+          }
+        },
+        "required": [
+          "recordingId",
+          "storageUploadSessionId",
+          "namespace",
+          "uploadUrl",
+          "headers",
+          "expiresAt"
+        ]
+      },
+      "TerminalBrowserRecordingFinalizedDto": {
+        "type": "object",
+        "properties": {
+          "recordingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storageEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 268435456
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "recordingId",
+          "storageEntryId",
+          "size",
+          "mimeType"
+        ]
+      },
+      "TerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Central profile UUID, or a legacy ephemeral context hash.",
+            "pattern": "^(?:[a-f0-9]{64}|[a-f0-9-]{36})$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "persistent": {
+            "type": "boolean"
+          },
+          "default": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "persistent",
+          "default"
+        ]
+      },
+      "TerminalBrowserTabDto": {
+        "type": "object",
+        "properties": {
+          "popup": {
+            "type": "boolean",
+            "description": "Opened as a popup by another tab."
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "origin": {
+            "type": "string",
+            "description": "HTTP(S) origin only; query and fragment are omitted."
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tabId",
+          "title",
+          "origin",
+          "isActive"
+        ]
+      },
+      "TerminalBrowserObservationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2160
+          }
+        },
+        "required": [
+          "id",
+          "tabId",
+          "width",
+          "height"
+        ]
+      },
+      "TerminalBrowserSessionDto": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "workspaceName": {
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+            }
+          },
+          "tabs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserTabDto"
+            }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "browserObservation": {
+            "$ref": "#/components/schemas/TerminalBrowserObservationDto"
+          }
+        },
+        "required": [
+          "threadId",
+          "agentTerminalId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "deviceName",
+          "workspaceName",
+          "profile",
+          "capabilities"
+        ]
+      },
+      "TerminalBrowserSessionsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserSessionDto"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserProfileDto"
+            }
+          },
+          "online": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessions",
+          "profiles",
+          "online"
+        ]
+      },
       "RegisterTerminalWorkspaceDto": {
         "type": "object",
         "properties": {
@@ -42438,9 +44563,67 @@
           "path"
         ]
       },
+      "TerminalBrowserSettingsDto": {
+        "type": "object",
+        "properties": {
+          "defaultBrowserProfileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Explicit default hint for assigned, authorized profile selection. Does not grant profile access."
+          },
+          "fps": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 60
+          },
+          "width": {
+            "type": "number",
+            "minimum": 320,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "number",
+            "minimum": 480,
+            "maximum": 2160
+          },
+          "alwaysRecord": {
+            "type": "boolean",
+            "description": "Explicit opt-in. Private control and authentication always pause recording."
+          },
+          "recordingMode": {
+            "type": "string",
+            "enum": [
+              "local",
+              "storage",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "fps",
+          "width",
+          "height",
+          "alwaysRecord",
+          "recordingMode"
+        ]
+      },
       "TerminalWorkspaceDto": {
         "type": "object",
         "properties": {
+          "browserSettingsRevision": {
+            "type": "number",
+            "readOnly": true,
+            "minimum": 0
+          },
+          "browserSettings": {
+            "readOnly": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TerminalBrowserSettingsDto"
+              }
+            ]
+          },
           "agentTerminalWorkspaceId": {
             "type": "string",
             "format": "uuid"
@@ -42637,6 +44820,24 @@
           "restricted",
           "users",
           "groups"
+        ]
+      },
+      "UpdateTerminalBrowserSettingsDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2147483646,
+            "description": "Independent browser settings revision; does not revoke execution grants."
+          },
+          "settings": {
+            "$ref": "#/components/schemas/TerminalBrowserSettingsDto"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "settings"
         ]
       },
       "TerminalWorkspacesDto": {

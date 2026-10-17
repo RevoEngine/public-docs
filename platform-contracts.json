@@ -14,7 +14,7 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 555
+      "operations": 579
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
