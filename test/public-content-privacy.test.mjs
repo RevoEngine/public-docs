@@ -97,3 +97,8 @@ test('privacy audit rejects private diagnostic paths while preserving public fee
     '/api/v1/agents/reconcile': {},
   } }), []);
 });
+
+test('standard browser AbortController is public while implementation classes remain private', () => {
+  assert.deepEqual(publicTextPrivacyIssues('const controller = new AbortController();'), []);
+  assert.ok(publicTextPrivacyIssues('AssistantController').includes('private implementation prose'));
+});

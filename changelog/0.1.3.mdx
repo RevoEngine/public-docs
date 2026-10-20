@@ -20,8 +20,7 @@ The release also adds a dedicated Event history workspace and more capable editi
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Business execution and the evolving builder" defaultOpen={true}>
+## Business execution and the evolving builder
 
 Closed production establishes the platform as an environment for operating business applications, with the managed runtime, application data and Automation controls forming the execution foundation. Builders continue to improve definitions and application behavior while operators use the existing interfaces to inspect the resulting work.
 
@@ -29,8 +28,7 @@ The distinction between execution and authoring matters. A production applicatio
 
 For teams maintaining an application, the relevant loop now includes both sides: prepare and inspect a change in the builder, then follow its operational context through the application's records and histories. Later releases develop that experience without resetting the foundation established here.
 
-  </Accordion>
-  <Accordion title="Understand the event before investigating the job">
+## Understand the event before investigating the job
 
 Event history introduces a dedicated list and detail view for recorded event occurrences. Operators can inspect an event's name, identity, note and associated message/context instead of beginning every investigation from a downstream job.
 
@@ -40,8 +38,7 @@ The detail view includes links to associated Automation templates. An operator c
 
 A typical investigation can start with the occurrence, inspect its note and available message, follow the associated template and then continue into the appropriate execution history. The release adds the missing event-oriented view to that sequence.
 
-  </Accordion>
-  <Accordion title="Find the right code in a growing application">
+## Find the right code in a growing application
 
 The editor expands its organization beyond a single open logic definition. Category and type grouping make the workspace easier to navigate when an application contains several kinds of logic and a larger collection of sources.
 
@@ -49,8 +46,7 @@ These views support different ways of finding work. Categories help a builder na
 
 Contextual editor navigation keeps the selected source connected to the surrounding workspace. A builder can move among related definitions, inspect their content and return to the area being changed without continually leaving the editor for a separate resource list.
 
-  </Accordion>
-  <Accordion title="Debug the selected logic, with explicit inputs">
+## Debug the selected logic, with explicit inputs
 
 The debugging workflow now distinguishes a multi-logic workspace from a single selected definition. Where several logics are available, the builder can explicitly choose the target before running a test.
 
@@ -58,8 +54,7 @@ Input and output remain separate views. Supported contexts provide the relevant 
 
 The result is a more practical development workflow for applications with reusable libraries and several related definitions: select the intended logic, prepare its input, run the test and inspect the output in the same authoring context. This expands the existing managed debugging capability rather than introducing a separate execution environment.
 
-  </Accordion>
-  <Accordion title="Keep uploads visible while moving through the app">
+## Keep uploads visible while moving through the app
 
 File uploads gain application-wide progress awareness. Leaving the Files workspace no longer removes all indication that a transfer is still active: the interface can retain an upload notice and direct the user back to Files to inspect its current status.
 
@@ -67,8 +62,6 @@ The browser must remain open while the transfer is in progress. The interface co
 
 This supports ordinary multitasking inside the application while a file is uploading, without confusing navigation with transfer completion. It is an expansion of upload visibility, not a promise of transfer recovery after closing the browser.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

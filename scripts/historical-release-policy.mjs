@@ -3,6 +3,16 @@
 export function permitsHistoricalMethod(page, method, content) {
   const historicalExceptions = [
     {
+      page: 'changelog/0.8.0.mdx', method: 'api.getDatabaseDataV2',
+      historicalNote: 'Historical API: `api.getDatabaseDataV2()` is no longer available in the current runtime.',
+      replacementNote: 'Use [`api.getDatabaseData()`](/low-code/database) for new code.',
+    },
+    {
+      page: 'changelog/1.5.7.mdx', method: 'api.exportDatabaseView',
+      historicalNote: 'Historical API: `api.exportDatabaseView()` is no longer available in the current runtime.',
+      replacementNote: 'Use [`api.exportDatabase()`](/operate/database-exports) for new code.',
+    },
+    {
       page: 'changelog/1.0.3.mdx',
       method: 'api.transactionDatabaseData',
       historicalNote: 'This historical example uses the method name available in 1.0.3.',

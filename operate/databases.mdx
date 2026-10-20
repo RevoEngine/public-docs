@@ -131,7 +131,7 @@ The export dialog offers **CSV**, **TSV**, **NDJSON**, and **Excel (XLSX)** for 
 
 CSV remains the default when existing API or low-code callers omit the format. Excel preserves supported column types; values that exceed Excel's numeric precision are written as text. The server checks the worksheet ceiling of 1,048,575 data rows plus a header and 16,384 columns during export execution. A REST request may already have been accepted when that check fails; low-code waits for the result by default.
 
-Exports are managed files in [Storage](/operate/storage). See [1.5.0](/changelog/1.5.0) for the related data and spreadsheet changes.
+Exports are managed files in [Storage](/operate/storage). [Export data to Storage](/operate/database-exports) explains all four formats, notification defaults, asynchronous receipts and finalized-file examples. See [1.5.0](/changelog/1.5.0) for the related data and spreadsheet changes.
 
 ### Import from Storage
 

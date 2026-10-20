@@ -17,8 +17,7 @@ RevoEngine 1.5.2 improves how applications read and write large managed data fil
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Read structured files without loading them all" defaultOpen={true}>
+## Read structured files without loading them all
 
 Storage now recognizes NDJSON, JSON arrays and XML alongside CSV and Excel for structured reads. Applications can ask for the records they need, select columns, choose a page size and continue from the returned cursor. XML reads name the record path explicitly, so the result is predictable even when a document has several nested collections.
 
@@ -37,8 +36,7 @@ return { rows: page.rows, nextCursor: page.nextCursor };
 
 Use the cursor only with the same file and read options. It continues the structured result rather than requiring the application to download, parse and retain the full source file itself.
 
-  </Accordion>
-  <Accordion title="Choose the right document read">
+## Choose the right document read
 
 For a small document that should be handled as one value, `storage.getDocument` provides an explicit bounded read. Automatic format selection recognizes JSON and XML from the stored file type or name; text reads can also use a byte range. Larger record-oriented files remain a fit for the paged `getFileData` workflow.
 
@@ -51,8 +49,7 @@ return document.document ?? document.content;
 
 The returned result identifies the file and the source range used for the read. This keeps document handling deliberate and makes a large-file workflow visibly different from a small configuration or payload read.
 
-  </Accordion>
-  <Accordion title="Keep data writes and recovery understandable">
+## Keep data writes and recovery understandable
 
 CSV and Excel upload sessions retain a clear create, append and finalize flow for independent requests. A staged session remains the normal choice when writes can be retried or completed later. Files may be addressed by their authorized identifier, including private files, while the existing Storage access rules continue to decide who can read or change them.
 
@@ -75,8 +72,6 @@ return result.entry;
 
 When background execution stops before completion, the job finishes with a consistent actionable error instead of remaining indefinitely ambiguous. Re-execution remains a deliberate operator or application decision, protecting workflows whose external effects cannot safely be repeated automatically.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

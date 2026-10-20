@@ -193,7 +193,7 @@ Create and manage this schedule from the Materialized View workflow or the Sched
 
 Manual **Run** requires an active schedule and asks the scheduler to execute it now; it does not create a second cadence or move the next cron occurrence. An inactive schedule returns a non-success result until it is activated.
 
-Customer configuration actions are rate-limited to 10 scheduler operations per instance per 60 seconds. Bulk deletion accepts at most 10 Schedules at once. A `429` response includes a retry interval; wait for that interval instead of immediately retrying every selected row.
+Scheduler configuration shares managed admission capacity. A `429` response includes a `retryAfter` interval in seconds; wait for that interval instead of immediately retrying every selected row. This is separate from bulk deletion, which accepts at most 10 Schedules at once.
 
 <Note>
   RevoEngine-managed schedules are visible for operational transparency but are read-only. They cannot be edited, run, disabled, restored, or deleted manually.

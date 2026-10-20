@@ -16,6 +16,12 @@ Dashboards turn the RevoEngine control plane into an operator-specific workspace
 
 Use **Manage** to open, search, rename, change visibility/default, or delete a saved dashboard. **Home** is the built-in view; create a named dashboard before adding widgets. **Reload** discards unsaved layout changes and reloads the saved preference. The grid has 20 columns; palette sizes are starting footprints and may be enlarged for dense data. Widgets are shown only when the viewer has their required roles and resource access.
 
+## Combine business operations with AI
+
+The [Asterion Supply example](/platform/asterion-supply) combines four live widgets: catalog/order/invoice counts, daily sales from a Materialized View, an exception View, and the finance Agent. Select the Agent in **Configure → Agent** to inspect its runs and workspace evidence beside business data. Its presence on a dashboard does not grant the viewer permission to run it.
+
+A pinned Assistant conversation is a separate conversation surface; it is not an additional dashboard widget type. Use the current **Agents** widget for Agent operations and link business work to its verified run or artifact.
+
 ## Complete widget library
 
 These are the **38 entries in the current Add Widgets palette**. Names below match the app. Most built-in resource grids have no source picker: open the widget, apply its own filter and sort controls, then save the dashboard if that state should reopen. A widget can be visible in the palette yet show **Insufficient permissions** to a viewer without its required role. Resource ACLs remain in force independently of dashboard visibility.
@@ -110,9 +116,9 @@ A **Custom Widget** renders code output as text, charts, tables, or empty space.
 | Timeout | Interactive execution timeout, validated from 5 to 600 seconds. |
 | Memory | Widget execution memory, validated from 32 to 1024 MiB. |
 | Refresh | Optional automatic refresh from 1 to 600 seconds. |
-| Production | Whether a reusable Component executes in production mode. |
+| Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Inline widgets always request `readOnly: true`. |
 
-Inline code runs in Sandbox debug mode; a reusable Component runs through its normal execution path. Debug mode is intended for inspection and suppresses many writes, but it is not a strict read-only security boundary. Treat inline code as executable, keep it read-only by design, and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
+Inline code runs in Sandbox with `readOnly: true`; a reusable Component uses its selected restricted-mode setting. Debug execution by itself is not a permission grant or a substitute for the explicit read-only flag. Keep widget calculations read-only and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
 
 For a dashboard focused on one Endpoint and its related Jobs, pass verified Job template IDs through **Inputs** as JSON, for example `{"templateIds":["verified-template-id"]}`. The following inline JavaScript makes a bounded read, groups the returned runs by UTC day and returns a heading, chart, table and intentional spacer. It labels the result as partial when the 100-row cap may have omitted runs:
 
@@ -205,3 +211,7 @@ Operators begin with the decision surface and open the underlying row, Job, or T
 - Lock and save the final layout.
 
 See [Observability](/operate/observability) for incident workflows and [Limits and quotas](/platform/limits-and-quotas) for runtime boundaries.
+
+## Enterprise example
+
+[Asterion Supply](/platform/asterion-supply#put-operations-and-ai-on-one-dashboard) combines live KPI and sales widgets, a native Agent runs widget and an exception View. The separate [customer portal](/developers/customer-ai-portal) uses the same business rules through Endpoints and AI plugins.

@@ -1,0 +1,68 @@
+---
+title: "Studio coding sessions"
+description: "Keep shared working code, tests and review together before activating a release."
+icon: "code-branch"
+---
+
+<Note>
+  Studio coding sessions are available on instances enabled for the controlled rollout. The session interface and execution prerequisites must be enabled before this workflow is available. Existing Studio editing remains available on other instances.
+</Note>
+
+A Studio session is a durable workspace for changes spanning several Components, tests and supporting files. Humans, Assistants and authorized Agents can work in the same session. Saving a session preserves a draft; it does not deploy Components or activate their runtime.
+
+## Preserve working changes
+
+Opening Studio keeps local working changes in the default workspace. Click the session control above the navigation filters to open **Studio sessions**. It follows the same split-control pattern as the **All** filter: the name opens saved sessions, and the right cog manages the active session. The Component and Scratch creation actions remain in the footer. Choose **New session** for an empty workspace, or **Save working diff as session** to preserve the current changes and base versions. Opening a session loads its touched Components and working files into normal Studio tabs and **Working diff**. The fixed **Sessions** navigation view selects the active session. **Components**, **Usage** and **Scratch** remain available without leaving that session. Each view keeps catalog reads separate from the captured working code. Each workspace retains its own tabs, selection, layout and local buffers when you switch between sessions or return to **Default workspace**. You can resume a saved draft without deploying it.
+
+The session manager uses the same compact list and form controls as the rest of the application. Search saved sessions by name, intent or session ID, or switch to archived sessions. **Load** opens the editor workspace; **Manage** opens participant and sharing controls for the chosen session without loading it into the editor or replacing the current workspace. Collapsed current-session details show unsaved or conflicting edits, Working diff count, test results and the current stage. Saving a draft and activating a runtime are separate states. When deployment has no runtime baseline, the panel states that prerequisite explicitly.
+
+In **Components** or **Usage**, open a Component context menu and choose **Add to session** to capture its complete observed source and base version. Scratch offers the same explicit action for the selected document. Edit code and the typed `component.json` configuration in normal tabs. During this controlled rollout, legacy structural actions that would write directly to a live Component are unavailable inside a session. **Studio Chat**, **Tests** and **AI threads** open ordinary Studio windows from the right tools. Members and sharing are managed through the session cog or the **Members** action in the Studio Chat composer. These tools are unavailable without an active session. **Deploy** opens the existing changes comparer with a Component selector and **Review** / **Tests** tabs, initially on Review. Code and Test files open lazily in the upper code window; the default lower Input/Code and Terminal/Output/Performance tools remain separate. Saved layouts keep their arrangement. Session websocket updates refresh this workspace while preserving unsaved text. Ordinary Component updates are applied through the existing merge flow when you return to the default workspace.
+
+When a Scratch document is selected in Studio, open **Studio sessions** and choose **Save scratch as session**, or open a saved editable session and choose **Add scratch to selected session**. JavaScript and TypeScript documents become complete working Component resources; notes and other file formats remain non-executable `scratch` files. The platform stores the exact submitted text, including line endings, without deleting the original Scratch or discarding newer local edits. Existing Scratch **Promote** remains available as a separate explicit action.
+
+Use the Assistant icon to save pending changes and open an Assistant draft linked to that exact session. Review the instruction and use the existing Assistant model, permissions and plugin controls before sending. Opening the draft does not send a message. A newly created conversation is associated with the session automatically and appears in **AI threads**. Session members can read its visible conversation; its owner can reopen it in the ordinary Assistant view. Associating an existing private conversation does not publish its earlier history. Automatic session conversations are excluded from public session links.
+
+Edits use file revisions and digests. Participants can change different files independently. If someone changes the same file, Studio preserves your text and requires an explicit resolution. If the file is removed, the recovery panel keeps your local draft available to copy or save as a separate scratch session. Before source commit, the platform also checks the Component versions on which the session was based. Compare the latest base and resolve conflicts before continuing.
+
+## Collaborate and share
+
+Use the selected session’s cog or **Members** in the Studio Chat composer, select an existing user by name or email and choose the Viewer, Commenter, Reviewer or Editor role. The role description explains the session access before you invite them. The compact member list shows roles and access controls. Separate expandable agent activity shows Assistant and Agent presence and advisory claims. Platform permissions still apply. A revocable read-only link exposes the session and its Studio Chat without granting editing rights.
+
+Studio Chat is the shared discussion for humans and enrolled Assistant or Agent identities. It uses the same message bubbles, spacing and floating bottom composer as Assistant chat, with human emoji and attachment controls instead of AI settings. Participants can reply, react, edit or delete their permitted messages and attach files through the session. A read-only share allows viewing and authorized attachment downloads without enabling message or upload actions. Message updates and removals are restored after reconnecting. Presence and optional following help you observe a participant’s selected file. New conversations created for the session appear automatically in **AI threads**, without manual linking. Their visible history is read-only for other authorized members; private reasoning and diagnostic snapshots remain excluded. Existing explicitly shared conversation records retain their original grant checks. Revoking session access or a required conversation share prevents later reads. Advisory work claims identify who is working on a file or task; they do not lock files or grant permission.
+
+## Test and review
+
+Use **JavaScript Test** or **TypeScript Test** Components for reusable tests. A test suite is a standalone Component. Its `testConfig.targets` lists the names of the Components it tests, while named fixtures provide test inputs and `mode` selects fixture or integration execution. A newly created session test is a saved workspace draft and becomes an ordinary Component when its sources are committed. Studio authoring filters and Usage expose Test types; Job and Endpoint execution selectors exclude them. The shared editor declaration provides `test.*` completion, but that runtime object exists only during native test execution. Ordinary low-code cannot use it to obtain testing authority.
+
+Choose a suite by name in the Tests window and run it, or run the session fixture suite collection. Models use the same operations. Tests do not automatically execute on every editor change; freeze requires current evidence for the tests mandated by policy. The same **Tests** window shows suite selection and execution above a compact result tree below. Both areas start at 50/50; resize the separator with the pointer or ArrowUp/ArrowDown. Results show status, executed cases, assertion counts and duration, and distinguish current evidence from earlier runs. Deployment review reuses the read-only results for its exact frozen candidate. Tests use the active parent release plus the business changes staged in the session. Unchanged libraries and targets retain their active runtime binding; merely adding a file to the session does not deploy it. A target with no usable active binding is rejected until it can be tested against the required runtime. Results belong to the source and dependencies actually tested; earlier evidence cannot approve changed code. Integration effects require separate approval for the exact frozen candidate and selected test. Fixture execution does not silently permit live effects. Cancel a queued test before execution, or stop collecting the result of a running test. Stopping collection cannot roll back integration effects that have already been dispatched.
+
+Use component names in native test code. Both `test.runComponent(name, inputs)` and `test.readComponent(name)` resolve the exact captured workspace, preserving its source and dependency versions.
+
+```javascript
+await test.case('empty order', async () => {
+  const input = await test.fixture('empty');
+  /** @type {{results: {Main: {totalCents: number}}}} */
+  const result = await test.runComponent('Order pricing', input);
+  await test.assertEqual(result.results.Main.totalCents, 0);
+});
+```
+
+The current controlled rollout runs Custom Node.js test targets in a restricted workspace module adapter, in both fixture and integration modes. Node builtins and installed npm packages are unavailable there. Local nested test calls use the captured overlay. Calls explicitly requesting a remote execution host return **UNAVAILABLE** in both modes and do not run a local replacement. Catching that error or passing other assertions cannot produce passing remote evidence. Local results confirm the tested source in that managed runtime; they do not confirm native Node compatibility or execution on a remote provider. Those capabilities require separate rollout validation.
+
+Freeze the saved draft for review. Reviewers inspect the complete changes, intent, validation and test evidence. Where policy allows an exception, record its reason against the candidate. Permissions, version conflicts and invalid source cannot be bypassed by a test waiver.
+
+## Commit and activate
+
+1. Save the shared draft and inspect the working diff.
+2. Resolve base conflicts and run the required tests.
+3. Freeze and approve the exact candidate.
+4. Commit its sources and prepare the resulting runtime release.
+5. Activate the chosen ready release against its expected active generation.
+
+If runtime preparation fails, retry explicitly. The retry creates a new preparation attempt for the same reviewed source manifest and retains the failed attempt. A changed source or invalidated candidate requires a new review.
+
+A source commit does not change the active runtime. The platform checks the committed dependency graph and reviewed manifest before runtime preparation and activation. If another release becomes active first, activation reports a conflict instead of silently combining releases. Saved releases and evidence remain available for review after reopening the session. Where your permissions allow rollback, choose **Roll back runtime** on a retained ready release and confirm the change. Rollback checks the observed active generation, changes the active runtime and preserves current source and unsaved draft changes. If the active runtime changes while confirmation is open, inspect the new state before trying again.
+
+Successful activation archives the session. Instance retention settings govern later cleanup, with at least 90 days from the original activation. Logical deletion revokes session, share and owned Studio Chat access together, including new attachment reads. Physical attachment cleanup uses the existing Storage expiry lifecycle; previously issued signed download links retain their normal lifetime. Cleanup removes only the verified session-owned chat and preserves linked Assistant conversations and protected runtime manifests. Deleting an activated session does not restart that period. Explicitly deleted drafts that were never activated use their deletion time for cleanup. Saved drafts do not expire merely because they are old. Choose **Fork archived session** to continue in a separate editable copy. The original session and its release history remain available; linked conversation history is not copied.
+
+Continue with [Studio](/build/web-ide), [Components](/build/components) or the [Platform API](/api-reference/introduction).

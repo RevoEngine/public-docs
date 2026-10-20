@@ -16,8 +16,7 @@ RevoEngine 0.3.2 improves the everyday operating experience around an already es
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Search the application instead of opening every section" defaultOpen={true}>
+## Search the application instead of opening every section
 
 The application gains a dedicated Search workspace for administrators. Enter a term and RevoEngine looks across the retained descriptions of supported application objects, returning results with the object type and the context needed to recognise it. Components and Endpoints can be distinguished from schedules, events, files, users, groups, resources and other managed definitions without first opening each separate management screen.
 
@@ -25,8 +24,7 @@ Results are deliberately shaped for navigation rather than presented as raw inte
 
 Search is also built for a real application inventory rather than a tiny demo workspace. Results have a requested page size and continuation state, so the interface can load another page only when one exists. The view therefore remains practical as an instance accumulates more definitions, records and operational history.
 
-  </Accordion>
-  <Accordion title="Let the workspace remember useful personal choices">
+## Let the workspace remember useful personal choices
 
 Preferences grow beyond a narrow grid setting. A user can keep a personal application preference, dashboard preference or favourite preference, alongside the settings used to shape a data grid. These are personal choices: they are associated with their creator rather than being silently shared as a global configuration for every user.
 
@@ -34,21 +32,18 @@ The update flow protects a choice while it is being edited. A saved preference c
 
 This makes the product easier to return to over repeated sessions. A dashboard can remain the working view a person chose, and a favourite can act as a personal shortcut without becoming an unreviewed change to another operator's workspace.
 
-  </Accordion>
-  <Accordion title="Follow endpoint activity through the dashboard">
+## Follow endpoint activity through the dashboard
 
 Endpoint statistics become more interactive. A dashboard user can drill into a selected part of a statistics view and carry that selection into the graph configuration flow. Instead of treating a chart as a fixed report, the operator can move from a visible aggregate to the narrower context that requires attention.
 
 The endpoint-summary area can also refresh automatically. This is useful when the dashboard is being used as an operational surface and new activity may arrive while it is open. The refresh is configured by the dashboard workflow, keeping the summary current without requiring the user to manually reopen the view after each observation.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
 - Search results preserve recognisable details such as an Endpoint method and path or a file location.
 - Personal preference updates use version checks so a stale form cannot silently overwrite a newer saved choice.
 - Dashboard drill-up keeps an investigation connected to the selected endpoint-statistics context.
+
 
 ## Related guides
 

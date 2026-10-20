@@ -16,8 +16,7 @@ RevoEngine 0.2.0 improves the work that happens around an established automation
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Follow an automation from configuration to history" defaultOpen={true}>
+## Follow an automation from configuration to history
 
 Automation work often moves between two related questions: how is this job or event configured, and what activity has it produced? 0.2.0 makes that relationship explicit in the workspace. An event configuration now presents a direct route to its event history, and the history view leads back to the configuration that defines it. Job templates receive the same connection to job history.
 
@@ -25,8 +24,7 @@ This shortens a common operating loop. A builder can review the definition, open
 
 The left navigation follows the same idea. Configuration entries for jobs and events include direct history access, so an operator can reach the appropriate record without first leaving the automation area and rebuilding the route mentally.
 
-  </Accordion>
-  <Accordion title="Read a schedule before you rely on it">
+## Read a schedule before you rely on it
 
 Schedules already provide the timing mechanism for recurring work. This release makes the expression being edited easier to understand by showing a plain-language description whenever the cron value is valid. A builder can still enter the precise schedule expression, while also seeing the timing it represents as part of the form.
 
@@ -34,8 +32,7 @@ That is useful when reviewing a handoff or checking a recurring operation with a
 
 The detail view makes active and inactive configurations visible and presents the corresponding action set. Teams can distinguish a configuration that is ready to operate from one that is currently disabled, then choose the relevant action from the same context.
 
-  </Accordion>
-  <Accordion title="Keep complex logic edits in view">
+## Keep complex logic edits in view
 
 The Web IDE now adds an explicit Unsaved changes section to its navigation. When an author modifies logic, the list identifies each affected element with its key and the logic where it belongs. This is more precise than a single generic dirty indicator: the author can see what still requires attention, even after opening several areas of a larger logic structure.
 
@@ -43,13 +40,11 @@ Selecting an entry opens the relevant parent category and logic group, then focu
 
 The editor navigation also separates component browsing from search and gives the working pane more flexible space. Together with the unsaved-elements list, these changes make it easier to work through a substantial set of logic elements without losing the location of an edit or the structure around it.
 
-  </Accordion>
-</AccordionGroup>
-
 ## Also in this release
 
 - Event and schedule forms receive state-aware configuration presentation in the shared automation workspace.
 - Job and event history remain available from the configuration context as well as from history navigation.
+
 
 ## Related guides
 

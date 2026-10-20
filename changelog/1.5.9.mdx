@@ -18,15 +18,13 @@ RevoEngine 1.5.9 makes Component revisions portable between instances, brings Da
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Pin the same Component revision across environments" defaultOpen={true}>
+## Pin the same Component revision across environments
 
 Components and their elements now carry content digests based on the executable revision. An Endpoint, Job Template or Agent Plugin tool can retain an exact revision by digest when it moves between instances whose local version counters differ. New bindings continue to follow the latest revision when no digest is selected. The builder can inspect revision history, search matching digests and select a verified revision before saving a binding.
 
 Element metadata is editable in the Component authoring flows, while reserved revision data stays managed by RevoEngine. Existing revisions and bindings are migrated to the new representation. Review a pinned integration after migration if its historical source differs between environments; a matching local number alone is no longer proof of matching content.
 
-  </Accordion>
-  <Accordion title="Use one readable relation workflow">
+## Use one readable relation workflow
 
 The standard database read methods now accept Databases, live Views and Materialized Views as root relations or structured joins. Access checks apply to each relation, and an ambiguous logical name fails closed. New and renamed relations cannot take a name already used by another relation type. The same `api.exportDatabase()` workflow exports all three types, including joined results.
 
@@ -47,22 +45,17 @@ return exportResult.storageEntryId;
 
 For new low-code code, use `api.getDatabaseData()`, `api.getDatabaseDataRow()`, `api.countDatabase()` and `api.walkDatabaseData()` for readable relations. The former View-only read helper remains as a deprecated compatibility alias. `api.exportDatabaseView()` and the separate REST View export operations have been removed; callers should use the unified Database export operation.
 
-  </Accordion>
-  <Accordion title="Make Assistant usage and activity easier to inspect">
+## Make Assistant usage and activity easier to inspect
 
 The administrator Usage view now shows a comparison with the previous period of the same duration and separates current, review and historical model usage. Tool, skill and plugin activity is loaded when its tab is opened. Plugin activity keeps a useful name and icon even after a plugin is permanently removed, while hidden system activity remains outside the user-facing conversation.
 
 New and resumed Assistant or Agent work selects GPT-6 Sol or Luna under the current configuration. Existing GPT-5.6 Sol choices map to GPT-6 Sol; Terra and Luna choices map to GPT-6 Luna. Historical messages and usage records retain the model that actually produced them.
 
-  </Accordion>
-  <Accordion title="Build dashboards and investigate with focused evidence">
+## Build dashboards and investigate with focused evidence
 
 The dashboard widget palette supports adding a widget at a selected position and moving surrounding widgets into a valid layout before saving. New dashboard views bring Agent, AI usage, Database audit, Job performance and Endpoint performance information into the same workspace. The existing dashboard permission and save flow still controls persistence.
 
 Component discovery now returns a compact revision and element map before source is requested. Builders and the Assistant can read selected current or historical elements, including several historical elements in one request, and apply source-only edits without replacing the entire element set. Operational investigation and conversation search use narrower evidence and indexed identifiers, reducing unnecessary broad reads.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
@@ -71,6 +64,10 @@ Component discovery now returns a compact revision and element map before source
 - Component element payloads no longer expose the obsolete `libs` field; dependency analysis remains available through supported authoring and validation flows.
 - The post-1.5.8 fixes improve database index and View handling, Jobs and Trace details, group membership actions, Storage forms and Assistant activity projection.
 - Node.js SDK 1.5.9, generated low-code declarations and the Platform API schema are aligned with the supported product contract.
+
+<Info>
+Historical API: `api.exportDatabaseView()` is no longer available in the current runtime. Use [`api.exportDatabase()`](/operate/database-exports) for new code.
+</Info>
 
 ## Related guides
 

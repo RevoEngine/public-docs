@@ -71,6 +71,8 @@ A component tool maps a stable plugin operation to a versioned RevoEngine Compon
 
 Use component tools when business behavior already lives in RevoEngine or should share the platform's normal versioning, execution, and observability.
 
+See [Build a business plugin](/ai/business-plugins) for a complete stock and contract-pricing example shared by a portal Assistant and an Agent.
+
 ## MCP servers
 
 MCP plugins bind authentication through RevoEngine Vault and synchronize the remote capability contract for operator review. Each admitted operation retains its own safety and approval policy, so read and write capabilities from the same server can be governed differently.
@@ -101,6 +103,10 @@ Each executable plugin operation can declare:
 - timeout, result size, and enablement limits.
 
 RevoEngine evaluates the installed definition, current policy, identity, target, and requested operation. Approval previews should show what will run and which target is affected—not credentials or private integration data.
+
+## Slugs and recovery
+
+A plugin slug is unique among nondeleted definitions. Disabling a plugin keeps its slug reserved; deletion releases it for reuse. Restore the original plugin by ID. If a current plugin uses the same slug, restoration returns `409 Conflict` instead of replacing or merging the definitions.
 
 ## Operational checklist
 

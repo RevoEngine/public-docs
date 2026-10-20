@@ -34,7 +34,7 @@ The public Job contract supports the following platform ceilings:
 | Setting | Default | Public maximum | Notes |
 | --- | ---: | ---: | --- |
 | Timeout | 300 seconds | 3540 seconds (59 minutes) | A lower `jobTimeout` instance quota takes precedence. |
-| Memory | 128 MiB | 4096 MiB (4 GiB) | A lower `jobMemory` instance quota takes precedence. |
+| Memory | 128 MiB | 2048 MiB (2 GiB) | Low-code runtime ceiling; there is no separate `jobMemory` instance quota. |
 | Concurrency group limit | — | 1000 active executions | Minimum is 1; applies per logical concurrency key. |
 | Concurrency lease TTL | — | 86,400 seconds | Bounds slot recovery; it is not the Job execution timeout. |
 

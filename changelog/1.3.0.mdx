@@ -17,29 +17,25 @@ RevoEngine 1.3.0 establishes the stable interactive Assistant as a durable works
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="A conversation that carries the work" defaultOpen={true}>
+## A conversation that carries the work
 
 The stable Assistant treats a conversation as durable work context. A user can ask for help investigating a configuration, preparing a change or assembling an operational result; the Assistant can inspect accessible context, set out a plan, report progress and continue when the user supplies a missing answer. Instead of trying to reconstruct the work from a final chat sentence, the user has a place to return to the messages and activity that led there.
 
 Attachments and generated artifacts belong to that same context. A file supplied for analysis or an output produced by the work can be understood alongside the request that created it. This is valuable when a task spans more than one interaction: the conversation remains useful as a record of intent, context and outcome, not merely a temporary prompt box.
 
-  </Accordion>
-  <Accordion title="Decisions stay visible and deliberate">
+## Decisions stay visible and deliberate
 
 The Assistant separates a response from a change that needs the user's choice. If the request is incomplete, it can ask a clarification. If a consequential operation needs approval, the work pauses on that decision with its surrounding plan and activity still visible. The user can evaluate what is proposed rather than guessing what an affirmative response might trigger.
 
 That makes the Assistant complementary to automation, not a replacement for it. Schedules, jobs and other automated application processes retain their established operating controls. The Assistant is the interactive layer for work that benefits from a human conversation, visible intermediate steps and a timely decision. Access remains governed by the application identity and permissions already in effect.
 
-  </Accordion>
-  <Accordion title="Work in a connected application workspace">
+## Work in a connected application workspace
 
 The dedicated Assistant workspace brings conversation content and in-progress activity together. A user can follow work while it is happening, then revisit the messages, plan, attachments and artifacts afterwards. Keeping the selected conversation in a real workspace is a better fit for longer-running application work than treating each exchange as a transient modal.
 
 A durable context also supports related work without erasing the original. A user can revisit the source conversation, share the relevant context where supported, or continue a related line of investigation while retaining the decisions and evidence that made the original result understandable. This does not make the Assistant unrestricted; it makes governed work easier to follow over time.
 
-  </Accordion>
-  <Accordion title="Clone a database with the choices exposed">
+## Clone a database with the choices exposed
 
 Database cloning becomes a more complete lifecycle operation for builders who need a safe starting point for a variant, test copy or related data model. The clone can use an explicit target name or a generated one, include rows when that is appropriate, and include connected partitions when the work needs the related database family rather than a single standalone definition. Access-related metadata can be carried forward or deliberately adjusted as part of the request.
 
@@ -57,19 +53,16 @@ return await api.cloneDatabase('customers', {
 
 Choose row copying carefully. A schema-oriented clone can be the right way to start an experiment without duplicating operational data; copying rows should be an intentional choice with the normal data-access and retention considerations in mind.
 
-  </Accordion>
-  <Accordion title="Follow the environment you work in">
+## Follow the environment you work in
 
 New application preferences now default to the system appearance rather than forcing a light theme. This small change makes a fresh RevoEngine session feel more at home on a developer or operator's device while preserving appearance as an application preference. It is a quality-of-use improvement that sits alongside—not inside—the Assistant milestone.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
 - Assistant thread handling is standardized around the stable interactive runtime.
 - Conversation outputs carry a clearer created-time context for ordering and review.
 - Job details continue to expose retry attempts and distinct input and output context.
+
 
 ## Related guides
 

@@ -51,6 +51,10 @@ Owner type expresses accountability. Use `USER` for a human or Service Account o
 
 Use metadata to record an approver, review cadence, ticket reference, and environment. Do not encode credentials or sensitive personal data in Group metadata.
 
+## Names and recovery
+
+A deleted Group releases its name for reuse. A current Group keeps its name reserved even when inactive. Restore the original Group by ID. If another current Group has taken that name, restoration returns `409 Conflict`; it does not merge memberships or silently replace the current Group.
+
 ## Lifecycle and roles
 
 | Action | Role |

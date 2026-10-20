@@ -17,29 +17,25 @@ This release gives the early Agent and Assistant experience more useful continui
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Branch at the decision point, not at the end of the transcript" defaultOpen={true}>
+## Branch at the decision point, not at the end of the transcript
 
 A conversation fork starts from a selected visible message. That lets a builder return to the point where an assumption, option or implementation direction changed and explore another route without overwriting the existing discussion. The original thread remains available as the record of the first approach; the new thread has its own title and working path.
 
 A branch can be created as context only when the next instruction is not ready yet. Alternatively, a builder can create the branch and send its next instruction immediately, so the new path begins with a clear purpose. This is useful for comparing design options, narrowing a broad request or keeping a risky experiment separate from the thread that documented the accepted direction.
 
-  </Accordion>
-  <Accordion title="Keep longer work usable">
+## Keep longer work usable
 
 Early conversational work can become lengthy or stop before producing the intended outcome. This update adds complementary controls for those cases. A user can retry a selected unfinished message without adding a duplicate request, or compact a thread into fresh continuation context when the detailed earlier transcript no longer needs to occupy the active working window.
 
 These controls preserve the distinction between the visible conversation and the task’s active context. Compaction is a continuation aid, not deletion of the recorded discussion; retry is recovery of the selected request, not a promise that every prior tool action will run again. When a task is configured to continue in the background, that remains an explicit choice rather than the default behavior of closing a conversation.
 
-  </Accordion>
-  <Accordion title="Configure what an alpha task may use">
+## Configure what an alpha task may use
 
 The Agent registry becomes a practical operator workspace for candidate capabilities. A team can describe a capability supplied by a managed Component, a configured MCP server or a reusable skill, then give it a recognizable name, category and explanation. This makes the available surface inspectable before it is attached to an early task.
 
 Configuration also records the intended mode and scope of the capability, together with its safety and approval expectations. That is important because a capability being configured does not mean it is silently granted to every conversation. A task still works through the identity, access policy and selected tools that apply in its instance. The registry is a deliberate preparation step, not an open-ended marketplace claim.
 
-  </Accordion>
-  <Accordion title="Make dependent Database Data changes together">
+## Make dependent Database Data changes together
 
 Low-code now offers a callback-based Database Data transaction for work that must either succeed as one unit or leave the data unchanged. Inside the transaction callback, a builder can read current rows and use supported insert, upsert, update or delete operations before the transaction is committed.
 
@@ -63,13 +59,10 @@ await api.transactionDatabaseData(async tx => {
 
 The transaction API keeps its own boundaries clear. It is for supported Database Data operations, not a wrapper around arbitrary external calls, files or Automation actions. Operations inside the callback are awaited in sequence; parallel transaction calls are rejected. If the callback fails, the transaction is rolled back rather than committing a partly completed sequence. Builders can select the supported isolation behavior and use read locks where the workflow requires them.
 
-  </Accordion>
-  <Accordion title="A more useful alpha, without claiming stability too early">
+## A more useful alpha, without claiming stability too early
 
 Together, these changes turn the alpha from a linear question-and-answer experiment into a more practical place to explore application work: choose the relevant branch, carry only the needed context forward, describe candidate tools deliberately, and keep data changes atomic when the business rule calls for it. Planning, approval and the full stable Assistant experience continue to mature in subsequent releases.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

@@ -17,15 +17,13 @@ RevoEngine 0.4.0 deepens the platform's data and operating foundation. Databases
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Define the data model with intent" defaultOpen={true}>
+## Define the data model with intent
 
 A Database now has a more explicit home in the application workflow. Builders can create, read, update and remove a definition as a first-class application object, rather than treating the definition and the operational data as unrelated tasks. A definition describes the columns the application will work with and carries practical choices such as identity, uniqueness, indexing, nullability and supported defaults. That gives a team a place to make the structure clear before Components or Endpoints depend on it.
 
 The model is deliberately constrained. A Database definition needs a primary key, column names must be distinct, and primary-key choices cannot be combined with contradictory column options. These constraints make a definition a dependable application contract, not a free-form table editor. Builders can still decide what fits their business process—such as textual, numeric, date and structured data—but do so through supported types and explicit rules.
 
-  </Accordion>
-  <Accordion title="Work with records through the same application boundary">
+## Work with records through the same application boundary
 
 The Database workflow also brings record work alongside definition work. Supported operations cover retrieving data, inserting records, updating selected data, deleting records and cloning a definition when related application work needs a starting point. This is useful both while a team is assembling a workflow and while an operator is maintaining data that already belongs to a running application.
 
@@ -33,29 +31,24 @@ For example, an order-processing Component can retrieve records from the selecte
 
 Access remains part of that experience. A restricted Database can be available to its creator, explicitly assigned users, permitted groups or the relevant administrators; an object that is not available is not exposed simply because a caller knows its identifier. Low-code data work therefore follows the same governed application model as the rest of RevoEngine instead of creating a separate data-administration exception.
 
-  </Accordion>
-  <Accordion title="Carry richer context around the application">
+## Carry richer context around the application
 
 This release also advances the surrounding resource model. Metadata and relationship work gives application objects more usable context as they are organised and connected. For a builder, that means a definition, its related application behavior and the information used to describe it can be treated as parts of one application rather than isolated configuration fragments.
 
 The change does not erase every earlier concept in one step. Existing Schema and Resource material remains part of the platform during this transition, so established applications are not described as needing an immediate rewrite. The direction is clearer: new data work can use the more explicit Database workflow while the wider application model continues to evolve carefully.
 
-  </Accordion>
-  <Accordion title="Keep files in the task, not beside it">
+## Keep files in the task, not beside it
 
 Files gain a more practical management workspace. Following a folder path updates the current resource and breadcrumb trail, and selecting a file keeps its details attached to that location. Operators can move back through the hierarchy, see a useful folder state and use the supported download or deletion action without reconstructing where the file belongs.
 
 This is an improvement to the existing file experience, not the later managed Storage model. It does not promise namespaces, retention policies or all of the governance features introduced in later releases. Its value is more immediate: files produced or used by an application are easier to find and handle as part of the task already in progress.
 
-  </Accordion>
-  <Accordion title="Make webhook activity inspectable">
+## Make webhook activity inspectable
 
 Webhook operations receive the same contextual treatment. The detail workspace can show the information available for a selected webhook and reveal request or response views when that data exists. An operator can distinguish the configuration from the recorded exchange, then use delete, cancel or restore controls when their role permits that action.
 
 That separation matters for operational work. A response view is evidence of an exchange, not a replacement for the configured workflow; cancelling a pending webhook is a deliberate lifecycle action, not an edit to the original request. By keeping those choices close to the selected webhook, RevoEngine makes it easier to investigate and manage an integration without turning its operational history into an opaque background process.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

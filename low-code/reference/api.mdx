@@ -1883,7 +1883,7 @@ static httpCall(
       };
     }>;
 ```
-### Example
+### Examples
 
 ```ts
 const response = await api.httpCall(
@@ -1898,8 +1898,11 @@ const response = await api.httpCall(
     timeout: 15000,
   },
 );
+```
 
-Multipart request with one Storage file:
+#### Multipart request with one Storage file
+
+```ts
 const response = await api.httpCall(
   {
     url: 'https://example.com/upload',
@@ -1914,8 +1917,11 @@ const response = await api.httpCall(
     source: { storageEntryId },
   },
 );
+```
 
-Multipart request with multiple Storage files:
+#### Multipart request with multiple Storage files
+
+```ts
 const response = await api.httpCall(
   {
     url: 'https://example.com/merge',
@@ -1927,8 +1933,11 @@ const response = await api.httpCall(
   },
   { requestType: 'form-data' },
 );
+```
 
-Storage response stream:
+#### Storage response stream
+
+```ts
 const response = await api.httpCall(
   { url: 'https://example.com/report.csv', method: 'GET' },
   {
@@ -1940,14 +1949,20 @@ const response = await api.httpCall(
     },
   },
 );
+```
 
-Storage request stream:
+#### Storage request stream
+
+```ts
 await api.httpCall(
   { url: 'https://example.com/import', method: 'POST' },
   { requestType: 'storage', source: { storageEntryId } },
 );
+```
 
-Storage conversion:
+#### Storage conversion
+
+```ts
 await api.httpCall(
   { url: 'https://example.com/convert', method: 'POST' },
   {

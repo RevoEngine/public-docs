@@ -17,8 +17,7 @@ RevoEngine Node.js SDK 2.0 introduces a coordinated contract upgrade for hosted 
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Plan the SDK and platform upgrade together" defaultOpen={true}>
+## Plan the SDK and platform upgrade together
 
 SDK 2.0 is a major dependency upgrade, not an automatic update to every application using RevoEngine. Remote operations require a platform runtime compatible with the SDK's contract. Keep SDK 1.0.1 for older deployments until the corresponding platform upgrade is available.
 
@@ -26,8 +25,7 @@ For hosted Custom Node.js Components, the platform selects the SDK package used 
 
 Review existing HTTP and scheduling calls before upgrading. Ordinary supported platform calls keep their asynchronous workflow; the important migration is to use the new argument shapes rather than carrying older aliases into the new contract.
 
-  </Accordion>
-  <Accordion title="Make HTTP file transfers unambiguous">
+## Make HTTP file transfers unambiguous
 
 The SDK contract now describes a managed-file upload as `requestType: 'storage'` with a flat `source: { storageEntryId }`. A download into managed Storage uses `responseType: 'storage'` with a `target`. Request and response modes are independent, so a conversion integration can send an existing file and store the converted response in the same operation.
 
@@ -50,29 +48,24 @@ if (response.status >= 200 && response.status < 300 && response.storage) {
 
 The API key is supplied through the process environment. Hosted Component code uses its injected runtime instead of constructing this client. Storage writes occur for successful HTTP responses; other statuses provide bounded diagnostic data.
 
-  </Accordion>
-  <Accordion title="Keep live iterators inside their execution environment">
+## Keep live iterators inside their execution environment
 
 A byte or SSE iterator cannot be carried through the SDK's JSON-backed call boundary. SDK 2.0 rejects `responseType: 'stream'` before discovery, queueing or dispatch, including in hosted Node.js mode. A Storage response remains a supported alternative when the intended result is a managed file.
 
 When a compatible V8 runtime supports incremental consumption, process the stream inside that low-code execution and return a bounded, serializable result. The SDK must not receive the iterator itself. The [1.5.0 release](/changelog/1.5.0) describes the V8 streaming workflow and its cleanup requirements.
 
-  </Accordion>
-  <Accordion title="Use named scheduling options">
+## Use named scheduling options
 
 SDK scheduling calls use an options object with `scheduleFor` instead of positional dates. This makes the timing choice visible at the call site and keeps it consistent across supported Automation targets. Date, ISO date-time and millisecond timestamp values follow the platform's scheduling validation.
 
 The [1.4.2 release](/changelog/1.4.2) includes a complete low-code scheduling example and explains the thirty-day horizon. Follow the SDK's generated signature when migrating Node.js code; retained low-code compatibility aliases do not automatically become SDK methods.
 
-  </Accordion>
-  <Accordion title="Give Job Template inputs clear JSON semantics">
+## Give Job Template inputs clear JSON semantics
 
 Job Template inputs are explicitly defined as JSON objects. Nested objects, arrays and JSON scalar values can be retained inside that object; values that cannot be represented as JSON are rejected. An explicit `null` input clears it to an empty object.
 
 Updating an unrelated template field leaves the existing input/options unchanged when those fields are omitted. This supports deliberate partial edits: changing a description need not resend the entire run configuration, while clearing input remains an explicit action.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

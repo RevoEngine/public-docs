@@ -16,8 +16,7 @@ RevoEngine 0.5.0 reorganizes Endpoint management around a selected HTTP contract
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Keep the collection beside the selected Endpoint" defaultOpen={true}>
+## Keep the collection beside the selected Endpoint
 
 The revised workspace places the Endpoint list alongside a routed detail panel. Selecting a row opens that contract's configuration while retaining the surrounding list. Builders working through a family of integration routes can move between items without treating each selection as a separate full-page task.
 
@@ -25,8 +24,7 @@ Details begin with the Endpoint's name, category, description, method and path. 
 
 The layout is especially useful for related contracts such as order creation, retrieval and status updates. Similar names no longer require repeatedly leaving the collection to confirm which method, path or Component belongs to each item.
 
-  </Accordion>
-  <Accordion title="Check which route will match a request">
+## Check which route will match a request
 
 The route inspector accepts a method and a path, then returns matching Endpoint patterns. Each result includes a link to its Endpoint and the dynamic values extracted from the request path. An empty result is shown explicitly instead of leaving an old result on screen.
 
@@ -34,8 +32,7 @@ For example, a builder investigating a request such as `GET /orders/123` can ins
 
 This is distinct from the request guard configured on an Endpoint. The inspector finds matching routes; a guard checks the incoming request when an Endpoint runs. Keeping those tasks separate makes the result easier to interpret during integration work.
 
-  </Accordion>
-  <Accordion title="Review execution choices in one form">
+## Review execution choices in one form
 
 The detail workspace groups the existing execution controls into explicit sections. The main Component can follow its latest revision or use a selected version. A request guard has its own Component selector and version choice, allowing the two dependencies to be reviewed independently.
 
@@ -43,8 +40,6 @@ The options section brings together timeout, library-loading choice, legacy-resu
 
 A route change and a Component change therefore remain separate decisions. A team can inspect the version used by an Endpoint, examine its guard and review input settings before saving the configuration. The workspace makes those dependencies visible without silently changing which revision the contract uses.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

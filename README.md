@@ -2,7 +2,7 @@
 
 This repository contains the public RevoEngine documentation built with the current Mintlify `docs.json` format.
 
-Current product documentation: **RevoEngine 1.6.5**, including the independently versioned Node.js SDK **1.6.7**.
+The [release history](https://docs.revoengine.com/releases/changelog) records platform changes. The CLI, VS Code extension and Node.js SDK have independent versions; use each integration guide for its supported package.
 
 ## Local preview
 
@@ -74,7 +74,7 @@ enrichment to the published contract. The projection and enrichment:
 - adds scoped descriptions to every operation missing one;
 - declares and describes every used OpenAPI tag;
 - adds bearer security metadata to protected Agent and Agent Memory operations whose controllers enforce `GlobalGuard` and `RolesGuard` but do not emit `@ApiBearerAuth()` metadata;
-- documents the approved per-instance Job ceilings of 3540 seconds and 4096 MiB while runtime/UI enforcement is aligned separately.
+- keeps the generated Job request ceilings aligned with the canonical DTOs: currently 3540 seconds and 2048 MiB.
 
 `npm run check:platform-contracts` regenerates both contracts in memory from their
 checked-in public snapshots and verifies the manifest. It also sanitizes and compares

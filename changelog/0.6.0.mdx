@@ -18,8 +18,7 @@ RevoEngine 0.6.0 sharpens several established application-building workflows. Th
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Navigate a Component as a working structure" defaultOpen={true}>
+## Navigate a Component as a working structure
 
 The Web IDE now presents Component material as a hierarchy: categories contain Components, and Components contain their individual elements. A builder can expand the relevant branch, open an element and retain the location through the editor's address and breadcrumb. This makes it much easier to enter a specific part of an application from a bookmarked or shared browser location, instead of first rediscovering the Component in a broad resource list.
 
@@ -27,32 +26,27 @@ The navigator also separates changed work from the rest of the application. An e
 
 Element management is part of the same workspace. Builders can add an element to a Component, update its key, name, description, order and details, or stage an element for deletion. The important practical difference is that navigation and item management now describe the same application structure: the builder does not have to translate between an editor pane and an unrelated resource view.
 
-  </Accordion>
-  <Accordion title="Define how an Endpoint should run">
+## Define how an Endpoint should run
 
 An Endpoint is now created with a full, predictable execution-options profile when one has not been supplied. Its request and response remain visible by default; legacy result mode and library skipping are disabled; and the default execution memory is 32 MB. These settings make the initial behavior of a newly defined Endpoint explicit rather than leaving it dependent on an incomplete options object.
 
 Endpoint metadata can also identify the particular Component schema element that it represents, alongside the schema identity and version. This is useful when an application exposes more than one callable element from the same Component definition: the Endpoint can retain the exact element-level connection needed by surrounding template and automation work.
 
-  </Accordion>
-  <Accordion title="Prepare a CSV for the destination system">
+## Prepare a CSV for the destination system
 
 CSV download was already part of the Database workflow; 0.6.0 adds choices for the exported representation. The export dialog lets an operator choose a delimiter and include hidden columns when needed. When the selected Database contains Boolean values, the download can express them as check and cross marks, `1` and `0`, or `true` and `false`.
 
 The available controls follow the definition being exported. Nullable columns can use empty cells for NULL values, while Databases with JSON or JSONB columns can emit those values as Base64. A spreadsheet-friendly human review and a downstream import often need different representations; these choices let the same query result serve both without hand-editing every file after download.
 
-  </Accordion>
-  <Accordion title="React when a managed File changes">
+## React when a managed File changes
 
 Managed-file updates can now publish a File Updated event. An automation can use that event as the start of a follow-on process: for example, validate a newly revised input file, refresh data derived from it or notify the people responsible for the next operational step. The event is raised for an update, so it represents the current managed-file record rather than a generic file-system signal.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
 - Dashboard routes open the selected dashboard canvas directly.
 - The Web IDE keeps changed items visible separately from the full Component tree.
+
 
 ## Related guides
 

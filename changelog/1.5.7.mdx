@@ -21,8 +21,7 @@ RevoEngine 1.5.7 adds database views as governed application resources and conne
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Build on live and materialized database views" defaultOpen={true}>
+## Build on live and materialized database views
 
 Database Views are now first-class resources with their own definitions, permissions, history and dependencies. A live view evaluates its sources when it is queried. A Database Materialized View stores its output and can be refreshed on demand or through Schedule, making it suitable for repeated reporting and dashboard workloads where the source query is more expensive.
 
@@ -44,8 +43,7 @@ return result.data;
 
 This historical example uses the method name available in 1.5.7. For new code, use `api.getDatabaseData()` with a View name; the older name is now deprecated.
 
-  </Accordion>
-  <Accordion title="Connect views to dashboards and native exports">
+## Connect views to dashboards and native exports
 
 Dashboard widgets can now select a Database View or Database Materialized View as their source in addition to a database table. Widget configuration uses the same side workspace as other management flows: changes replace the displayed widget definition immediately, while Remove deletes the complete tile and closes only that widget's side panel. Header actions also reclaim the available space when the global side workspace is open, keeping primary dashboard controls aligned.
 
@@ -61,8 +59,7 @@ return { exportId: exportResult.exportId };
 
 Large database exports now use bounded indexed reads when the selected relation and sort order support them. Serialization avoids reparsing generated CSV content, and multipart Storage uploads perform less repeated work while retaining integrity checks and bounded retry behavior. Export admission is bounded per instance, protects synchronous work from background saturation, and can recover an interrupted background execution without publishing a partial result.
 
-  </Accordion>
-  <Accordion title="Manage indexes and automation by stable names">
+## Manage indexes and automation by stable names
 
 Database management adds a unified index editor for tables and materialized views. Builders can define ordered columns, uniqueness and supported partial-index conditions without writing raw index SQL. The backend validates names, fields, ordering and compatibility with the current definition before applying a change. Index metadata is normalized consistently so management views, snapshots and runtime operations observe the same saved shape.
 
@@ -75,22 +72,17 @@ const jobId = await api.triggerJob('refresh-customer-rollups', {
 return { jobId };
 ```
 
-  </Accordion>
-  <Accordion title="Share authenticated workspace state">
+## Share authenticated workspace state
 
 The Share action in the application header creates a short-lived link for the current instance route. Supported grid filters, sorting and deleted-row state are preserved, allowing a colleague to open the same management context without rebuilding the table view manually. Links expire after seven days, remain scoped to the instance and do not bypass authentication or resource permissions.
 
 The public Platform API includes typed create and resolve contracts for clients that need to implement the same workflow. Share remains a navigation feature rather than a preferred Agent action: reference tokens continue to be the canonical way to identify resources in Assistant and Agent requests. Copy actions in management headers and the Share action now confirm successful clipboard writes with a concise Copied tooltip.
 
-  </Accordion>
-  <Accordion title="See realtime connection health without another toolbar item">
+## See realtime connection health without another toolbar item
 
 The existing profile avatar now carries realtime connection state without taking another header slot. A compact signal icon uses the neutral application color when connected and sits on a background-matched cutout so it does not cover the avatar with a colored badge. Connecting and reconnecting use an orange pulse. After three consecutive failed reconnect attempts the icon becomes red while the application continues retrying; a manually disconnected state remains muted. Hovering or focusing the profile action shows the exact state in a tooltip, and reduced-motion preferences disable the pulse animation.
 
 This makes unexpected grid refreshes and temporarily stale application data easier to explain. The indicator follows the actual shared WebSocket lifecycle used by dashboards, database workspaces, Jobs, Storage, Chat and Agent views; it does not infer health from individual page activity.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
@@ -98,6 +90,10 @@ This makes unexpected grid refreshes and temporarily stale application data easi
 - Database and view management gains clearer workspace navigation, preview details and history-aware comparison flows.
 - Component comparison uses a dedicated diff workspace for a more consistent review experience.
 - Public API, low-code declarations, generated editor contracts and Node.js SDK 1.5.7 are aligned to the same release surface.
+
+<Info>
+Historical API: `api.exportDatabaseView()` is no longer available in the current runtime. Use [`api.exportDatabase()`](/operate/database-exports) for new code.
+</Info>
 
 ## Related guides
 

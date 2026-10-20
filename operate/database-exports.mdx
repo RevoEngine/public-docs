@@ -1,0 +1,98 @@
+---
+title: Export data to Storage
+description: Choose a format and destination, distinguish accepted work from a finalized file, and control export notifications.
+icon: file-export
+---
+
+Export a Table, View or Materialized View when finance, a supplier or another system needs a file rather than a query response. All three use the same `api.exportDatabase()` contract. The output is a governed Storage file with its own access and retention.
+
+## Choose the format
+
+| Format | Use it for | Important boundary |
+| --- | --- | --- |
+| CSV | Interchange with systems that accept delimited text | Default format; declare the expected dialect for consumers. |
+| TSV | Delimited feeds whose values frequently contain commas | Select `format: 'tsv'` explicitly. |
+| NDJSON | Row-oriented integrations and large structured feeds | Each record is a separate JSON value. |
+| XLSX | Analyst and finance workbooks | At most 1,048,575 data rows plus a header, and 16,384 columns per worksheet. |
+
+XLSX preserves supported types; values exceeding spreadsheet numeric precision are written as text. For large machine-to-machine feeds, prefer a text format and bounded processing over a workbook.
+
+## Defaults that affect callers
+
+| Choice | Low-code default | How to change it |
+| --- | --- | --- |
+| Format | CSV | `format: 'tsv'`, `'ndjson'` or `'xlsx'` |
+| Execution | Wait for final file persistence | `async: true` returns an accepted operation. Background Agent execution can enforce asynchronous admission. |
+| Destination | The executing user's Private Storage | `storageDestination: 'ROOT'` or an accessible Explorer folder ID |
+| Restricted file | `true` | Set access deliberately for the destination and intended readers. |
+| Completion/failure notification | Suppressed (`skipNotification: true`) | Set `skipNotification: false` to request System notifications, subject to user preferences. |
+| Filename | A generated name with the selected extension | `fileName` |
+| Retention | The destination's configured default | An explicit retention value, or `null` for no expiration when allowed |
+
+The browser export dialog and Platform API start asynchronous operations. Their notification choice is separate from the low-code default. An accepted operation is not a downloadable file.
+
+## Export from the browser
+
+1. Open the Table or View and choose **Export**.
+2. Select the format, output name, destination and access settings.
+3. Confirm the selected fields and filter; avoid exporting sensitive columns merely because they are visible in the grid.
+4. Follow the Database operation until it completes, then open the resulting Storage file.
+
+For a saved View, query its defined output columns. An export output query cannot redefine that View's joins, CTEs or raw SQL definition.
+
+## Wait for a completed export in low-code
+
+This example assumes the accessible `as_invoices` Table from the Asterion example, with `invoiceId`, `orderId`, `netMinor` and `status` fields. Run with writes allowed: creating an export is unavailable under `readOnly: true`.
+
+```js
+const result = await api.exportDatabase('as_invoices', {
+  format: 'xlsx',
+  fileName: 'asterion-invoices.xlsx',
+  fields: ['invoiceId', 'orderId', 'netMinor'],
+  filter: { field: 'status', op: 'eq', value: 'ISSUED' },
+  restricted: true,
+  skipNotification: true,
+});
+return { storageEntryId: result.storageEntryId, format: result.format };
+```
+
+The completed response has `accepted: false`, `completed: true` and a `storageEntryId`. Completion means the file has been persisted, rather than merely queued.
+
+## Start an asynchronous export
+
+```js
+const operation = await api.exportDatabase('as_invoices', {
+  format: 'ndjson',
+  fields: ['invoiceId', 'orderId', 'netMinor'],
+  filter: { field: 'status', op: 'eq', value: 'ISSUED' },
+  async: true,
+  skipNotification: true,
+});
+return { jobId: operation.jobId, exportId: operation.exportId, accepted: operation.accepted };
+```
+
+An accepted response has `accepted: true`, `jobId` and `exportId`; it does not have the completed file ID. Follow its Database operation status and result before using the file. A background Agent may receive this accepted form even when a script omitted `async: true`, because the execution context can require background admission.
+
+### Inspect the accepted operation
+
+Poll the Database operation by its returned `jobId`:
+
+```bash
+curl "$REVO_API_URL/api/v1/databases/operations/$JOB_ID" \
+  --header "Authorization: Bearer $REVO_API_KEY" \
+  --header "instance: $REVO_INSTANCE"
+```
+
+A completed export reports `status: 'FINISHED'` and the file ID in `output.storageEntryId`; its output also includes the row count and filename. An in-progress operation can expose counters under `operationProgress`. Do not confuse the accepted `exportId` with the final Storage entry ID.
+
+The local Asterion check exported **3,502 synthetic issued invoices**. CSV and XLSX completed synchronously and produced restricted Private Storage files; the asynchronous NDJSON operation first returned acceptance, then `FINISHED`, and its downloaded file contained the same 3,502 records. These row counts validate this example's round trip, not export throughput at arbitrary scale.
+
+Use the generated [Export API operation](/api-reference/databases/export-table-view-or-materialized-view-data-to-csv-tsv-ndjson-or-xlsx) for REST fields and the [low-code reference](/low-code/reference/api#api-exportDatabase) for method and response types.
+
+## Recover without duplicate delivery
+
+An HTTP 202 confirms acceptance. A network failure after submission can leave the outcome unknown. Check the existing operation before submitting another export or sending its result to a supplier. Check the final status, file access and retention before handing off the artifact.
+
+Keep export generation and external delivery separate. A completed file does not prove a downstream upload or email succeeded; give that delivery its own idempotency key and evidence.
+
+See [import and round-trip conventions](/operate/databases#preserve-exported-values), [Storage lifecycle](/operate/storage) and [Job outcomes](/operate/jobs#read-attempt-status-and-job-result).

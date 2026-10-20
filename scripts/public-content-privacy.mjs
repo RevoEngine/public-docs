@@ -8,7 +8,7 @@ export function isPrivateDiagnosticApiPath(path) {
   return path.startsWith('/api/v1/') && privateDiagnosticApi.test(path);
 }
 
-const privateType = /\b[A-Z][A-Za-z0-9]*(?:Service|Controller|Repository|Entity)\b/;
+const privateType = /\b(?!AbortController\b)[A-Z][A-Za-z0-9]*(?:Service|Controller|Repository|Entity)\b/;
 const credentialField = /^(?:authorization|(?:x[-_])?api[-_]?key|access[-_]?token|refresh[-_]?token|client[-_]?secret|password|secret(?:Value|AccessKey)?|private[-_]?key|token)$/i;
 const privateSourcePath = /\b(?:packages\/(?:platform[^/]*|agent-core|domain|runtime-sdk|execution[^/]*)|apps\/(?:api|auth|agents|manage|run|processor|sandbox|realtime|mcp)|src\/(?:modules|@agents|services))\/[A-Za-z0-9@_.\/-]+/i;
 

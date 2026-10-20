@@ -70,7 +70,7 @@ Database calls share a limit of 8 active operations and 64 waiting admissions pe
 
 Use `api.exportDatabase(name, options)` for Databases, live Views, and Materialized Views, including supported structured joins. The former View-only read helper remains a deprecated compatibility alias. Replace `api.exportDatabaseView()` with `api.exportDatabase()`; the View-specific export helper is no longer part of the current contract.
 
-CSV is the default; select `format: 'tsv'`, `'ndjson'`, or `'xlsx'` when the consumer needs it. By default low-code waits for the final Storage entry. Set `async: true` to receive a `jobId` and follow the export as a Database operation instead of holding the current execution open.
+CSV is the default; select `format: 'tsv'`, `'ndjson'`, or `'xlsx'` when the consumer needs it. By default low-code waits for the final Storage entry. Set `async: true` to receive a `jobId` and follow the export as a Database operation instead of holding the current execution open. Background Agent execution can require asynchronous admission. Low-code suppresses completion/failure System notifications by default; set `skipNotification: false` to opt in. See [Export data to Storage](/operate/database-exports) for response shapes, destinations and complete examples.
 
 ## Import Storage data
 

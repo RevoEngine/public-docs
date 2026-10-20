@@ -19,22 +19,19 @@ This is an early release, focused on making the core low-code loop tangible: def
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Model data before building behavior" defaultOpen={true}>
+## Model data before building behavior
 
 The new Resources area gives builders a browser home for data definitions. A schema can be managed separately from its fields, and field configuration is split into the concerns that matter while designing an application: the general definition, security-oriented settings and how a value should appear in a table. That separation makes the model easier to review before it is used by logic or exposed in an operational screen.
 
 Once a definition exists, the data workspace carries the flow into records. Teams can open a record list, add a new item and return to the detail flow to maintain it. This makes the release useful for both configuration and day-to-day application data, rather than treating schemas as an isolated administration feature.
 
-  </Accordion>
-  <Accordion title="Compose logic in the browser">
+## Compose logic in the browser
 
 0.0.2 introduces the first Web IDE workflow for logic. Builders work with an ordered list of elements, giving each item a key, type, timeout and visibility setting before saving the assembled definition. The editor validates the assembled logic before it is saved, helping teams catch structural problems while they are still in the authoring flow.
 
 The same workspace includes a debugger. A builder can provide inputs, run the current set of elements and inspect the returned debug output in the browser. This is especially important for an early low-code experience: it shortens the loop between changing a definition and seeing how that definition behaves. Logic history is available from the underlying product flow, establishing the basis for working with a definition over time; a dedicated side-by-side comparison experience arrives later.
 
-  </Accordion>
-  <Accordion title="Operate automation from the same application">
+## Operate automation from the same application
 
 The release also makes automation visible to operators. The Jobs area introduces lists and detail screens, with separate presentations for logs and results. Instead of asking an operator to infer a run from a single status, the workspace provides places to inspect the run, its execution information and its returned data.
 
@@ -42,14 +39,12 @@ Schedules receive a list-and-detail configuration flow, including the controls n
 
 The result is a clearer hand-off between the people who define behavior and the people who monitor it. A builder can create the data and logic; an operator can follow the resulting jobs and scheduled work without reconstructing the context from separate tools.
 
-  </Accordion>
-</AccordionGroup>
-
 ## Also in this release
 
 - Shared navigation for Resources and Automation workspaces.
 - Logic-element validation and debug feedback in the editor.
 - Routed views for event and webhook operational information.
+
 
 ## Related guides
 

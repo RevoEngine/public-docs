@@ -168,6 +168,10 @@ RevoEngine can generate an OpenAPI document for all active runtime Endpoints or 
 
 The generated contract describes your runtime Endpoints. The [Platform API reference](/api-reference/introduction) separately documents the control plane used to manage RevoEngine itself.
 
+## Route identity and recovery
+
+A nondeleted Endpoint reserves its combination of HTTP method and path, including while inactive. Deletion releases that route for reuse. Restore the original Endpoint by ID; if a current Endpoint has claimed the same method and path, restoration returns `409 Conflict`. Resolve the route conflict before retrying. Recovery does not replace the newer Endpoint.
+
 ## Production checklist
 
 - Validate body, query, and path parameters at the boundary.

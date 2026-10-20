@@ -69,10 +69,10 @@ It is appropriate to explain control-plane versus execution-plane ownership, dur
 - Read credentials from environment variables and never show realistic tokens.
 - Keep examples minimal but executable against the documented contract.
 - Use structured filters and current `storage.*` methods.
-- Use the canonical `lib.Category.Name.ElementKey.X` path for active low-code
-  libraries. `Category`, `Name`, and `ElementKey` are required namespace
-  segments; `X` is the exported function, class, constant, or other public
-  symbol. Do not publish shortened `lib.Name.X` or `libs.*` examples.
+- Use `lib.Name.X` for named exports from the permanent `@default` library
+  element, and `lib.Name.ElementKey.X` for named exports from other elements.
+  Category groups navigation and is not a runtime namespace segment. Unexported
+  declarations are local; prefer canonical `lib.*` over deprecated `libs.*`.
 - Prefer `api.getExecutionId()` over deprecated `api.getJobId()`.
 - Note when a sample is illustrative and its exact DTO comes from OpenAPI or generated editor types.
 
@@ -98,3 +98,13 @@ source artifacts. It refreshes the checked-in snapshots, generated public
 references, and fingerprint manifest. Commit the generated output; CI verifies
 snapshot-to-output parity, while the publication pipeline must run the
 source-backed gate above to prevent source drift.
+
+## Maintain workflows with releases
+
+A customer-visible release change needs a maintained workflow guide in the same change, plus a focused link from the release detail to that guide. Keep examples visible. A release overview or an API snapshot alone does not document the authoring and operating workflow. Preserve historical release behavior and clearly distinguish it from current guides.
+
+Separate business explanation, complete tutorials, focused how-to guides and exact reference. Reuse one coherent synthetic enterprise scenario where it helps readers follow a process across products. State prerequisites, expected output, failure handling and the next useful page. Do not turn each page into the same generic checklist.
+
+Verify defaults against the owning DTO/runtime and the frontend. Platform, CLI and SDK versions are independent. Run `check:examples` with the full gate: it parses every JavaScript/TypeScript block, including generated declarations. Keep prose outside executable blocks and test business examples against their displayed results.
+
+Use screenshots from a working synthetic demo in the real UI, paired with searchable text and code. Capture one meaningful state per image, use descriptive alt text and record private provenance and validation outside this public repository. Never fabricate completion, remove real warnings to improve a screenshot, or use customer records. Treat large-volume scenarios as design requirements until a reproducible benchmark establishes measured capacity.

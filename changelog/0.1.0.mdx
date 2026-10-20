@@ -19,47 +19,40 @@ The result is a more complete browser workflow. A team can move from an existing
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Define how application logic is called" defaultOpen={true}>
+## Define how application logic is called
 
 A dedicated Application APIs workspace gives a logic definition a clear external entry point. Builders can create and maintain an API definition with a name, HTTP method, path and the logic it should use. The form also keeps application-execution options with the definition, making the endpoint configuration a visible part of the builder workflow rather than an implicit property buried inside the logic editor.
 
 The configuration is deliberately constrained. A method-and-path combination must be unique, and the selected logic is validated as part of the managed flow. This helps a team avoid accidentally creating two definitions that claim the same application entry point. The workspace also separates an application API from the general automation-template area, so an externally callable operation can be reviewed in the context that fits its purpose.
 
-  </Accordion>
-  <Accordion title="Keep application files in the product workspace">
+## Keep application files in the product workspace
 
 0.1.0 introduces a managed file explorer for application files. From the browser, teams can browse the available entries, add files through the uploader and use the managed flow for synchronization and download. This makes files part of the same workspace as data, logic and automation instead of leaving them as an external afterthought.
 
 The explorer is designed around explicit actions. A team can create and find the entries it needs, move a file through the upload or synchronization flow, download an available file when it is needed elsewhere, and remove entries through the managed experience. That clear lifecycle matters when files support an application's configuration or integrations: the work remains visible to the people maintaining the application.
 
-  </Accordion>
-  <Accordion title="Compare revisions before choosing a change">
+## Compare revisions before choosing a change
 
 The Web IDE now adds a dedicated logic comparer. Builders select two distinct available versions of a logic definition and open them together for review. The comparer does not replace normal editing; it provides the inspection step that is useful when a team needs to understand what changed between revisions before it decides which direction to take.
 
 This makes the version history already associated with logic more practical in a browser workflow. Instead of inspecting one revision at a time, a builder can set a from and to version, see the comparison only after both revisions have been retrieved, and return to the editor with a clearer basis for the next action.
 
-  </Accordion>
-  <Accordion title="Recover work and keep the right people informed">
+## Recover work and keep the right people informed
 
 Automation operations gain two practical controls. First, eligible runs can be retried from the Jobs workspace. The retry action is intentionally limited to cancelled or error runs, so a successful or still-active job is not casually duplicated through the same control. This keeps recovery close to the job details and logs used to diagnose the original run.
 
 Second, template details gain subscription management. Teams can use the template workflow to manage who is subscribed to the relevant automation, while synchronous application API templates remain outside that subscription flow. Together, these controls make it easier to handle both the exceptional case of a failed run and the routine case of keeping responsible people connected to an ongoing automation.
 
-  </Accordion>
-  <Accordion title="Finish the surrounding operator experience">
+## Finish the surrounding operator experience
 
 Profile key management receives its completed browser workflow, giving users a dedicated place to maintain those keys. Automation logs also move into the shared grid presentation, making the information easier to scan alongside the filtering and list controls established in the preceding release.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
 - Clearer separation between application API definitions and general automation templates.
 - Multi-selection support in shared operational grids.
 - Navigation and detail-flow refinements across file, profile and automation areas.
+
 
 ## Related guides
 

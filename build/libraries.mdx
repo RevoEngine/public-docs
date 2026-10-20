@@ -8,7 +8,7 @@ A JS or TS library shares business logic across components in the same instance.
 
 | Source element | Public access |
 | --- | --- |
-| `@default` in `Customers` | `lib.Customers.normalizeEmail(value)` |
+| `@default` in `Customers` | `lib.Customers.normalizeEmail({ email: value })` |
 | `Queries` in `Customers` | `lib.Customers.Queries.findById(id)` |
 | Ordinary element named `DEFAULT` | `lib.Customers.DEFAULT.member` |
 
@@ -21,6 +21,10 @@ Every new `CODE_JS_LIB` or `CODE_TS_LIB` contains a permanent `@default`, includ
 The starter explains `@public`, `@private`, `@access`, `@alias` and `@protected`. These annotations are documentation, not compiler flags. Public visibility depends on actual `export` statements.
 
 Studio displays the default with a code icon and the lowercase italic label *default*. VS Code uses the same lowercase label and a code icon. The persisted key and CLI/VS Code filename remain `@default`, for example `-1_@default.ts`. Its source and description are editable; renaming, deleting or replacing this element is rejected by the API and blocked in Studio. Deleting the whole library remains a separate resource operation.
+
+<Card title="Build and inspect a typed Library" icon="code" href="/build/library-authoring">
+  Create a pricing rule, see expected Monaco completion and test its consuming Component.
+</Card>
 
 ## Define the public API
 
@@ -114,13 +118,13 @@ Each element has its own lexical scope. Another element or library is reached th
 
 `lib.Orders.calculateTotal` and `lib.Orders['@default'].calculateTotal` are the same function, not two wrappers. The bracket form is useful when inspecting element identity; prefer the short form in application source. `libs.*` preserves the same identity for existing consumers.
 
-TypeScript types use the canonical namespace, for example `lib.Customers.EmailInput`. The bracket alias types runtime values; a type-only declaration has no runtime property. Monaco uses an internal valid TypeScript projection because `@default` cannot be a namespace identifier. Completion, definition navigation and model-facing declaration lookup project the same public symbols back to `lib.*`; the generated internal namespace is not an authoring API.
+TypeScript types use the canonical namespace, for example `lib.Customers.EmailInput`. The bracket alias types runtime values; a type-only declaration has no runtime property. Use the short namespace in source and type annotations. Completion and definition navigation expose the same public symbols as runtime calls.
 
 An element containing only `export interface`, `export type` or `export {};` is valid. It exposes no executable members and leaves no module marker in the generated runtime initializer.
 
 ## Initialization and private state
 
-Element order controls editor sorting. The runtime proxy initializes dependencies lazily, regardless of the default's negative order or another element appearing later. Each element initializes once per execution; circular initialization fails explicitly. Prefer cross-library calls inside exported functions and keep I/O out of initialization.
+Element order controls editor sorting. Dependencies initialize when first used, regardless of where their element appears in the tree. Each element initializes once per execution; circular initialization fails explicitly. Prefer cross-library calls inside exported functions and keep I/O out of initialization.
 
 Exported primitive values are captured during initialization. For mutable state, expose functions over a private local variable:
 
@@ -132,13 +136,13 @@ export function currentCount() { return count; }
 
 Exporting an object exposes its properties. TypeScript `private` is a compile-time restriction; use unexported bindings or closures for runtime-private state. Library state belongs to the current execution, not durable instance storage.
 
-## Existing libraries and migration
+## Upgrade existing libraries
 
-Migration 228 makes previously public declarations explicit while preserving the former public surface. It adds a documentation-only default to supported current libraries. An exact historical revision is converted on demand when selected; startup does not scan the archive. Existing elements keep their names, orders and qualified paths; an ordinary `DEFAULT` is not reinterpreted as `@default`.
+Upgraded Libraries use explicit named exports and keep ordinary element names and qualified caller paths. The platform preserves the source used by historical executions. An ordinary `DEFAULT` element remains ordinary; it does not become the permanent `@default`.
 
-Audit snapshots remain immutable. Current source receives a new version and digest, and only existing exact source approvals transfer to equivalent canonical source. Unsupported current source or a current legacy element already using the reserved `@default` key requires review. Source that was already unexecutable in the previous synchronous runtime stays unchanged, receives no transferred approval, and fails only when selected; it does not block the tenant upgrade. Historical JavaScript snapshots whose executable source already failed the old module parser remain unchanged in the audit. Their internal projection records that syntax error and receives no transferred approval; attempts to execute or restore that source are rejected explicitly. These unusable historical revisions do not block valid current libraries.
+Review current diagnostics and refresh canonical source in CLI or VS Code workspaces after an upgrade. An outdated manifest cannot remove the permanent default. Source that cannot execute requires correction before reuse; historical source is not silently rewritten into a different business implementation.
 
-Pull canonical sources into CLI/VS Code workspaces after the migration before pushing edits. Old workspaces without the required default cannot remove it by saving an outdated manifest. The migration and strict runtime must be rolled out together; documentation does not imply that a tenant migration has already run.
+For a complete authoring walkthrough, including the expected Monaco suggestions, use [Build a typed library API](/build/library-authoring).
 
 ## Choose a library boundary
 

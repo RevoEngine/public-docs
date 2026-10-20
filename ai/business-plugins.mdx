@@ -1,0 +1,122 @@
+---
+title: Build a business plugin
+description: Share governed stock lookup and contract pricing between a customer-facing Assistant and an Autonomous Agent.
+icon: plug
+---
+
+Asterion's buyer portal and finance team need the same answers: is this product available, and what does the customer's contract charge? A Component-backed plugin exposes two small business actions. The AI chooses an action and explains its result; the Component owns the lookup, identity boundary and calculation.
+
+The example uses synthetic industrial-distribution data. Complete [the Pricing Library](/build/library-authoring) first, and create the records described in [Asterion Supply](/platform/asterion-supply#model-the-operational-records).
+
+## Define the two actions
+
+| Plugin tool name | Component entrypoint | Required arguments | Side effects |
+| --- | --- | --- | --- |
+| `asterion_lookup_product` | `lookup_product` | `sku` | None; reads one product and bounded stock balances. |
+| `asterion_quote_contract` | `quote_contract` | `sku`, `quantity` | None; calculates a quote without reserving stock. |
+
+Create a TypeScript Component named `SalesTools`. The plugin supplies its entrypoint and arguments in `api.input().agentTool`. The same Component can back a separate Endpoint, where input arrives in `body`.
+
+```ts SalesTools · Main
+const input = api.input();
+const args = input.agentTool?.args || input.body || input;
+const action = input.agentTool?.entrypoint || args.action || 'quote_contract';
+const sku = args.sku;
+if (typeof sku !== 'string' || !/^[A-Za-z0-9_-]{1,60}$/.test(sku)) {
+  api.throw(400, { message: 'A valid SKU is required' });
+}
+const product = await api.getDatabaseDataRow('as_products', {
+  filter: { field: 'sku', op: 'eq', value: sku },
+  fields: ['sku', 'name', 'category', 'active'],
+});
+if (!product?.active) api.throw(404, { message: 'Product unavailable' });
+const stock = await api.getDatabaseData('as_inventory', {
+  filter: { field: 'sku', op: 'eq', value: sku },
+  fields: ['warehouse', 'available', 'reserved'],
+  take: 10,
+});
+if (action === 'lookup_product') {
+  return { product, stock: stock.data, executionId: api.getExecutionId() };
+}
+if (action !== 'quote_contract') api.throw(400, { message: 'Unsupported action' });
+const quantity = args.quantity;
+if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 10000) {
+  api.throw(400, { message: 'Quantity must be an integer from 1 to 10000' });
+}
+// This isolated demo represents one buyer. Never accept buyer identity from AI args.
+const customer = await api.getDatabaseDataRow('as_customers', {
+  filter: { field: 'customerId', op: 'eq', value: 'CUST-00001' },
+  fields: ['name', 'discountBps'],
+});
+const price = await api.getDatabaseDataRow('as_price_list_lines', {
+  filter: { field: 'priceLineId', op: 'eq', value: 'PL-2026-Q4:' + sku },
+  fields: ['unitPriceMinor'],
+});
+if (!customer || !price) api.throw(409, { message: 'Contract price unavailable' });
+const quote = lib.Pricing.quote([{
+  sku, quantity, unitPriceMinor: Number(price.unitPriceMinor),
+  discountBps: Number(customer.discountBps),
+}]);
+return {
+  sku, customerName: customer.name, quantity,
+  unitPriceMinor: Number(price.unitPriceMinor),
+  discountBps: Number(customer.discountBps),
+  totalMinor: quote.totalMinor, currency: 'EUR', reserved: false,
+  stock: stock.data, executionId: api.getExecutionId(),
+};
+```
+
+The fixed buyer and price-list version make this demonstration's identity boundary explicit. A multi-customer application must resolve both from an authenticated, authorized server-side session. A prompt instruction such as “use my account” is not an identity check. A stock query capped at ten rows also assumes the demo's bounded warehouse set; handle pagination before using this for a larger warehouse network.
+
+## Configure the Component tools plugin
+
+In **AI Agents → Plugins**, create a Component tools plugin named **Asterion Sales Desk**. Select `SalesTools` and add the two tools from the table. Give each a concrete description so the model can distinguish availability from price calculation.
+
+Use this input schema for `asterion_quote_contract`:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "sku": { "type": "string", "description": "Exact industrial product SKU." },
+    "quantity": { "type": "integer", "minimum": 1, "maximum": 10000,
+      "description": "Requested quantity; quoting does not reserve it." }
+  },
+  "required": ["sku", "quantity"],
+  "additionalProperties": false
+}
+```
+
+The lookup schema contains only `sku`. Do not accept a discount, final amount or arbitrary buyer identifier. Keep the result bounded to the product, balances, contract calculation and execution identifier.
+
+Declare these operations as read-only, with no external side effects, and choose a bounded timeout and output limit. Approval metadata must reflect the implementation; it cannot turn a writing Component into a read-only tool. The execution identity still needs permission to read the selected resources and execute the Component.
+
+Test the plugin definition and inspect the selected active Component revision. A successful configuration test is not proof that the AI executed the business tool. Verify an actual Assistant call next. See [plugin lifecycle](/ai/plugins#lifecycle) for synchronization and drift review.
+
+## Use it from an Assistant
+
+Attach the plugin to a new thread and ask:
+
+```text
+Quote four AST-FILTER-100 units for the demo buyer. Check current stock,
+explain the contract discount, and include the execution identifier.
+Do not reserve stock or place an order.
+```
+
+The activity should show the product lookup and contract calculation. With the seeded price of `1250` minor units and discount of `750` basis points, expect `totalMinor: 4625` and `reserved: false`. Inspect the tool result as well as the final answer. “Tool completed” means the call completed; business verification still depends on its returned data.
+
+<Frame caption="A real Assistant consultation in Asterion. Both business-tool calls completed, and the answer gives the verified contract price without reserving stock.">
+  <img src="/images/asterion/assistant-business-plugin.jpg" alt="RevoEngine Assistant with completed stock and contract-pricing plugin calls and a 46.25 EUR quote" />
+</Frame>
+
+For an API integration, `pluginIds` attaches the plugin. If you restrict `toolNames`, admit the built-in dispatch tools `plugin_load` and `plugin_call`. Custom aliases such as `asterion_quote_contract` identify plugin operations; they are not replacements for those built-in dispatch tool names.
+
+## Use the same plugin from an Agent
+
+On an instance with Autonomous Agent preview enabled, attach the plugin in the Agent's **Plugins** configuration. Use a dedicated service account with the necessary resource access. Select initial loading separately from attachment when the UI offers it.
+
+Give the Agent a bounded task: verify one quote, retain the returned execution identifiers in its workspace, and report whether it verified the saved receipt. Inspect the run's conversation, tool activity and artifact independently. An Agent may finish after reporting a limitation; `FINISHED` alone does not establish that every requested verification passed.
+
+The local Asterion run called both plugin actions, calculated 46.25 EUR and created a JSON receipt. Its file-emulator readback failed; a separate authorized download verified the receipt. This is a useful operational distinction to retain rather than hiding it behind the run status.
+
+Continue with [the customer portal integration](/developers/customer-ai-portal), [Agent operations](/ai/agent-operations) and [the operations dashboard](/platform/asterion-supply#put-operations-and-ai-on-one-dashboard).

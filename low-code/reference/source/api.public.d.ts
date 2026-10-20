@@ -1573,7 +1573,7 @@ declare class api {
      *   },
      * );
      *
-     * Multipart request with one Storage file:
+     * Example (Multipart request with one Storage file):
      * const response = await api.httpCall(
      *   {
      *     url: 'https://example.com/upload',
@@ -1589,7 +1589,7 @@ declare class api {
      *   },
      * );
      *
-     * Multipart request with multiple Storage files:
+     * Example (Multipart request with multiple Storage files):
      * const response = await api.httpCall(
      *   {
      *     url: 'https://example.com/merge',
@@ -1602,7 +1602,7 @@ declare class api {
      *   { requestType: 'form-data' },
      * );
      *
-     * Storage response stream:
+     * Example (Storage response stream):
      * const response = await api.httpCall(
      *   { url: 'https://example.com/report.csv', method: 'GET' },
      *   {
@@ -1615,13 +1615,13 @@ declare class api {
      *   },
      * );
      *
-     * Storage request stream:
+     * Example (Storage request stream):
      * await api.httpCall(
      *   { url: 'https://example.com/import', method: 'POST' },
      *   { requestType: 'storage', source: { storageEntryId } },
      * );
      *
-     * Storage conversion:
+     * Example (Storage conversion):
      * await api.httpCall(
      *   { url: 'https://example.com/convert', method: 'POST' },
      *   {
@@ -2405,6 +2405,10 @@ declare class storage {
      * Opens an upload session for a file in the default `explorer` namespace.
      *
      * Notes:
+     * - Use `storage.createUploadSession('private', input)` for the authenticated
+     *   caller's Private Storage. Keep subset export rows inside the execution,
+     *   derive the schema from the full `getFileData` page headers, and return only
+     *   the finalized file entry and verification, not the CSV body.
      * - Unavailable with `readOnly: true` (throws an error).
      * - A session is a temporary, durable upload control record. It reserves the
      *   intended file name and destination, stores upload policy, ACL, retention,
@@ -3012,7 +3016,7 @@ declare class agent {
      *
      * Example:
      * const run = await agent.startRun(agentId, {
-     *   instruction: 'Summarize today\\'s alerts.',
+     *   instruction: "Summarize today's alerts.",
      * });
      */
   static startRun(agentId: string, data: AgentRunInput): Promise<AgentRun>;

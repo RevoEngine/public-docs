@@ -19,8 +19,7 @@ These additions connect presentation and operation to the low-code workspace. Co
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Keep application mail in one workspace" defaultOpen={true}>
+## Keep application mail in one workspace
 
 Mail templates now have their own list and detail workflow. Builders can create a named template, enter its body, add a subject and organize it with a category and description. Required content is checked before submission, and the saved template remains accessible as an application resource that can be opened and maintained later.
 
@@ -28,8 +27,7 @@ This is useful when an application has several kinds of communication with diffe
 
 Template creation follows the instance's configured allowance. Updates carry the version that was opened for editing, so saving an old copy does not silently overwrite a newer version. When the underlying template has changed, the builder must return to the current copy before continuing. The release therefore provides both an authoring surface and a controlled way to maintain shared communication content.
 
-  </Accordion>
-  <Accordion title="Preview what the recipient will read">
+## Preview what the recipient will read
 
 The mail workspace includes an HTML preview of the current body. Builders can move from editing markup to inspecting its rendered structure without first saving a new template or making a live delivery part of the review process.
 
@@ -37,8 +35,7 @@ A practical workflow is to write the message, preview the heading and paragraphs
 
 The preview is a content-authoring tool. It does not imply that a message has been sent, and it does not replace checking how a particular mail client renders the final delivery. The important addition is a fast visual check inside the template workflow, alongside the subject, name and organizational metadata.
 
-  </Accordion>
-  <Accordion title="Inspect an application's request matching">
+## Inspect an application's request matching
 
 Application APIs gain a dedicated inspection flow for a method and path. Instead of changing a definition to discover what it matches, the builder can enter the request shape and review the matching results in the API workspace.
 
@@ -46,8 +43,7 @@ The result helps separate two questions: which application API is selected for a
 
 For example, a builder preparing a new route can check its expected method and URL path, inspect the returned candidates and return to the relevant definition with that context. This is request-matching inspection, not a claim that the inspector executes every matched API or validates an arbitrary request body.
 
-  </Accordion>
-  <Accordion title="Arrange operational data by more than one field">
+## Arrange operational data by more than one field
 
 Supported grids can now retain more than one sorting criterion. Rather than repeatedly replacing one order with another, an operator can build a useful ordering across several columns—for example, arranging items by category and then by name where those columns are available.
 
@@ -55,14 +51,12 @@ The change applies to shared server-side lists and extends to several administra
 
 Multiple criteria are particularly useful for lists containing many similar entries. Related rows can remain adjacent while a second field establishes the order within those groups, reducing the need to keep changing the view while comparing related resources.
 
-  </Accordion>
-</AccordionGroup>
-
 ## Also in this release
 
 - Mail-template navigation connects the resource list, detail form and preview.
 - Supported device, group and role lists gain the same multi-sort interaction.
 - Template metadata remains separate from recipient-facing content, making the resource easier to maintain over time.
+
 
 ## Related guides
 

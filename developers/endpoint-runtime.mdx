@@ -42,6 +42,16 @@ flowchart LR
 
 Component code can read request body, query, path values, sanitized headers, and endpoint template inputs through its execution input/context. Authorization and platform-internal headers are not exposed to customer code.
 
+### Read named path parameters
+
+For `POST /orders/:orderId/confirm`, use the named `parameters` map. The legacy `params` array contains positional values and has no `orderId` property.
+
+```js
+const input = api.input();
+const orderId = input.parameters.orderId;
+return { orderId, channel: input.body.channel };
+```
+
 ## Caller and execution account
 
 An Endpoint's saved `executionPolicy` chooses whether its runtime operations use the caller or a Service Account. Set defaults in **Settings → Endpoints**, then override individual Endpoints when necessary. The authenticated caller needs `ENDPOINT_INVOKE` or `INSTANCE_ADMIN`; a human application user can invoke Endpoints with platform access disabled. Invocation access does not grant access to Databases, Storage, Users, or other operations inside the Component.

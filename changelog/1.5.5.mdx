@@ -18,22 +18,19 @@ RevoEngine 1.5.5 makes Assistant work easier to follow and safer to continue. It
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Continue Assistant work with clearer activity and recovery" defaultOpen={true}>
+## Continue Assistant work with clearer activity and recovery
 
 Assistant conversations now preserve the relationship between a request, the work performed for it and the resulting response. Progress remains visible while work is underway, approval and clarification requests are presented as actionable states, and completed activity is not duplicated when a conversation is reopened or a live update arrives late.
 
 If a turn is interrupted, the conversation can remain available in a resumable state. The interface explains that the response paused and offers to continue from the retained request when it is safe to do so. Approval decisions and uncertain operation outcomes remain explicit, so resuming does not imply that an external change was automatically undone or that an unconfirmed action can be repeated without review.
 
-  </Accordion>
-  <Accordion title="Govern tools and make plugins easier to recognize">
+## Govern tools and make plugins easier to recognize
 
 Plugin configuration now supports a public HTTPS icon URL or an uploaded image stored with the plugin. The management view validates the selected icon and keeps the presentation separate from the plugin's executable configuration, making a registry of tools easier to scan without allowing the API to fetch arbitrary remote content.
 
 Tools can declare their mutation intent, reversibility, target scope and side-effect summary. Approval settings can require interactive approval or a verified condition before a call proceeds. Existing definitions are migrated conservatively and remain subject to review when their previous configuration did not describe the effect clearly.
 
-  </Accordion>
-  <Accordion title="Extend low-code integration workflows">
+## Extend low-code integration workflows
 
 Enhanced low-code capabilities add read-only declaration discovery for the editor's available APIs. Discovery can be requested in bounded batches, keeps command output compact and does not expose declaration tooling as ordinary Assistant conversation content. The command-based experiment is disabled by default and can be enabled explicitly in the instance AI feature settings. The standard declaration tool has improved typed-symbol indexing and search, with full private audit evidence and no declaration-tool activity in the visible conversation.
 
@@ -80,21 +77,18 @@ try {
 return { status: response.status };
 ```
 
-  </Accordion>
-  <Accordion title="Investigate outcomes and performance with more useful signals">
+## Investigate outcomes and performance with more useful signals
 
 Logs and endpoint statistics now distinguish transport status from the logical outcome of a request. A successful HTTP envelope can therefore still be shown as failed when the operation or tool reports an error, while business data returned by a normal application endpoint is not treated as a platform failure merely because it contains a field such as `success: false`.
 
 Trace views use the available execution boundaries to present more accurate durations, request and response summaries, and meaningful status reasons. Endpoint statistics identify cold starts separately from measured execution time, helping operators interpret a slow first request without treating initialization overhead as representative steady-state performance.
-
-  </Accordion>
-</AccordionGroup>
 
 ## Also in this release
 
 - Database selection inputs have clearer generated API documentation, and automation references use validated identifiers consistently.
 - Email templates escape user-provided values and runtime logs keep sensitive error details out of indexed failure fields.
 - Background execution and connection handling report terminal states more consistently when a client disconnects or a worker is cancelled.
+
 
 ## Related guides
 

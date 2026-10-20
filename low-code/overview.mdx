@@ -67,6 +67,21 @@ return {
 
 Library paths are case-sensitive. Named exports from an @default element use `lib.LibraryName.member`; other elements use `lib.LibraryName.ElementKey.member`. The bracket ['@default'] path is an alias of the same export. Helpers without `export` stay local to their element in both JS and TS.
 
+## Platform reads use a different filter contract
+
+`api.getDatabaseData()` uses structured query nodes such as `{ field: 'sku', op: 'eq', value: 'AST-FILTER-100' }`. `api.getInstanceData()` reads platform resources and uses field maps with operators such as `equals` and `in`. Do not copy a Database filter node into an instance-resource read.
+
+```js
+const page = await api.getInstanceData('Webhooks', {
+  filter: { webhookId: { equals: api.input().webhookId } },
+  fields: ['webhookId', 'status', 'attempts'],
+  take: 1,
+});
+return page.data[0] ?? null;
+```
+
+Use the declared response and verify the returned business identifier before acting on a record. A bounded result is only useful if it belongs to the intended resource.
+
 ## Execution rules
 
 - Elements execute in ascending order.
@@ -105,4 +120,4 @@ Continue with [Runtime API](/low-code/runtime-api), [HTTP integrations](/low-cod
 [SFTP integrations](/low-code/sftp), [Database API](/low-code/database), or the generated
 [Low-code runtime reference](/low-code/reference/index).
 
-Every JS/TS library includes a permanent, initially documentation-only `@default`. Its key and identity are protected; edit its source to add named exports. See [Libraries](/build/libraries) for complete JS/TS examples, local private helpers, aliases and migration behavior.
+Every JS/TS library includes a permanent, initially documentation-only `@default`. Its key and identity are protected; edit its source to add named exports. See [Libraries](/build/libraries) for complete JS/TS examples, local private helpers, aliases and authoring behavior.

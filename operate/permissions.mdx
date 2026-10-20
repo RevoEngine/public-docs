@@ -12,7 +12,7 @@ Open **Permissions**, select **Add**, and configure:
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| Name | Yes | Exact unique policy name, including names of deleted policies. |
+| Name | Yes | Exact unique name among nondeleted Permission groups. |
 | Category | No | Groups related policies in the UI. |
 | Description | No | Intended principals, scope, owner, and exclusions. |
 | Metadata | No | Searchable governance and review attributes. |
@@ -77,6 +77,8 @@ Before removing a role:
 5. Watch authorization failures, Job state, and Realtime disconnects.
 
 Permission-group deletion is recoverable, but active principals can lose capability immediately. Restore does not guarantee that every external process automatically retries its failed operation.
+
+A deleted Permission group releases its name for reuse. An inactive but nondeleted group still reserves its name. Restore the original group by its ID; if a current group has taken that name, restoration returns `409 Conflict`. Rename the current group or choose another recovery approach before retrying.
 
 ## Required administration roles
 

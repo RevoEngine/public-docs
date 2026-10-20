@@ -42,7 +42,7 @@ Terminal permissions have two independent controls in **Settings → Vault → T
 | **Local Access** (default) | Permits supported connections to services on the runner's localhost. Internet and other LAN hosts require a temporary network exception. |
 | **Full Network Access** | Permits connections to addresses the runner can reach, including the internet and LAN, without another network-scope approval. It does not grant access to files outside the workspace. |
 
-The Assistant requests the command scope and network scope needed for each action. A broader saved grant does not automatically turn an ordinary workspace command into a host command or add network access. For example, **Workspace Access + Full Network Access** can download dependencies and write inside the workspace, but cannot write elsewhere. **Full Access + No Network** permits a requested host-level command to access files available to the runner account, while blocking its network connections. A temporary exception can broaden either dimension without changing the saved settings.
+The Assistant requests the command scope and network scope needed for each action. An explicit workspace command retains its workspace boundary. When no command scope is specified, the saved Commands grant selects workspace or host execution; saved Full Access with Full Network Access can also supply the default shell network scope. Select narrower scopes explicitly when needed. For example, **Workspace Access + Full Network Access** can download dependencies and write inside the workspace, but cannot write elsewhere. **Full Access + No Network** permits a requested host-level command to access files available to the runner account, while blocking its network connections. A temporary exception can broaden either dimension without changing the saved settings.
 
 ### How the sandbox works
 
@@ -54,7 +54,7 @@ On macOS, supported workspace shell actions can connect to localhost under **Loc
 
 ## Approvals for elevated actions
 
-The Assistant explains why an action needs host-level commands or more network access. Under **Restricted** Composer, you decide directly. Under **Auto Review** or **Full Access**, RevoShield first assesses the exact action against your request and sends it to you if it cannot safely approve it. A saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode. Destructive commands and secret access may still require separate review.
+The Assistant explains why an action needs host-level commands or more network access. Under **Restricted** or **Full Access** Composer, a missing command or network scope goes directly to you. Only **Auto Review** lets RevoShield assess that exact action first and ask you if it cannot safely approve it. Full Access Composer bypasses RevoShield; it does not supply missing terminal scopes. A saved Full Access command grant or Full Network Access grant covers its own dimension regardless of Composer mode. Destructive commands and secret access may still require separate review.
 
 When your decision is needed, you can approve the exact invocation once or grant the missing command or network scope for **15 minutes**, **one hour**, **eight hours**, **24 hours**, or **this thread** on this chat, device and workspace. A timed grant does not change the terminal's permanent settings or authorize a different action after a one-time approval. It ends at expiry, explicit chat disconnect, or a change to the grant. Whole-thread consent has no time expiry, survives later messages and short reconnects, and ends on explicit disconnect, thread deletion or a grant change. It is not copied to a forked chat. A short runner reconnect can preserve a still-valid permission for the same chat, device and workspace. The runner checks authorization again before input or another action; work requiring an expired or revoked scope is stopped.
 
@@ -124,6 +124,10 @@ The terminal settings and conversation show activity for authorized viewers. A p
 - [Approvals and plans](/ai/approvals-and-plans)
 - [Secrets and Vault](/operate/secrets)
 
+
+<Card title="Browser workflows" icon="globe" href="/ai/browser">
+  Start with public reads, interactive sessions, Live Preview, private takeover and profiles.
+</Card>
 
 ## Live Preview and human control
 

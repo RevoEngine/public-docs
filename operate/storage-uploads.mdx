@@ -89,7 +89,7 @@ Keep the upload session ID and finalized Storage entry ID to find the recorded j
 
 ## Incremental generated upload
 
-Incremental mode is the default choice for one producer that appends data in order. Omit `partNumber` during normal writes; Storage assigns it.
+Choose incremental mode for one producer that appends data in order. Omit `partNumber` during normal writes; Storage assigns it.
 
 ```js
 const { session } = await storage.createUploadSession({

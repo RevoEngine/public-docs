@@ -19,8 +19,7 @@ The capability gives application developers a new way to connect a completed ope
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Notify a client after meaningful work" defaultOpen={true}>
+## Notify a client after meaningful work
 
 Low-code can now publish a message when an application operation reaches a point worth reporting. A generated report, completed calculation or changed record can produce a compact notification describing the occurrence.
 
@@ -38,8 +37,7 @@ await api.publishMessage('ALL', {
 
 The receiving application can use the event to refresh the relevant area or fetch the report through its normal authorized read path. Publishing a reference does not grant permission to read the referenced resource.
 
-  </Accordion>
-  <Accordion title="Use a compact notification contract">
+## Use a compact notification contract
 
 Messages are JSON-serializable values with a maximum serialized size of 1,024 bytes. The limit applies to encoded content, so the useful design is a small message describing what changed rather than a complete copy of a document, table or report.
 
@@ -47,8 +45,7 @@ A stable event name lets the client decide which part of its interface needs att
 
 Keeping the contract small has another benefit: a notification can remain meaningful even when the structure of the underlying application record changes. The client fetches the current record through the established API instead of depending on every field having been copied into a realtime message.
 
-  </Accordion>
-  <Accordion title="A persistent connection for live delivery">
+## A persistent connection for live delivery
 
 Connected clients receive messages over a persistent instance connection. The platform manages the connected-client lifecycle, including connection registration, heartbeat activity and disconnect cleanup.
 
@@ -56,8 +53,7 @@ This changes the interaction model available to an application. Instead of repea
 
 The scope is deliberately clear. This release introduces the realtime delivery primitive and low-code publication path; it does not turn every existing platform screen into a live view automatically. Application consumers opt into the notification contract appropriate to their workflow.
 
-  </Accordion>
-  <Accordion title="Combine realtime with durable business state">
+## Combine realtime with durable business state
 
 Realtime delivery and persisted application state serve different purposes. A connected client can react quickly to a notification, while a newly opened or reconnected client should read the current state through the normal application API.
 
@@ -65,8 +61,6 @@ A notification is not a durable queue, a delivery receipt from every client or a
 
 This distinction gives builders a practical integration pattern: persist the business result, publish a compact hint and let the interface read the authorized result. It provides live responsiveness without making a transient browser connection responsible for the correctness of the business operation.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

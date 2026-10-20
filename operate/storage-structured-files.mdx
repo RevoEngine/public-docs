@@ -11,10 +11,10 @@ The schema is stored on the upload session and reused when Storage builds the fi
 ## Shared schema contract
 
 ```ts
-{
+const schema = {
   schemaPolicy: {
-    profile: 'fallback' | 'strict',
-    additionalProperties: 'allow' | 'strip' | 'reject',
+    profile: 'fallback',
+    additionalProperties: 'allow',
   },
   sheets: [
     {
@@ -30,7 +30,7 @@ The schema is stored on the upload session and reused when Storage builds the fi
       },
     },
   ],
-}
+};
 ```
 
 - XLSX may declare multiple worksheets.

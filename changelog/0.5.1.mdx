@@ -17,8 +17,7 @@ RevoEngine 0.5.1 brings three practical additions to everyday application work: 
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Arrange the dashboard around the work" defaultOpen={true}>
+## Arrange the dashboard around the work
 
 The dashboard gains an editable grid. Unlock it to add panels, move them into position, resize them or remove a panel that no longer belongs in the view. Lock the layout again when the arrangement is ready for everyday use, so ordinary interaction with its content does not keep moving the panels.
 
@@ -26,8 +25,7 @@ The initial panel catalogue covers active accounts over time, platform-versus-ex
 
 This makes a dashboard something a user can compose, not just a fixed collection of charts. A wide operational table and a small distribution chart need different proportions; the grid lets the layout reflect that instead of forcing each item into the same size.
 
-  </Accordion>
-  <Accordion title="Save a working view and return to it">
+## Save a working view and return to it
 
 Dashboard configurations can be named, saved and selected from a loading dialog. The arrangement retains the panel definitions and grid positions needed to restore the view. Editing a selected configuration updates that saved view; creating a configuration provides a separate arrangement to return to.
 
@@ -35,8 +33,7 @@ A default dashboard choice can be restored when entering the workspace. Selected
 
 The working and editing controls are distinct. Reload belongs to the locked operating view, while Add and Save belong to layout editing. For a recurring task, the flow is straightforward: prepare the arrangement once, save it, then load and refresh it when returning to the same operational check.
 
-  </Accordion>
-  <Accordion title="Search the code, not only the Component name">
+## Search the code, not only the Component name
 
 Application-object search is extended with a code-search mode. A builder can now look for a function call, field name or integration identifier inside Component elements, even when the surrounding Component has an unrelated name.
 
@@ -46,8 +43,7 @@ Case-sensitive matching distinguishes names that differ only by capitalization. 
 
 This is useful before changing an integration contract. Search for the old field or function name, inspect the matching elements, and use that inventory to plan the edits instead of opening every Component manually.
 
-  </Accordion>
-  <Accordion title="Download a Database result as CSV">
+## Download a Database result as CSV
 
 Database exports now have a dedicated CSV download. The export follows the Database query workflow and streams the result to the caller. Column headers follow the definition order, keeping the output understandable to a person opening the file and predictable for a downstream importer.
 
@@ -63,14 +59,12 @@ For an illustrative order result, the downloaded content can look like:
 
 The comma inside the customer name remains part of that cell because the value is quoted. The empty amount and approval fields on the second row represent missing values. This release provides the basic CSV download; configurable CSV dialects and native workbook generation arrive in later releases.
 
-  </Accordion>
-</AccordionGroup>
-
 ## Also in this release
 
 - Dashboard layouts can combine several panel types in one saved configuration.
 - Endpoint summary selection remains connected to its detail workflow.
 - Code-search results include both matching element context and the total occurrence count.
+
 
 ## Related guides
 

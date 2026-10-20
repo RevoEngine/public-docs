@@ -1,0 +1,125 @@
+---
+title: Build a typed library API
+description: Author a reusable pricing library, inspect its Monaco completions, and call it from Components.
+icon: code
+---
+
+A distributor needs the same price calculation in its order Endpoint, invoice Job and sales preview. Put that rule in a TypeScript Library called **Pricing**. A change then has one implementation to review, while each caller keeps responsibility for its own permissions and writes.
+
+This example uses fictional Asterion Supply data. It has no dependency on customer code or an external service.
+
+## 1. Create the Library
+
+In **Studio → Components**, create a TypeScript Library named `Pricing`, with category `commerce`. The category organizes navigation; callers use the name `Pricing`.
+
+The platform creates a native, permanent element with the key `@default`. The tree displays a code icon and the lowercase italic label *default*. Its initial source is a documentation comment with no exports. Edit its source to define your API. You cannot rename, delete or replace that element; adding an ordinary element called `DEFAULT` creates a separate namespace.
+
+| What you see | What you author or call |
+| --- | --- |
+| *default* in the tree | Source stored under `@default` |
+| Main exported function | `lib.Pricing.quote(...)` |
+| Main exported type | `lib.Pricing.QuoteLine` |
+| An ordinary `Availability` element | `lib.Pricing.Availability.canFulfil(...)` |
+
+<Frame caption="The real Pricing Library in the synthetic Asterion instance: the permanent default element opens as @default.">
+  <img src="/images/asterion/library-default.jpg" alt="Studio showing the lowercase default Library element and exported Pricing quote function" />
+</Frame>
+
+`@default` is a platform element identity. It does not enable the JavaScript syntax `export default`.
+
+## 2. Define the price contract
+
+Replace the default's comment with this source. Money uses integer minor units; discounts use basis points (`750` means 7.5%). The policy here rounds each line after discount, then sums the lines. State your own accounting policy explicitly before using this in a real invoice system.
+
+```ts Pricing · @default
+export interface QuoteLine {
+  sku: string;
+  quantity: number;
+  unitPriceMinor: number;
+  discountBps: number;
+}
+
+export interface Quote {
+  totalMinor: number;
+  lines: { sku: string; netMinor: number }[];
+}
+
+function integer(value: number, minimum: number, maximum: number): void {
+  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+    throw new Error('Invalid price input');
+  }
+}
+
+/** Calculate a quote without changing inventory or creating an invoice. */
+export function quote(input: QuoteLine[]): Quote {
+  if (input.length === 0 || input.length > 500) throw new Error('Use 1–500 lines');
+  const lines = input.map(line => {
+    integer(line.quantity, 1, 100000);
+    integer(line.unitPriceMinor, 0, 100000000);
+    integer(line.discountBps, 0, 10000);
+    const weighted = line.quantity * line.unitPriceMinor * (10000 - line.discountBps);
+    if (!Number.isSafeInteger(weighted)) throw new Error('Price exceeds supported precision');
+    return { sku: line.sku, netMinor: Math.round(weighted / 10000) };
+  });
+  const totalMinor = lines.reduce((sum, line) => sum + line.netMinor, 0);
+  if (!Number.isSafeInteger(totalMinor)) throw new Error('Quote exceeds supported precision');
+  return { totalMinor, lines };
+}
+```
+
+The `integer` helper stays local. JSDoc describes the exported function for callers; annotations such as `@public` or `@private` do not change visibility. Actual named `export` statements define the API.
+
+## 3. Inspect completion in Monaco
+
+Save and activate the Library through your normal deployment review. Open a consuming TypeScript Component in the same instance. Type each expression below and invoke completion with **Ctrl+Space** if it does not open automatically.
+
+| Typed text | Expected public contract |
+| --- | --- |
+| `lib.` | Accessible active Library names, including `Pricing` |
+| `lib.Pricing.` | `quote` and exported type declarations in the appropriate TypeScript context |
+| `lib.Pricing.quote(` | Parameter and return-type help with the function's documentation |
+| `lib.Pricing.integer` | No public helper with that name |
+
+<Frame caption="Completion in a consuming TypeScript Component exposes quote; the unexported integer helper remains private.">
+  <img src="/images/asterion/library-monaco-completion.jpg" alt="Monaco completion after lib.Pricing. suggests the exported quote function" />
+</Frame>
+
+Declare a typed input to see field suggestions:
+
+```ts Order preview · Main
+const lines: lib.Pricing.QuoteLine[] = [
+  { sku: 'AST-FILTER-100', quantity: 4, unitPriceMinor: 1250, discountBps: 750 },
+];
+return lib.Pricing.quote(lines);
+```
+
+Expected output:
+
+```json
+{
+  "totalMinor": 4625,
+  "lines": [{ "sku": "AST-FILTER-100", "netMinor": 4625 }]
+}
+```
+
+Definition navigation takes you to the owning Library element. The short namespace is also the TypeScript type namespace: use `lib.Pricing.QuoteLine`, rather than attempting to use `@default` as a TypeScript namespace identifier. Types have no JavaScript runtime value.
+
+## 4. Add a named capability
+
+Add an ordinary element named `Availability`:
+
+```ts Pricing · Availability
+export function canFulfil(available: number, requested: number): boolean {
+  return Number.isSafeInteger(requested) && requested > 0 && available >= requested;
+}
+```
+
+Call it as `lib.Pricing.Availability.canFulfil(12, 4)`. The default does not automatically forward its members. Avoid naming a default export `Availability`: default export names, including type names, cannot collide with element keys.
+
+## 5. Validate before sharing the rule
+
+Check a no-discount line, a full-discount line, a fractional quantity, an empty input and an amount beyond supported precision. Test the caller as well: a correct quote does not reserve stock, authorize a buyer or make a write idempotent.
+
+For a missing completion, check the exact case-sensitive Library name, its active status, explicit exports and current editor diagnostics. Refresh a CLI or VS Code workspace from the canonical source after an upgrade before submitting old source.
+
+Continue with [Library lifecycle and restrictions](/build/libraries), [debugging](/build/debugging) and [the enterprise example](/platform/asterion-supply).

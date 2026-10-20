@@ -2,7 +2,7 @@
 title: "1.6.6 — Explicit library exports, clearer Job outcomes and browser collaboration"
 sidebarTitle: "1.6.6"
 icon: "tag"
-description: "15 October 2026"
+description: "16 October 2026"
 ---
 
 RevoEngine 1.6.6 makes reusable library APIs explicit, separates individual Job attempts from the outcome of their complete execution history, and brings live browser collaboration to Assistant terminal workflows. It also simplifies automation input modes, improves trigger filtering, standardizes account emails and strengthens HTTP and Storage transfer recovery.
@@ -16,11 +16,11 @@ RevoEngine 1.6.6 makes reusable library APIs explicit, separates individual Job 
 - Let public web reads fall back to an isolated browser when an ordinary HTTP response is insufficient.
 - Follow an Assistant browser live and take private control when a workflow needs human input.
 - Transfer HTTP content directly to or from authorized Storage files with consistent request and response handling.
+- Keep requests from tenant end users efficient when they have no global platform account.
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Publish a deliberate library API" defaultOpen={true}>
+## Publish a deliberate library API
 
 JavaScript and TypeScript library elements now expose named exports rather than treating their final returned object as the public API. This makes the available members explicit to the runtime, Web IDE and developer tooling. The permanent default element appears as *default* in the editor and cannot be renamed or removed. New source starts with guidance instead of a placeholder implementation that looks ready to execute.
 
@@ -28,8 +28,30 @@ Members exported by that element are available as `lib.LibraryName.member`; name
 
 The upgrade migrates existing supported library definitions while retaining the versions used by historical executions. Source approvals continue to apply to the exact code being executed. Editor completion and library synchronization use the same export contract, so reusable functions have one public shape across authoring and execution.
 
-  </Accordion>
-  <Accordion title="Separate Job attempts from execution outcomes">
+
+For example, place the reusable price calculation in the permanent `@default` element of a `Pricing` library:
+
+```ts
+export function netAmount(unitPriceCents: number, quantity: number): number {
+  if (!Number.isSafeInteger(unitPriceCents) || unitPriceCents < 0
+      || !Number.isSafeInteger(quantity) || quantity < 1) {
+    throw new Error('Use non-negative integer prices and a positive quantity');
+  }
+  const total = unitPriceCents * quantity;
+  if (!Number.isSafeInteger(total)) throw new Error('Amount exceeds supported precision');
+  return total;
+}
+```
+
+A consuming Component calls the exported member directly:
+
+```js
+return lib.Pricing.netAmount(1250, 4); // 5000 cents
+```
+
+Read [Library exports and Monaco completion](/build/library-authoring).
+
+## Separate Job attempts from execution outcomes
 
 Job History exposes the outcome of a complete execution family alongside the status of its individual attempts. An intermediate error can be followed by successful recovery; the history no longer needs to be interpreted as a collection of unrelated failed rows. Operators can filter terminal errors, inspect the attempt list and open an attempt's inputs, results and execution details.
 
@@ -37,22 +59,25 @@ Manual retry starts another series with its own automatic retry budget. If a ser
 
 Automatic retries and replayed bulk operations retain their existing identity. Concurrent requests are admitted together with the execution-history update, preserving one active series and a consistent attempt sequence. These distinctions carry through the API, history projection and frontend actions.
 
-  </Accordion>
-  <Accordion title="Choose how automation input is combined">
+Read [Attempt status and Job result](/operate/jobs#read-attempt-status-and-job-result).
+
+## Choose how automation input is combined
 
 Events and Schedules use three explicit modes: `override`, `deep_override` and `replace`. Shallow override replaces top-level fields. Recursive override merges nested plain objects while replacing arrays and preserving explicitly supplied null values. Replacement supplies the new input as a whole.
 
 The editor and public request contracts present those same choices. Existing automation definitions are migrated away from the internal input-version marker, so that implementation detail no longer appears as an application input field. The resulting payload follows the selected mode at execution time, including nested input used by downstream Components.
 
-  </Accordion>
-  <Accordion title="Find the trigger behind an execution">
+Read [Event runtime input](/operate/events#configure-runtime-input-for-a-job-target) and [Schedule runtime input](/operate/schedules#configure-runtime-input-for-a-job-target).
+
+## Find the trigger behind an execution
 
 Trigger-name filtering uses the resource's recorded Event or Schedule association, allowing operators to find the execution they need without loading and matching the full history in the client. Distinct-value lookups avoid multiplying history rows when related trigger data contains several matches.
 
 Text filters and selection controls consistently expose contains matching. Matching remains case-insensitive and supports the established pattern semantics. Indexed lookups improve browsing large histories and resource lists while keeping filtering on the server. Existing saved filters continue to describe their selected operation explicitly.
 
-  </Accordion>
-  <Accordion title="Read public pages and collaborate in a browser">
+Read [Search and filters](/platform/search).
+
+## Read public pages and collaborate in a browser
 
 Assistant web reads start with HTTP and can fall back to an isolated browser for public GET or HEAD requests when the page requires browser rendering. Public fallback does not borrow a personal profile, cookies or a one-time interactive approval. Network permissions and destination checks still apply to every requested page, including batched reads.
 
@@ -60,8 +85,9 @@ Interactive browser work adds Live Preview from the terminal activity and intera
 
 Browser profiles and optional recordings belong to the terminal workspace. Recordings are opt-in and become available through authorized file access. Live image delivery uses a separate bounded channel rather than adding each frame to the conversation history. This workflow complements the existing approval and secure-input controls.
 
-  </Accordion>
-  <Accordion title="Keep HTTP and Storage transfers consistent">
+Read [Browser sessions, profiles and private takeover](/ai/browser).
+
+## Keep HTTP and Storage transfers consistent
 
 Low-code HTTP calls align header handling, query parameters, JSON, text and binary response behavior across supported execution paths. Request deadlines retain millisecond precision, and cancellation propagates to the transfer. Direct Storage upload and download avoid relaying complete file contents through the managed execution runtime.
 
@@ -104,15 +130,16 @@ return { status: response.status };
 
 For upload finalization with `computeStats: 'sync'`, the finalized file and its lifecycle event now contain statistics for the same stored generation. Supported indexes are computed before publication. Retryable provider failures preserve accepted upload bytes and return the durable retry state, allowing background recovery without asking callers to upload those bytes again.
 
-  </Accordion>
-</AccordionGroup>
+Read [HTTP request and response recipes](/low-code/http) and [Storage readiness](/operate/storage-uploads).
 
 ## Also in this release
 
+- Repeated requests from tenant end users without a global platform account reuse confirmed account absence instead of repeating an account lookup. Account creation, platform-access changes and email verification invalidate that result, while existing recovery rules preserve freshness after a cache connection interruption.
 - Account verification, invitations and other platform emails share consistent structure, sender presentation, action links and plain-text alternatives. Verification and invitation links remain valid for 30 days; password-reset expiry follows the authentication provider's existing policy.
 - Assistant browser continuation and activity retain the relevant interaction context while private control is active. Runtime guidance distinguishes public page reads from interactive sessions and individual Job errors from terminal execution outcomes.
 
 - Observability opens resources by confirmed identifiers, reuses open reference panels and preserves resolved names across continuation pages. Full log payloads remain available on demand throughout retained history, with larger configurable diagnostic scan allowances and explicit missing-payload states.
+
 
 ## Related guides
 

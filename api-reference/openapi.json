@@ -15009,6 +15009,76 @@
         "description": "Search messages across accessible threads. The request enforces thread membership and content visibility for the authenticated caller."
       }
     },
+    "/api/v1/automation/trigger": {
+      "get": {
+        "description": "Searches current definitions by a literal name fragment with shared name/type/UID ordering and pagination. Does not read Jobs or occurrence history. ROLES: AUTOMATION_READ, AUTOMATION_ADMIN. USER: true. SERVICE ACCOUNT: true.",
+        "operationId": "AutomationController_getTriggers",
+        "parameters": [
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive literal name fragment across Event and Schedule definitions.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "required": false,
+            "in": "query",
+            "description": "Include soft-deleted definitions when browsing deleted resources.",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerLookupResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Look up Event and Schedule definitions.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
     "/api/v1/automation/job": {
       "get": {
         "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
@@ -20686,6 +20756,717 @@
         ]
       }
     },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports/catalog": {
+      "post": {
+        "operationId": "TerminalBrowserProfileImportController_catalog",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileImportSourceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Explicitly request local legacy profile names from an authorized foreground runner; personal sessions only",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Explicitly request local legacy profile names from an authorized foreground runner; personal sessions only. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports": {
+      "post": {
+        "operationId": "TerminalBrowserProfileImportController_create",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import a selected local legacy profile into a new private Vault profile; never overwrites an existing profile",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Import a selected local legacy profile into a new private Vault profile; never overwrites an existing profile. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profile-imports/{requestId}": {
+      "get": {
+        "operationId": "TerminalBrowserProfileImportController_status",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileImportStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read metadata-only progress of the caller own profile import without replaying it",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Read metadata-only progress of the caller own profile import without replaying it. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/browser-profiles": {
+      "get": {
+        "operationId": "BrowserProfileController_list",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "agentTerminalWorkspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfilesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List authorized Vault browser profile metadata without authentication state",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "List authorized Vault browser profile metadata without authentication state. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      },
+      "post": {
+        "operationId": "BrowserProfileController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfilePolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a private encrypted browser profile; access and assignments are explicit",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Create a private encrypted browser profile; access and assignments are explicit. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}": {
+      "get": {
+        "operationId": "BrowserProfileController_get",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read one authorized profile metadata record without website authentication state",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Read one authorized profile metadata record without website authentication state. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      },
+      "post": {
+        "operationId": "BrowserProfileController_update",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner updates profile metadata and grants; access changes fence previous writers",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Owner updates profile metadata and grants; access changes fence previous writers. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/sessions": {
+      "get": {
+        "operationId": "BrowserProfileController_sessions",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileSessionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active profile leases; owners see all, grantees only their own sessions",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "List active profile leases; owners see all, grantees only their own sessions. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/sessions/{browserSessionId}/close": {
+      "post": {
+        "operationId": "BrowserProfileController_stopSession",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserSessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner or session actor stops one context without clearing the last saved authentication state",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Owner or session actor stops one context without clearing the last saved authentication state. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/clear": {
+      "post": {
+        "operationId": "BrowserProfileController_clear",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileRevisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner clears saved website authentication and rotates its data key",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Owner clears saved website authentication and rotates its data key. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/vault/browser-profiles/{browserProfileId}/remove": {
+      "post": {
+        "operationId": "BrowserProfileController_remove",
+        "parameters": [
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrowserProfileRevisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserProfileMutationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Owner removes the profile, its assignments and active writer leases",
+        "tags": [
+          "Browser Profiles"
+        ],
+        "description": "Owner removes the profile, its assignments and active writer leases. A personal browser session is required. Profile access and independently authorized terminal/workspace assignments apply; profile authentication state is not returned."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-profiles/{browserProfileId}/open": {
+      "post": {
+        "operationId": "TerminalGrantController_openBrowserProfile[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenTerminalBrowserProfileResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-profiles/{browserProfileId}/open": {
+      "post": {
+        "operationId": "TerminalGrantController_openBrowserProfile[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "browserProfileId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenTerminalBrowserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenTerminalBrowserProfileResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Open an assigned profile in a separate owned browser context; repeat the request ID to check progress. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings": {
+      "get": {
+        "operationId": "TerminalGrantController_browserRecordingSources[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingSourcesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List owned persisted browser recordings after a session has ended",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List owned persisted browser recordings after a session has ended. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/browser-recordings": {
+      "get": {
+        "operationId": "TerminalGrantController_browserRecordingSources[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "threadId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalBrowserRecordingSourcesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List owned persisted browser recordings after a session has ended",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "List owned persisted browser recordings after a session has ended. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
     "/api/v1/agents/terminals/{agentTerminalId}/browser-recordings/{recordingId}/provision": {
       "post": {
         "operationId": "TerminalGrantController_provisionBrowserRecording[0]",
@@ -21148,6 +21929,116 @@
           "Agent Terminals"
         ],
         "description": "Register a pending workspace on an existing owned device without changing its identity. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/agents/terminals/{agentTerminalId}/workspaces/{workspaceId}/browser-settings": {
+      "post": {
+        "operationId": "TerminalGrantController_updateBrowserSettings[0]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTerminalBrowserSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update workspace browser preferences without changing execution permissions",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Update workspace browser preferences without changing execution permissions. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
+      }
+    },
+    "/api/v1/vault/terminals/{agentTerminalId}/workspaces/{workspaceId}/browser-settings": {
+      "post": {
+        "operationId": "TerminalGrantController_updateBrowserSettings[1]",
+        "parameters": [
+          {
+            "name": "agentTerminalId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTerminalBrowserSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalGrantDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update workspace browser preferences without changing execution permissions",
+        "tags": [
+          "Agent Terminals"
+        ],
+        "description": "Update workspace browser preferences without changing execution permissions. The request requires an authenticated caller and enforces terminal ownership, access grants, and activity visibility."
       }
     },
     "/api/v1/agents/terminals/{agentTerminalId}/workspaces": {
@@ -26652,6 +27543,14 @@
       "externalDocs": {
         "description": "Automation guide",
         "url": "https://docs.revoengine.com/operate/automation"
+      }
+    },
+    {
+      "name": "Browser Profiles",
+      "description": "Manage browser profile metadata, access, assignments and active sessions without exposing website authentication state.",
+      "externalDocs": {
+        "description": "Browser profiles and collaboration guide",
+        "url": "https://docs.revoengine.com/ai/browser"
       }
     },
     {
@@ -36927,6 +37826,58 @@
           "method"
         ]
       },
+      "TriggerLookupItemDto": {
+        "type": "object",
+        "properties": {
+          "triggerRef": {
+            "type": "string",
+            "description": "Stable typed identity, EVENT:<UUID> or SCHEDULE:<UUID>."
+          },
+          "triggerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "requestedFrom": {
+            "type": "string",
+            "enum": [
+              "EVENT",
+              "SCHEDULE"
+            ]
+          }
+        },
+        "required": [
+          "triggerRef",
+          "triggerId",
+          "name",
+          "requestedFrom"
+        ]
+      },
+      "TriggerLookupResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TriggerLookupItemDto"
+            }
+          },
+          "results": {
+            "type": "number",
+            "description": "Number of items returned in this page."
+          },
+          "next": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "results",
+          "next"
+        ]
+      },
       "JobLogItemDto": {
         "type": "object",
         "properties": {
@@ -39018,6 +39969,590 @@
           }
         }
       },
+      "BrowserProfileImportSourceDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId"
+        ]
+      },
+      "LegacyBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "BrowserProfileImportStatusDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "preparing",
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "unknown"
+            ]
+          },
+          "profileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "error": {
+            "type": "string"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegacyBrowserProfileDto"
+            }
+          },
+          "localCopy": {
+            "type": "string",
+            "enum": [
+              "retained",
+              "removed",
+              "cleanup_unconfirmed"
+            ]
+          }
+        },
+        "required": [
+          "requestId",
+          "state"
+        ]
+      },
+      "ImportTerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "localProfileId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "object",
+            "maxLength": 2000,
+            "default": ""
+          },
+          "removeLocalCopy": {
+            "type": "object",
+            "default": false,
+            "description": "Delete this local source only after cloud readback and native restoration are verified."
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "localProfileId",
+          "name"
+        ]
+      },
+      "BrowserProfileSettingsDto": {
+        "type": "object",
+        "properties": {
+          "fps": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 60
+          },
+          "width": {
+            "type": "number",
+            "minimum": 320,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "number",
+            "minimum": 480,
+            "maximum": 2160
+          },
+          "alwaysRecord": {
+            "type": "boolean"
+          },
+          "recordingMode": {
+            "type": "string",
+            "enum": [
+              "local",
+              "storage",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "fps",
+          "width",
+          "height",
+          "alwaysRecord",
+          "recordingMode"
+        ]
+      },
+      "BrowserProfileAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "agentTerminalWorkspaceId"
+        ]
+      },
+      "BrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "restricted": {
+            "type": "boolean",
+            "default": true,
+            "description": "False allows active personal users in this instance to use the profile on assigned, independently authorized workspaces. Only the owner manages it."
+          },
+          "browserSettings": {
+            "nullable": true,
+            "description": "Live Preview defaults for this profile. Null inherits workspace defaults. Explicit live controls apply to the current preview.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileSettingsDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "users": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "assignments": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileAssignmentDto"
+            }
+          },
+          "browserProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 0
+          },
+          "policyRevision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "busy": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "users",
+          "groups",
+          "assignments",
+          "browserProfileId",
+          "ownerUserId",
+          "revision",
+          "policyRevision",
+          "savedAt",
+          "createdAt",
+          "updatedAt",
+          "busy"
+        ]
+      },
+      "BrowserProfilesDto": {
+        "type": "object",
+        "properties": {
+          "defaultProfile": {
+            "nullable": true,
+            "description": "Authorized workspace default, also returned when its metadata lies on a later catalog page.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileDto"
+              }
+            ]
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "profiles",
+          "nextCursor"
+        ]
+      },
+      "BrowserProfilePolicyDto": {
+        "type": "object",
+        "properties": {
+          "restricted": {
+            "type": "boolean",
+            "default": true,
+            "description": "False allows active personal users in this instance to use the profile on assigned, independently authorized workspaces. Only the owner manages it."
+          },
+          "browserSettings": {
+            "nullable": true,
+            "description": "Live Preview defaults for this profile. Null inherits workspace defaults. Explicit live controls apply to the current preview.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BrowserProfileSettingsDto"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "users": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "maxItems": 128,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "assignments": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileAssignmentDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "users",
+          "groups",
+          "assignments"
+        ]
+      },
+      "BrowserProfileSessionDto": {
+        "type": "object",
+        "properties": {
+          "agentTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "actorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalName": {
+            "type": "string"
+          },
+          "workspaceName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canClose": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "agentTerminalId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId",
+          "actorUserId",
+          "assistantThreadId",
+          "terminalName",
+          "workspaceName",
+          "createdAt",
+          "expiresAt",
+          "canClose"
+        ]
+      },
+      "BrowserProfileSessionsDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowserProfileSessionDto"
+            }
+          }
+        },
+        "required": [
+          "sessions"
+        ]
+      },
+      "BrowserProfileMutationDto": {
+        "type": "object",
+        "properties": {
+          "updated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "updated"
+        ]
+      },
+      "UpdateBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "expectedPolicyRevision": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2147483646
+          },
+          "policy": {
+            "$ref": "#/components/schemas/BrowserProfilePolicyDto"
+          }
+        },
+        "required": [
+          "expectedPolicyRevision",
+          "policy"
+        ]
+      },
+      "BrowserProfileRevisionDto": {
+        "type": "object",
+        "properties": {
+          "expectedPolicyRevision": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2147483646
+          }
+        },
+        "required": [
+          "expectedPolicyRevision"
+        ]
+      },
+      "OpenTerminalBrowserProfileDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threadId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agentTerminalWorkspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "requestId",
+          "threadId",
+          "agentTerminalWorkspaceId",
+          "browserSessionId"
+        ]
+      },
+      "OpenTerminalBrowserProfileResultDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "opening",
+              "ready",
+              "failed"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "browserSessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "error": {
+            "type": "string",
+            "description": "Safe terminal error code; no page content or authentication data."
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "TerminalBrowserRecordingSourceDto": {
+        "type": "object",
+        "properties": {
+          "storageEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "video/webm"
+            ]
+          }
+        },
+        "required": [
+          "storageEntryId",
+          "name",
+          "size",
+          "mimeType"
+        ]
+      },
+      "TerminalBrowserRecordingSourcesDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalBrowserRecordingSourceDto"
+            }
+          },
+          "next": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "next"
+        ]
+      },
       "TerminalBrowserUploadHeaderDto": {
         "type": "object",
         "properties": {
@@ -39112,12 +40647,12 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[a-f0-9]{64}$"
+            "description": "Central profile UUID, or a legacy ephemeral context hash.",
+            "pattern": "^(?:[a-f0-9]{64}|[a-f0-9-]{36})$"
           },
           "name": {
             "type": "string",
-            "maxLength": 64,
-            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9 ._-]{0,63}$"
+            "maxLength": 160
           },
           "persistent": {
             "type": "boolean"
@@ -39136,6 +40671,10 @@
       "TerminalBrowserTabDto": {
         "type": "object",
         "properties": {
+          "popup": {
+            "type": "boolean",
+            "description": "Opened as a popup by another tab."
+          },
           "tabId": {
             "type": "string",
             "format": "uuid"
@@ -39295,9 +40834,67 @@
           "path"
         ]
       },
+      "TerminalBrowserSettingsDto": {
+        "type": "object",
+        "properties": {
+          "defaultBrowserProfileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Explicit default hint for assigned, authorized profile selection. Does not grant profile access."
+          },
+          "fps": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 60
+          },
+          "width": {
+            "type": "number",
+            "minimum": 320,
+            "maximum": 3840
+          },
+          "height": {
+            "type": "number",
+            "minimum": 480,
+            "maximum": 2160
+          },
+          "alwaysRecord": {
+            "type": "boolean",
+            "description": "Explicit opt-in. Private control and authentication always pause recording."
+          },
+          "recordingMode": {
+            "type": "string",
+            "enum": [
+              "local",
+              "storage",
+              "both"
+            ]
+          }
+        },
+        "required": [
+          "fps",
+          "width",
+          "height",
+          "alwaysRecord",
+          "recordingMode"
+        ]
+      },
       "TerminalWorkspaceDto": {
         "type": "object",
         "properties": {
+          "browserSettingsRevision": {
+            "type": "number",
+            "readOnly": true,
+            "minimum": 0
+          },
+          "browserSettings": {
+            "readOnly": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TerminalBrowserSettingsDto"
+              }
+            ]
+          },
           "agentTerminalWorkspaceId": {
             "type": "string",
             "format": "uuid"
@@ -39494,6 +41091,24 @@
           "restricted",
           "users",
           "groups"
+        ]
+      },
+      "UpdateTerminalBrowserSettingsDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2147483646,
+            "description": "Independent browser settings revision; does not revoke execution grants."
+          },
+          "settings": {
+            "$ref": "#/components/schemas/TerminalBrowserSettingsDto"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "settings"
         ]
       },
       "TerminalWorkspacesDto": {

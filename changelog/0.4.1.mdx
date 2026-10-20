@@ -19,8 +19,7 @@ Database records gain a complementary inspection tool: structured cell values ca
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Keep related sources visible" defaultOpen={true}>
+## Keep related sources visible
 
 The updated Component editor supports a working set with separate main and split tab groups. A builder can keep a reusable element visible on one side while editing the element that calls it on the other.
 
@@ -28,8 +27,7 @@ This builds on the earlier split-view direction and applies it to the evolving C
 
 That arrangement is useful for changes involving several related elements: an input transformation and its consumer, a shared helper and a calling operation, or two parts of a business rule that must remain consistent. The workspace lets the builder establish the layout that fits the change rather than repeatedly reopening the same sources.
 
-  </Accordion>
-  <Accordion title="Organize the editor around the current task">
+## Organize the editor around the current task
 
 Tabs can be reordered within their pane and moved between the main and split groups. The builder can rearrange the working set as the investigation develops—for example, promoting a source from reference material to the element currently being edited.
 
@@ -37,8 +35,7 @@ The editor also retains the distinction between a source being previewed and a s
 
 When the split workspace is no longer needed, its sources can return to the main tab group. Consolidating the layout does not mean discarding the code being inspected or treating the split pane as a separate copy of the application. The panes are two views into the same Component authoring context.
 
-  </Accordion>
-  <Accordion title="Review the set of changes before saving">
+## Review the set of changes before saving
 
 The save workflow groups affected elements under their parent Component. A builder can expand a Component to inspect which elements were added, changed or removed and choose which Component changes to include in the save action.
 
@@ -48,8 +45,7 @@ The review shows the kind of change alongside the element name. An addition, an 
 
 This is the editor's authoring review. It should not be confused with the later Assistant approval experience: here the builder is organizing and saving their own Component work within the Web IDE.
 
-  </Accordion>
-  <Accordion title="Inspect structured data without flattening it">
+## Inspect structured data without flattening it
 
 Database lists now provide an expanded preview for supported structured cell values. Rather than trying to read an entire object inside a narrow grid column, the operator can open a code-oriented view that preserves the value's structure.
 
@@ -57,15 +53,12 @@ The preview is read-only and remains connected to the selected record and column
 
 For example, an application record may contain a nested integration response or a collection of related values. An expanded representation makes it easier to distinguish the outer object, its keys and nested entries before returning to the record list. The normal Database detail and editing workflows remain responsible for intentional changes.
 
-  </Accordion>
-  <Accordion title="An authoring workflow that keeps context">
+## An authoring workflow that keeps context
 
 Together, the editor and Database improvements shorten the distance between finding the relevant information and acting on it. A builder can retain source context across panes, review changes by Component and inspect structured application data without repeatedly leaving the workspace.
 
 The release does not introduce a separate local toolchain or replace existing managed execution. It expands the browser workflow around the Components and data already being maintained, with clearer control over what is open, what has changed and what is ready to save.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

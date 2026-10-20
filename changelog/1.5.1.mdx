@@ -20,8 +20,7 @@ RevoEngine 1.5.1 expands what teams can safely delegate to the Assistant and how
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="RevoShield-1 Auto Review for real multi-step work" defaultOpen={true}>
+## RevoShield-1 Auto Review for real multi-step work
 
 RevoShield-1 is RevoEngine's specialized Auto Review model. Before an eligible action proceeds, it compares the user's expressed intent with the exact proposed effect, the authorized context available to the task, and the evidence required for that operation. It is designed to reduce routine interruptions without expanding the Assistant's access or treating uncertainty as permission.
 
@@ -31,15 +30,13 @@ The reviewer uses the complete submitted configuration for a new resource, the a
 
 This makes Auto Review more capable without making it permissive. Positive outcomes retain a clear rationale in the conversation, while changes that cannot be verified safely remain manual.
 
-  </Accordion>
-  <Accordion title="Optional Fast Mode for Luna">
+## Optional Fast Mode for Luna
 
 Luna now offers an optional Fast Mode for interactive Assistant work. Users opt in with the lightning control when they want lower response latency for the current conversation; Standard remains the normal path when Fast Mode is not selected, and other models do not expose the option.
 
 Usage analytics distinguishes the actual Standard and Fast execution used by each call, so teams can compare responsiveness with cost-weighted usage. RevoShield-1 activity is reported separately as Auto Review usage and is not billed to the user's account.
 
-  </Accordion>
-  <Accordion title="Live Assistant previews that preserve their place">
+## Live Assistant previews that preserve their place
 
 The Assistant can publish useful response text before a longer round of work has completed. Each preview has a stable identity and appears inside the ordered activity group. When the same text becomes confirmed progress, it updates in place; when it belongs to the final answer, it is promoted without being typed again or duplicated below the activity.
 
@@ -47,8 +44,7 @@ Previews are revised or discarded explicitly, so internal discovery does not lea
 
 The working timer also begins from the acknowledged Assistant response rather than an optimistic placeholder, while the displayed response duration includes the preparation that happened after the user's message was accepted.
 
-  </Accordion>
-  <Accordion title="Precise source-aware Component work">
+## Precise source-aware Component work
 
 A new read-only source workflow lets the Assistant inspect one exact Component element as an outline, a set of literal or regular-expression matches, or a bounded line range. Search results carry the exact element reference needed for the next read, and continuation metadata supports larger files without replaying the complete Component payload.
 
@@ -56,15 +52,13 @@ Library discovery also returns the selected implementation and its exact element
 
 When a new Component is proposed, its submitted source elements can be shown directly in the approval card as structured code sections. Users can inspect what is about to be created even though no previous resource version exists for a traditional before-and-after comparison.
 
-  </Accordion>
-  <Accordion title="Recoverable voice dictation">
+## Recoverable voice dictation
 
 A failed or empty transcription no longer requires the user to record the message again. The composer retains the audio and offers explicit retry or discard actions. Retrying uses the same recording and request identity, prevents overlapping submissions and inserts the recovered transcript into the composer without sending the message automatically.
 
 The same workflow is available in Assistant and Team chat composers. Leaving the conversation or closing the composer cancels the pending request, keeping each recording scoped to the place where it was created.
 
-  </Accordion>
-  <Accordion title="Atomic high-volume Database writes">
+## Atomic high-volume Database writes
 
 Low-code insert, upsert and explicit-key delete calls accept up to 100,000 rows per operation. Outside an explicit caller-managed transaction, a large call is applied atomically: if any part fails, the ordinary operation does not leave a partially written data set.
 
@@ -84,8 +78,7 @@ return result;
 
 Structured reads and request-based mutations also have documented input budgets for request size, filter depth, filter nodes, filter values and bound parameters. Oversized requests are rejected before execution. For condition-based deletion, the filter-based workflow avoids collecting and transferring every matching key into application code.
 
-  </Accordion>
-  <Accordion title="Structured Database and View exports">
+## Structured Database and View exports
 
 Database and Database View exports accept body-based structured requests using the same projection, filter, join, grouping, sorting, distinct-selection and supported-cast concepts as Database reads. Export paging remains server-owned, so an export request describes the result set rather than an arbitrary application page.
 
@@ -105,8 +98,7 @@ return exportRequest;
 
 Export finalization preserves durable ownership across retries and uncertain completion responses. File materialization no longer needs to hold a shared Database transaction for its full duration, and cleanup remains recoverable if a process stops between generation and publication.
 
-  </Accordion>
-  <Accordion title="Job Templates by business-readable name">
+## Job Templates by business-readable name
 
 Active Job Templates can be triggered by exact unique name as well as by identifier. This makes low-code and direct API calls easier to read while retaining deterministic resolution; an identifier match takes precedence if a UUID-shaped name collides with an existing identifier.
 
@@ -122,9 +114,6 @@ return job;
 
 Endpoint authoring also makes the response contract explicit. A Component-backed Endpoint can return the complete visible result map, one exact visible output value, or an empty successful body for a side-effect-only call. Compatibility output remains available for existing integrations but is deprecated for new Endpoints.
 
-  </Accordion>
-</AccordionGroup>
-
 ## Also in this release
 
 - Conversation switching, pagination, draft promotion and deletion are isolated from late responses belonging to another thread.
@@ -134,6 +123,7 @@ Endpoint authoring also makes the response contract explicit. A Component-backed
 - Context reduction keeps exact dialogue when reloadable resource context can be removed first.
 - System-managed recovery records operation ownership and completed work so retries do not repeat successful maintenance.
 - An unavailable project selection returns the user to a usable project list instead of leaving a partial session.
+
 
 ## Related guides
 

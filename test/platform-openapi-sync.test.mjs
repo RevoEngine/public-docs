@@ -324,3 +324,17 @@ test('inline query schemas retain input limits without binding optimization pros
   assert.doesNotMatch(filter.description, /typed array/);
   for (const limit of ['16 levels', '8388608 input bytes', '65535 parameters']) assert(filter.description.includes(limit));
 });
+
+
+test('browser profile metadata operations retain personal-session semantics and a workflow guide', () => {
+  const source = fixture();
+  source.paths['/api/v1/vault/browser-profiles'] = { get: {
+    operationId: 'BrowserProfileController_list', summary: 'List authorized browser profiles', tags: ['Browser Profiles'],
+    security: [{ bearer: [] }], responses: { 200: { description: 'Metadata' } },
+  } };
+  const published = enrichPlatformOpenApi(source);
+  const tag = published.tags.find(item => item.name === 'Browser Profiles');
+  assert.match(tag.externalDocs.url, /\/ai\/browser$/);
+  assert.match(published.paths['/api/v1/vault/browser-profiles'].get.description, /personal browser session/i);
+  assert.deepEqual(auditPlatformOpenApi(published, source), []);
+});

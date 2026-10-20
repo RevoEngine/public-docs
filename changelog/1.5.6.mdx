@@ -18,22 +18,19 @@ RevoEngine 1.5.6 improves everyday Assistant work, file delivery and integration
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Review plans and follow the work" defaultOpen={true}>
+## Review plans and follow the work
 
 Assistant plan review accepts feedback expressed in your own words. A revised plan still follows its required review and approval flow; satisfying a structural request such as a shorter plan does not depend on repeating the same words. Recoverable plan conflicts preserve the current plan so work can continue from the latest state.
 
 The conversation presents progress, references, plans and final responses more consistently. Show progress controls the visibility of intermediate activity and defaults to enabled when no preference exists. Existing explicit preferences are preserved. The former thread-goal commands and low-code goal methods are removed from the supported public surface; use the conversation request and execution plan to describe the intended outcome.
 
-  </Accordion>
-  <Accordion title="Deliver files with clear access and download actions">
+## Deliver files with clear access and download actions
 
 The Assistant can attach any Storage file the current execution identity is permitted to read, including files outside its own workspace. New files created by an interactive Assistant default to Private; autonomous Agents retain their own workspace default. Selecting an existing file for an update keeps that file's access boundary.
 
 Chat delivery and email delivery are separate outcomes. Eligible email notifications include file type, size, expiration and a download action. Attachment links support a validity of one to seven days. Notification emails use a shared header, workspace actions and preference footer while retaining content appropriate to a system message, Chat digest or Job update. A failed attachment-link operation is retried before sending rather than silently omitting the attachment.
 
-  </Accordion>
-  <Accordion title="Integrate through typed Storage transfers">
+## Integrate through typed Storage transfers
 
 Use `transport.sftpImport`, `transport.sftpExport` and `transport.sftpCommands` for SFTP workflows. The methods resolve an active Secret by name or ID, accept the supported structured connection value or SFTP URL, and apply the same Storage namespace and access rules as other file operations. Optional host-key fingerprint configuration pins the expected server key.
 
@@ -64,15 +61,12 @@ return await transport.sftpCommands([
 ], 'PARTNER_SFTP');
 ```
 
-  </Accordion>
-  <Accordion title="Investigate operations with usable evidence">
+## Investigate operations with usable evidence
 
 Event investigation applies structured filters without invalid SQL aliases, including filters over event data. Integration failures preserve structured error metadata in execution evidence so the Assistant and operators can distinguish a failed operation from an empty result. Secret values remain outside normal diagnostics.
 
 Maintenance recovery also handles previously stored mail and Agent inbox schema variants. Notification retries preserve uncertain delivery outcomes instead of assuming that a missing delivery confirmation makes another send safe.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

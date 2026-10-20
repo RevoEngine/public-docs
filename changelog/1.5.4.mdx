@@ -18,8 +18,7 @@ RevoEngine 1.5.4 brings Assistant files into the shared Storage workflow, adds n
 
 ## In detail
 
-<AccordionGroup>
-  <Accordion title="Work with reusable files in Assistant" defaultOpen={true}>
+## Work with reusable files in Assistant
 
 Assistant messages now link finalized Storage entries. Files can be uploaded before sending a message and reused without creating another conversation-specific copy. Personal file access remains scoped to the user, and permission checks apply both when linking a file and when reading it later.
 
@@ -34,8 +33,7 @@ return { text: document.content, truncated: document.extraction?.truncated ?? do
 
 For integrations, this release replaces the old conversation draft-upload flow with finalized Storage uploads and `storageEntryIds` on the Assistant message request. Clients using the removed draft creation and thread-upload operations must move to that flow. Existing Storage upload finalization remains the publication boundary.
 
-  </Accordion>
-  <Accordion title="Process complete files in bounded callback batches">
+## Process complete files in bounded callback batches
 
 `storage.walkFileData` traverses CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays and record-oriented XML. Omitting `take` scans the complete selected file or worksheet. An explicit non-negative `take` caps the total; `fullScan: true` is optional, while `fullScan: false` requires `take`.
 
@@ -62,22 +60,19 @@ return { text: document.content, truncated: document.truncated };
 
 Line windows apply to text files, not PDF/DOCX, and cannot be combined with byte ranges or JSON/XML parsing. Use `storage.getDocument` for new document and text-window workflows.
 
-  </Accordion>
-  <Accordion title="Understand corrections and uncertain operations">
+## Understand corrections and uncertain operations
 
 The Assistant groups an operation's review, corrections and outcome into one activity. Safe transient reads can be retried within a bounded recovery budget. When a write's result is uncertain, the Assistant checks the outcome where possible and asks for clarification when verification cannot settle it, instead of blindly repeating the write. Approval batches stop subsequent writes after an uncertain result.
 
 These changes improve recovery visibility without making external writes transactional or guaranteeing that a cancelled operation had no effect. MCP plugin connections also retain their negotiated session across discovery and later calls, improving compatibility with servers that require a session.
 
-  </Accordion>
-  <Accordion title="Manage email and notification preferences">
+## Manage email and notification preferences
 
 Settings groups notification controls in a dedicated view. Chat and system-message email can be disabled independently of the existing per-instance administrator choices for job-failure system messages, email and intermediate-attempt timing. Chat email is enabled by default; job-failure channels retain their opt-in defaults.
 
 System messages, transactional email, job alerts and unread-chat digests now use persistent delivery tracking and retry handling. Digest selection excludes read messages and muted or archived conversations. Job alerts avoid generating an additional email through the system-message channel. Acceptance by the mail provider is not proof of delivery to the recipient's inbox.
 
-  </Accordion>
-  <Accordion title="Keep validation and application loading predictable">
+## Keep validation and application loading predictable
 
 Low-code `util.validate` remains asynchronous: await its result before reading `valid`, `issues` or `value`. Service input validation now follows its ordinary validation path even for large pass-through payloads, so Storage uploads no longer depend on the low-code validation runtime merely because their content is large. The execution services also initialize the validation runtime explicitly.
 
@@ -94,8 +89,6 @@ return result.value;
 
 Application views, search, Settings and table dialogs load their heavier dependencies when needed. Dialog actions wait for their tables to become ready, and repeated low-code library initialization reuses prepared code. These changes reduce repeated startup work without promising a fixed latency across workloads.
 
-  </Accordion>
-</AccordionGroup>
 
 ## Related guides
 

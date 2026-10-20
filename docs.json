@@ -48,6 +48,7 @@
             "icon": "compass",
             "pages": [
               "platform/first-production-workflow",
+              "platform/asterion-supply",
               "platform/file-processing-workflow",
               "platform/external-integration-workflow",
               "platform/agent-production-workflow",
@@ -81,8 +82,10 @@
               "build/components",
               "build/component-configuration",
               "build/libraries",
+              "build/library-authoring",
               "build/custom-nodejs",
               "build/web-ide",
+              "build/studio-sessions",
               "build/debugging"
             ]
           },
@@ -132,7 +135,8 @@
               "operate/database-audit",
               "operate/database-views",
               "operate/materialized-views",
-              "operate/database-cache"
+              "operate/database-cache",
+              "operate/database-exports"
             ]
           },
           {
@@ -205,6 +209,7 @@
               "ai/assistant-configuration",
               "ai/agentic-coding",
               "ai/terminals",
+              "ai/browser",
               "ai/approvals-and-plans"
             ]
           },
@@ -220,7 +225,8 @@
           {
             "group": "Extend Agents",
             "pages": [
-              "ai/plugins"
+              "ai/plugins",
+              "ai/business-plugins"
             ]
           }
         ]
@@ -235,6 +241,7 @@
               "developers/overview",
               "developers/platform-api",
               "developers/endpoint-runtime",
+              "developers/customer-ai-portal",
               "developers/sandbox-api",
               "developers/authentication",
               "developers/errors"
