@@ -2405,15 +2405,13 @@ declare class storage {
      * Opens an upload session for a file in the default `explorer` namespace.
      *
      * Notes:
-     * - Use `storage.createUploadSession('private', input)` for the authenticated
-     *   caller's Private Storage. Keep subset export rows inside the execution,
-     *   derive the schema from the full `getFileData` page headers, and return only
-     *   the finalized file entry and verification, not the CSV body.
+     * - For caller Private: `storage.createUploadSession('private', input)`.
+     *   Keep rows in execution; use complete `getFileData` headers.
+     *   Return only finalized entry and readback verification.
      * - Unavailable with `readOnly: true` (throws an error).
-     * - A session is a temporary, durable upload control record. It reserves the
-     *   intended file name and destination, stores upload policy, ACL, retention,
-     *   schema, and progress, but it is not a readable Storage file. The durable
-     *   entry exists only after the session reaches `FINALIZED`.
+     * - A durable session reserves name/destination and records upload policy,
+     *   ACL, retention, schema, and progress. Its readable Storage entry exists
+     *   only at `FINALIZED`.
      * - `uploadMode` controls how bytes arrive. `direct` returns a temporary
      *   upload target for the complete file. `chunked` accepts caller-numbered
      *   parts. `incremental` assigns part numbers by default and also accepts an
