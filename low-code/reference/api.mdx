@@ -90,7 +90,9 @@ This page contains **75 methods**. Search the docs for an exact method name, or 
 
 ## `api.createDatabase()`
 
-Creates a logical database. The server assigns databaseId, version, and timestamps;
+Creates a logical database through durable Database Operations and waits for verified DDL commit.
+Accepted work survives a disconnected caller. Standard index builds can block writes.
+The server assigns databaseId, version, and timestamps;
 never generate or send those values. A normal database needs at least one definition.
 
 Notes:
@@ -265,6 +267,9 @@ static commitDatabaseImport(importId: string): Promise<{ importId: string; statu
 
 ## `api.updateDatabase()`
 
+Outside an explicit caller transaction, waits for a durable schema operation and verified DDL commit.
+Explicit caller transactions retain synchronous DDL within their configured transaction budget.
+The old definition/version remains authoritative until commit.
 Updates selected logical-database fields by name. The public contract requires the current
 version for optimistic locking; send only the fields that should change. Do not
 copy server-owned databaseId, timestamps, or size into this payload.
@@ -1830,7 +1835,7 @@ Notes:
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
 - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
 - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
-- With proxy: true, Go calls the provider through the dedicated egress network and uploads successful response bytes directly to a authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
+- With proxy: true, the proxy calls the provider through the dedicated egress network and uploads successful response bytes directly to an authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
 - HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.

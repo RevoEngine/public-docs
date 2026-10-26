@@ -1,0 +1,96 @@
+---
+title: HTTP responses
+description: Return a selected result, multiple results, an empty body or an intentional HTTP status from an Endpoint.
+icon: arrow-right-arrow-left
+---
+
+Use **HTTP** when the caller needs one completed response. For live progress,
+streaming text or tool lifecycle events, choose [SSE](/operate/endpoint-sse).
+Both modes use the same [Endpoint configuration](/operate/endpoint-configuration),
+request input, authorization and guards.
+
+## Select the response contract
+
+Choose **HTTP** under **Options → Response mode**. Set the success status and decide
+which Component output is part of your public contract.
+
+| Selection | Response |
+| --- | --- |
+| **One element result** (`popResult`) | The raw return value of one visible element. Prefer this for a new JSON Endpoint. |
+| **Full result map** | Every visible, defined element result, keyed by element name. |
+| **No result** (`noResult: true`) | A successful response without a body. |
+| Static response | The configured `response` body when no Component is selected. |
+
+For a Component with a visible element named `Response`:
+
+```js title="Component · Response"
+const input = api.input();
+return { orderId: input.parameters.orderId, accepted: true };
+```
+
+Set `popResult` to `Response` to return:
+
+```json
+{ "orderId": "order-123", "accepted": true }
+```
+
+Leaving the selection at **Full result map** returns:
+
+```json
+{ "Response": { "orderId": "order-123", "accepted": true } }
+```
+
+The exact visible element key matters. A hidden element cannot be selected.
+Elements still execute in order; selecting an output does not stop later elements.
+Use `noResult` without `popResult` for a side-effect-only operation.
+
+## Return a deliberate status
+
+Normal configured success statuses are `200`–`299`. Component code can use
+`api.throw(status, body)` for an intentional status and body, including a business
+error. Treat it as response control; do not catch and discard it accidentally.
+
+```js title="Component · Response"
+const order = await api.getDatabaseDataRow('orders', {
+  filter: { field: 'orderId', op: 'eq', value: api.input().parameters.orderId },
+});
+if (!order) api.throw(404, { code: 'ORDER_NOT_FOUND', message: 'Order not found.' });
+return { orderId: order.orderId, status: order.status };
+```
+
+For long work, trigger a [Job](/operate/jobs), return `202` with a durable operation
+identifier and let the client observe that operation. An HTTP connection is not a
+durable execution queue.
+
+## Validate before execution
+
+A request guard validates the structured `body`, `query`, `parameters` and `headers`
+before the Component runs. Set a safe validation error body and status when your
+client requires a stable error contract. See the
+[JSON Validator guide](/low-code/json-validator) for RevoEngine validator syntax;
+it differs from the JSON Schema used to define an OpenAI function tool.
+
+## Call the Endpoint
+
+```bash
+curl "$REVO_ENDPOINT_URL/orders/order-123" \
+  --request GET \
+  --header "Authorization: Bearer $REVO_API_KEY"
+```
+
+The runtime origin comes from your instance configuration. Caller permissions and
+the Endpoint's execution policy determine which instance operations the Component
+can perform. See [Endpoint runtime](/developers/endpoint-runtime).
+
+## Timeouts and retries
+
+There is no automatic retry of an Endpoint invocation. A timeout does not prove
+that a remote mutation was rolled back. Give commands an application idempotency
+key and verify their stored outcome before retrying.
+
+HTTP client disconnect does not provide an application callback for ordinary HTTP
+Endpoints. Choose [SSE](/operate/endpoint-sse#choose-a-disconnect-policy) when you
+need explicit cancellation, continuation or disconnect notification.
+
+Legacy envelopes are compatibility behavior for existing callers. Keep new
+contracts on a selected result, result map or empty body.

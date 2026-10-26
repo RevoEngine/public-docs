@@ -67,13 +67,105 @@ A thread preserves the visible conversation and the runtime state needed to cont
 
 - rename, search, delete, and restore threads;
 - organize threads in personal, instance-scoped groups, move them between groups, and collapse groups while browsing the history;
-- continue a completed thread with new instructions;
+- continue a completed thread with follow-up messages;
 - refine the requested outcome through follow-up messages and reviewable execution plans;
 - share a read-only thread view;
 - fork from a selected message to explore another direction without rewriting the source thread;
 - inspect message-level execution details and retained artifacts.
 
 Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store. Groups are a personal navigation preference; moving a thread between them does not change the thread's access or ownership. Older threads load in additional pages.
+
+## Create a focused conversation
+
+Use **+ → Custom context** in the Assistant composer, or type **`/custom`**, to configure a translation, classification, extraction or other custom AI conversation. The configurator lets you set instructions, context mode, answer format, tools and approval policies. For strict JSON, use the Monaco schema editor with completion, inline validation and a starter schema. The server checks the complete configuration before applying it.
+
+The configurator and saved preview use a fixed extra-large dialog with **General**, **Response**, **Tools & permissions** and **Contract** tabs. Form values and the schema editor are preserved when switching tabs. **Copy contract** exports portable JSON settings; editing-mode exports are validated by the server first and keep the dialog open. Individual instructions and schemas can also be copied. Add the first message as `content` when using the copied settings with `agent.createThread`. Thread IDs, ownership and runtime metadata are excluded.
+
+Applying creates a local draft. Its Custom context action remains editable until the first message is sent. Cancelling keeps the composer text. Opening the configurator from an existing conversation starts a separate draft and preserves the original conversation. After the first message, the saved settings are read-only.
+
+Application code can create the same conversation with `agent.createThread`. The same thread can accept later messages and Resume while preserving its creation-time instructions and final-answer format.
+
+```js
+const result = await agent.createThread({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English.',
+  contextMode: 'minimal',
+  responseFormat: {
+    type: 'json',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: { translation: { type: 'string' } },
+      required: ['translation'],
+      additionalProperties: false,
+    },
+  },
+  toolNames: [],
+  pluginIds: [],
+  backgroundProcessing: false,
+});
+return result.output.json;
+```
+
+`platform` is the default context mode for the normal platform-aware Assistant. `minimal` keeps instance-global instructions, the execution account's standing instructions and runtime security, while omitting automatic memory, application context and plugin discovery. It starts without tools; explicitly select the capabilities required by the task. Tool selection never grants permissions or bypasses approval. The UI lists current tools and their availability, including required dependencies. The SDK offers completion for the same known `toolNames`. An empty array explicitly selects no tools. Plugin callables are selected with `pluginIds`; they are not additional first-party tool names. The configuration catalogue and read-only validation operations are available in the Platform API.
+
+Conversation and per-tool approval policies are `default`, `auto_review` and `full`. Instance security blocks, account/resource access and current runtime availability still apply when each tool runs, including after approval or Resume.
+
+Use `{ type: 'text' }` for text, `{ type: 'json' }` for a JSON object, or add `schema` for a strict object response. A schema must require every property and set `additionalProperties: false` on every object. Nullable properties can represent optional values. Only local schema references are accepted. Unsupported or oversized schemas are rejected before model execution. Custom regular-expression patterns are unsupported; use length constraints or standard string formats instead. Instructions are limited to 16 KiB including their safe rendering; schemas are limited to 32 KiB. An incomplete response, refusal or schema violation fails the turn rather than returning a successful parsed object.
+
+For configured conversations, `output.text` contains the final answer and JSON responses also expose `output.json`. `assistantMessage.message` remains the final answer text; `message` is the input user message. Approval or clarification can pause a tool-enabled conversation before a final output is available. Background execution returns before the final result.
+
+Forks owned by the same account preserve the complete contract. When another account forks a shared view, its new conversation keeps the public context and response type; private source instructions and the strict schema are not copied.
+
+A conversation linked to a Studio workspace keeps that binding. After deployment, continue the workspace in a new child and explicitly fork an owned Assistant response into that child to retain private conversation context. Fresh editing membership is required, and a bound source can target only its direct child. Inherited private history is not published to session members. The original conversation remains linked to the archived workspace with read access to retained evidence; it cannot make further changes there. See [Studio coding sessions](/build/studio-sessions).
+
+The context mode, instructions and format are immutable. Follow-ups may omit them or repeat the same values; changing them requires a new thread. In the browser, Custom context beside the model selector opens a read-only preview of the saved context, format, instructions and tool selection. Users can type ordinary follow-ups; JSON answers are displayed literally, including partial streaming output, without interpreting their strings as Markdown or widgets.
+
+Identical instructions and configuration can reuse the prompt prefix across new conversations within the same instance and execution account. The shared prefix has a cache boundary before conversation-specific runtime context. Model, effective reasoning effort, tool definitions, instructions and output-schema changes can select a different cache lane. Every message still executes. On supported GPT-5.6 and later models, a reusable prefix must contain at least 1,024 visible input tokens; shorter shared prefixes can report zero cached tokens. Exact-prefix matching and provider cache availability still apply. See the [OpenAI prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching).
+
+Under saved service-account execution, that account owns the conversation and executes its tools. The external Endpoint caller remains the audit initiator and does not receive platform access or private conversation access. The Endpoint must authorize each business user's thread access before accepting a thread ID, because all calls using one service account share its ownership. Caller-mode execution keeps the caller's ownership. See the [generated Agent API reference](/low-code/reference/agent#agent-createThread) for the complete contract.
+
+## Small responses from application code
+
+Use `agent.createResponse` for a translation, classification, extraction or other
+small task. It uses the same execution account, instructions and answer contract
+as `agent.createThread`, with `minimal` context and empty tool/plugin selections
+when those options are omitted. This avoids loading automatic application context,
+memory and plugin discovery. Required global/account instructions and security
+still apply. You can explicitly select additional capabilities when needed. When
+selecting plugins, also include their callable router tools in `toolNames`.
+
+```js
+const result = await agent.createResponse({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English. Return the translation only.',
+});
+return result.output.text;
+```
+
+Use `responseFormat: { type: 'json' }` to return a JSON object. Add a supported
+strict `schema` to constrain that object's properties, just as with a focused
+conversation. For example, ask for a JSON Schema as data using JSON output, then
+validate that schema before using it. A response schema constrains the returned
+answer; it does not automatically validate a schema contained inside the answer.
+
+The call waits for the result unless `backgroundProcessing: true` is selected.
+Read the final `output.text` or `output.json`; `message` is the original user input.
+An explicit model or reasoning setting uses the normal configuration rules.
+Tool-enabled requests can pause for approval or clarification before producing
+final output. Low-code streaming is not added by this operation.
+
+Responses retain a conversation and messages. In the thread menu, **Show
+Responses** defaults off; enable it to include them in the thread list and
+conversation search. This account preference persists across reloads and does not
+change access or delete retained history. Response titles use italics and an
+accessible response label. **Show Deleted** is a separate preference.
+Authorized owners can open a response directly and continue it with the saved
+instructions and output format. Setting `persistThread: true` explicitly creates
+an ordinary conversation that appears without enabling Show Responses.
+Historical responses that were already hidden through deletion retain their
+previous classification. See the [generated method reference](/low-code/reference/agent#agent-createResponse)
+for all arguments.
 
 ## Charts, diagrams and tables in answers
 
@@ -257,10 +349,13 @@ The models available to the Assistant are controlled by the current RevoEngine r
 
 | Model | Interactive Assistant | Autonomous Agents | Fast Mode |
 | --- | --- | --- | --- |
-| **GPT-6 Sol** | Supported | Supported | Optional for interactive Assistant work |
+| **GPT-6.1 Sol** | Supported | Supported | Not supported |
+| **GPT-6.1 Terra** | Supported | Supported | Not supported |
 | **GPT-6 Luna** | Supported | Supported | Optional for interactive Assistant work |
 
-Select Fast Mode for either GPT-6 model when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected. Autonomous Agent runs use Standard processing. Existing active GPT-5.6 Sol choices migrate to GPT-6 Sol; Terra and Luna choices migrate to GPT-6 Luna. Historical messages and usage keep their actual model identity.
+Select Fast Mode for GPT-6 Luna when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected; GPT-6.1 Sol, GPT-6.1 Terra and autonomous Agent runs use Standard processing. An explicit Fast Mode request with an unsupported model is rejected. Existing active GPT-5.6 Sol and GPT-6 Sol choices resolve to GPT-6.1 Sol; GPT-5.6 Terra and Luna choices resolve to GPT-6 Luna. Historical messages and usage keep their actual model identity.
+
+The SDK and Platform API also accept `reasoningEffort: 'none'`. GPT-6.1 Sol uses Low reasoning for that setting; GPT-6.1 Terra and GPT-6 Luna retain None. Model and reasoning settings follow the same validation in synchronous and streaming requests.
 
 Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
 

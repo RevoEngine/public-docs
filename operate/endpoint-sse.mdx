@@ -1,0 +1,240 @@
+---
+title: SSE streams
+description: Emit live events from Endpoint Components, return final results and control disconnect, deadlines and recovery.
+icon: tower-broadcast
+---
+
+<Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
+
+Server-Sent Events (SSE) lets a Component send events while it works. Use it for
+progress, generated text, tool activity and other incremental results. A stream is
+one HTTP response with `Content-Type: text/event-stream`.
+
+SSE is a response mode of the same Endpoint. **POST**, request body, query, path
+parameters, authorization, execution policy and guards continue to work.
+Choose [HTTP](/operate/endpoint-http) when the caller only needs the final response.
+
+## Configure the Endpoint
+
+1. Create a local JavaScript or TypeScript Component with a visible output element.
+2. Open the Endpoint and bind that Component.
+3. Under **Options**, choose **Response mode → SSE**.
+4. Select the output element, set a timeout and choose **On disconnect**.
+5. Keep the default `result`, `error` and `done` event names for a simple client.
+6. Validate and activate the Component/runtime and Endpoint before invoking the route.
+
+<Frame caption="An SSE Endpoint retains the normal route and execution settings. Options adds disconnect policy and terminal event names.">
+  <img src="/images/endpoints/sse-options.jpg" alt="Endpoint Options showing SSE response mode, Continue and notify, and result, error and done event names" />
+</Frame>
+
+A configuration fragment for one visible element named `Main`:
+
+```json
+{
+  "timeout": 60,
+  "options": {
+    "responseMode": "sse",
+    "popResult": "Main",
+    "sse": {
+      "disconnect": "continue-and-notify",
+      "resultEvent": "result",
+      "errorEvent": "error",
+      "doneEvent": "done"
+    }
+  }
+}
+```
+
+SSE supports local JavaScript/TypeScript Components. Static responses, hosted custom
+Node.js Components, legacy result envelopes and non-200 success statuses are not
+supported in this mode. Admission failures, such as rejected authorization or guard
+validation, remain ordinary HTTP errors. Once streaming starts, the status is `200`.
+
+## Emit events from code
+
+```js title="Component · Main"
+for (let current = 1; current <= 3; current++) {
+  await sse.json({ current, total: 3 }, {
+    event: 'progress',
+    id: String(current),
+    retry: 1000,
+  });
+  await util.sleep(1000);
+}
+return { processed: 3 };
+```
+
+With `popResult: "Main"`, the response ends like this:
+
+```text
+event: progress
+id: 3
+retry: 1000
+data: {"current":3,"total":3}
+
+event: result
+data: {"processed":3}
+
+event: done
+data: {"error":false}
+
+```
+
+Every element may emit. `return` ends that element; subsequent elements still run.
+The runtime selects `popResult`, or the full visible result map, after the whole
+Component finishes. It then emits the configured result and completion frames.
+`noResult` suppresses only the automatic result frame.
+
+| API | Use |
+| --- | --- |
+| `await sse.json(value, options)` | Send JSON with optional event name, ID and retry hint. |
+| `await sse.send(text, options)` | Send text, including multiline data or a protocol marker. |
+| `await sse.comment(text)` | Send a comment; the runtime also sends heartbeats. |
+| `sse.remainingTime()` | Read remaining execution time in milliseconds. |
+| `sse.onDisconnect(callback)` | Register one best-effort callback for `continue-and-notify`. |
+
+Await each emission to respect backpressure. Awaiting confirms the write boundary,
+not that the client received or processed the event. Exact signatures are in the
+[generated SSE reference](/low-code/reference/sse).
+
+## Completion, errors and custom protocols
+
+| Outcome | Default terminal frames |
+| --- | --- |
+| Successful execution | `result` with the selected value, then `done` with `{ "error": false }`. |
+| Successful `noResult` execution | Only `done` with `{ "error": false }`. |
+| Failed execution while the socket is writable | `error`, then `done` with `{ "error": true }`. |
+| Broken connection or process loss | Delivery of terminal frames cannot be guaranteed. |
+
+The error payload contains `code`, `message` and, when available, `statusCode`.
+After streaming has started, the HTTP status cannot be changed; handle the error
+frame and treat EOF without your terminal event as an incomplete attempt.
+`api.throw(...)` is represented through the stream's result/error semantics rather
+than a new HTTP response after headers have been sent.
+
+There is one SSE mode. Rename the three automatic terminal events to fit your client,
+or set any name to `null` to disable it. Enabled names must be distinct and are
+reserved: Component-authored events cannot reuse them.
+
+To own a fully custom wire protocol, disable all three:
+
+```json
+{
+  "responseMode": "sse",
+  "sse": {
+    "disconnect": "cancel",
+    "resultEvent": null,
+    "errorEvent": null,
+    "doneEvent": null
+  }
+}
+```
+
+Then emit your protocol's frames explicitly, for example
+`await sse.send('[DONE]')`. Returning still finishes execution, but adds no disabled
+automatic frames. Configure terminal names at the Endpoint boundary; do not add a
+second protocol selector to your Component.
+
+## Choose a disconnect policy
+
+| Policy | Execution after client disconnect | Callback |
+| --- | --- | --- |
+| `cancel` (default) | Stop supported I/O and terminate execution. | Skipped. |
+| `continue` | Continue until completion or the original deadline. | Skipped. |
+| `continue-and-notify` | Continue within that same deadline. | Registered callback, at most once. |
+
+```js
+sse.onDisconnect(async () => {
+  await api.setInstanceCache('example:connection', { disconnected: true }, 300);
+});
+```
+
+Under continuation, later emissions are validated and discarded. They are not
+buffered for a future client. Continue persisting application events yourself when
+another request must recover them.
+
+The callback keeps its local variables and uses the original deadline; it does not
+receive another timeout window. Registering after a detected disconnect still
+notifies once if execution remains alive. Callback errors appear in diagnostics.
+Hard timeouts, CPU-bound loops, memory exhaustion and process loss can prevent it
+from running. Use a [Job](/operate/jobs) for work requiring durable completion.
+
+Disconnect cannot undo an accepted database or external mutation. A detached
+continuation continues to consume execution capacity until it finishes or times out.
+
+## Event IDs, retry and recovery
+
+`id` is an application-owned string. An empty ID clears the cursor. `retry` is a
+client reconnection hint in milliseconds; it does not retry server execution.
+A fetch client implements reconnect itself and should honor its own retry policy.
+
+Read the incoming cursor from `api.input().headers['last-event-id']`. Preserve that
+header in your guard when using it. IDs alone do not persist events or make a Component resumable.
+
+For recoverable work:
+
+1. Give the operation a stable run ID and bind it to an authorized owner and input.
+2. Atomically claim producer ownership before any model call or business mutation.
+3. Persist each event with a monotonically increasing sequence before sending it.
+4. Reconnect with the same run ID and last received event ID.
+5. Replay stored events after that cursor and return the stored final result.
+
+The new request observes the original run; it does not restore its execution memory.
+The [OpenAI example](/operate/sse-openai-example) implements this pattern. It also
+explains the uncertain-outcome window after a hard timeout or process loss.
+
+## Read a POST stream
+
+Use `fetch` for a POST body or custom authorization headers. This minimal invocation
+shows request setup; a client must also parse incremental SSE frames and handle its
+terminal event.
+
+```js
+const controller = new AbortController();
+const response = await fetch(endpointUrl, {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${revoApiKey}`,
+    'Content-Type': 'application/json',
+    'Last-Event-ID': String(lastReceivedId),
+  },
+  body: JSON.stringify({ runId, message }),
+  signal: controller.signal,
+});
+if (!response.ok) throw new Error(`Request rejected: ${response.status}`);
+if (!response.headers.get('content-type')?.includes('text/event-stream')) {
+  throw new Error('Expected an SSE response.');
+}
+// Read response.body with an incremental SSE parser. Abort to disconnect this client.
+```
+
+Do not parse each network chunk as a complete event: UTF-8 characters, line endings
+and frame boundaries can span chunks. A native EventSource uses GET and cannot set
+arbitrary authorization headers. Close it on your application terminal event to
+avoid an unintended new invocation.
+
+## Debug and inspect
+
+In Studio, use full execution, a suitable timeout and the same disconnect policy as
+the Endpoint. The debugger shows emitted **SSE events** separately from logs and the
+final execution result. Its own transport envelope is separate from application
+frames. Stopping a continued preview may leave its execution running.
+
+<Frame caption="Studio separates application SSE frames from execution logs and final results.">
+  <img src="/images/endpoints/sse-debugger.jpg" alt="Studio debugger showing authored model and tool SSE events alongside the final Component result" />
+</Frame>
+
+Test the actual Endpoint runtime after debugging: check rejection before streaming,
+live frames, final `result → done`, disconnect behavior and cursor recovery.
+The sample's events deliberately use neutral data; never emit credentials, raw
+provider errors or unrestricted inbound headers.
+
+## Limits
+
+Frames are limited to **64 KiB UTF-8**. Pending emissions are bounded at **64 frames /
+1 MiB**. Heartbeats are sent every 15 seconds. Backpressure and its drain timeout,
+upstream calls, sleeps and disconnect callbacks share the execution deadline.
+
+For exact request fields, use the [Endpoint configuration reference](/operate/endpoint-configuration).
+For an end-to-end integration, continue with the [OpenAI tools example](/operate/sse-openai-example)
+and its [complete HTML chat client](/operate/sse-browser-client).

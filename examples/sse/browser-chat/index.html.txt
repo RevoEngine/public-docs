@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Run · SSE Playground</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101417;
+        --panel: #181e22;
+        --border: #303a40;
+        --muted: #a4b3bb;
+        --ink: #eef4f6;
+        --accent: #a4f0cb;
+        --red: #ffb0a8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.55 system-ui,
+          sans-serif;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button,
+      a {
+        touch-action: manipulation;
+      }
+      button {
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 9px 15px;
+        background: #232d33;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) {
+        border-color: var(--accent);
+      }
+      button:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+      .primary {
+        background: var(--accent);
+        color: #15382a;
+        border-color: var(--accent);
+        font-weight: 650;
+      }
+      a {
+        color: var(--accent);
+      }
+      header {
+        padding: 30px 42px 22px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: center;
+      }
+      .eyebrow {
+        color: var(--accent);
+        font:
+          12px ui-monospace,
+          monospace;
+        letter-spacing: 0.12em;
+      }
+      h1 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+        margin: 8px 0;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      header p {
+        margin: 6px 0;
+        font-size: 14px;
+      }
+      .badge {
+        padding: 7px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      main {
+        max-width: 1640px;
+        margin: auto;
+        padding: 26px 42px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .toolbar .badge {
+        margin-right: auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+        gap: 22px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      .panel-head {
+        padding: 17px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .panel-head small {
+        color: var(--muted);
+      }
+      .chat {
+        height: 365px;
+        overflow: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .empty {
+        margin: auto;
+        max-width: 390px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .empty strong {
+        display: block;
+        color: var(--ink);
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      .bubble {
+        padding: 13px 16px;
+        border-radius: 13px;
+        max-width: 92%;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .bubble.user {
+        align-self: flex-end;
+        background: #33463f;
+      }
+      .bubble.assistant {
+        align-self: flex-start;
+        background: #252f35;
+        min-height: 50px;
+      }
+      .bubble small {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .composer {
+        padding: 18px 20px;
+        border-top: 1px solid var(--border);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 84px;
+        max-height: 200px;
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        color: var(--ink);
+      }
+      .compose-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      label {
+        color: var(--muted);
+      }
+      input[type="checkbox"] {
+        accent-color: var(--accent);
+        margin-right: 7px;
+      }
+      input[type="text"] {
+        background: var(--bg);
+        color: var(--ink);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 7px 10px;
+        width: 100%;
+        font:
+          13px ui-monospace,
+          monospace;
+      }
+      .events {
+        height: 365px;
+        overflow: auto;
+        padding: 8px 18px;
+      }
+      .frame {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 0;
+        font-size: 12px;
+      }
+      .frame summary {
+        cursor: pointer;
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        font-family: ui-monospace, monospace;
+      }
+      .frame summary .seq {
+        color: var(--accent);
+        width: 27px;
+      }
+      .frame time {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .frame pre,
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font:
+          12px/1.6 ui-monospace,
+          monospace;
+      }
+      .frame pre {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+      .result {
+        padding: 17px 20px;
+        border-top: 1px solid var(--border);
+        min-height: 180px;
+      }
+      .result pre {
+        margin: 12px 0 0;
+      }
+      .foot {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        margin-top: 18px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .run-meta {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 16px 0;
+      }
+      .run-meta label {
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .run-meta input {
+        flex: 1;
+      }
+      .error {
+        color: var(--red);
+      }
+      #status[data-state="done"] {
+        color: var(--accent);
+      }
+      #status[data-state="error"] {
+        color: var(--red);
+      }
+      #status[data-state="streaming"] {
+        color: var(--accent);
+      }
+      .source {
+        margin-top: 24px;
+        padding: 18px 20px;
+      }
+      .source summary {
+        cursor: pointer;
+        color: var(--accent);
+      }
+      .source pre {
+        max-height: 480px;
+        overflow: auto;
+        color: var(--muted);
+      }
+      .endpoint {
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      .dot {
+        color: var(--accent);
+        margin-right: 8px;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      @media (max-width: 900px) {
+        header {
+          padding: 22px;
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        main {
+          padding: 20px;
+        }
+        .grid,
+        .foot {
+          grid-template-columns: 1fr;
+        }
+        .chat {
+          height: 280px;
+        }
+        .events {
+          height: 280px;
+        }
+        .compose-actions {
+          align-items: flex-start;
+        }
+        .run-meta {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div class="eyebrow">REVOENGINE / SSE EXAMPLE</div>
+        <h1>Run · SSE Playground</h1>
+        <p class="muted">
+          A real Endpoint, GPT-6 Luna and a simple <code>calc</code> tool. Watch
+          the stream and test recovery.
+        </p>
+      </div>
+      <span class="badge"
+        ><span class="dot">●</span>continue-and-notify · timeout 60 s</span
+      >
+    </header>
+    <main>
+      <div class="toolbar">
+        <span class="badge" id="status" role="status" data-state="idle"
+          >Ready</span
+        >
+        <button id="disconnect" disabled>Disconnect stream</button>
+        <button id="recover" disabled>Resume from last ID</button>
+        <button id="replay" disabled>Replay from start</button>
+        <button id="export" disabled>Export events JSON</button>
+      </div>
+      <div class="grid">
+        <section class="panel" aria-labelledby="chat-title">
+          <div class="panel-head">
+            <h2 id="chat-title">Conversation</h2>
+            <small id="model-stats">GPT-6 Luna + calc</small>
+          </div>
+          <div class="chat" id="chat" aria-live="polite">
+            <div class="empty">
+              <strong>Let's calculate live.</strong>Send a message. The model
+              can call calc and stream its answer.
+            </div>
+          </div>
+          <form id="form" class="composer">
+            <label for="message">Message</label>
+            <textarea id="message" required maxlength="2000">
+Calculate 37 times 19 using calc. Reply briefly in English.</textarea
+            >
+            <div class="compose-actions">
+              <label
+                ><input type="checkbox" id="auto-disconnect" />Disconnect at
+                <code>tool.pending</code></label
+              ><button id="send" class="primary" type="submit">Send →</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel" aria-labelledby="events-title">
+          <div class="panel-head">
+            <h2 id="events-title">SSE events</h2>
+            <small id="cursor">Last-Event-ID: 0</small>
+          </div>
+          <div class="events" id="events">
+            <p class="muted">
+              Component events and the final result and done frames appear here.
+            </p>
+          </div>
+          <div class="result">
+            <h2>Final return</h2>
+            <pre id="result">Waiting for result…</pre>
+          </div>
+        </section>
+      </div>
+      <div class="run-meta">
+        <label for="run-id">Recovery runId</label
+        ><input
+          id="run-id"
+          type="text"
+          readonly
+          aria-label="Recovery runId"
+        /><span class="badge" id="retry">retry: —</span>
+      </div>
+      <div class="foot">
+        <p class="note">
+          Disconnect stops this browser's stream. The wrapper can continue and
+          persist events. Resume sends the same <code>runId</code> and
+          <code>Last-Event-ID</code> without repeating tool execution.
+        </p>
+        <p class="note">
+          Each new message starts an independent run, without conversation
+          memory. The OpenAI key stays in the instance Secret; the local server
+          uses your RevoEngine credential.
+          <span class="endpoint">POST /examples/openai-sse</span>
+        </p>
+      </div>
+      <details class="panel source" id="source">
+        <summary>OpenAiSseHarness · complete Component source</summary>
+        <p>
+          <a href="/component.txt" target="_blank" rel="noopener"
+            >Open source separately</a
+          >
+        </p>
+        <pre id="source-code">Expand to load the source.</pre>
+      </details>
+    </main>
+    <script type="module" src="/chat.mjs"></script>
+  </body>
+</html>

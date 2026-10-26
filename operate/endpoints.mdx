@@ -126,6 +126,30 @@ Legacy result envelopes remain available for existing consumers, but should not 
 
 When a Component is repaired, inspect its Endpoint, Job Template, and Agent Tool dependencies. A latest-bound consumer follows the repaired Component and needs response-contract validation; a pinned consumer remains on its recorded version. Do not migrate or bump existing consumers without an explicit compatibility decision from the operator.
 
+## Choose HTTP or SSE
+
+An Endpoint has one response-mode selector. Method, route, authorization, guards,
+Component selection and execution limits are shared by both modes.
+
+<CardGroup cols={2}>
+  <Card title="HTTP responses" icon="arrow-right-arrow-left" href="/operate/endpoint-http">
+    Return one JSON result, a result map, an empty body or a deliberate HTTP status.
+  </Card>
+  <Card title="SSE streams" icon="tower-broadcast" href="/operate/endpoint-sse">
+    Emit live events, return a final result and control execution after disconnect.
+  </Card>
+</CardGroup>
+
+<span id="choose-what-happens-after-disconnect" aria-hidden="true"></span>
+<span id="recover-application-owned-work" aria-hidden="true"></span>
+
+## Stream responses with SSE
+
+Choose **SSE** under **Options → Response mode**. Start with the
+[SSE lifecycle and configuration guide](/operate/endpoint-sse), then follow the
+[OpenAI tools example](/operate/sse-openai-example) for a working model/tool loop,
+persisted events and cursor-based recovery.
+
 ## Runtime behavior
 
 At a high level, an invocation follows this path:
@@ -190,7 +214,7 @@ A nondeleted Endpoint reserves its combination of HTTP method and path, includin
     Implement reusable business logic and manage executable versions.
   </Card>
   <Card title="Endpoint Runtime" icon="server" href="/developers/endpoint-runtime">
-    Integrate with the synchronous execution surface.
+    Invoke HTTP responses and SSE streams through the same execution surface.
   </Card>
   <Card title="Configuration reference" icon="sliders" href="/operate/endpoint-configuration">
     See every public route, validation, execution, and response option.

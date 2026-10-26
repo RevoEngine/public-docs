@@ -171,7 +171,9 @@ declare class serviceAccount {
 
 declare class api {
   /**
-     * Creates a logical database. The server assigns databaseId, version, and timestamps;
+     * Creates a logical database through durable Database Operations and waits for verified DDL commit.
+     * Accepted work survives a disconnected caller. Standard index builds can block writes.
+     * The server assigns databaseId, version, and timestamps;
      * never generate or send those values. A normal database needs at least one definition.
      *
      * Notes:
@@ -285,6 +287,9 @@ declare class api {
   static commitDatabaseImport(importId: string): Promise<{ importId: string; status: string }>;
 
   /**
+     * Outside an explicit caller transaction, waits for a durable schema operation and verified DDL commit.
+     * Explicit caller transactions retain synchronous DDL within their configured transaction budget.
+     * The old definition/version remains authoritative until commit.
      * Updates selected logical-database fields by name. The public contract requires the current
      * version for optimistic locking; send only the fields that should change. Do not
      * copy server-owned databaseId, timestamps, or size into this payload.
@@ -1546,7 +1551,7 @@ declare class api {
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
      * - For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
-     * - With proxy: true, Go calls the provider through the dedicated egress network and uploads successful response bytes directly to a authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
+     * - With proxy: true, the proxy calls the provider through the dedicated egress network and uploads successful response bytes directly to an authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
      * - HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
@@ -2872,6 +2877,14 @@ declare class agent {
      * const created = await agent.create({
      *   name: 'Ops copilot',
      *   serviceAccountUserId: userId,
+     *   config: {
+     *     systemInstructions: 'Translate each requested message to English.',
+     *     contextMode: 'minimal',
+     *     responseFormat: { type: 'json', strict: true, schema: {
+     *       type: 'object', properties: { translation: { type: 'string' } },
+     *       required: ['translation'], additionalProperties: false,
+     *     } },
+     *   },
      * });
      */
   static create(data: AgentCreateInput): Promise<Agent>;
@@ -2983,10 +2996,13 @@ declare class agent {
   static listRuns(agentId: string): Promise<AgentRun[]>;
 
   /**
-     * Returns one agent run.
+     * Returns one agent run. Read the complete validated terminal answer from result.output;
+     * result.summary is a bounded human-readable summary and must not be parsed as the JSON answer.
      *
      * Example:
      * const run = await agent.getRun(agentRunId);
+     * const json = run.status === 'FINISHED' && run.result?.output?.type === 'json'
+     *   ? run.result.output.json : undefined;
      */
   static getRun(agentRunId: string): Promise<AgentRun>;
 
@@ -3078,13 +3094,14 @@ declare class agent {
   static reconcileRuns(): Promise<any>;
 
   /**
-     * Lists assistant threads visible through the agent helper.
+     * Lists owned conversations. Set includeResponses:true to include retained technical responses.
+     * includeDeleted:true independently includes deleted owned threads; neither option grants additional access.
      *
      * Example:
      * const threads = await agent.listThreads({ take: 20 });
      */
   static listThreads(
-      query?: Record<string, any>,
+      query?: AssistantThreadQuery,
     ): Promise<CollectionResult<AssistantThread>>;
 
   /**
@@ -3205,16 +3222,50 @@ declare class agent {
 
   /**
      * Creates a new assistant thread and first message.
+     * Instructions, contextMode and responseFormat are immutable thread settings; follow-ups and Resume reuse them.
+     * Minimal retains instance-global/account standing instructions and security while omitting automatic context.
+     * Minimal admits only explicit toolNames or selected plugin routes. JSON schemas are strict and locally validated.
+     * message is the user input; assistantMessage.message is the final text, and output.json is validated JSON when requested.
      *
      * Notes:
      * - Unavailable with `readOnly: true` (throws an error).
      *
      * Example:
-     * const response = await agent.createThread({ content: 'Draft a release note.' });
+     * const response = await agent.createThread({
+     *   content: 'Siemka jestem testerem.',
+     *   instructions: 'Translate Polish to English. Return only the translation.',
+     *   contextMode: 'minimal',
+     *   responseFormat: { type: 'text' },
+     *   toolNames: [],
+     * });
+     * return response.assistantMessage?.message;
      */
   static createThread(
       data: AssistantMessageInput,
     ): Promise<AssistantThreadResponse>;
+
+  /**
+     * Creates a lightweight response and waits for its final answer or action-required result.
+     * Defaults to minimal context with no tools or plugins; explicit selections override these defaults.
+     * Selected plugins also require their callable router tools in toolNames.
+     * The runtime selects the model normally unless model is supplied. Uses the same execution identity as createThread.
+     * instructions and strict responseFormat use the same saved contract as ordinary conversations.
+     * The retained backing thread has kind=response and is excluded from default list/search results.
+     * persistThread=true creates an ordinary visible conversation; neither mode auto-deletes its evidence.
+     * Read the answer from output.text or output.json. message is the original user input.
+     * This method returns a Promise; streaming is not exposed by this low-code method.
+     * Unavailable with readOnly:true.
+     *
+     * Example:
+     * const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.' });
+     * return response.output?.text;
+     *
+     * Example:
+     * const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.',
+     *   responseFormat: { type: 'json', strict: true, schema: { type: 'object', properties: { translation: { type: 'string' } }, required: ['translation'], additionalProperties: false } } });
+     * return response.output?.json;
+     */
+  static createResponse(data: AssistantResponseInput): Promise<AssistantThreadResponse>;
 
   /**
      * Soft-deletes a thread.
@@ -3402,6 +3453,41 @@ declare class agent {
       assistantThreadId: string,
       options?: AssistantThreadCompactionRequest,
     ): Promise<AssistantThread>;
+}
+
+declare class sse {
+  /** Register one callback for continue-and-notify disconnect policy. Invoked at most once in the same isolate.
+     * Shares the original execution deadline; no extra time is granted. continue skips it and cancel disposes the isolate.
+     * Registration after disconnect still notifies once while execution remains alive. Callback failures appear in diagnostics.
+     * CPU-bound code, a hard timeout or process failure can prevent notification; this is not a durable cleanup guarantee.
+     * Example:
+     * sse.onDisconnect(async () => { await api.setInstanceCache('connection-state', { disconnected: true }, 300); });
+     */
+  static onDisconnect(callback: () => void | Promise<void>): void;
+
+  /** Send text as SSE data. Await for backpressure, not acknowledgement by the receiver.
+     * Example:
+     * await sse.send('Hello', { event: 'delta', id: '1', retry: 3000 });
+     */
+  static send(data: string, options?: SseOptions): Promise<void>;
+
+  /** Serialize JSON and send it as SSE data. Configured automatic terminal event names are reserved; null disables a terminal frame.
+     * Example:
+     * await sse.json({ current: 1, total: 10 }, { event: 'progress', id: '1' });
+     */
+  static json(data: JsonValue, options?: SseOptions): Promise<void>;
+
+  /** Send a multiline-safe comment. The host also emits automatic heartbeats.
+     * Example:
+     * await sse.comment('Working');
+     */
+  static comment(text: string): Promise<void>;
+
+  /** Remaining execution budget in milliseconds, never negative.
+     * Example:
+     * const remainingMs = sse.remainingTime();
+     */
+  static remainingTime(): number;
 }
 
 declare class util {

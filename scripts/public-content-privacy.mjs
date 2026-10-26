@@ -1,7 +1,7 @@
 import { isIP } from 'node:net';
 
 const privateProse = /\b(?:Redis|Firestore|BigQuery|Postgres|PostgreSQL|Google Cloud|GCP|Cloud Run|Cloud Tasks|Cloud Scheduler|Pub\/Sub|ExcelJS|isolated-vm|QueryWrapper)\b/i;
-const privateRuntimeOptimization = /\b(?:L0|cachedData|canonical(?: source)? snapshots?|source[- ]read start|source hash(?:es)?|digest[- ]addressed|singleflight|cache generation fences?|agent[- ]gateway|executor requests|max_output_tokens|typed array parameters?|durable outcome receipts?|maintenance recovery tick)\b/i;
+const privateRuntimeOptimization = /\b(?:L0|cachedData|canonical(?: source)? snapshots?|source[- ]read start|source hash(?:es)?|digest[- ]addressed|singleflight|cache generation fences?|agent[- ]gateway|executor requests|typed array parameters?|durable outcome receipts?|maintenance recovery tick)\b/i;
 const privateDiagnosticApi = /\/api\/v1\/assistant\/(?:reports(?:\/|\b)|evidence(?:\/|\b)|threads\/[^\s/]+\/evidence(?:\/|\b))/i;
 
 export function isPrivateDiagnosticApiPath(path) {

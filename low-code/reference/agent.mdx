@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **46 methods**. Search the docs for an exact method name, or use this index:
+This page contains **47 methods**. Search the docs for an exact method name, or use this index:
 
 - [`agent.list()`](#agent-list)
 - [`agent.get()`](#agent-get)
@@ -43,6 +43,7 @@ This page contains **46 methods**. Search the docs for an exact method name, or 
 - [`agent.getSharedThreadMessageArtifact()`](#agent-getSharedThreadMessageArtifact)
 - [`agent.forkSharedThreadMessage()`](#agent-forkSharedThreadMessage)
 - [`agent.createThread()`](#agent-createThread)
+- [`agent.createResponse()`](#agent-createResponse)
 - [`agent.deleteThread()`](#agent-deleteThread)
 - [`agent.restoreThread()`](#agent-restoreThread)
 - [`agent.listThreadMessages()`](#agent-listThreadMessages)
@@ -112,6 +113,14 @@ static create(data: AgentCreateInput): Promise<Agent>;
 const created = await agent.create({
   name: 'Ops copilot',
   serviceAccountUserId: userId,
+  config: {
+    systemInstructions: 'Translate each requested message to English.',
+    contextMode: 'minimal',
+    responseFormat: { type: 'json', strict: true, schema: {
+      type: 'object', properties: { translation: { type: 'string' } },
+      required: ['translation'], additionalProperties: false,
+    } },
+  },
 });
 ```
 
@@ -306,7 +315,8 @@ const runs = await agent.listRuns(agentId);
 
 ## `agent.getRun()`
 
-Returns one agent run.
+Returns one agent run. Read the complete validated terminal answer from result.output;
+result.summary is a bounded human-readable summary and must not be parsed as the JSON answer.
 
 ### Signature
 
@@ -317,6 +327,8 @@ static getRun(agentRunId: string): Promise<AgentRun>;
 
 ```ts
 const run = await agent.getRun(agentRunId);
+const json = run.status === 'FINISHED' && run.result?.output?.type === 'json'
+  ? run.result.output.json : undefined;
 ```
 
 <span id="agent-listRunEvents" aria-hidden="true"></span>
@@ -482,13 +494,14 @@ await agent.reconcileRuns();
 
 ## `agent.listThreads()`
 
-Lists assistant threads visible through the agent helper.
+Lists owned conversations. Set includeResponses:true to include retained technical responses.
+includeDeleted:true independently includes deleted owned threads; neither option grants additional access.
 
 ### Signature
 
 ```ts
 static listThreads(
-      query?: Record<string, any>,
+      query?: AssistantThreadQuery,
     ): Promise<CollectionResult<AssistantThread>>;
 ```
 ### Example
@@ -708,6 +721,10 @@ const fork = await agent.forkSharedThreadMessage(shareId, assistantMessageId);
 ## `agent.createThread()`
 
 Creates a new assistant thread and first message.
+Instructions, contextMode and responseFormat are immutable thread settings; follow-ups and Resume reuse them.
+Minimal retains instance-global/account standing instructions and security while omitting automatic context.
+Minimal admits only explicit toolNames or selected plugin routes. JSON schemas are strict and locally validated.
+message is the user input; assistantMessage.message is the final text, and output.json is validated JSON when requested.
 
 Notes:
 - Unavailable with `readOnly: true` (throws an error).
@@ -722,7 +739,47 @@ static createThread(
 ### Example
 
 ```ts
-const response = await agent.createThread({ content: 'Draft a release note.' });
+const response = await agent.createThread({
+  content: 'Siemka jestem testerem.',
+  instructions: 'Translate Polish to English. Return only the translation.',
+  contextMode: 'minimal',
+  responseFormat: { type: 'text' },
+  toolNames: [],
+});
+return response.assistantMessage?.message;
+```
+
+<span id="agent-createResponse" aria-hidden="true"></span>
+
+## `agent.createResponse()`
+
+Creates a lightweight response and waits for its final answer or action-required result.
+Defaults to minimal context with no tools or plugins; explicit selections override these defaults.
+Selected plugins also require their callable router tools in toolNames.
+The runtime selects the model normally unless model is supplied. Uses the same execution identity as createThread.
+instructions and strict responseFormat use the same saved contract as ordinary conversations.
+The retained backing thread has kind=response and is excluded from default list/search results.
+persistThread=true creates an ordinary visible conversation; neither mode auto-deletes its evidence.
+Read the answer from output.text or output.json. message is the original user input.
+This method returns a Promise; streaming is not exposed by this low-code method.
+Unavailable with readOnly:true.
+
+### Signature
+
+```ts
+static createResponse(data: AssistantResponseInput): Promise<AssistantThreadResponse>;
+```
+### Examples
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.' });
+return response.output?.text;
+```
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.',
+  responseFormat: { type: 'json', strict: true, schema: { type: 'object', properties: { translation: { type: 'string' } }, required: ['translation'], additionalProperties: false } } });
+return response.output?.json;
 ```
 
 <span id="agent-deleteThread" aria-hidden="true"></span>

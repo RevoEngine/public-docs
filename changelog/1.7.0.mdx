@@ -1,0 +1,207 @@
+---
+title: "1.7.0 — Shared Studio workspaces, native tests and focused AI"
+sidebarTitle: "1.7.0"
+icon: "tag"
+description: "16 October 2026"
+---
+
+RevoEngine 1.7.0 brings code editing, collaboration, tests and deployment into one Studio workspace. People and Assistants share durable sessions while keeping local drafts separate from live code. Native JavaScript and TypeScript test Components can also run independently against saved source or a local CLI worktree. Focused Assistant conversations and small AI responses add reusable instructions, minimal context and validated JSON output to application logic and the browser.
+
+## Highlights
+
+- Stream Endpoint events with IDs and retry hints; configure completion and disconnect handling, and inspect emitted data separately from live debugger logs.
+- Create and reopen Studio sessions without losing the ordinary editor, Component tabs or Working diff.
+- Collaborate through Studio Chat, invite members, share a read-only view and open an Assistant directly in the selected session.
+- Save small changes through an automatically created session with explicit tests, review and deployment.
+- Keep JavaScript and TypeScript suites as Components with named targets, fixtures and retained case results.
+- Run fixture suites from Default Studio, a coding session, the Platform API or a local CLI worktree.
+- Review the complete change set and activate one prepared runtime release, with an explicit rollback to an earlier ready release.
+- Resume interrupted Assistant work from recorded outcomes and continue secure browser input without placing credentials in conversations.
+- Create focused Assistant conversations with saved instructions, minimal context and text or strict JSON answers.
+- Configure authorized tools and answer schemas in Custom context, then inspect or copy the saved contract.
+- Call `agent.createResponse` for small tasks and continue the retained conversation when needed.
+- Keep technical responses out of ordinary history with the default-off Show Responses preference.
+- Reuse eligible instruction prefixes within the same instance and execution account, while keeping low-code conversation ownership consistent across execution hosts.
+
+## In detail
+
+## Keep code, conversations and changes together
+
+Studio retains the existing editor, navigation and Working diff. Sessions has its own route and selector for durable workspaces. Switching to Components, Scratch or Usage returns to Default; the session and its local buffers remain available when returning to Sessions. Separate workspaces retain code buffers, open tabs and layout. Concurrent edits to different files proceed independently; an edit based on an older revision returns a conflict for resolution.
+
+Studio Chat uses the same conversation controls as Team Chat. Members and sharing are managed through the session cog or the composer. A copied Studio reference lets an Assistant join the authorized workspace. Starting an Assistant from the session binds its conversation automatically; private diagnostics are not published to other participants.
+
+A local save or deployment creates a short session when needed. Saving the draft retains work; it does not activate production source. A frozen candidate includes the changes, configuration and relevant test evidence for review.
+
+Read [Studio sessions](/build/studio-sessions).
+
+## Write tests once and run them against the chosen source
+
+`CODE_JS_TEST` and `CODE_TS_TEST` are Component types with their own source history. Their configuration names the Components under test and supplies fixtures. For example, a `Checkout` Component can compute amounts in integer cents:
+
+```js
+const quantity = Number(api.input().body.quantity);
+const unitPriceCents = Number(api.input().body.unitPriceCents);
+if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid quantity');
+if (!Number.isInteger(unitPriceCents) || unitPriceCents < 0) throw new Error('Invalid price');
+return { totalCents: quantity * unitPriceCents };
+```
+
+A suite configured with target `Checkout` and an `order` fixture whose `body` contains quantity 2 and unitPriceCents 2100 checks the executed result:
+
+```js
+await test.case('two items total 4200 cents', async () => {
+  const input = await test.fixture('order');
+  const result = /** @type {{ results: { Main: { totalCents: number } } }} */ (
+    await test.runComponent('Checkout', input)
+  );
+  await test.assertEqual(result.results.Main.totalCents, 4200);
+});
+```
+
+Further cases cover rejected input and inspect the captured source:
+
+```js
+await test.case('zero quantity is rejected', async () => {
+  await test.assertThrows(() => test.runComponent('Checkout', { body: { quantity: 0, unitPriceCents: 2100 } }));
+});
+await test.case('the captured target is JavaScript', async () => {
+  const component = await test.readComponent('Checkout');
+  await test.assertEqual(component.type, 'CODE_JS');
+});
+```
+
+The `test` surface is available during native test execution. Fixture mode intercepts HTTP, Storage and other effects and returns matching simulated JSON results without invoking real integrations. The runner records cases and assertions; a returned success object alone cannot create a passing result. Failed, incomplete, unavailable or cancelled execution remains visible.
+
+Default Studio discovers stored suites asynchronously and can include local unpublished Component changes. Session tests run the saved workspace revision. Native-test commands require CLI 1.0.31 or newer and support discovery, running collections, retained run handles, resume and cancellation without publishing source. Studio and Platform API execution do not depend on a CLI update. Integration tests require the reviewed Studio lifecycle. Remote execution, streaming fixtures and full native Node.js test environments remain outside the supported independent fixture workflow.
+
+Read [Native tests](/build/native-tests) and [CLI](/developers/cli).
+
+## Review, prepare and activate a complete release
+
+Review uses the ordinary Deploy comparer with Review and Tests views. Changed source or configuration invalidates an older candidate, and changed test inputs invalidate its evidence. Required test gaps need an explicit, candidate-specific review decision; permissions, validation and source-version checks remain mandatory.
+
+Commit saves the approved source set atomically. Preparation builds its required artifacts, including immutable Custom Node revisions, while the previous runtime remains active. Activation switches the complete ready release using a concurrency check. Endpoints, Jobs and nested Component calls inherit the captured runtime release; a retry keeps its original version. A conflicting baseline or activation state requires refresh and review rather than silently adopting newer source.
+
+Studio is enabled per instance with a prepared runtime baseline. External provider URLs remain outside the platform's release-switch guarantee. Autonomous Agents are not enabled by this release.
+
+Read [Commit and activate](/build/studio-sessions#commit-and-activate).
+
+## Create conversations with a saved answer contract
+
+Assistant conversations accept `instructions`, `contextMode` and `responseFormat` through low-code and the Platform API. Use `platform` for the normal platform-aware Assistant, or `minimal` to omit automatic application context, memory and plugin discovery. Minimal context retains required instance and account instructions, permissions and safety rules. Explicit tools and plugins remain subject to their ordinary access and approval checks; an empty tool list selects no tools.
+
+Use text output, a JSON object, or a supported strict JSON Schema for the final answer. The same saved instructions and answer format apply to follow-up messages and Resume. Incomplete, refused or invalid structured output is not returned as successful parsed JSON. The final result is available in `output.text` and, for JSON, `output.json`; `message` is the original user input.
+
+```js
+const result = await agent.createThread({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English.',
+  contextMode: 'minimal',
+  responseFormat: {
+    type: 'json',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: { translation: { type: 'string' } },
+      required: ['translation'],
+      additionalProperties: false,
+    },
+  },
+  toolNames: [],
+  pluginIds: [],
+});
+return result.output?.json;
+```
+
+In the browser, **+ → Custom context** or **`/custom`** opens an extra-large workspace with General, Response, Tools & permissions and Contract tabs. The schema editor provides completion and diagnostics, while server validation checks the complete configuration. The tool catalogue shows available capabilities, dependencies and permission requirements; low-code completion lists the same first-party tool names. Set conversation and per-tool approval policies in the same workspace. Selecting a tool does not grant access to its targets.
+
+Settings remain editable until the first message. After creation, one Custom context action beside the model controls opens their read-only preview. Copy the portable contract, instructions or schema for reuse; edited contract copies are validated before export. Ordinary follow-up messages continue the same contract, and JSON answers render literally. Changing the saved instructions, context mode or answer format requires another conversation.
+
+Streamed conversation creation preserves a supported Fast mode selection and the chosen per-tool policies. Instance-level tool restrictions remain enforced on Resume and during nested execution.
+
+Read [Focused conversations](/ai/assistant#create-a-focused-conversation).
+
+## Call AI from application logic and continue its responses
+
+Low-code `agent.createResponse` uses the same conversation runtime and returns its answer together with a retained thread. Omitted options default to minimal context and empty tool/plugin lists. Explicit instructions, model, reasoning, context, capabilities and answer format can override the compact defaults within the execution account's permissions. Selected plugins require their callable router tools as well.
+
+```js
+const response = await agent.createResponse({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English. Return only the translation.',
+});
+const followUp = await agent.sendMessage(response.thread.assistantThreadId, {
+  content: 'Dziękuję za pomoc.',
+});
+return followUp.output?.text;
+```
+
+Technical responses retain their messages and can be opened directly or continued, even when omitted from the list. **Show Responses** defaults off, is saved as a personal preference and works independently of **Show Deleted**. Included responses have italic titles and an accessible label, including in search. Explicit `persistThread: true` creates an ordinary visible conversation; it is not required for continuation. Earlier hidden responses retain their previous classification.
+
+The call waits for a final answer or an action-required result unless background execution is selected. Technical responses avoid an extra title-generation request. The existing Platform API response and SSE routes remain available; this low-code method returns a Promise.
+
+Read [Small responses from application code](/ai/assistant#small-responses-from-application-code) and the [Agent API reference](/low-code/reference/agent).
+
+## Keep execution identity and reusable instructions consistent
+
+Assistant calls from Sandbox, Endpoints and Jobs follow the saved execution policy. Under service-account execution, the active service account owns the conversation and executes its tools, while the business caller remains the audit initiator. Caller execution retains the caller's ownership. Continuations recheck the execution account's current access. Applications sharing one service account must authorize their own business-user-to-conversation mapping before accepting a thread ID.
+
+Identical instructions and compatible configuration can reuse an eligible prompt prefix across new conversations within the same instance and execution account. Conversation-specific history stays separate. Model, effective reasoning, tools and output-schema changes can affect reuse. Cache availability and minimum prefix length still apply; reuse does not guarantee a cache hit or a particular response time.
+
+Read [Assistant execution and context](/ai/assistant#create-a-focused-conversation) and [Service accounts](/operate/service-accounts).
+
+## Configure Agent context and final output
+
+Agent configuration uses the existing `config.systemInstructions` together with `config.contextMode` and the shared text/JSON/strict-schema `config.responseFormat`. Context and answer format are captured for new execution conversations and preserved through ticks, approvals, Resume and successor runs on that conversation. Existing Agent instruction updates keep their established behavior. Minimal Agent context retains its explicit memory, workspace, autonomy, admitted tools and service-account restrictions.
+
+Completed runs expose the full validated answer in `result.output`, separately from the bounded operational summary. Waiting, checkpointed, failed or cancelled runs do not present a previous answer as a new successful output. The browser shares the Assistant's schema editor and validation controls. These configuration improvements do not enable autonomous Agents in production.
+
+Read [Agent configuration](/ai/agent-configuration) and [Agent operations](/ai/agent-operations).
+
+## Continue Assistant work from retained outcomes
+
+Interrupted work retains known tool outcomes so Resume can verify uncertain effects before another mutation. Secure browser input acknowledges a field fill separately from a submitted login and successful authentication. Progress and subsequent human requests resume in the originating conversation; credentials are not added to its messages or diagnostic evidence.
+
+Read [Assistant conversations](/ai/assistant) and [Browser sessions and secure input](/ai/browser).
+
+## Stream Endpoint responses and inspect their events
+
+Endpoints can stream application events while JavaScript or TypeScript Components
+run. One SSE response mode retains the Endpoint method, including POST, request
+guards, body, query, path parameters, authorization and execution limits. Every
+element can emit; the selected final return value follows the complete execution.
+
+Use `sse.send` for text or `sse.json` for structured data, with optional event name,
+ID and retry interval. Configure automatic result, error and completion event names,
+or disable individual frames when forwarding a custom upstream protocol. Read an
+incoming `Last-Event-ID` through ordinary request headers.
+
+Choose whether a disconnect cancels execution, continues processing, or continues
+and invokes `sse.onDisconnect`. Continued work and the callback share the original
+timeout; no extra execution time is granted. Emissions after disconnect are discarded.
+Notification retains the callback's local state but remains best effort under hard
+timeouts or process loss. Applications can persist run identities and events for
+cursor recovery; IDs and retry hints do not automatically store or replay execution.
+
+The debugger and Studio display emitted events and ID/retry metadata separately
+from diagnostic logs and expose the disconnect policy in their configuration.
+Custom application frames cannot terminate the debugger's own stream.
+
+Read [Endpoints](/operate/endpoints) and the
+[SSE reference](/low-code/reference/sse).
+
+
+## Related guides
+
+- [Studio sessions](/build/studio-sessions)
+- [Native tests](/build/native-tests)
+- [Custom Node.js Components](/build/custom-nodejs)
+- [CLI](/developers/cli)
+- [Assistant conversations and custom context](/ai/assistant)
+- [Low-code Agent API](/low-code/reference/agent)
+- [Agent configuration](/ai/agent-configuration)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.6.6](/changelog/1.6.6)

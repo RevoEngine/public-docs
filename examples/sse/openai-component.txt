@@ -1,0 +1,324 @@
+/**
+ * Main element of a CODE_JS Component.
+ * Endpoint: POST /examples/openai-sse, popResult: Main.
+ * SSE disconnect policy: continue-and-notify. Original timeout: 60 seconds.
+ * Input: { body: { runId: 'example-1', message: 'Calculate 37 * 19.' } }
+ */
+const SETTINGS = Object.freeze({
+  model: 'gpt-6-luna',
+  maxModelRequests: 3,
+  maxToolCalls: 3,
+  maxOutputTokens: 1200,
+  reserveMs: 500,
+  pollMs: 100,
+  pageSize: 100,
+  retryMs: 1000,
+  claimTtlSeconds: 86400,
+});
+
+class SampleError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+  }
+}
+
+function readRequest() {
+  const input = api.input();
+  const body = input.body ?? input;
+  const cursor = Number(input.headers?.['last-event-id'] ?? body.after ?? 0);
+
+  if (typeof body.runId !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(body.runId)) {
+    throw new SampleError('INVALID_RUN_ID', 'Use 1–80 letters, digits, underscores or hyphens for runId.');
+  }
+  if (!Number.isSafeInteger(cursor) || cursor < 0) {
+    throw new SampleError('INVALID_CURSOR', 'Last-Event-ID must be a nonnegative safe integer.');
+  }
+  if (body.message !== undefined && (typeof body.message !== 'string'
+    || !body.message.trim() || body.message.length > 2000)) {
+    throw new SampleError('INVALID_MESSAGE', 'Provide a message of 1–2000 characters.');
+  }
+
+  return { runId: body.runId, message: body.message, cursor, owner: api.currentUser().userId };
+}
+
+function createRunStore(request) {
+  const { runId, owner, message } = request;
+  const filter = { field: 'runId', op: 'eq', value: runId };
+
+  return {
+    async read() {
+      const run = await api.getDatabaseDataRow('SseAiRuns', { filter });
+      if (run && run.owner !== owner) {
+        throw new SampleError('RUN_ACCESS_DENIED', 'This run belongs to another user.');
+      }
+      if (run && message !== undefined && run.message !== message) {
+        throw new SampleError('RUN_CONFLICT', 'This runId already belongs to a different message.');
+      }
+      return run;
+    },
+    async claim() {
+      if (await this.read()) return false;
+      if (message === undefined) {
+        throw new SampleError('MESSAGE_REQUIRED', 'A message is required to start a new run.');
+      }
+      const acquired = await api.acquireIdempotencyKey(
+        'sse-ai-harness:' + runId, SETTINGS.claimTtlSeconds, { owner },
+      );
+      if (acquired) {
+        await api.insertDatabaseData('SseAiRuns', [{ runId, owner, message, status: 'running', final: null }]);
+      }
+      return acquired;
+    },
+    async complete(result) {
+      await api.updateDatabaseData('SseAiRuns', { runId }, { status: 'completed', final: result });
+    },
+    async fail() {
+      await api.updateDatabaseData('SseAiRuns', { runId }, { status: 'failed' });
+    },
+    async eventsAfter(cursor) {
+      const page = await api.getDatabaseData('SseAiEvents', {
+        filter: { and: [filter, { field: 'seq', op: 'gt', value: cursor }] },
+        sort: ['seq'],
+        take: SETTINGS.pageSize,
+      });
+      return page.data ?? [];
+    },
+  };
+}
+
+function createEventJournal(runId) {
+  let sequence = 0;
+  let tail = Promise.resolve();
+
+  return {
+    append(event, payload) {
+      // The main flow and disconnect callback share one ordered write queue.
+      const next = tail.then(async () => {
+        const seq = ++sequence;
+        await api.insertDatabaseData('SseAiEvents', [{
+          eventId: runId + ':' + seq, runId, seq, event, payload,
+        }]);
+        await sse.json(payload, { event, id: String(seq), retry: SETTINGS.retryMs });
+      });
+      tail = next;
+      // Observe rejection without turning a failed persistence chain into success.
+      void next.catch(() => {});
+      return next;
+    },
+    flush() { return tail; },
+  };
+}
+
+async function observeRun(store, initialCursor) {
+  let cursor = initialCursor;
+  while (sse.remainingTime() > SETTINGS.reserveMs) {
+    const run = await store.read();
+    // Do not expose events until the stored run has passed its ownership check.
+    if (!run) {
+      await util.sleep(SETTINGS.pollMs);
+      continue;
+    }
+    const rows = await store.eventsAfter(cursor);
+    for (const row of rows) {
+      await sse.json(row.payload, { event: row.event, id: String(row.seq), retry: SETTINGS.retryMs });
+      cursor = row.seq;
+    }
+    if (rows.length === SETTINGS.pageSize) continue;
+    if (run.status === 'completed') return run.final;
+    if (run.status === 'failed') {
+      throw new SampleError('ORIGINAL_RUN_FAILED', 'The original run failed. Inspect its retained events.');
+    }
+    await util.sleep(SETTINGS.pollMs);
+  }
+  throw new SampleError('RECOVERY_PENDING', 'The original run is still pending. Reconnect with the last event ID.');
+}
+
+function createTools() {
+  return new Map([
+    ['calc', {
+      definition: {
+        type: 'function',
+        name: 'calc',
+        description: 'Calculate using two numbers and an arithmetic operation.',
+        strict: true,
+        parameters: {
+          type: 'object',
+          properties: {
+            a: { type: 'number' },
+            b: { type: 'number' },
+            op: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
+          },
+          required: ['a', 'b', 'op'],
+          additionalProperties: false,
+        },
+      },
+      async execute(args) {
+        const operations = {
+          add: (a, b) => a + b,
+          subtract: (a, b) => a - b,
+          multiply: (a, b) => a * b,
+          divide: (a, b) => a / b,
+        };
+        if (!args || !Object.hasOwn(operations, args.op)
+          || !Number.isFinite(args.a) || !Number.isFinite(args.b)
+          || Math.abs(args.a) > 1e9 || Math.abs(args.b) > 1e9) {
+          throw new SampleError('INVALID_TOOL_ARGUMENTS', 'calc requires two bounded finite numbers and a supported operation.');
+        }
+        if (args.op === 'divide' && args.b === 0) {
+          throw new SampleError('DIVISION_BY_ZERO', 'Division by zero is not allowed.');
+        }
+        const value = operations[args.op](args.a, args.b);
+        if (!Number.isFinite(value)) {
+          throw new SampleError('INVALID_TOOL_RESULT', 'The calculation must produce a finite number.');
+        }
+        return { value };
+      },
+    }],
+  ]);
+}
+
+async function requestModel({ apiKey, input, tools, finalRound, callbacks }) {
+  const timeout = Math.floor(sse.remainingTime() - SETTINGS.reserveMs);
+  if (timeout <= 0) throw new SampleError('DEADLINE_REACHED', 'The execution deadline is approaching.');
+
+  let response;
+  try {
+    response = await api.httpCall({
+      url: 'https://api.openai.com/v1/responses',
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      data: {
+        model: SETTINGS.model,
+        reasoning: { effort: 'none' },
+        store: false,
+        stream: true,
+        max_output_tokens: SETTINGS.maxOutputTokens,
+        instructions: 'Use calc for arithmetic. Reply briefly in the language of the user.',
+        input,
+        tools: [...tools.values()].map(tool => tool.definition),
+        tool_choice: finalRound ? 'none' : 'auto',
+        parallel_tool_calls: false,
+      },
+    }, { responseType: 'stream', streamFormat: 'sse', timeout });
+  } catch {
+    throw new SampleError('MODEL_UNAVAILABLE', 'The model connection could not be opened.');
+  }
+
+  try {
+    if (response.status !== 200) {
+      throw new SampleError('MODEL_HTTP_ERROR', 'The model provider rejected the request.');
+    }
+    let completed;
+    for await (const frame of response.data) {
+      if (!frame.data || frame.data === '[DONE]') continue;
+      const event = JSON.parse(frame.data);
+      if (event.type === 'response.output_text.delta') {
+        await callbacks.onText(event.delta);
+      }
+      if (event.type === 'response.output_item.added' && event.item?.type === 'function_call') {
+        await callbacks.onToolPending({ name: event.item.name, callId: event.item.call_id });
+      }
+      if (event.type === 'response.completed') completed = event.response;
+      if (['error', 'response.failed', 'response.incomplete'].includes(event.type)) {
+        throw new SampleError('MODEL_FAILED', 'The model response did not complete.');
+      }
+    }
+    if (!completed || completed.status !== 'completed' || !Array.isArray(completed.output)) {
+      throw new SampleError('MODEL_STREAM_INTERRUPTED', 'The model stream ended without a completed response.');
+    }
+    return completed;
+  } finally {
+    await response.close();
+  }
+}
+
+async function runOpenAi({ message, apiKey, tools, callbacks }) {
+  const input = [{ role: 'user', content: message }];
+  const executedCalls = new Set();
+  let toolCalls = 0;
+
+  for (let request = 1; request <= SETTINGS.maxModelRequests; request++) {
+    const response = await requestModel({
+      apiKey, input, tools, callbacks, finalRound: request === SETTINGS.maxModelRequests,
+    });
+    // Preserve the model's complete output when returning function_call_output.
+    input.push(...response.output);
+    const calls = response.output.filter(item => item.type === 'function_call');
+    if (!calls.length) {
+      const message = response.output
+        .filter(item => item.type === 'message')
+        .flatMap(item => item.content ?? [])
+        .filter(part => part.type === 'output_text')
+        .map(part => part.text)
+        .join('');
+      if (!message.trim()) {
+        throw new SampleError('MODEL_EMPTY_RESPONSE', 'The model completed without a text answer.');
+      }
+      return { message, toolCalls, modelRequests: request };
+    }
+    if (request === SETTINGS.maxModelRequests) {
+      throw new SampleError('MODEL_LIMIT_REACHED', 'The model did not produce a final response within the request limit.');
+    }
+    for (const call of calls) {
+      const tool = tools.get(call.name);
+      if (!tool || !call.call_id || executedCalls.has(call.call_id)) {
+        throw new SampleError('UNSUPPORTED_TOOL_CALL', 'The model requested an unsupported or duplicate tool call.');
+      }
+      if (toolCalls >= SETTINGS.maxToolCalls) {
+        throw new SampleError('TOOL_LIMIT_REACHED', 'The tool execution limit was reached.');
+      }
+      const args = JSON.parse(call.arguments);
+      const context = { name: call.name, callId: call.call_id, args };
+      await callbacks.onToolStart(context);
+      executedCalls.add(call.call_id);
+      const output = await tool.execute(args);
+      toolCalls++;
+      await callbacks.onToolComplete({ ...context, ...output });
+      input.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(output) });
+    }
+  }
+}
+
+async function main() {
+  const request = readRequest();
+  const store = createRunStore(request);
+  if (!await store.claim()) return observeRun(store, request.cursor);
+
+  const journal = createEventJournal(request.runId);
+  sse.onDisconnect(() => journal.append('run.disconnected', {
+    runId: request.runId, processing: true,
+  }));
+
+  try {
+    await journal.append('run.started', { runId: request.runId, model: SETTINGS.model });
+    const apiKey = (await vault.get('OPENAI')).revision.value;
+    const output = await runOpenAi({
+      message: request.message,
+      apiKey,
+      tools: createTools(),
+      callbacks: {
+        onText: delta => journal.append('model.delta', { delta }),
+        onToolPending: call => journal.append('tool.pending', call),
+        onToolStart: call => journal.append('tool.started', call),
+        onToolComplete: result => journal.append('tool.completed', result),
+      },
+    });
+    const result = { runId: request.runId, ...output };
+    await journal.append('run.completed', result);
+    await store.complete(result);
+    await journal.flush();
+    return result; // Run emits result, then done. Do not emit them manually.
+  } catch (error) {
+    const failure = error instanceof SampleError
+      ? { code: error.code, message: error.message }
+      : { code: 'HARNESS_FAILED', message: 'The run failed. Provider details and credentials are omitted.' };
+    try { await journal.append('run.failed', { runId: request.runId, ...failure }); }
+    catch { console.warn('The failure event could not be persisted.'); }
+    try { await store.fail(); }
+    catch { console.warn('The failed run state could not be persisted.'); }
+    throw new Error(failure.code + ': ' + failure.message);
+  }
+}
+
+return await main();

@@ -70,7 +70,19 @@ An Endpoint can validate its input with an inline guard or a JSON-validator comp
 
 Prefer equivalent `enum`/`const`, type, length, numeric bounds and supported date/time rules before adding a regex to a guard. Even one simple pattern can roughly double request-preparation time or more for small inputs; this is not a fixed multiplier for total HTTP latency. Preserve required validation semantics and bound string length when a pattern is necessary. See [rule selection and measured examples](/low-code/json-validator#choose-explicit-rules-before-regex).
 
-## Response modes
+<span id="response-modes" aria-hidden="true"></span>
+
+## HTTP and SSE response modes
+
+An Endpoint selects one mode with `options.responseMode`: `http` (default) or `sse`.
+Method, route, guards, authorization and execution policy are shared. See
+[HTTP responses](/operate/endpoint-http) for a single response and
+[SSE streams](/operate/endpoint-sse) for live events, final results, disconnect
+policies and cursor recovery. The
+[OpenAI tools example](/operate/sse-openai-example) combines outbound model streaming
+with application-owned Endpoint events.
+
+### HTTP response selection
 
 An Endpoint may return:
 

@@ -1,0 +1,1082 @@
+---
+title: Browser chat and recovery
+description: Run the complete HTML chat against the OpenAI SSE Component, inspect real events and reproduce disconnect and cursor recovery.
+icon: comments
+---
+
+<Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
+
+This is the complete browser application used to test the
+[OpenAI tools Component](/operate/sse-openai-example). It sends a real POST to the
+Endpoint runtime, displays generated text and keeps authored SSE events separate
+from the final return. The screenshots below were captured from that application
+using the same Component source shown in the tutorial.
+
+The client is plain HTML, CSS and JavaScript. A small local Node.js server serves
+the files and forwards one fixed Endpoint route. The RevoEngine credential stays
+in that server's environment; the OpenAI credential stays in the instance Secret.
+This developer demo has no build step and no package dependency. Use Node.js 24.
+
+## See the actual result
+
+The example prompt asks the model to calculate `37 × 19` with `calc`. The application
+shows the generated answer, the selected Component return and transport completion.
+The run below used **one tool execution and two model requests** and returned `703`.
+
+<Frame caption="The HTML client calling the real SSE Endpoint: model text, persisted event IDs, final result and done are visible separately.">
+  <img src="/images/endpoints/html-chat-completed.jpg" alt="HTML SSE chat displaying 37 times 19 equals 703, one tool call, two model requests, and result followed by done" />
+</Frame>
+
+**Send** starts a new message; **Resume from last ID** reconnects;
+**Replay from start** replays the journal.
+Each new message creates a new run ID. It is a one-message tool loop, without
+multi-turn conversation memory.
+
+## Download and start
+
+1. Complete the [Component, Secret, Databases and Endpoint setup](/operate/sse-openai-example#prepare-the-instance).
+2. [Download the complete browser example](/examples/sse/browser-chat.zip) and extract it into an empty folder.
+3. Supply your own RevoEngine credential and actual Endpoint runtime URL in the environment.
+4. Run `node server.mjs`, then open `http://localhost:4318` in a browser.
+
+```bash
+export REVO_ENDPOINT_URL="https://example.com/examples/openai-sse"
+export REVO_AUTHORIZATION="Bearer $REVO_API_KEY"
+node server.mjs
+```
+
+`REVO_API_KEY` above is your own shell variable. Follow
+[Authentication](/developers/authentication) to obtain the appropriate credential.
+Set `REVO_INSTANCE` only when your environment requires an instance-routing header.
+Set `DEMO_PORT` to change the local client port. An optional `--open` flag opens
+Chrome on macOS. The local proxy deadline is 70 seconds for the sample's 60-second
+Endpoint execution budget; align both if you change the Endpoint timeout.
+
+The archive contains the full files shown below plus `component.txt`, which is the
+exact Component body from the [backend tutorial](/operate/sse-openai-example#complete-component-source).
+It contains no credentials or environment file.
+
+| File | Responsibility | Individual download |
+| --- | --- | --- |
+| `index.html` | Layout, styles, chat input, event list and source disclosure. | [HTML](/examples/sse/browser-chat/index.html.txt) |
+| `chat.mjs` | POST stream lifecycle, UI, cursor, disconnect, recovery and export. | [Client code](/examples/sse/browser-chat/chat.mjs.txt) |
+| `sse-parser.mjs` | Incremental SSE framing across arbitrary network chunks. | [Parser](/examples/sse/browser-chat/sse-parser.mjs.txt) |
+| `server.mjs` | Local static server and streaming proxy to the configured Endpoint. | [Server](/examples/sse/browser-chat/server.mjs.txt) |
+| `component.txt` | Backend Component body, shown by the client's source panel. | [Component](/examples/sse/openai-component.txt) |
+
+Individual source downloads use plain text; save them under the file names in the
+first column. The archive already uses the correct executable file names.
+
+## Reproduce disconnect and recovery
+
+1. Check **Disconnect at tool.pending** and send the calculation prompt.
+2. The client aborts its fetch after receiving the actual `tool.pending` event. Record
+   its displayed last event ID; this sample run stopped at ID `2`.
+3. The local proxy also closes that request's upstream connection. The Endpoint's
+   `continue-and-notify` policy lets the producer continue and persist its callback.
+4. Click **Resume from last ID**. The client sends the same run ID and
+   `Last-Event-ID`, then consumes only later application events.
+5. Inspect `run.disconnected`, the tool output, the final answer and `result → done`.
+
+<Frame caption="The first client stopped after tool.pending at ID 2. The UI has not received a final answer; the Endpoint is allowed to continue within its original timeout.">
+  <img src="/images/endpoints/html-chat-disconnected.jpg" alt="HTML SSE chat disconnected at event ID 2 with a pending tool and the resume button available" />
+</Frame>
+
+<Frame caption="Recovery from the saved cursor includes run.disconnected and the persisted calc result. The original run completes without starting another producer.">
+  <img src="/images/endpoints/html-chat-recovery.jpg" alt="Recovered HTML chat showing the disconnect notification, calc arguments and value 703, with one tool call and two model requests" />
+</Frame>
+
+To read the result again, click **Resume from last ID** after completion. To see every stored event,
+click **Replay from start**. Both requests observe the saved run. Neither repeats
+its model or tool work. The automatic test checkbox affects a newly sent message;
+it does not interrupt a replay.
+
+The client keeps only its last run ID, message and cursor in browser storage, so a
+reload can reconnect. It does not store either credential there. The JSON export
+contains the selected run and received frames; treat prompt and generated content
+according to your application's data policy.
+
+## Complete application code
+
+These are the complete files from the archive and running application. There are
+no omitted event handlers, parser helpers or proxy functions. The Component's full
+journal, tool registry and callbacks are separately available in the
+[complete backend source](/operate/sse-openai-example#complete-component-source).
+
+<CodeGroup>
+
+```html title="index.html"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Run · SSE Playground</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101417;
+        --panel: #181e22;
+        --border: #303a40;
+        --muted: #a4b3bb;
+        --ink: #eef4f6;
+        --accent: #a4f0cb;
+        --red: #ffb0a8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.55 system-ui,
+          sans-serif;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button,
+      a {
+        touch-action: manipulation;
+      }
+      button {
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 9px 15px;
+        background: #232d33;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) {
+        border-color: var(--accent);
+      }
+      button:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+      .primary {
+        background: var(--accent);
+        color: #15382a;
+        border-color: var(--accent);
+        font-weight: 650;
+      }
+      a {
+        color: var(--accent);
+      }
+      header {
+        padding: 30px 42px 22px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: center;
+      }
+      .eyebrow {
+        color: var(--accent);
+        font:
+          12px ui-monospace,
+          monospace;
+        letter-spacing: 0.12em;
+      }
+      h1 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+        margin: 8px 0;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      header p {
+        margin: 6px 0;
+        font-size: 14px;
+      }
+      .badge {
+        padding: 7px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      main {
+        max-width: 1640px;
+        margin: auto;
+        padding: 26px 42px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .toolbar .badge {
+        margin-right: auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+        gap: 22px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      .panel-head {
+        padding: 17px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .panel-head small {
+        color: var(--muted);
+      }
+      .chat {
+        height: 365px;
+        overflow: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .empty {
+        margin: auto;
+        max-width: 390px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .empty strong {
+        display: block;
+        color: var(--ink);
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      .bubble {
+        padding: 13px 16px;
+        border-radius: 13px;
+        max-width: 92%;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .bubble.user {
+        align-self: flex-end;
+        background: #33463f;
+      }
+      .bubble.assistant {
+        align-self: flex-start;
+        background: #252f35;
+        min-height: 50px;
+      }
+      .bubble small {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .composer {
+        padding: 18px 20px;
+        border-top: 1px solid var(--border);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 84px;
+        max-height: 200px;
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        color: var(--ink);
+      }
+      .compose-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      label {
+        color: var(--muted);
+      }
+      input[type="checkbox"] {
+        accent-color: var(--accent);
+        margin-right: 7px;
+      }
+      input[type="text"] {
+        background: var(--bg);
+        color: var(--ink);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 7px 10px;
+        width: 100%;
+        font:
+          13px ui-monospace,
+          monospace;
+      }
+      .events {
+        height: 365px;
+        overflow: auto;
+        padding: 8px 18px;
+      }
+      .frame {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 0;
+        font-size: 12px;
+      }
+      .frame summary {
+        cursor: pointer;
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        font-family: ui-monospace, monospace;
+      }
+      .frame summary .seq {
+        color: var(--accent);
+        width: 27px;
+      }
+      .frame time {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .frame pre,
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font:
+          12px/1.6 ui-monospace,
+          monospace;
+      }
+      .frame pre {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+      .result {
+        padding: 17px 20px;
+        border-top: 1px solid var(--border);
+        min-height: 180px;
+      }
+      .result pre {
+        margin: 12px 0 0;
+      }
+      .foot {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        margin-top: 18px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .run-meta {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 16px 0;
+      }
+      .run-meta label {
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .run-meta input {
+        flex: 1;
+      }
+      .error {
+        color: var(--red);
+      }
+      #status[data-state="done"] {
+        color: var(--accent);
+      }
+      #status[data-state="error"] {
+        color: var(--red);
+      }
+      #status[data-state="streaming"] {
+        color: var(--accent);
+      }
+      .source {
+        margin-top: 24px;
+        padding: 18px 20px;
+      }
+      .source summary {
+        cursor: pointer;
+        color: var(--accent);
+      }
+      .source pre {
+        max-height: 480px;
+        overflow: auto;
+        color: var(--muted);
+      }
+      .endpoint {
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      .dot {
+        color: var(--accent);
+        margin-right: 8px;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      @media (max-width: 900px) {
+        header {
+          padding: 22px;
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        main {
+          padding: 20px;
+        }
+        .grid,
+        .foot {
+          grid-template-columns: 1fr;
+        }
+        .chat {
+          height: 280px;
+        }
+        .events {
+          height: 280px;
+        }
+        .compose-actions {
+          align-items: flex-start;
+        }
+        .run-meta {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div class="eyebrow">REVOENGINE / SSE EXAMPLE</div>
+        <h1>Run · SSE Playground</h1>
+        <p class="muted">
+          A real Endpoint, GPT-6 Luna and a simple <code>calc</code> tool. Watch
+          the stream and test recovery.
+        </p>
+      </div>
+      <span class="badge"
+        ><span class="dot">●</span>continue-and-notify · timeout 60 s</span
+      >
+    </header>
+    <main>
+      <div class="toolbar">
+        <span class="badge" id="status" role="status" data-state="idle"
+          >Ready</span
+        >
+        <button id="disconnect" disabled>Disconnect stream</button>
+        <button id="recover" disabled>Resume from last ID</button>
+        <button id="replay" disabled>Replay from start</button>
+        <button id="export" disabled>Export events JSON</button>
+      </div>
+      <div class="grid">
+        <section class="panel" aria-labelledby="chat-title">
+          <div class="panel-head">
+            <h2 id="chat-title">Conversation</h2>
+            <small id="model-stats">GPT-6 Luna + calc</small>
+          </div>
+          <div class="chat" id="chat" aria-live="polite">
+            <div class="empty">
+              <strong>Let's calculate live.</strong>Send a message. The model
+              can call calc and stream its answer.
+            </div>
+          </div>
+          <form id="form" class="composer">
+            <label for="message">Message</label>
+            <textarea id="message" required maxlength="2000">
+Calculate 37 times 19 using calc. Reply briefly in English.</textarea
+            >
+            <div class="compose-actions">
+              <label
+                ><input type="checkbox" id="auto-disconnect" />Disconnect at
+                <code>tool.pending</code></label
+              ><button id="send" class="primary" type="submit">Send →</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel" aria-labelledby="events-title">
+          <div class="panel-head">
+            <h2 id="events-title">SSE events</h2>
+            <small id="cursor">Last-Event-ID: 0</small>
+          </div>
+          <div class="events" id="events">
+            <p class="muted">
+              Component events and the final result and done frames appear here.
+            </p>
+          </div>
+          <div class="result">
+            <h2>Final return</h2>
+            <pre id="result">Waiting for result…</pre>
+          </div>
+        </section>
+      </div>
+      <div class="run-meta">
+        <label for="run-id">Recovery runId</label
+        ><input
+          id="run-id"
+          type="text"
+          readonly
+          aria-label="Recovery runId"
+        /><span class="badge" id="retry">retry: —</span>
+      </div>
+      <div class="foot">
+        <p class="note">
+          Disconnect stops this browser's stream. The wrapper can continue and
+          persist events. Resume sends the same <code>runId</code> and
+          <code>Last-Event-ID</code> without repeating tool execution.
+        </p>
+        <p class="note">
+          Each new message starts an independent run, without conversation
+          memory. The OpenAI key stays in the instance Secret; the local server
+          uses your RevoEngine credential.
+          <span class="endpoint">POST /examples/openai-sse</span>
+        </p>
+      </div>
+      <details class="panel source" id="source">
+        <summary>OpenAiSseHarness · complete Component source</summary>
+        <p>
+          <a href="/component.txt" target="_blank" rel="noopener"
+            >Open source separately</a
+          >
+        </p>
+        <pre id="source-code">Expand to load the source.</pre>
+      </details>
+    </main>
+    <script type="module" src="/chat.mjs"></script>
+  </body>
+</html>
+```
+
+```js title="chat.mjs"
+import { createSseParser } from "./sse-parser.mjs";
+const $ = (id) => document.getElementById(id);
+const storeKey = "revo-sse-playground:last-run:v1";
+let active = null,
+  run = null,
+  frames = [],
+  assistantText,
+  assistantBody,
+  firstEvent = true;
+function status(text, state = "idle") {
+  $("status").textContent = text;
+  $("status").dataset.state = state;
+}
+function controls() {
+  $("send").disabled = !!active;
+  $("message").disabled = !!active;
+  $("auto-disconnect").disabled = !!active;
+  $("disconnect").disabled = !active;
+  $("recover").disabled = !!active || !run;
+  $("replay").disabled = !!active || !run;
+  $("export").disabled = frames.length === 0;
+  $("run-id").value = run?.runId ?? "";
+  $("cursor").textContent = "Last-Event-ID: " + (run?.cursor ?? 0);
+}
+function save() {
+  try {
+    localStorage.setItem(storeKey, JSON.stringify(run));
+  } catch {}
+}
+function bubble(role, text) {
+  if ($("chat").querySelector(".empty")) $("chat").replaceChildren();
+  const el = document.createElement("div");
+  el.className = "bubble " + role;
+  const label = document.createElement("small");
+  label.textContent = role === "user" ? "You" : "GPT-6 Luna";
+  const body = document.createElement("div");
+  body.textContent = text;
+  el.append(label, body);
+  $("chat").append(el);
+  $("chat").scrollTop = $("chat").scrollHeight;
+  return body;
+}
+function prepareView(reuseAssistant = false) {
+  frames = [];
+  firstEvent = true;
+  assistantText = "";
+  $("events").replaceChildren();
+  $("result").textContent = "Waiting for result…";
+  $("retry").textContent = "retry: —";
+  $("model-stats").textContent = "GPT-6 Luna + calc";
+  if (reuseAssistant && assistantBody?.isConnected)
+    assistantBody.textContent = "Waiting for the model…";
+  else assistantBody = bubble("assistant", "Waiting for the model…");
+}
+function showFrame(frame, data) {
+  frames.push({ ...frame, data, receivedAt: new Date().toISOString() });
+  if (firstEvent) {
+    $("events").replaceChildren();
+    firstEvent = false;
+  }
+  const item = document.createElement("details");
+  item.className = "frame";
+  const title = document.createElement("summary");
+  const seq = document.createElement("span");
+  seq.className = "seq";
+  seq.textContent = frame.id ?? "·";
+  const name = document.createElement("span");
+  name.textContent = frame.event;
+  const time = document.createElement("time");
+  time.textContent = new Date().toLocaleTimeString("en-GB");
+  const payload = document.createElement("pre");
+  payload.textContent = JSON.stringify(data, null, 2);
+  title.append(seq, name, time);
+  item.append(title, payload);
+  $("events").append(item);
+  $("events").scrollTop = $("events").scrollHeight;
+}
+function disconnect() {
+  if (active) {
+    active.manual = true;
+    active.controller.abort();
+  }
+}
+async function connect(after = 0, allowAutoDisconnect = false) {
+  const connection = {
+    controller: new AbortController(),
+    manual: false,
+    done: false,
+    failed: false,
+    auto: allowAutoDisconnect && $("auto-disconnect").checked,
+  };
+  active = connection;
+  controls();
+  status(
+    after ? "Recovering from ID " + after + "…" : "Connecting…",
+    "streaming",
+  );
+  const started = performance.now();
+  try {
+    const response = await fetch("/api/run", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Last-Event-ID": String(after),
+      },
+      body: JSON.stringify({ runId: run.runId, message: run.message }),
+      signal: connection.controller.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error("HTTP " + response.status + ": " + text.slice(0, 600));
+    }
+    if (!response.headers.get("content-type")?.includes("text/event-stream"))
+      throw new Error("The response is not an SSE stream.");
+    status("Stream connected", "streaming");
+    const parser = createSseParser((frame) => {
+      if (connection.manual) return;
+      const id = frame.id === undefined ? null : Number(frame.id);
+      if (id !== null && Number.isSafeInteger(id) && id <= run.cursor) return;
+      let data;
+      try {
+        data = JSON.parse(frame.data);
+      } catch {
+        data = frame.data;
+      }
+      showFrame(frame, data);
+      if (id !== null && Number.isSafeInteger(id)) {
+        run.cursor = id;
+        save();
+      }
+      if (frame.retry !== undefined)
+        $("retry").textContent = "retry: " + frame.retry + " ms";
+      if (frame.event === "model.delta") {
+        assistantText += data.delta ?? "";
+        assistantBody.textContent = assistantText;
+      }
+      if (frame.event === "tool.pending")
+        status("Model preparing calc…", "streaming");
+      if (frame.event === "tool.started") status("Running calc…", "streaming");
+      if (frame.event === "tool.completed")
+        status("calc = " + data.value + " · model responding…", "streaming");
+      if (frame.event === "run.disconnected")
+        status("Confirmed: execution continued after disconnect", "streaming");
+      if (frame.event === "result") {
+        $("result").textContent = JSON.stringify(data, null, 2);
+        assistantText = data.message ?? assistantText;
+        assistantBody.textContent = assistantText || "Empty result.";
+        $("model-stats").textContent =
+          `${data.modelRequests ?? "—"} model requests · ${data.toolCalls ?? "—"} tool call${data.toolCalls === 1 ? "" : "s"}`;
+      }
+      if (frame.event === "error") {
+        connection.failed = true;
+        status("Execution failed — inspect the error event", "error");
+        $("result").textContent = JSON.stringify(data, null, 2);
+      }
+      if (frame.event === "done") {
+        connection.done = true;
+        connection.failed ||= data?.error === true;
+        status(
+          connection.failed
+            ? "Finished with an error"
+            : "Complete · result → done · " +
+                ((performance.now() - started) / 1000).toFixed(1) +
+                " s",
+          connection.failed ? "error" : "done",
+        );
+      }
+      controls();
+      if (connection.auto && frame.event === "tool.pending") {
+        connection.auto = false;
+        disconnect();
+      }
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parser.push(decoder.decode(value, { stream: true }));
+        if (connection.manual) break;
+      }
+      if (!connection.manual) parser.push(decoder.decode());
+    } finally {
+      if (connection.manual) await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+    if (!connection.done && !connection.manual)
+      status("Stream ended without done — you can resume", "error");
+  } catch (error) {
+    if (!connection.manual) status(error.message, "error");
+  } finally {
+    if (connection.manual)
+      status("Disconnected at ID " + run.cursor + " · execution can continue");
+    active = null;
+    controls();
+  }
+}
+$("form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (active) return;
+  const message = $("message").value.trim();
+  if (!message) return;
+  run = { runId: "chat-" + crypto.randomUUID(), message, cursor: 0 };
+  save();
+  bubble("user", message);
+  prepareView();
+  void connect(0, true);
+});
+$("disconnect").addEventListener("click", disconnect);
+$("recover").addEventListener("click", () => {
+  if (run && !active) void connect(run.cursor);
+});
+$("replay").addEventListener("click", () => {
+  if (run && !active) {
+    run.cursor = 0;
+    save();
+    prepareView(true);
+    void connect(0, false);
+  }
+});
+$("export").addEventListener("click", () => {
+  const href = URL.createObjectURL(
+    new Blob([JSON.stringify({ run, frames }, null, 2)], {
+      type: "application/json",
+    }),
+  );
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = run.runId + ".json";
+  link.click();
+  URL.revokeObjectURL(href);
+});
+$("source").addEventListener("toggle", async () => {
+  if ($("source").open && !$("source-code").dataset.loaded) {
+    try {
+      const response = await fetch("/component.txt");
+      if (!response.ok) throw new Error();
+      $("source-code").textContent = await response.text();
+      $("source-code").dataset.loaded = "true";
+    } catch {
+      $("source-code").textContent = "Unable to load the source.";
+    }
+  }
+});
+try {
+  const saved = JSON.parse(localStorage.getItem(storeKey));
+  if (
+    saved &&
+    typeof saved.runId === "string" &&
+    /^[a-zA-Z0-9_-]{1,80}$/.test(saved.runId) &&
+    typeof saved.message === "string" &&
+    Number.isSafeInteger(saved.cursor) &&
+    saved.cursor >= 0
+  ) {
+    run = saved;
+    bubble("user", run.message);
+    prepareView();
+    status("Saved run restored · choose Resume or Replay");
+  }
+} catch {}
+controls();
+```
+
+```js title="sse-parser.mjs"
+// Incremental SSE parser: CR, LF, CRLF, split chunks and multiline data.
+export function createSseParser(onFrame) {
+  let line = "",
+    skipLF = false,
+    first = true;
+  let event = "",
+    data = [],
+    id,
+    retry;
+  function consume() {
+    if (line === "") {
+      if (data.length)
+        onFrame({
+          event: event || "message",
+          data: data.join("\n"),
+          ...(id !== undefined ? { id } : {}),
+          ...(retry !== undefined ? { retry } : {}),
+        });
+      event = "";
+      data = [];
+      id = undefined;
+      retry = undefined;
+    } else if (!line.startsWith(":")) {
+      const colon = line.indexOf(":");
+      const field = colon < 0 ? line : line.slice(0, colon);
+      let value = colon < 0 ? "" : line.slice(colon + 1);
+      if (value.startsWith(" ")) value = value.slice(1);
+      if (field === "event") event = value;
+      if (field === "data") data.push(value);
+      if (field === "id" && !value.includes("\0")) id = value;
+      if (field === "retry" && /^\d+$/.test(value)) retry = Number(value);
+    }
+    line = "";
+  }
+  return {
+    push(chunk) {
+      for (const ch of chunk) {
+        if (first) {
+          first = false;
+          if (ch === "\uFEFF") continue;
+        }
+        if (skipLF) {
+          skipLF = false;
+          if (ch === "\n") continue;
+        }
+        if (ch === "\r") {
+          consume();
+          skipLF = true;
+        } else if (ch === "\n") consume();
+        else line += ch;
+      }
+    },
+  };
+}
+```
+
+```js title="server.mjs"
+import http from "node:http";
+import { execFile } from "node:child_process";
+import fs from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
+const publicFiles = new Map([
+  ["/", ["index.html", "text/html"]],
+  ["/chat.mjs", ["chat.mjs", "text/javascript"]],
+  ["/sse-parser.mjs", ["sse-parser.mjs", "text/javascript"]],
+  ["/component.txt", ["component.txt", "text/plain"]],
+]);
+
+export function createDemoServer({ authorization, upstream, instance }) {
+  if (!authorization || !upstream)
+    throw new Error("Configure RevoEngine credentials and the Endpoint URL.");
+  const target = new URL(upstream);
+  if (
+    !["http:", "https:"].includes(target.protocol) ||
+    target.username ||
+    target.password
+  ) {
+    throw new Error(
+      "Use an HTTP(S) Endpoint URL without embedded credentials.",
+    );
+  }
+
+  const server = http.createServer(async (req, res) => {
+    const port = server.address().port;
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader(
+      "Content-Security-Policy",
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+    );
+    if (req.headers.host !== `localhost:${port}`) {
+      res.writeHead(403).end();
+      return;
+    }
+
+    if (req.method === "GET" && publicFiles.has(req.url)) {
+      const [name, type] = publicFiles.get(req.url);
+      try {
+        const data = await fs.readFile(new URL(name, import.meta.url));
+        res
+          .writeHead(200, { "Content-Type": type + "; charset=utf-8" })
+          .end(data);
+      } catch {
+        res.writeHead(404).end("File not found.");
+      }
+      return;
+    }
+    if (req.url !== "/api/run" || req.method !== "POST") {
+      res.writeHead(404).end();
+      return;
+    }
+    if (
+      req.headers.origin !== `http://${req.headers.host}` ||
+      req.headers["sec-fetch-site"] === "cross-site"
+    ) {
+      res.writeHead(403).end();
+      return;
+    }
+    if (!String(req.headers["content-type"]).startsWith("application/json")) {
+      res.writeHead(415).end();
+      return;
+    }
+
+    const disconnected = new AbortController();
+    // A browser abort must also close this request's upstream SSE connection.
+    res.once("close", () => disconnected.abort());
+    try {
+      const chunks = [];
+      let size = 0;
+      for await (const part of req) {
+        size += part.length;
+        if (size > 16384) {
+          res.writeHead(413).end();
+          return;
+        }
+        chunks.push(part);
+      }
+      const raw = Buffer.concat(chunks).toString("utf8");
+      try {
+        JSON.parse(raw);
+      } catch {
+        res.writeHead(400).end("Invalid JSON.");
+        return;
+      }
+
+      const response = await fetch(target, {
+        method: "POST",
+        headers: {
+          Authorization: authorization,
+          "Content-Type": "application/json",
+          ...(instance ? { instance } : {}),
+          ...(req.headers["last-event-id"]
+            ? { "Last-Event-ID": req.headers["last-event-id"] }
+            : {}),
+        },
+        body: raw,
+        signal: AbortSignal.any([
+          disconnected.signal,
+          AbortSignal.timeout(70000),
+        ]),
+      });
+      res.writeHead(response.status, {
+        "Content-Type":
+          response.headers.get("content-type") || "application/json",
+        "X-Accel-Buffering": "no",
+      });
+      res.flushHeaders();
+      // pipeline forwards bytes incrementally and preserves backpressure.
+      if (response.body) await pipeline(Readable.fromWeb(response.body), res);
+      else res.end();
+    } catch {
+      if (!res.destroyed && !disconnected.signal.aborted) {
+        if (!res.headersSent)
+          res
+            .writeHead(502, { "Content-Type": "application/json" })
+            .end(
+              JSON.stringify({
+                message:
+                  "The Endpoint is unavailable or the request timed out.",
+              }),
+            );
+        else res.destroy();
+      }
+    }
+  });
+  return server;
+}
+
+export function startDemo() {
+  const port = Number(process.env.DEMO_PORT ?? 4318);
+  if (!Number.isInteger(port) || port < 1024 || port > 65535)
+    throw new Error("Invalid DEMO_PORT.");
+  const server = createDemoServer({
+    authorization: process.env.REVO_AUTHORIZATION,
+    upstream: process.env.REVO_ENDPOINT_URL,
+    instance: process.env.REVO_INSTANCE,
+  });
+  server.listen(port, "localhost", () => {
+    const url = `http://localhost:${port}`;
+    console.log(`SSE chat: ${url}. Ctrl+C stops the server.`);
+    if (process.argv.includes("--open") && process.platform === "darwin") {
+      execFile("/usr/bin/open", ["-a", "Google Chrome", url], (error) => {
+        if (error) console.log(`Open ${url} in Chrome.`);
+      });
+    }
+  });
+  server.on("error", (error) => {
+    console.error(
+      error.code === "EADDRINUSE"
+        ? `Port ${port} is already in use.`
+        : "Unable to start the local chat.",
+    );
+    process.exitCode = 1;
+  });
+  return server;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+  startDemo();
+```
+
+</CodeGroup>
+
+## Client lifecycle and deployment boundary
+
+The client decodes UTF-8 incrementally and parses SSE lines independently from
+network chunks, including CRLF boundaries and multiline `data`. It distinguishes
+ordinary HTTP rejection, an SSE error and a connection ending without `done`.
+A clean EOF alone is not treated as success. Event payloads are rendered as text.
+The server preserves backpressure and propagates browser abort to the upstream
+request; it does not buffer a complete response before forwarding it.
+
+`retry` is displayed as a reconnection hint. Reconnect is an explicit button action
+in this example, not an automatic retry loop. The client deduplicates authored
+numeric sequence IDs when observing this particular journal. A general SSE client
+must also support applications using other string IDs.
+
+The local proxy intentionally uses one developer's RevoEngine credential and binds
+to localhost. For a deployed multi-user application, integrate your own sign-in,
+resolve caller authorization per request and preserve run ownership. Do not expose
+one shared developer credential as an application-wide production identity.
+
+This application demonstrates the Endpoint contract; it does not add durable worker
+execution, exactly-once business effects or automatic server replay. Those boundaries
+remain in the [Component's recovery design](/operate/sse-openai-example#boundaries-to-keep-in-a-production-integration).

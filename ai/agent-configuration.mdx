@@ -8,7 +8,7 @@ icon: sliders
   Autonomous Agents are a preview capability. The workflows on this page require an instance where Agent execution is enabled. Confirm availability with your operator before depending on autonomous runs; the Interactive Assistant has a separate availability boundary.
 </Note>
 
-An Agent definition combines a stable operational identity with an execution principal, runtime defaults, capabilities, and safety policy. This page documents the configuration accepted by the current Platform API and explains how it maps to the **General**, **Identity**, **Runtime**, **Tools**, **Plugins**, **Memory**, and **Terminals** sections in the Agents workspace.
+An Agent definition combines a stable operational identity with an execution principal, runtime defaults, capabilities, and safety policy. This page documents the configuration accepted by the current Platform API and explains how it maps to the **General**, **Identity**, **Runtime**, **Response**, **Tools**, **Plugins**, **Memory**, and **Terminals** sections in the Agents workspace.
 
 ## Configuration model
 
@@ -17,7 +17,7 @@ Agent settings are intentionally split into three layers:
 | Layer | Purpose | Typical fields |
 | --- | --- | --- |
 | Agent record | Identity, ownership, availability, and audit metadata | `name`, `desc`, `status`, owner, service account, metadata |
-| `config` | Normal runtime behavior and Agent-owned capability attachments | model, reasoning, definition, instructions, automation, memory instructions, plugins, terminals, limits |
+| `config` | Normal runtime behavior and Agent-owned capability attachments | model, reasoning, definition, instructions, context, response format, automation, memory instructions, plugins, terminals, limits |
 | `policy` | Operator-enforced permissions and ceilings | default and per-tool access, policy plugins, concurrency and delegation limits |
 
 The effective runtime behavior is derived from platform policy, the Agent policy, the Agent configuration, and the current trigger. A configuration value cannot broaden a permission denied by the service account, tenant policy, or a more restrictive Agent policy.
@@ -90,6 +90,46 @@ Choose the model and reasoning effort from task risk, ambiguity, latency, and co
 ### Choose explicit operating defaults
 
 For production Agents, set the intended model, reasoning effort, execution mode, planning policy, and limits explicitly. This makes reviews and environment promotion predictable without relying on release-specific UI defaults.
+
+## Context and response format
+
+Choose **Context** in the **Runtime** tab and configure the final answer in **Response**. The Response editor shares the Assistant JSON Schema completion, diagnostics, and server validation.
+
+| Setting | Values | Behavior |
+| --- | --- | --- |
+| `config.contextMode` | `platform` or `minimal` | Defaults to `platform`. Minimal omits automatic Assistant application context, response preferences, skill catalogue, and recall. |
+| `config.responseFormat` | `{ "type": "text" }` or `{ "type": "json" }` | Defaults to text. JSON without a schema returns a JSON object. |
+| `config.responseFormat.schema` | Supported JSON Schema object | Adds strict validation to every final JSON answer. |
+| `config.responseFormat.strict` | `true` when a schema is provided | Schema responses are always strict. |
+
+Minimal retains the Agent's `systemInstructions`, structured definition, explicit `config.memory`, workspace, autonomous operating rules, effective tools and plugins. Instance and service-account authority, permissions, and approval policy remain active. This mode changes ambient context; capability configuration keeps its existing Agent semantics.
+
+The context and response contract is saved when a conversation is created. Further ticks, Resume, approval responses, and successor runs in that conversation keep the saved values. Updated context or format settings apply to new conversations. Agent operating instructions continue to use the configured Agent definition.
+
+The following fragment adds a strict translation response. When updating an Agent, merge these fields into its complete current `config` and send the latest Agent `version`:
+
+```json
+{
+  "config": {
+    "systemInstructions": "Translate each supplied message into English. Return the translation in the answer field.",
+    "contextMode": "minimal",
+    "responseFormat": {
+      "type": "json",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "answer": { "type": "string" }
+        },
+        "required": ["answer"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
+```
+
+The schema uses the [shared Assistant response contract](/ai/assistant#create-a-focused-conversation): every object requires all its properties and sets `additionalProperties` to `false`; references stay local. The server validates the complete schema before saving the Agent and before starting new work.
 
 ## Permissions and tools
 
@@ -225,6 +265,8 @@ The following creation payload uses registry plugins and keeps policy separate f
     "workMode": "operator",
     "persona": "professional",
     "systemInstructions": "Report only verified release evidence and identify missing checks explicitly.",
+    "contextMode": "platform",
+    "responseFormat": { "type": "text" },
     "definition": {
       "identity": "Release evidence coordinator for production services.",
       "mission": "Produce a complete, verifiable release readiness record.",

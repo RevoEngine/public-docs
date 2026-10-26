@@ -14,7 +14,7 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 522
+      "operations": 582
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
@@ -26,6 +26,7 @@
         "low-code/reference/storage.mdx",
         "low-code/reference/transport.mdx",
         "low-code/reference/agent.mdx",
+        "low-code/reference/sse.mdx",
         "low-code/reference/util.mdx"
       ]
     }
