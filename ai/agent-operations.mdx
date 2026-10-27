@@ -92,6 +92,14 @@ Pending work is not necessarily unhealthy. It can be waiting for its availabilit
   Do not retry repeatedly without reading the error and trace. Authentication, policy, invalid configuration, non-idempotent external effects, and missing workspace inputs require correction rather than more attempts.
 </Warning>
 
+### Consume the final response
+
+A completed run exposes the full final response in `result.output`. Use `result.output.text` for the exact text and `result.output.json` for the parsed JSON object when the conversation uses JSON output. The saved schema is validated before the run publishes this output.
+
+`result.summary` and `checkpointSummary` remain bounded operational summaries. Use `result.output` to consume a complete structured response. Waiting decisions, continuation checkpoints, cancelled runs, and failed runs do not publish a new successful output.
+
+Configure the format in [Agent configuration](/ai/agent-configuration#context-and-response-format). Context and format stay with the conversation during Resume and successor runs; a new conversation uses the Agent's current settings.
+
 ## Plans, approvals, and action required
 
 Use `review_required` when the scope or proposed changes must be approved before execution. Tool-level approval still applies independently: a standard plan can reach an approval gate, and an approved plan does not authorize an unrelated or more dangerous operation.

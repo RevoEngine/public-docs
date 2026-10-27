@@ -14,6 +14,7 @@ const surfaces = [
   ['storage', 'storage reference', 'Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods.'],
   ['transport', 'SFTP transport reference', 'Storage-backed SFTP import, export, and remote file operations with Secret-backed connections.'],
   ['agent', 'agent reference', 'Durable Agent, inbox, run, plugin, and Assistant-thread methods.'],
+  ['sse', 'SSE response reference', 'Text and JSON events, comments, event IDs, reconnect hints, and remaining execution time.'],
   ['util', 'util reference', 'Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers.'],
 ];
 

@@ -1,0 +1,262 @@
+import { createSseParser } from "./sse-parser.mjs";
+const $ = (id) => document.getElementById(id);
+const storeKey = "revo-sse-playground:last-run:v1";
+let active = null,
+  run = null,
+  frames = [],
+  assistantText,
+  assistantBody,
+  firstEvent = true;
+function status(text, state = "idle") {
+  $("status").textContent = text;
+  $("status").dataset.state = state;
+}
+function controls() {
+  $("send").disabled = !!active;
+  $("message").disabled = !!active;
+  $("auto-disconnect").disabled = !!active;
+  $("disconnect").disabled = !active;
+  $("recover").disabled = !!active || !run;
+  $("replay").disabled = !!active || !run;
+  $("export").disabled = frames.length === 0;
+  $("run-id").value = run?.runId ?? "";
+  $("cursor").textContent = "Last-Event-ID: " + (run?.cursor ?? 0);
+}
+function save() {
+  try {
+    localStorage.setItem(storeKey, JSON.stringify(run));
+  } catch {}
+}
+function bubble(role, text) {
+  if ($("chat").querySelector(".empty")) $("chat").replaceChildren();
+  const el = document.createElement("div");
+  el.className = "bubble " + role;
+  const label = document.createElement("small");
+  label.textContent = role === "user" ? "You" : "GPT-6 Luna";
+  const body = document.createElement("div");
+  body.textContent = text;
+  el.append(label, body);
+  $("chat").append(el);
+  $("chat").scrollTop = $("chat").scrollHeight;
+  return body;
+}
+function prepareView(reuseAssistant = false) {
+  frames = [];
+  firstEvent = true;
+  assistantText = "";
+  $("events").replaceChildren();
+  $("result").textContent = "Waiting for result…";
+  $("retry").textContent = "retry: —";
+  $("model-stats").textContent = "GPT-6 Luna + calc";
+  if (reuseAssistant && assistantBody?.isConnected)
+    assistantBody.textContent = "Waiting for the model…";
+  else assistantBody = bubble("assistant", "Waiting for the model…");
+}
+function showFrame(frame, data) {
+  frames.push({ ...frame, data, receivedAt: new Date().toISOString() });
+  if (firstEvent) {
+    $("events").replaceChildren();
+    firstEvent = false;
+  }
+  const item = document.createElement("details");
+  item.className = "frame";
+  const title = document.createElement("summary");
+  const seq = document.createElement("span");
+  seq.className = "seq";
+  seq.textContent = frame.id ?? "·";
+  const name = document.createElement("span");
+  name.textContent = frame.event;
+  const time = document.createElement("time");
+  time.textContent = new Date().toLocaleTimeString("en-GB");
+  const payload = document.createElement("pre");
+  payload.textContent = JSON.stringify(data, null, 2);
+  title.append(seq, name, time);
+  item.append(title, payload);
+  $("events").append(item);
+  $("events").scrollTop = $("events").scrollHeight;
+}
+function disconnect() {
+  if (active) {
+    active.manual = true;
+    active.controller.abort();
+  }
+}
+async function connect(after = 0, allowAutoDisconnect = false) {
+  const connection = {
+    controller: new AbortController(),
+    manual: false,
+    done: false,
+    failed: false,
+    auto: allowAutoDisconnect && $("auto-disconnect").checked,
+  };
+  active = connection;
+  controls();
+  status(
+    after ? "Recovering from ID " + after + "…" : "Connecting…",
+    "streaming",
+  );
+  const started = performance.now();
+  try {
+    const response = await fetch("/api/run", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Last-Event-ID": String(after),
+      },
+      body: JSON.stringify({ runId: run.runId, message: run.message }),
+      signal: connection.controller.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error("HTTP " + response.status + ": " + text.slice(0, 600));
+    }
+    if (!response.headers.get("content-type")?.includes("text/event-stream"))
+      throw new Error("The response is not an SSE stream.");
+    status("Stream connected", "streaming");
+    const parser = createSseParser((frame) => {
+      if (connection.manual) return;
+      const id = frame.id === undefined ? null : Number(frame.id);
+      if (id !== null && Number.isSafeInteger(id) && id <= run.cursor) return;
+      let data;
+      try {
+        data = JSON.parse(frame.data);
+      } catch {
+        data = frame.data;
+      }
+      showFrame(frame, data);
+      if (id !== null && Number.isSafeInteger(id)) {
+        run.cursor = id;
+        save();
+      }
+      if (frame.retry !== undefined)
+        $("retry").textContent = "retry: " + frame.retry + " ms";
+      if (frame.event === "model.delta") {
+        assistantText += data.delta ?? "";
+        assistantBody.textContent = assistantText;
+      }
+      if (frame.event === "tool.pending")
+        status("Model preparing calc…", "streaming");
+      if (frame.event === "tool.started") status("Running calc…", "streaming");
+      if (frame.event === "tool.completed")
+        status("calc = " + data.value + " · model responding…", "streaming");
+      if (frame.event === "run.disconnected")
+        status("Confirmed: execution continued after disconnect", "streaming");
+      if (frame.event === "result") {
+        $("result").textContent = JSON.stringify(data, null, 2);
+        assistantText = data.message ?? assistantText;
+        assistantBody.textContent = assistantText || "Empty result.";
+        $("model-stats").textContent =
+          `${data.modelRequests ?? "—"} model requests · ${data.toolCalls ?? "—"} tool call${data.toolCalls === 1 ? "" : "s"}`;
+      }
+      if (frame.event === "error") {
+        connection.failed = true;
+        status("Execution failed — inspect the error event", "error");
+        $("result").textContent = JSON.stringify(data, null, 2);
+      }
+      if (frame.event === "done") {
+        connection.done = true;
+        connection.failed ||= data?.error === true;
+        status(
+          connection.failed
+            ? "Finished with an error"
+            : "Complete · result → done · " +
+                ((performance.now() - started) / 1000).toFixed(1) +
+                " s",
+          connection.failed ? "error" : "done",
+        );
+      }
+      controls();
+      if (connection.auto && frame.event === "tool.pending") {
+        connection.auto = false;
+        disconnect();
+      }
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parser.push(decoder.decode(value, { stream: true }));
+        if (connection.manual) break;
+      }
+      if (!connection.manual) parser.push(decoder.decode());
+    } finally {
+      if (connection.manual) await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+    if (!connection.done && !connection.manual)
+      status("Stream ended without done — you can resume", "error");
+  } catch (error) {
+    if (!connection.manual) status(error.message, "error");
+  } finally {
+    if (connection.manual)
+      status("Disconnected at ID " + run.cursor + " · execution can continue");
+    active = null;
+    controls();
+  }
+}
+$("form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (active) return;
+  const message = $("message").value.trim();
+  if (!message) return;
+  run = { runId: "chat-" + crypto.randomUUID(), message, cursor: 0 };
+  save();
+  bubble("user", message);
+  prepareView();
+  void connect(0, true);
+});
+$("disconnect").addEventListener("click", disconnect);
+$("recover").addEventListener("click", () => {
+  if (run && !active) void connect(run.cursor);
+});
+$("replay").addEventListener("click", () => {
+  if (run && !active) {
+    run.cursor = 0;
+    save();
+    prepareView(true);
+    void connect(0, false);
+  }
+});
+$("export").addEventListener("click", () => {
+  const href = URL.createObjectURL(
+    new Blob([JSON.stringify({ run, frames }, null, 2)], {
+      type: "application/json",
+    }),
+  );
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = run.runId + ".json";
+  link.click();
+  URL.revokeObjectURL(href);
+});
+$("source").addEventListener("toggle", async () => {
+  if ($("source").open && !$("source-code").dataset.loaded) {
+    try {
+      const response = await fetch("/component.txt");
+      if (!response.ok) throw new Error();
+      $("source-code").textContent = await response.text();
+      $("source-code").dataset.loaded = "true";
+    } catch {
+      $("source-code").textContent = "Unable to load the source.";
+    }
+  }
+});
+try {
+  const saved = JSON.parse(localStorage.getItem(storeKey));
+  if (
+    saved &&
+    typeof saved.runId === "string" &&
+    /^[a-zA-Z0-9_-]{1,80}$/.test(saved.runId) &&
+    typeof saved.message === "string" &&
+    Number.isSafeInteger(saved.cursor) &&
+    saved.cursor >= 0
+  ) {
+    run = saved;
+    bubble("user", run.message);
+    prepareView();
+    status("Saved run restored · choose Resume or Replay");
+  }
+} catch {}
+controls();

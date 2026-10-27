@@ -86,6 +86,7 @@
               "build/custom-nodejs",
               "build/web-ide",
               "build/studio-sessions",
+              "build/native-tests",
               "build/debugging"
             ]
           },
@@ -111,6 +112,7 @@
               "low-code/reference/storage",
               "low-code/reference/transport",
               "low-code/reference/agent",
+              "low-code/reference/sse",
               "low-code/reference/util"
             ]
           }
@@ -121,9 +123,13 @@
         "icon": "diagram-project",
         "groups": [
           {
-            "group": "Application interfaces",
+            "group": "Endpoints",
             "pages": [
               "operate/endpoints",
+              "operate/endpoint-http",
+              "operate/endpoint-sse",
+              "operate/sse-openai-example",
+              "operate/sse-browser-client",
               "operate/endpoint-configuration"
             ]
           },
@@ -298,6 +304,12 @@
           {
             "group": "Public releases",
             "pages": [
+              {
+                "group": "1.7.x",
+                "pages": [
+                  "changelog/1.7.0"
+                ]
+              },
               {
                 "group": "1.6.x",
                 "pages": [

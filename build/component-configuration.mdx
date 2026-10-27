@@ -13,7 +13,8 @@ This page is the field-level companion to [Components](/build/components). A Com
 | `name` | yes | Component display name; componentId is its durable identifier. In a library, it is a public namespace segment in `lib.LibraryName.ElementKey.member`; use a valid JavaScript identifier and treat a rename as a breaking change. |
 | `type` | yes | `CODE_JS`, `CODE_TS`, `CODE_JS_LIB`, `CODE_TS_LIB`, `JSON_VALIDATOR`, or `CUSTOM_NODEJS`. Type determines editor, validation, and deployment behavior. |
 | `active` | no | Set false to validate and review before making a low-code version selectable. |
-| `category`, `desc` | no | Operator-facing organization and context; do not use them as runtime identifiers. |
+| `category` | no | Organization key of at most 32 ASCII letters, digits or underscores; spaces are rejected. Pass `null` to clear it. It is not a runtime identifier. |
+| `desc` | no | Operator-facing explanation and context. |
 | `metadata` | no | JSON object, limited to 16 KiB and 64 top-level keys. Keys beginning `__` are reserved. Do not store secrets. |
 | access lists | policy-dependent | Restrict a component to selected users or groups when the default resource role boundary is too broad. |
 

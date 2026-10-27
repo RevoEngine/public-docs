@@ -18,6 +18,10 @@ Most control-plane failures include an HTTP status, timestamp, and message. Vali
 }
 ```
 
+Request DTO validation is rejected before the controller runs. These HTTP `400` responses retain their usual message fields and add `code: "REQUEST_VALIDATION_FAILED"`, `stage: "request.validation"`, `mutationApplied: false` and `executionDispatched: false`. Bounded `validationErrors` identify field paths and constraint names without copying submitted values. Correct the request before retrying; the marker does not grant permissions or skip the normal approval and idempotency rules.
+
+Do not infer the same no-write guarantee from an arbitrary business `400`, a partial result or a transport timeout. Those outcomes still require operation-specific evidence before retrying a mutation.
+
 ## Endpoint runtime errors
 
 Endpoint authors control part of the public contract. A component can deliberately return a status and body with `api.throw(...)`, so an application should follow that Endpoint's generated OpenAPI document.

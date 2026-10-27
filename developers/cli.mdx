@@ -48,6 +48,10 @@ revo request POST /api/v1/endpoints '{"name":"Example"}'
 
 `revo request` is a low-level escape hatch for authenticated Platform API calls. Prefer dedicated commands when they provide planning, confirmation, local state, or verification.
 
+## Native tests
+
+CLI **1.0.31 or newer** provides `revo tests list`, `run`, `resume` and `cancel` for captured fixture suites. Test local Component source without publishing it, or select stored suites with `--remote`. See [Native tests](/build/native-tests) for authoring, durable results, CI exit behavior and integration limits.
+
 ## Configuration precedence
 
 For the default client, configuration resolves in this order:
@@ -84,3 +88,17 @@ The interactive update notifier checks for a newer CLI release at most once ever
   <Card title="Environment promotion" icon="arrow-right-arrow-left" href="/developers/cli-environments" />
   <Card title="Connect a terminal" icon="terminal" href="/ai/terminals" />
 </CardGroup>
+
+## Submit a long schema change
+
+Normal Table push and full deploy submit durable Database Operations, wait for terminal success, and verify the resulting Table before moving their environment baseline. A failed or unreadable operation prevents later dependent phases from being deployed.
+
+To leave one schema operation running after the command exits:
+
+```bash
+revo database-tables push 'Sales/Orders#1234abcd' --yes --async --json
+```
+
+The result reports `status: "accepted"` with an `operation` containing `jobId` and its current status. Acceptance is not deployment success. Inspect that ID in Database Operations or with `revo request GET /api/v1/databases/operations/<jobId>`. After `FINISHED`, rerun normal push to verify the portable definition and reconcile the baseline.
+
+For a transport retry across invocations, pass `--idempotency-key <uuid>` with the same target, body and original optimistic version. Admission-only mode requires one explicit Table Stable Key; it cannot prune or use `--all`. Full deploy rejects `--async` because Views, Components and other consumers must wait for schema readiness. Existing reviewed plans and mutation approval requirements continue to apply.

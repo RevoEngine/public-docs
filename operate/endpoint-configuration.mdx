@@ -81,16 +81,27 @@ Native account, key, and permission administration still checks the caller's own
 | `customValidateResponse` | Safe replacement body for a validation failure. |
 | `validateHideResponse` | Hides detailed validation errors from callers. |
 | `response` | Static successful response body when `componentId` is omitted. |
-| `httpCode` | Successful response code (`200`–`299`). |
-| `noResult` | Suppresses a successful response body. |
+| `httpCode` | Successful HTTP response code (`200`–`299`). SSE streams use `200`; omit other success codes in SSE mode. |
+| `noResult` | Suppresses a successful HTTP response body or the automatic SSE result frame. |
 | `popResult` | Preferred response mode for a new Component-backed Endpoint with a body. Returns the exact named visible Component element result; the first character is normalized to uppercase. Do not infer a key such as `Main` or `Data`. |
 | `includeLibs`, `excludeLibs` | Runtime library selection. Prefer explicit necessary libraries. |
 | `skipLibs` | Skip shared-library loading when the Component does not need it. |
 | `hideRequest`, `hideResponse` | Limit request/response persistence in execution history; they do not prevent application code from logging the same value. |
-| `legacyResults` | Enables legacy response envelopes. Do not use for new contracts. |
+| `legacyResults` | Enables legacy HTTP response envelopes. Not supported in SSE mode. Do not use for new contracts. |
 | `memory` | Execution memory budget in MiB, up to 1024. |
+| `responseMode` | `http` (default) or `sse`. Both retain the same route, input, guards and execution policy. |
+| `sse.disconnect` | `cancel` (default), `continue` or `continue-and-notify`. Continuation uses the original deadline. |
+| `sse.resultEvent` | Automatic final result event name; default `result`. Set to `null` to disable it. |
+| `sse.errorEvent` | Automatic failure event name; default `error`. Set to `null` to disable it. |
+| `sse.doneEvent` | Automatic completion event name; default `done`. Set to `null` to disable it. |
 
 Prefer equivalent `enum`/`const`, type, length, numeric bounds and supported date/time rules before adding a regex to a guard. Even one simple pattern can roughly double request-preparation time or more for small inputs; this is not a fixed multiplier for total HTTP latency. Preserve required validation semantics and bound string length when a pattern is necessary. See [rule selection and measured examples](/low-code/json-validator#choose-explicit-rules-before-regex).
+
+For SSE, enabled automatic terminal event names must be distinct and cannot be used
+by authored events. A blank terminal-name control in the UI saves `null`. Configure
+a local JavaScript/TypeScript Component, omit static responses and legacy envelopes,
+and use `200` for the stream. See [SSE streams](/operate/endpoint-sse) for lifecycle,
+limits, custom protocols and recovery.
 
 ## A component-backed example
 

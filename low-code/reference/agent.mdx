@@ -8,7 +8,7 @@ icon: brackets-curly
   Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
 </Note>
 
-This page contains **46 methods**. Search the docs for an exact method name, or use this index:
+This page contains **48 methods**. Search the docs for an exact method name, or use this index:
 
 - [`agent.list()`](#agent-list)
 - [`agent.get()`](#agent-get)
@@ -43,6 +43,7 @@ This page contains **46 methods**. Search the docs for an exact method name, or 
 - [`agent.getSharedThreadMessageArtifact()`](#agent-getSharedThreadMessageArtifact)
 - [`agent.forkSharedThreadMessage()`](#agent-forkSharedThreadMessage)
 - [`agent.createThread()`](#agent-createThread)
+- [`agent.createResponse()`](#agent-createResponse)
 - [`agent.deleteThread()`](#agent-deleteThread)
 - [`agent.restoreThread()`](#agent-restoreThread)
 - [`agent.listThreadMessages()`](#agent-listThreadMessages)
@@ -55,6 +56,7 @@ This page contains **46 methods**. Search the docs for an exact method name, or 
 - [`agent.approveAction()`](#agent-approveAction)
 - [`agent.rejectAction()`](#agent-rejectAction)
 - [`agent.submitAction()`](#agent-submitAction)
+- [`agent.watchMessage()`](#agent-watchMessage)
 - [`agent.compactThread()`](#agent-compactThread)
 
 <span id="agent-list" aria-hidden="true"></span>
@@ -112,6 +114,14 @@ static create(data: AgentCreateInput): Promise<Agent>;
 const created = await agent.create({
   name: 'Ops copilot',
   serviceAccountUserId: userId,
+  config: {
+    systemInstructions: 'Translate each requested message to English.',
+    contextMode: 'minimal',
+    responseFormat: { type: 'json', strict: true, schema: {
+      type: 'object', properties: { translation: { type: 'string' } },
+      required: ['translation'], additionalProperties: false,
+    } },
+  },
 });
 ```
 
@@ -306,7 +316,8 @@ const runs = await agent.listRuns(agentId);
 
 ## `agent.getRun()`
 
-Returns one agent run.
+Returns one agent run. Read the complete validated terminal answer from result.output;
+result.summary is a bounded human-readable summary and must not be parsed as the JSON answer.
 
 ### Signature
 
@@ -317,6 +328,8 @@ static getRun(agentRunId: string): Promise<AgentRun>;
 
 ```ts
 const run = await agent.getRun(agentRunId);
+const json = run.status === 'FINISHED' && run.result?.output?.type === 'json'
+  ? run.result.output.json : undefined;
 ```
 
 <span id="agent-listRunEvents" aria-hidden="true"></span>
@@ -482,13 +495,14 @@ await agent.reconcileRuns();
 
 ## `agent.listThreads()`
 
-Lists assistant threads visible through the agent helper.
+Lists owned conversations. Set includeResponses:true to include retained technical responses.
+includeDeleted:true independently includes deleted owned threads; neither option grants additional access.
 
 ### Signature
 
 ```ts
 static listThreads(
-      query?: Record<string, any>,
+      query?: AssistantThreadQuery,
     ): Promise<CollectionResult<AssistantThread>>;
 ```
 ### Example
@@ -708,21 +722,70 @@ const fork = await agent.forkSharedThreadMessage(shareId, assistantMessageId);
 ## `agent.createThread()`
 
 Creates a new assistant thread and first message.
+Instructions, contextMode and responseFormat are immutable thread settings; follow-ups and Resume reuse them.
+Minimal retains instance-global/account standing instructions and security while omitting automatic context.
+Minimal admits only explicit toolNames or selected plugin routes. JSON schemas are strict and locally validated.
+message is the user input; assistantMessage.message is the final text, and output.json is validated JSON when requested.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static createThread(
       data: AssistantMessageInput,
     ): Promise<AssistantThreadResponse>;
+
+static createThread(
+      data: AssistantMessageInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
 ```ts
-const response = await agent.createThread({ content: 'Draft a release note.' });
+const response = await agent.createThread({
+  content: 'Siemka jestem testerem.',
+  instructions: 'Translate Polish to English. Return only the translation.',
+  contextMode: 'minimal',
+  responseFormat: { type: 'text' },
+  toolNames: [],
+});
+return response.assistantMessage?.message;
+```
+
+<span id="agent-createResponse" aria-hidden="true"></span>
+
+## `agent.createResponse()`
+
+Lightweight response; waits for a final answer or action-required pause.
+Defaults: minimal context, no tools/plugins. Explicit plugin selections require their callable router tools in toolNames.
+Reuses createThread model/identity selection and saved instructions/strict responseFormat.
+Backing kind=response is excluded from default list/search; persistThread=true makes an ordinary visible conversation.
+Both modes retain evidence. output.text/json contain the answer; message is the original input.
+Without stream options returns its original Promise. Unavailable with readOnly:true.
+
+### Overloads
+
+```ts
+static createResponse(data: AssistantResponseInput): Promise<AssistantThreadResponse>;
+
+static createResponse(
+      data: AssistantResponseInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Examples
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.' });
+return response.output?.text;
+```
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.',
+  responseFormat: { type: 'json', strict: true, schema: { type: 'object', properties: { translation: { type: 'string' } }, required: ['translation'], additionalProperties: false } } });
+return response.output?.json;
 ```
 
 <span id="agent-deleteThread" aria-hidden="true"></span>
@@ -791,16 +854,21 @@ const messages = await agent.listThreadMessages(assistantThreadId, { take: 50 })
 
 Sends a new message into an existing thread.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static sendMessage(
       assistantThreadId: string,
       data: AssistantMessageInput,
     ): Promise<AssistantThreadResponse>;
+
+static sendMessage(
+      assistantThreadId: string,
+      data: AssistantMessageInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -816,16 +884,21 @@ const response = await agent.sendMessage(assistantThreadId, {
 
 Retries one assistant message.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static retryMessage(
       assistantThreadId: string,
       assistantMessageId: string,
     ): Promise<AssistantThreadResponse>;
+
+static retryMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -908,10 +981,9 @@ const thread = await agent.renameThread(assistantThreadId, {
 
 Resolves an action-required checkpoint with an explicit payload.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static resolveAction(
@@ -919,6 +991,13 @@ static resolveAction(
       assistantActionRequiredId: string,
       data: AssistantActionResolutionInput,
     ): Promise<AssistantThreadResponse>;
+
+static resolveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      data: AssistantActionResolutionInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -934,10 +1013,9 @@ const response = await agent.resolveAction(assistantThreadId, actionId, {
 
 Approves an action-required checkpoint.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static approveAction(
@@ -945,6 +1023,13 @@ static approveAction(
       assistantActionRequiredId: string,
       options?: Omit<AssistantActionResolutionInput, 'decision'>,
     ): Promise<AssistantThreadResponse>;
+
+static approveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -958,10 +1043,9 @@ const response = await agent.approveAction(assistantThreadId, actionId);
 
 Rejects an action-required checkpoint.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static rejectAction(
@@ -969,6 +1053,13 @@ static rejectAction(
       assistantActionRequiredId: string,
       options?: Omit<AssistantActionResolutionInput, 'decision'>,
     ): Promise<AssistantThreadResponse>;
+
+static rejectAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -984,10 +1075,9 @@ const response = await agent.rejectAction(assistantThreadId, actionId, {
 
 Submits operator input for an action-required checkpoint.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
-### Signature
+### Overloads
 
 ```ts
 static submitAction(
@@ -995,6 +1085,13 @@ static submitAction(
       assistantActionRequiredId: string,
       options?: Omit<AssistantActionResolutionInput, 'decision'>,
     ): Promise<AssistantThreadResponse>;
+
+static submitAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
 ```
 ### Example
 
@@ -1004,14 +1101,27 @@ const response = await agent.submitAction(assistantThreadId, actionId, {
 });
 ```
 
+<span id="agent-watchMessage" aria-hidden="true"></span>
+
+## `agent.watchMessage()`
+
+Read-only message replay/tail in managed V8. Positive after requires its stream.policy generation.
+stream.replay.miss means refetch canonical state; never repeat a command to reconnect.
+Result is observation metadata, not AssistantThreadResponse. @localOnly
+
+### Signature
+
+```ts
+static watchMessage(assistantThreadId: string, assistantMessageId: string,
+      options: AssistantWatchOptions): Promise<ExecutionStream<AssistantMessageStreamCompletion>>;
+```
 <span id="agent-compactThread" aria-hidden="true"></span>
 
 ## `agent.compactThread()`
 
-Triggers thread compaction.
+Compatibility maintenance only; normal compaction is harness-owned.
 
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
+Requires `readOnly: false`.
 
 ### Signature
 

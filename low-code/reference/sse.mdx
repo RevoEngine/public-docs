@@ -1,0 +1,105 @@
+---
+title: SSE response reference
+description: Text and JSON events, comments, event IDs, reconnect hints, and remaining execution time.
+icon: brackets-curly
+---
+
+<Note>
+  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
+</Note>
+
+This page contains **5 methods**. Search the docs for an exact method name, or use this index:
+
+- [`sse.onDisconnect()`](#sse-onDisconnect)
+- [`sse.send()`](#sse-send)
+- [`sse.json()`](#sse-json)
+- [`sse.comment()`](#sse-comment)
+- [`sse.remainingTime()`](#sse-remainingTime)
+
+<span id="sse-onDisconnect" aria-hidden="true"></span>
+
+## `sse.onDisconnect()`
+
+Register one callback for continue-and-notify disconnect policy. Invoked at most once in the same isolate.
+Shares the original execution deadline; no extra time is granted. continue skips it and cancel disposes the isolate.
+Registration after disconnect still notifies once while execution remains alive. Callback failures appear in diagnostics.
+CPU-bound code, a hard timeout or process failure can prevent notification; this is not a durable cleanup guarantee.
+
+### Signature
+
+```ts
+static onDisconnect(callback: () => void | Promise<void>): void;
+```
+### Example
+
+```ts
+sse.onDisconnect(async () => { await api.setInstanceCache('connection-state', { disconnected: true }, 300); });
+```
+
+<span id="sse-send" aria-hidden="true"></span>
+
+## `sse.send()`
+
+Send text as SSE data. Await for backpressure, not acknowledgement by the receiver.
+
+### Signature
+
+```ts
+static send(data: string, options?: SseOptions): Promise<void>;
+```
+### Example
+
+```ts
+await sse.send('Hello', { event: 'delta', id: '1', retry: 3000 });
+```
+
+<span id="sse-json" aria-hidden="true"></span>
+
+## `sse.json()`
+
+Serialize JSON and send it as SSE data. Configured automatic terminal event names are reserved; null disables a terminal frame.
+
+### Signature
+
+```ts
+static json(data: JsonValue, options?: SseOptions): Promise<void>;
+```
+### Example
+
+```ts
+await sse.json({ current: 1, total: 10 }, { event: 'progress', id: '1' });
+```
+
+<span id="sse-comment" aria-hidden="true"></span>
+
+## `sse.comment()`
+
+Send a multiline-safe comment. The host also emits automatic heartbeats.
+
+### Signature
+
+```ts
+static comment(text: string): Promise<void>;
+```
+### Example
+
+```ts
+await sse.comment('Working');
+```
+
+<span id="sse-remainingTime" aria-hidden="true"></span>
+
+## `sse.remainingTime()`
+
+Remaining execution budget in milliseconds, never negative.
+
+### Signature
+
+```ts
+static remainingTime(): number;
+```
+### Example
+
+```ts
+const remainingMs = sse.remainingTime();
+```

@@ -1,0 +1,127 @@
+---
+title: Native tests
+description: Test captured JavaScript and TypeScript Component source with repeatable fixtures, durable results and optional Studio candidate evidence.
+icon: flask-vial
+---
+
+Native tests verify Component behavior against a captured set of source files and dependencies. Use them before sharing a change, in CI, or while reviewing a [Studio session](/build/studio-sessions#test-and-review). A test suite is a **JavaScript Test** (`CODE_JS_TEST`) or **TypeScript Test** (`CODE_TS_TEST`) Component with ordinary source history; it cannot run as a Job or Endpoint.
+
+Independent fixture runs do not create a Studio session, save local changes, or activate runtime. Session tests instead provide evidence for the saved candidate being reviewed. A passing independent run does not approve deployment.
+
+## Author a suite
+
+Create a target Component named **Order pricing**. This example returns a zero total for an empty order and validates input before using it:
+
+```javascript
+const input = api.input();
+if (!input || typeof input !== 'object' || !Array.isArray(input.items)) {
+  throw new Error('items must be an array');
+}
+let totalCents = 0;
+for (const item of input.items) {
+  if (!item || !Number.isSafeInteger(item.quantity) || item.quantity <= 0
+      || !Number.isSafeInteger(item.priceCents) || item.priceCents < 0) {
+    throw new Error('Each item needs a positive quantity and nonnegative priceCents');
+  }
+  totalCents += item.quantity * item.priceCents;
+}
+if (!Number.isSafeInteger(totalCents)) throw new Error('Order total is too large');
+return { totalCents };
+```
+
+Create **Order pricing tests** as a JavaScript Test or TypeScript Test Component. Set its `testConfig` to declare the exact target names and reusable JSON inputs:
+
+```json
+{
+  "mode": "fixture",
+  "targets": ["Order pricing"],
+  "fixtures": {
+    "empty": { "items": [] }
+  }
+}
+```
+
+In its test element, await each named case and assertion. This JavaScript example expects the target's return value in its `Main` element:
+
+```javascript
+await test.case('empty order has no charge', async () => {
+  const input = await test.fixture('empty');
+  /** @type {{results: {Main: {totalCents: number}}}} */
+  const result = await test.runComponent('Order pricing', input);
+  await test.assertEqual(result.results.Main.totalCents, 0);
+});
+```
+
+TypeScript suites use the same API; use `test.runComponent<ResultType>(name, input)` to describe a known result and runtime guards when reading unknown input. `test.readComponent(name)` reads a declared target's captured source. Neither operation silently loads later production edits.
+
+`test.runComponent` passes its input unchanged to `api.input()`. If the target reads an Endpoint-style `api.input().body`, provide a fixture containing `body`; a flat business fixture is also valid. Native PASS does not replace TypeScript editor diagnostics or runtime input validation.
+
+## Test an existing Component
+
+Read the existing Component's metadata and actual element source before writing its suite. Use its exact name in `testConfig.targets`, assert fixed business expectations, and preserve the visible output element key. Testing a copy of its algorithm without invoking the captured Component is not evidence that the Component passed.
+
+An independent run can include a complete unchanged portable target overlay with the observed `baseVersion`, plus the new test suite. Include `baseDigest` only if the platform returned the canonical portable digest. A hash of a source excerpt is not interchangeable. A stale supplied pin rejects capture; re-read before creating a new operation. A normal JavaScript/TypeScript target may retain its explicitly nullable `testConfig: null`; the native test suite still needs a valid configuration object for execution. This workflow does not edit, activate or publish the existing target. Saved-session execution instead evaluates that session's saved revision.
+
+MCP clients can discover the `component-testing` guide in [the skill catalogue](/developers/mcp-resources-and-prompts#select-a-workflow-before-loading-its-instructions). It covers source inspection, suite configuration, execution and evidence.
+
+## Run from Studio or the CLI
+
+In Studio, open **Tests** to browse compact suite rows with the same search and opening behavior as Types and Libraries. **Current context** limits the list to the active test or tests targeting the selected Component; **All tests** opens the global catalogue. Local source and saved suites are identified separately. Use the play action on a row to run it immediately. The **Open in floated window on click** preference chooses floated results or the inline lower results pane.
+
+For a selected Component, **Current context** checks every catalogue page automatically so matching suites are not limited to the first page. The list shows a discovery state until that check finishes. **All tests** remains paginated, and Scratch does not automatically show unrelated global suites. Opening Studio does not download every test source.
+
+When editing a JavaScript Test or TypeScript Test Component, the ordinary editor **Run** action captures and runs its current source, including unsaved changes. This fixture preview does not require saving the Component. The snapshot includes its effective local targets and dependencies; later edits mark previous evidence **Source changed**. A preview in a session does not replace its saved [candidate test and review evidence](/build/studio-sessions#test-and-review).
+
+Results show cases, assertions, duration and bounded diagnostic entries written through `api.log`, associated with the originating Component and active case when available. Omitted log entries are counted separately; log messages cannot manufacture a passing assertion. In **Component Details**, the dedicated test configuration section provides mode selection, searchable target Component selectors and a Monaco JSON editor for named fixtures.
+
+**Captured fixtures** in the result view shows the named input data retained for that exact suite and source snapshot. It is available in both Studio and the ordinary debugger; later edits to the fixture configuration do not change an earlier result. Use the shared Copy and Fullscreen actions to inspect the JSON. The preview displays at most 20 entries, 8,192 characters per entry and 32,768 characters of JSON text overall, with explicit truncation and omitted-entry notices. These are configured fixture inputs; a case can also construct its own arguments dynamically.
+
+The official CLI requires **version 1.0.31 or newer**, a configured workspace and access to the target instance. Local commands use Component manifests and element files in that workspace:
+
+```bash
+revo tests list --workspace .
+revo tests run "Order pricing tests" --workspace . --timeout 10 --json
+revo tests run --all --workspace . --json
+```
+
+Use `--remote` to select stored suites instead of local source. Do not combine it with `--workspace`. Collections run fixture suites in batches of at most 20.
+
+```bash
+revo tests run "Order pricing tests" --remote --no-wait
+revo tests resume RUN_ID --json
+revo tests cancel RUN_ID --json
+```
+
+Retain the returned `runId`. `--no-wait` confirms capture, not a passing test. Resume continues queued work or reads retained results. Completed CLI runs exit zero only when cases and assertions pass; failed, incomplete, unavailable, aborted and cancelled results are nonzero. Running tests does not publish Component source or change deployment state.
+
+## Use the Platform API
+
+The Platform API supports the same independent fixture workflow:
+
+| Operation | Purpose |
+| --- | --- |
+| `GET /api/v1/native-tests` | Page available suites by name. |
+| `POST /api/v1/native-tests/runs` | Capture selected suites and optional complete local source overlays. |
+| `POST /api/v1/native-tests/runs/{runId}/execute` | Execute the next queued suite. Repeat while work remains queued. |
+| `GET /api/v1/native-tests/runs/{runId}` | Read the retained status, cases and assertions. |
+| `POST /api/v1/native-tests/runs/{runId}/cancel` | Prevent remaining queued execution and preserve cancellation. |
+
+Capture accepts `operationId`, `testComponentNames` and optional `components` and `timeout`. Generate one operation UUID for new work; retry identical capture input with the same value. Optional source-version checks reject changed bases before execution. Requests and results require current Component access and ownership of the run; knowing its ID does not grant access. See the [Platform API reference](/api-reference/introduction) for exact schemas and authentication.
+
+## Understand the result and limits
+
+Complete terminal execution results already provide case and assertion evidence. Reuse that result rather than issuing identical reads to obtain the same proof. Refresh a queued/running result after its state changes, or retrieve genuinely missing evidence. Repeating the same request cannot restore a truncated model preview; use supported narrower retrieval or state the evidence limitation. An expected failed native case and a failed tool call are separate outcomes.
+
+A failure before the first assertion can include the captured Component or library, element and mapped location with a bounded, redacted cause. Host paths, raw source and credentials are excluded. Read the saved case error before changing the test; a zero-assertion failure remains a failure.
+
+Target elements must explicitly read inputs through `api.input()`. The object passed to `test.runComponent(name, inputs)` is passed unchanged: a target reading `api.input().templateInputs.value` needs input shaped as `{templateInputs: {value: 40}}`.
+
+A **PASSED** result requires completed cases and assertions. An empty suite, a case without assertions, or unfinished work cannot establish success. Source edits after capture do not change the retained run, and an older run cannot satisfy a changed session candidate's deployment policy.
+
+Fixture execution replaces platform effects with explicitly matched effect fixtures. An unmatched effect fails before dispatch; matching the scope, method and complete arguments returns static JSON without executing the real effect. Fixture writes do not automatically change later read fixtures. Use reviewed session integration tests when you need to verify actual external effects, database behavior or integration permissions. Standalone CLI and API runs accept fixture suites only.
+
+Each suite defaults to a 10-second deadline, configurable up to 60 seconds. One API capture selects at most 20 suites and 100 source Components with an 8 MiB captured-source limit. Targets resolve by exact captured names.
+
+Custom Node.js targets currently use a restricted test adapter: Node builtins, installed npm packages, host files, binary/streaming effects and remote execution are not supported. A local PASS does not prove native Node or remote-provider compatibility. Cancellation cannot undo integration effects already dispatched by an approved session run.
+
+Continue with [Component configuration](/build/component-configuration), [Studio sessions](/build/studio-sessions#test-and-review) and [Debugging](/build/debugging).

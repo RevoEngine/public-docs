@@ -17,7 +17,7 @@ icon: node-js
 - `batch` for configuring automatic runtime-call batching.
 
 ```bash
-npm install @revoengine/sdk@1.6.7
+npm install @revoengine/sdk@1.6.8
 ```
 
 ## Choose a runtime mode
@@ -74,7 +74,7 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 The execution mode is immutable. Pass `readOnly` in sandbox/execute requests; `api.enableDebug()` and `api.disableDebug()` are removed. External HTTP remains real in read-only mode. Native service-account mutations use current IAM, management ACL, target rank and delegation checks. Key create/rotate return the usable credential once; metadata reads never recover it. See [Service accounts](/operate/service-accounts).
 
-New hosted Components currently pin SDK **1.6.7**. SDK and platform versions are independent; do not infer compatibility by matching their version numbers. Newly created hosted Components use the pinned SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+Prepared platform 1.7.0 uses SDK **1.6.8** for new hosted Components. SDK and platform versions are independent; do not infer compatibility by matching their version numbers. Newly created hosted Components use the pinned SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 

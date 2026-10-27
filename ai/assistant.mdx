@@ -67,13 +67,174 @@ A thread preserves the visible conversation and the runtime state needed to cont
 
 - rename, search, delete, and restore threads;
 - organize threads in personal, instance-scoped groups, move them between groups, and collapse groups while browsing the history;
-- continue a completed thread with new instructions;
+- continue a completed thread with follow-up messages;
 - refine the requested outcome through follow-up messages and reviewable execution plans;
 - share a read-only thread view;
 - fork from a selected message to explore another direction without rewriting the source thread;
 - inspect message-level execution details and retained artifacts.
 
 Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store. Groups are a personal navigation preference; moving a thread between them does not change the thread's access or ownership. Older threads load in additional pages.
+
+## Create a focused conversation
+
+Use **+ → Custom** in the Assistant composer, or type **`/custom`**, to configure a translation, classification, extraction or other custom AI conversation. The configurator lets you set instructions, context mode, answer format, tools and approval policies. For strict JSON, enable **Require a strict JSON schema**. An empty schema starts with an editable example automatically; the Monaco editor provides completion and inline validation. The server checks the complete configuration before applying it.
+
+The configurator and saved preview use a fixed extra-large dialog with **General**, **Response**, **Tools & permissions** and **Contract** tabs. Form values and the schema editor are preserved when switching tabs. The **Contract** tab uses the standard read-only code editor with Copy and Full screen actions. Its portable JSON contains the current form settings; **Use context** validates the complete configuration with the server before applying it. Individual instructions and schemas can also be copied. Add the first message as `content` when using the copied settings with `agent.createThread`. Thread IDs, ownership and runtime metadata are excluded.
+
+Applying creates a local draft. Its **Custom** action remains editable until the first message is sent. Choose **Don't use custom** to remove that draft configuration while keeping your typed message. Escape or clicking outside dismisses the configurator; dirty changes require confirmation. **New thread → More options → New custom thread** opens the same configurator before creating a draft. Opening the configurator from an existing conversation starts a separate draft and preserves the original conversation. After the first message, the saved settings are read-only.
+
+Application code can create the same conversation with `agent.createThread`. The same thread can accept later messages and Resume while preserving its creation-time instructions and final-answer format.
+
+```js
+const result = await agent.createThread({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English.',
+  contextMode: 'minimal',
+  responseFormat: {
+    type: 'json',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: { translation: { type: 'string' } },
+      required: ['translation'],
+      additionalProperties: false,
+    },
+  },
+  toolNames: [],
+  pluginIds: [],
+  backgroundProcessing: false,
+});
+return result.output.json;
+```
+
+Choose context according to the work:
+
+| Mode | Use it for | Automatic context |
+| --- | --- | --- |
+| `minimal` | Translation, extraction, classification, a dedicated application wrapper or your own tool harness. | Omits automatic application context, memory and plugin discovery. Select the tools and plugins the task requires. |
+| `platform` | Normal platform-aware Assistant work across authorized Components, data and operations. | Includes standard platform context and automatic discovery. |
+
+Both modes keep instance-global instructions, the execution account's standing instructions, permissions and runtime safety rules. Minimal context does not create an ungoverned execution environment. A wrapper invoked by an Endpoint or Job follows its configured caller or service-account identity; explicitly selected capabilities still require that account's access and approval. Applications using a shared service account must authorize their own business-user-to-conversation mapping.
+
+The UI lists current tools and their availability, including required dependencies. Tool selection never grants permissions or bypasses approval. An empty `toolNames` array explicitly selects no tools. Plugin callables are selected with `pluginIds`. The configuration catalogue and read-only validation operations are available in the Platform API.
+
+Conversation and per-tool approval policies are `default`, `auto_review` and `full`. Instance security blocks, account/resource access and current runtime availability still apply when each tool runs, including after approval or Resume.
+
+### Structured JSON answers
+
+Use `{ type: 'text' }` for text, `{ type: 'json' }` for a JSON object, or add `schema` for a strict object response. A schema must require every property and set `additionalProperties: false` on every object. Nullable properties can represent optional values. Only local schema references are accepted. Unsupported or oversized schemas are rejected before model execution. Custom regular-expression patterns are unsupported; use length constraints or standard string formats instead. Instructions are limited to 16 KiB including their safe rendering; schemas are limited to 32 KiB. An incomplete response, refusal or schema violation fails the turn rather than returning a successful parsed object.
+
+For configured conversations, `output.text` contains the final answer and JSON responses also expose `output.json`. `assistantMessage.message` remains the final answer text; `message` is the input user message. Approval or clarification can pause a tool-enabled conversation before a final output is available. Background execution returns before the final result.
+
+Forks owned by the same account preserve the complete contract. When another account forks a shared view, its new conversation keeps the public context and response type; private source instructions and the strict schema are not copied.
+
+A conversation linked to a Studio workspace keeps that binding. After deployment, continue the workspace in a new child and explicitly fork an owned Assistant response into that child to retain private conversation context. Fresh editing membership is required, and a bound source can target only its direct child. Inherited private history is not published to session members. The original conversation remains linked to the archived workspace with read access to retained evidence; it cannot make further changes there. See [Studio coding sessions](/build/studio-sessions).
+
+The context mode, instructions and format are immutable. Follow-ups may omit them or repeat the same values; changing them requires a new thread. In the browser, **Custom** beside the model selector opens a read-only preview of the saved context, format, instructions and tool selection. Users can type ordinary follow-ups; JSON answers are displayed literally, including partial streaming output, without interpreting their strings as Markdown or widgets.
+
+Identical instructions and configuration can reuse the prompt prefix across new conversations within the same instance and execution account. The shared prefix has a cache boundary before conversation-specific runtime context. Model, effective reasoning effort, tool definitions, instructions and output-schema changes can select a different cache lane. Every message still executes. On supported GPT-5.6 and later models, a reusable prefix must contain at least 1,024 visible input tokens; shorter shared prefixes can report zero cached tokens. Exact-prefix matching and provider cache availability still apply. See the [OpenAI prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching).
+
+Under saved service-account execution, that account owns the conversation and executes its tools. The external Endpoint caller remains the audit initiator and does not receive platform access or private conversation access. The Endpoint must authorize each business user's thread access before accepting a thread ID, because all calls using one service account share its ownership. Caller-mode execution keeps the caller's ownership. See the [generated Agent API reference](/low-code/reference/agent#agent-createThread) for the complete contract.
+
+## Small responses from application code
+
+Use `agent.createResponse` for a translation, classification, extraction or other
+small task. It uses the same execution account, instructions and answer contract
+as `agent.createThread`, with `minimal` context and empty tool/plugin selections
+when those options are omitted. This avoids loading automatic application context,
+memory and plugin discovery. Required global/account instructions and security
+still apply. You can explicitly select additional capabilities when needed. When
+selecting plugins, also include their callable router tools in `toolNames`.
+
+```js
+const result = await agent.createResponse({
+  content: 'Siemka, jestem testerem.',
+  instructions: 'Translate Polish to English. Return the translation only.',
+});
+return result.output.text;
+```
+
+Use `responseFormat: { type: 'json' }` to return a JSON object. Add a supported
+strict `schema` to constrain that object's properties, just as with a focused
+conversation. For example, ask for a JSON Schema as data using JSON output, then
+validate that schema before using it. A response schema constrains the returned
+answer; it does not automatically validate a schema contained inside the answer.
+
+The call waits for the result unless `backgroundProcessing: true` is selected.
+Read the final `output.text` or `output.json`; `message` is the original user input.
+An explicit model or reasoning setting uses the normal configuration rules.
+Tool-enabled requests can pause for approval or clarification before producing
+final output. Managed V8 Components can instead request the streaming overload described below.
+
+Responses retain a conversation and messages. In the thread menu, **Show
+Responses** defaults off; enable it to include them in the thread list and
+conversation search. This account preference persists across reloads and does not
+change access or delete retained history. Response titles use italics and an
+accessible response label. **Show Deleted** is a separate preference.
+Authorized owners can open a response directly and continue it with the saved
+instructions and output format. Setting `persistThread: true` explicitly creates
+an ordinary conversation that appears without enabling Show Responses.
+Historical responses that were already hidden through deletion retain their
+previous classification. See the [generated method reference](/low-code/reference/agent#agent-createResponse)
+for all arguments.
+
+## Stream an Assistant call from a Component
+
+Managed V8 Components can request events while an Assistant invocation runs.
+`createThread`, `createResponse`, `sendMessage`, `retryMessage`, `resolveAction`,
+`approveAction`, `rejectAction`, and `submitAction` accept final stream options.
+The hosted SDK keeps its existing Promise calls.
+
+```ts
+const stream = await agent.createResponse(
+  { content: 'Translate: dzień dobry', instructions: 'Translate Polish to English.' },
+  { responseType: 'stream', streamFormat: 'sse' },
+);
+try {
+  for await (const frame of stream.data) {
+    // data is text. Decode only event schemas your application understands.
+    if (frame.event === 'message.delta') {
+      const event = JSON.parse(frame.data);
+      api.log(event.delta);
+    }
+  }
+  return await stream.result;
+} finally {
+  await stream.close();
+}
+```
+
+The first await returns the handle before completion. Its `result` contains the
+same typed response as the ordinary method; the `result` event is only an
+availability notice. An approval or clarification pause ends the invocation with
+`actionRequired`. Resolve that action explicitly and consume its continuation.
+For resolution convenience methods, keep the resolution-options argument before
+the stream options, using `undefined` when omitted.
+
+Always consume or close the stream. Each execution permits four handles, with
+64 queued frames and a 1 MiB queue/frame ceiling. Overflow ends observation.
+Close or an early loop break detaches observation and rejects a pending result;
+accepted work can continue only within the original execution budget. Completion
+or cancellation of the owning Component cleans up its request-bound work.
+Use the explicit cancellation operation when business cancellation is intended.
+
+To reconnect, call `agent.watchMessage` with the original thread and Assistant
+message IDs. Pass the numeric `after` cursor and its `generation` from
+`stream.policy`; a positive cursor requires that generation. This operation only
+observes retained events and is allowed in read-only execution. Its result is
+observation metadata, including `replayMiss`, `actionRequired`, `error` and the last
+cursor, rather than a reconstructed execution response. Retention gaps, generation
+changes or unavailable replay require canonical conversation refetch. Never repeat
+a create, send or resolution command merely to reconnect. Access is checked again
+while reading and before result delivery.
+
+When relaying events through an SSE Endpoint, prefix or envelope child event names
+such as `ai.done`. Only the Endpoint owner emits its final completion event.
+Context compaction is managed automatically by the Agent Harness; this workflow
+does not require a manual compaction call.
+
+See the [generated Agent reference](/low-code/reference/agent) for exact overloads
+and [Endpoint streaming](/low-code/http) for response ownership.
 
 ## Charts, diagrams and tables in answers
 
@@ -257,10 +418,13 @@ The models available to the Assistant are controlled by the current RevoEngine r
 
 | Model | Interactive Assistant | Autonomous Agents | Fast Mode |
 | --- | --- | --- | --- |
-| **GPT-6 Sol** | Supported | Supported | Optional for interactive Assistant work |
+| **GPT-6.1 Sol** | Supported | Supported | Not supported |
+| **GPT-6.1 Terra** | Supported | Supported | Not supported |
 | **GPT-6 Luna** | Supported | Supported | Optional for interactive Assistant work |
 
-Select Fast Mode for either GPT-6 model when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected. Autonomous Agent runs use Standard processing. Existing active GPT-5.6 Sol choices migrate to GPT-6 Sol; Terra and Luna choices migrate to GPT-6 Luna. Historical messages and usage keep their actual model identity.
+Select Fast Mode for GPT-6 Luna when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected; GPT-6.1 Sol, GPT-6.1 Terra and autonomous Agent runs use Standard processing. An explicit Fast Mode request with an unsupported model is rejected. Existing active GPT-5.6 Sol and GPT-6 Sol choices resolve to GPT-6.1 Sol; GPT-5.6 Terra and Luna choices resolve to GPT-6 Luna. Historical messages and usage keep their actual model identity.
+
+The SDK and Platform API also accept `reasoningEffort: 'none'`. GPT-6.1 Sol uses Low reasoning for that setting; GPT-6.1 Terra and GPT-6 Luna retain None. Model and reasoning settings follow the same validation in synchronous and streaming requests.
 
 Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
 

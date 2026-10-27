@@ -102,3 +102,9 @@ test('standard browser AbortController is public while implementation classes re
   assert.deepEqual(publicTextPrivacyIssues('const controller = new AbortController();'), []);
   assert.ok(publicTextPrivacyIssues('AssistantController').includes('private implementation prose'));
 });
+
+// OpenAI request parameters are a public contract; internal runtime prose remains private.
+test('public OpenAI output token settings are allowed without admitting internal executor details', () => {
+  assert.deepEqual(publicTextPrivacyIssues('max_output_tokens: 1200'), []);
+  assert.ok(publicTextPrivacyIssues('OpenAI Responses max_output_tokens ceiling for normal agent-gateway executor requests.').includes('private implementation prose'));
+});

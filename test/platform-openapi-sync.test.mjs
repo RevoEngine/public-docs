@@ -338,3 +338,21 @@ test('browser profile metadata operations retain personal-session semantics and 
   assert.match(published.paths['/api/v1/vault/browser-profiles'].get.description, /personal browser session/i);
   assert.deepEqual(auditPlatformOpenApi(published, source), []);
 });
+
+
+test('published Assistant creation and continuation preserve the complete persisted task contract', () => {
+  for (const file of ['../api-reference/source/platform.openapi.json', '../api-reference/openapi.json']) {
+    const document = JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
+    for (const name of ['CreateThreadDto', 'CreateMessageDto', 'CreateThreadlessResponseDto']) {
+      const properties = document.components.schemas[name].properties;
+      assert.equal(properties.instructions.maxLength, 16000);
+      assert.deepEqual(properties.contextMode.enum, ['platform', 'minimal']);
+      assert.deepEqual(properties.responseFormat.allOf, [{ $ref: '#/components/schemas/AssistantResponseFormatDto' }]);
+    }
+    const format = document.components.schemas.AssistantResponseFormatDto;
+    assert.deepEqual(format.properties.type.enum, ['text', 'json']);
+    assert.ok(format.required.includes('type'));
+    assert.deepEqual(format.properties.strict.enum, [true]);
+    assert.equal(format.properties.schema.additionalProperties, true);
+  }
+});

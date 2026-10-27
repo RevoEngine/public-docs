@@ -48,7 +48,7 @@ The service account is the runtime identity. The Agent can only read or change w
     Select a service-account user with least privilege. Assign the Agent to the appropriate user or group owner.
   </Step>
   <Step title="Configure runtime behavior">
-    Choose the model, reasoning effort, execution mode, planning policy, and persistent Agent instructions. GPT-6 Sol and GPT-6 Luna are the supported model choices; autonomous runs use Standard processing. Set concurrency and run limits for the expected workload. See the [current model support table](/ai/assistant#current-model-support) for the shared Assistant and Agent matrix.
+    Choose the model, reasoning effort, execution mode, planning policy, and persistent Agent instructions. GPT-6.1 Sol and GPT-6 Luna are the supported model choices; autonomous runs use Standard processing. Choose platform or minimal context, then use **Response** for text, JSON, or JSON with a strict schema. Set concurrency and run limits for the expected workload. See the [current model support table](/ai/assistant#current-model-support) for the shared Assistant and Agent matrix.
   </Step>
   <Step title="Select capabilities">
     Enable the platform tools and attach only the plugins required by the mission. Choose **Restricted**, **Auto Review**, or **Full Access** as the default permission level, then add narrower capability-specific settings where needed.
@@ -113,7 +113,7 @@ Autonomous Agents use managed RevoEngine capabilities, attached plugins, Storage
 
 The conversation list uses the same compact navigation as Threads, grouped by Agent. Drag Agent groups to change your personal order; avatar status markers show whether an Agent is active, paused, or disabled. The compact Assistant provides Threads, Agents, and Plugins through the list menu, with search scoped to the selected conversation view. Agent conversations open in its shared tab strip. Each conversation has an options menu for **Archive**. Finish or cancel active work before archiving; archiving hides the conversation while retaining its durable Runs.
 
-- **Configure** opens the management panel for general, identity, runtime, tools, plugins, memory, and terminals. Agents inherit active instance default plugins, can attach additional plugins, and can select which attached plugins load at the start. The panel first opens at three-quarters width and remembers your resize. **Save** includes validation details when required fields are missing.
+- **Configure** opens the management panel for general, identity, runtime, response, tools, plugins, memory, and terminals. Agents inherit active instance default plugins, can attach additional plugins, and can select which attached plugins load at the start. The panel first opens at three-quarters width and remembers your resize. **Save** includes validation details when required fields are missing.
 - **Inbox** opens queued work, its generated or supplied title, readable priority, availability time, and claim state.
 - **Storage** opens the workspace file explorer directly.
 - **Observability → Agents** provides **Overview** and **Runs**. Overview includes task outcomes, model and token usage, and workspace totals for storage usage, files, folders, and file types. Storage totals include accessible active and archived files, without counting folder sizes twice.

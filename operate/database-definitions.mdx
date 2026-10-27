@@ -155,3 +155,15 @@ Use **Export** for a governed CSV, TSV, NDJSON or XLSX artifact in Storage, **Cl
 - [Database Views](/operate/database-views)
 - [Materialized Views](/operate/materialized-views)
 - [Traces and correlation](/operate/traces)
+
+## Follow a schema change to completion
+
+Table and partition creation, definition changes and index changes run as durable **Database Operations**. An accepted change continues if the client disconnects. The current definition and version stay authoritative until the physical change is verified and committed; the requested definition stays with its operation while work is pending.
+
+Platform API callers can request a short acceptance response with `async=true` on the Table create or update operation. Send a caller-generated UUID in the `Idempotency-Key` header. HTTP 202 returns `{ "accepted": true, "jobId": "…", "status": "PENDING" }`. Poll the corresponding Database Operation until `FINISHED`, then read back the Table before deploying a dependent View, Component or application. Without `async=true`, the API waits and returns the completed Table as before.
+
+If a response is lost, retry the **same body, target and base version with the same key**. Do not refresh the optimistic version or create a second operation merely because an HTTP call timed out. A different change needs a new key. A failed operation with a confirmed rollback leaves the earlier schema intact; an uncertain connection outcome remains recoverable until its transaction is resolved. Inspect Operations rather than assuming that a timeout means failure. If physical columns, their types or index readiness no longer match the accepted base, the operation pauses with `ACTION_REQUIRED` and keeps the schema reservation. Reconcile that physical state before retrying the same operation; it will check the pinned base again.
+
+Schema changes to the same Table or partition tree are serialized. Ordinary reads and writes are not blocked by the operation reservation, but the database change itself can take locks: standard index builds can block writes, and a heavy `ALTER TABLE` can require stronger locks. Queued schema work can be cancelled. Running DDL must finish or roll back before the reservation is released; lease expiry alone does not make it safe to cancel or start another builder.
+
+The CLI normally waits for completion and verified readback. For one Table, `revo database-tables push '<stableKey>' --yes --async --json` returns acceptance and leaves the deployment baseline unchanged. Inspect the returned operation, then rerun normal push after completion to verify and reconcile that baseline. Full deploy always waits for schema readiness before dependent resources. Low-code schema helpers also wait for durable completion outside an explicit caller transaction; an explicit update transaction keeps its existing synchronous atomic boundary and transaction budget.
