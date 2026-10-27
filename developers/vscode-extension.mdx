@@ -48,6 +48,8 @@ You can also install **RevoEngine Platform Tools** from the VS Code Extensions v
   </Step>
 </Steps>
 
+In extension **1.0.18 or newer**, opening a folder and rendering Workspace, Search, Components, Debugger or Results does not initialize a project. The extension reads existing state without creating `.revoengine` or rewriting debugger settings. Use **Initialize Workspace** or `revo project init` explicitly before saving debugger settings, debugging or automatic formatting. Existing files remain available.
+
 ## What the extension adds
 
 | View or capability | What it does |
@@ -57,7 +59,7 @@ You can also install **RevoEngine Platform Tools** from the VS Code Extensions v
 | **Search** | Searches local component names, identifiers, categories, descriptions, and element files, then opens the matching source. |
 | **Sync** | Builds a local change plan against the last synchronized baseline. In Git workspaces it keeps Git as the branch-conflict authority. |
 | **Debugger** | Runs a selected component or temporary JavaScript/TypeScript source through the CLI, streams logs, and saves result evidence locally. |
-| **Library navigation** | Enables definition navigation for `lib.LibraryName.ElementKey.member` references using generated metadata. |
+| **Library navigation** | Opens library members from `lib.LibraryName.member`, `lib.LibraryName.ElementKey.member` and `lib.LibraryName['@default'].member` references using generated metadata. |
 | **TypeScript support** | Keeps normal TypeScript diagnostics and IntelliSense while recognizing RevoEngine's valid top-level-return component wrapper. |
 
 ## Local project model
@@ -78,6 +80,12 @@ Components/
 ```
 
 `component.json` is the local component manifest. Element files are ordered by the manifest and use names derived from their element keys. The extension keeps a last-synced baseline under `.revoengine/baselines/` solely for local review; it is not a replacement for Git or the platform's version history.
+
+## Review a Studio session
+
+Use **RevoEngine: Review Studio Session** to open a changed working file in the read-only comparer, including source removed from the session. Run the command again to load its current snapshot. **RevoEngine: Stage Studio Session from JSON** submits a complete draft through the CLI and copies the new session ID. It does not approve, commit or activate the draft.
+
+These commands require CLI **1.0.31 or newer** and an instance with Platform **1.7.0** Studio enabled. Continue tests, review and activation in [Studio sessions](/build/studio-sessions).
 
 ## Git-first synchronization
 

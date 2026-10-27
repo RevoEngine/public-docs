@@ -4,6 +4,8 @@ description: Test captured JavaScript and TypeScript Component source with repea
 icon: flask-vial
 ---
 
+<Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
+
 Native tests verify Component behavior against a captured set of source files and dependencies. Use them before sharing a change, in CI, or while reviewing a [Studio session](/build/studio-sessions#test-and-review). A test suite is a **JavaScript Test** (`CODE_JS_TEST`) or **TypeScript Test** (`CODE_TS_TEST`) Component with ordinary source history; it cannot run as a Job or Endpoint.
 
 Independent fixture runs do not create a Studio session, save local changes, or activate runtime. Session tests instead provide evidence for the saved candidate being reviewed. A passing independent run does not approve deployment.

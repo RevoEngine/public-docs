@@ -2,7 +2,7 @@
 title: "1.7.0 — Shared Studio workspaces, native tests and focused AI"
 sidebarTitle: "1.7.0"
 icon: "tag"
-description: "16 October 2026"
+description: "27 October 2026"
 ---
 
 RevoEngine 1.7.0 brings code editing, collaboration, tests and deployment into one Studio workspace. People and Assistants share durable sessions while keeping local drafts separate from live code. Native JavaScript and TypeScript test Components can also run independently against saved source or a local CLI worktree. Focused Assistant conversations and small AI responses add reusable instructions, minimal context and validated JSON output to application logic and the browser.
@@ -116,9 +116,9 @@ const result = await agent.createThread({
 return result.output?.json;
 ```
 
-In the browser, **+ → Custom context** or **`/custom`** opens an extra-large workspace with General, Response, Tools & permissions and Contract tabs. The schema editor provides completion and diagnostics, while server validation checks the complete configuration. The tool catalogue shows available capabilities, dependencies and permission requirements; low-code completion lists the same first-party tool names. Set conversation and per-tool approval policies in the same workspace. Selecting a tool does not grant access to its targets.
+In the browser, **+ → Custom** or **`/custom`** opens an extra-large workspace with General, Response, Tools & permissions and Contract tabs. The schema editor provides completion and diagnostics, while server validation checks the complete configuration. The tool catalogue shows available capabilities, dependencies and permission requirements; low-code completion lists the same first-party tool names. Set conversation and per-tool approval policies in the same workspace. Selecting a tool does not grant access to its targets.
 
-Settings remain editable until the first message. After creation, one Custom context action beside the model controls opens their read-only preview. Copy the portable contract, instructions or schema for reuse; edited contract copies are validated before export. Ordinary follow-up messages continue the same contract, and JSON answers render literally. Changing the saved instructions, context mode or answer format requires another conversation.
+Settings remain editable until the first message. After creation, one Custom action beside the model controls opens their read-only preview. Copy the portable contract, instructions or schema for reuse; edited contract copies are validated before export. Ordinary follow-up messages continue the same contract, and JSON answers render literally. Changing the saved instructions, context mode or answer format requires another conversation.
 
 Streamed conversation creation preserves a supported Fast mode selection and the chosen per-tool policies. Instance-level tool restrictions remain enforced on Resume and during nested execution.
 

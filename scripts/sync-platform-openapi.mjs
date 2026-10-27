@@ -211,7 +211,7 @@ const TAG_DESCRIPTIONS = Object.freeze({
 const TAG_GUIDES = Object.freeze({
   'Browser Profiles': ['Browser profiles and collaboration guide', '/ai/browser'],
   Studio: ['Studio sessions guide', '/build/studio-sessions'],
-  'Native tests': ['Studio validation guide', '/build/studio-sessions'],
+  'Native tests': ['Native tests guide', '/build/native-tests'],
   Accounts: ['Identity and access guide', '/operate/identity-and-access'],
   Activity: ['Observability guide', '/operate/observability'],
   'Agent Memory': ['Agent memory and workspaces guide', '/ai/memory-and-workspaces'],

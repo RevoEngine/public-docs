@@ -581,5 +581,9 @@
       "source": "/build/playground",
       "destination": "/build/web-ide"
     }
-  ]
+  ],
+  "banner": {
+    "content": "The documentation includes Platform 1.7.0 features ahead of the application rollout. Availability requires an instance running that version. CLI and SDK versions are independent.",
+    "dismissible": false
+  }
 }

@@ -31008,8 +31008,8 @@
       "name": "Native tests",
       "description": "Operations in the Native tests Platform API domain.",
       "externalDocs": {
-        "description": "Studio validation guide",
-        "url": "https://docs.revoengine.com/build/studio-sessions"
+        "description": "Native tests guide",
+        "url": "https://docs.revoengine.com/build/native-tests"
       }
     },
     {
@@ -35821,7 +35821,18 @@
             "type": "string"
           },
           "literal": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -35868,14 +35879,14 @@
             "description": "Logical AND.",
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
             }
           },
           "or": {
             "description": "Logical OR.",
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
             }
           },
           "not": {
@@ -35907,12 +35918,34 @@
             ]
           },
           "value": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "nullable": true
           },
           "values": {
             "type": "array",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "nullable": true
             }
           }
         }

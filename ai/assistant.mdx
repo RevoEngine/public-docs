@@ -116,7 +116,7 @@ Choose context according to the work:
 
 Both modes keep instance-global instructions, the execution account's standing instructions, permissions and runtime safety rules. Minimal context does not create an ungoverned execution environment. A wrapper invoked by an Endpoint or Job follows its configured caller or service-account identity; explicitly selected capabilities still require that account's access and approval. Applications using a shared service account must authorize their own business-user-to-conversation mapping.
 
-The UI lists current tools and their availability, including required dependencies. Tool selection never grants permissions or bypasses approval. An empty `toolNames` array explicitly selects no tools. Plugin callables are selected with `pluginIds`. The configuration catalogue and read-only validation operations are available in the Platform API.
+The UI lists current tools and their availability, including required dependencies. The low-code editor offers completion for the supported `toolNames`. Tool selection never grants permissions or bypasses approval. An empty `toolNames` array explicitly selects no tools. Plugin callables are selected with `pluginIds`. The configuration catalogue and read-only validation operations are available in the Platform API.
 
 Conversation and per-tool approval policies are `default`, `auto_review` and `full`. Instance security blocks, account/resource access and current runtime availability still apply when each tool runs, including after approval or Resume.
 

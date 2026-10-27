@@ -34914,7 +34914,18 @@
             "type": "string"
           },
           "literal": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -34961,14 +34972,14 @@
             "description": "Logical AND.",
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
             }
           },
           "or": {
             "description": "Logical OR.",
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/DatabaseIndexPredicateDto"
             }
           },
           "not": {
@@ -35000,12 +35011,34 @@
             ]
           },
           "value": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "nullable": true
           },
           "values": {
             "type": "array",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "nullable": true
             }
           }
         }

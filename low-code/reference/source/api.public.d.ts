@@ -293,6 +293,10 @@ declare class api {
      * Updates selected logical-database fields by name. The public contract requires the current
      * version for optimistic locking; send only the fields that should change. Do not
      * copy server-owned databaseId, timestamps, or size into this payload.
+     * options.indexes replaces the complete managed index set; unchanged named indexes
+     * retain their physical index and metadata version. Omit options to preserve it.
+     * definition replaces the complete column set: preserve databaseDefinitionId for
+     * existing columns and omit definition for an index-only update.
      *
      * Notes:
      * - Unavailable with `readOnly: true` (throws an error).
