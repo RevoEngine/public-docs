@@ -12,7 +12,9 @@ npm install --global @revoengine/cli
 
 The package installs `revo` as the primary command. `revoengine` remains a compatible alias.
 
-CLI **1.0.33** adds durable Database Operation receipts and verified completion for schema writes, current Endpoint SSE configuration validation, and browser recordings at the selected viewport and frame rate. Schema operations and SSE require Platform 1.7.0; native tests require their matching Platform API. Publishing the CLI does not enable these features on an older instance. Ordinary schema writes remain compatible with instances returning a completed Table synchronously.
+CLI **1.0.34** introduces property omission across synchronized definitions, strict command validation, atomic workspace state and safer terminal process and file handling. Omitted-mode writes require the target API capability described below.
+
+CLI **1.0.33** introduced durable Database Operation receipts and verified completion for schema writes, current Endpoint SSE configuration validation, and browser recordings at the selected viewport and frame rate. Schema operations and SSE require Platform 1.7.0; native tests require their matching Platform API. Publishing the CLI does not enable these features on an older instance. Ordinary schema writes remain compatible with instances returning a completed Table synchronously.
 
 ## Sign in
 
@@ -50,6 +52,35 @@ revo request POST /api/v1/endpoints '{"name":"Example"}'
 
 `revo request` is a low-level escape hatch for authenticated Platform API calls. Prefer dedicated commands when they provide planning, confirmation, local state, or verification.
 
+## Argument and workspace safeguards
+
+CLI 1.0.34 introduces the safeguards below. Unknown options, missing values,
+invalid booleans and unsupported combinations stop before authentication or execution.
+
+Boolean options accept a bare flag, `--flag=true`, `--flag=false`, or `--no-flag`.
+Explicit values use lowercase `true` or `false`; `0`, `1`, `no`, `FALSE` and empty
+values are rejected. Conflicting repeated options are rejected too. For example,
+use `--no-force` instead of `--force=no`.
+
+Use `revo plan` for a repository deployment preview, or the corresponding family
+`plan` before `push`. Named migration commands accept `--dry-run` to follow their
+read-only plan flow, and `env apply` also supports it. Other command families
+reject it rather than executing a write under a preview flag.
+`revo <command> --help` shows help without connecting or executing. Conflicting
+aliases are rejected too. Terminal connection commands do not accept a child
+command or hidden options after `--`; raw request JSON and query values remain data.
+
+Workspace-changing commands take an exclusive local project lock. A concurrent
+writer fails before changes; finish the active command and retry. Read-only plan
+and diff remain available. A lock is recovered only from a confirmed dead owner;
+lock age does not evict a live or unverifiable process. Stale baseline snapshots
+are rejected, and local JSON state uses atomic replacement so an interrupted
+write before replacement retains the previous valid file. These safeguards
+complement the target API's version checks; a deployment still consists of
+separately verified remote operations. Project init/update adds the transient
+`.revoengine/workspace-write.lock/` directory to Git ignores; the existing baseline
+file keeps its normal repository policy.
+
 ## Native tests
 
 CLI **1.0.31 or newer** provides `revo tests list`, `run`, `resume` and `cancel` for captured fixture suites. Test local Component source without publishing it, or select stored suites with `--remote`. See [Native tests](/build/native-tests) for authoring, durable results, CI exit behavior and integration limits.
@@ -78,6 +109,75 @@ revo endpoints
 <Warning>
   Pass CI credentials from the CI secret store. Do not commit tokens in shell scripts, `.env` files, project metadata, or `.revoengine/`.
 </Warning>
+
+## Preserve destination configuration during synchronization
+
+`--omit` lets operators preserve selected destination settings while synchronizing
+other definition changes. Push and deploy preserve instance values; pull preserves
+existing local values. It applies to Components, Database Tables and Views,
+Service Accounts, Agents and Agent Plugins, Job Templates, Endpoints, Schedules,
+Events, Groups and Role Groups. CLI 1.0.34 introduces this option.
+
+For example, keep an Endpoint's operator-configured inputs while synchronizing
+its other settings:
+
+```bash
+revo endpoints plan --all --omit=options.input
+revo endpoints push --all --yes --omit=options.input
+```
+
+For a repository containing several kinds of definition, qualify each path:
+
+```bash
+revo plan --prune --omit=job-template:options.input,endpoint:options.input --out reviewed-plan.json
+revo deploy --prune --yes --omit=job-template:options.input,endpoint:options.input --reviewed-plan reviewed-plan.json
+```
+
+Use the same policy for planning and deployment. The CLI ignores those paths when
+comparing managed changes and retains their current instance values when saving
+another field. `--force` still preserves them. New definitions use source values
+for initial configuration because no destination value exists yet. Pull supports
+both repository and dedicated family commands:
+
+```bash
+revo pull databases --omit=name --yes
+revo pull --all --omit=name --yes
+revo job-templates pull --all --omit=inputs
+```
+
+During pull, omitted properties keep their local values, including with `--force`.
+Other properties refresh from the instance. A first pull initializes the full source
+because no local destination exists. Independent local source proofs let ignored
+local edits coexist with managed remote updates; local managed edits retain the
+usual conflict protection. No resource metadata setting is required.
+
+A nested path such as `options.input.region` preserves only that key. JSON Pointer
+paths, such as `/options/input/customer.region`, address literal dots in a key.
+Arrays can be omitted as a whole; indexes and wildcards are rejected. Job Template
+`inputs` is a legacy alias of `options.input`. Event `input` and `inputMode`
+also cover their legacy `extensions.*` representation, including nested input keys.
+Endpoint uses `options.input` and
+`options.noResult`. Unknown paths, identity fields, versions, structural changes
+and dependency references cannot be omitted. An unqualified path must be supported
+by every selected family; qualify paths when the families have different fields.
+
+Existing synchronization baselines are reused only when they can prove the
+remaining managed state. Otherwise reconcile a fresh full snapshot or explicitly
+review the ordinary overwrite workflow. Removing an omission returns those fields
+to CLI management and requires renewed comparison; it never silently approves
+instance changes. A saved plan also becomes stale when the instance changes after
+review, including changes to omitted values. Complete managed source manifests
+are reviewed too, including the initial values used to create new definitions. Regenerate and review the plan before
+retrying. Before an omitted-mode mutation, the CLI requires a fresh Platform API `/api/v1/me`
+response with `capabilities.atomicResourceUpdates: true`. An older API is rejected
+before writing, even with cached authentication. Read-only pull does not require
+this write capability. The CLI advertises its own
+support through `capabilities.syncOmit` in `revo --version --json`.
+
+If saving another runtime option would normalize an omitted missing or null
+property, the CLI stops before writing. Reconcile the target defaults or preserve
+the complete options object. A deployment remains a sequence of separately
+guarded operations.
 
 ## Automation output
 

@@ -22,6 +22,20 @@ The CLI keeps a stable device registration across restarts. Connecting another d
 
 The temporary or whole-thread permissions below apply to the selected chat, device and workspace. A permission for one workspace does not authorize another. If older duplicate registrations make the name ambiguous, select the intended registration explicitly with `--terminal-id`.
 
+## Runner safeguards in CLI 1.0.34
+
+CLI 1.0.34 verifies the workspace location of the file actually opened
+before an upload can send bytes. Timeout, cancellation and permission expiry also
+retain ownership of the controlled process group through cleanup, rather than
+treating the command leader's exit as proof that all its children stopped.
+Upgrade the connected runner to CLI 1.0.34 to use these safeguards.
+
+Use `revo terminal --help` for current connection commands. Browser authentication
+profiles are managed in Revo Vault; `terminal connect --browser-profile` is obsolete
+and rejected. Explicit cleanup of an older local snapshot remains available through
+`terminal browser-profile forget` and does not remove a central Vault profile or
+revoke the website's server-side login.
+
 ## Permissions
 
 Terminal permissions have two independent controls in **Settings → Vault → Terminals → Permissions**. The owner can change either setting while the runner is connected. The runner checks the current grants before each dispatch and stops work that loses required access. The terminal's **Full Access** command setting is separate from the Composer permission mode with the same name.
