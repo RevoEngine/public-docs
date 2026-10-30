@@ -929,13 +929,16 @@ const customerId = api.input()?.body?.customerId;
 Adds a log entry.
 
 Limits:
-- Endpoint executions accept at most 100 `api.log` calls per execution.
-- Processor and non-streaming Sandbox executions accept at most 10,000 calls.
-- Streaming Sandbox executions emit logs only to the active SSE stream; this
-  count limit is not applied there, but the stream remains protected by its
+- INFO and DEBUG share a budget of 100 emitted entries in Endpoint executions,
+  or 10,000 in Processor and Sandbox executions, including streaming Sandbox.
+- WARN and ERROR each have a separate budget of 100 emitted entries.
+- Error evidence remains in the execution result even after emission is
+  limited: a bounded sample retains the first errors and the most recent one.
+- Sampled-out messages are counted by level. A bounded aggregate appears when
+  sampling starts, on further activity at most once per minute, and on final
+  telemetry when counts changed. Other API methods do not consume this budget.
+- Streaming Sandbox sends entries to its active SSE stream, which also has a
   backpressure queue limit.
-- Calls after the applicable limit are ignored. Other API methods do not
-  consume this limit.
 
 ### Signature
 

@@ -61,6 +61,16 @@ For a field your application writes into **Args (JSON)**, choose that field's pa
   Not every field is present on every log entry. A request can have an HTTP method without an RPC method; a discovery request can have an RPC method without a tool name. A blank field does not by itself mean that the request failed.
 </Note>
 
+## Understand sampled logs and progress
+
+Repeated successful operations use a bounded sample of individual logs. Three visible successful upload-part entries do not mean that only three parts were written. After sampling starts, read the cumulative progress messages for operation counts, the last observed completion and the final totals.
+
+Further completed operations can refresh these summaries at most once per minute. Repeated waits also report cumulative activity. Long database work reports completed read batches and rows; short database work keeps its detailed totals in the final execution record. Submitted write rows describe work sent to the database and do not prove that its transaction committed.
+
+Progress is emitted from actual observations, without a background timer. A new batch or operation must complete before its counters can advance. Use the timestamp together with the execution state when investigating a quiet period; an old progress message does not prove that a worker is still active.
+
+Application logs have separate budgets for routine messages, warnings and errors. Exhausting routine progress logs cannot erase error evidence from the execution result. If diagnostic emission also reaches its budget, the runtime retains a bounded sample of the first errors and the most recent error, plus aggregate counts. Further details can be sampled out even while the work continues.
+
 ## Bound the read
 
 Log searches keep an explicit UTC range. If you know an exact Operation or Job ID but not its date, first resolve it in Observability Executions, then open **Logs for this operation**. The native retained index can resolve older executions independently of the default browsing period. Raw-source searches without a retained index require dates and do not silently scan all history. If a query exceeds its limit, narrow the period or inspect execution metadata first.
