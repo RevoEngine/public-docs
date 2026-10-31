@@ -80,7 +80,7 @@ Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat
 
 Use `transport.sftpImport`, `transport.sftpExport`, and `transport.sftpCommands` for new SFTP code. Both hosted and standalone clients expose these methods with generated types. Legacy SFTP aliases and the removed thread-goal methods are excluded from the current SDK. See [SFTP integrations](/low-code/sftp) and the [1.5.9 release notes](/changelog/1.5.9).
 
-For portable Component pins, use a verified `componentDigest`. Database reads and exports now use one relation namespace: `api.exportDatabase()` covers Databases, live Views, and Materialized Views. The former View-only read helper is a deprecated compatibility alias; `api.exportDatabaseView()` has been removed.
+For portable Component pins, use a verified `componentDigest`. Database reads and exports now use one relation namespace: `api.exportDatabase()` covers Databases, live Views, and Materialized Views. The former View-only read helper and `api.exportDatabaseView()` have been removed. Use `api.getDatabaseData()` for relation reads and `api.exportDatabase()` for exports.
 
 Database exports accept CSV, TSV, NDJSON, and XLSX. `api.importDatabase()` previews a Storage file and returns an operation to review before `api.commitDatabaseImport()` writes it; use `api.updateDatabaseImportMapping()` when columns need correction. See [Database API](/low-code/database) for the lifecycle and [generated methods](/low-code/reference/api) for current signatures.
 
