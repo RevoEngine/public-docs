@@ -14,6 +14,7 @@ RevoEngine 1.7.1 retires the legacy Files resource and deprecated low-code entry
 - Standardized account responses and inputs on `metadata` and `metadataAdvanced`.
 - Updated Monaco declarations and SDK 3.0.0 to the current supported authoring contract.
 - Preserved Storage uploads, attachments and the shared upload flows used by account images.
+- Recover queued platform work after temporary transport failures without holding uploads or completed Jobs open.
 - Hardened account labels, avatars, editor documentation and chat diagrams against injected content.
 - Removed spurious error diagnostics for expected `util.sleep` cancellation while preserving cancellation and timeouts.
 - Made concurrent requests wait for ordinary instance readiness instead of reporting schema-migration maintenance.
@@ -67,6 +68,20 @@ Concurrent requests now wait while an instance prepares its data connection, che
 Maintenance protection remains in place when a schema migration is actually in progress. Connection and system-schedule initialization failures retain their normal failure handling; requests use the instance only after the required preparation succeeds.
 
 Read [Databases](/operate/databases#instance-readiness).
+
+## Reliable background handoff
+
+Temporary queue-transport failures retry within the platform deadline, including
+requests already in flight. Committed upload, indexing and Job-notification work
+is recovered every minute, while upload responses and completed Jobs use a short
+wait for auxiliary publication. Retry keeps its durable identity and repairs an
+unavailable task name without replaying customer Job logic.
+
+Email preparation can recover after an interruption before the delivery provider
+is called. An uncertain result after a send still requires review to avoid sending
+the same message again. Active Job heartbeats remain protected during recovery.
+
+Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
 
 
 ## Related guides

@@ -125,6 +125,12 @@ CSV, TSV, XLSX, and text uploads default to synchronous computation. Other binar
 - Temporary upload and download URLs are credentials. Never persist or log them.
 - Make downstream Event and Job processing idempotent against the source entry ID and version.
 
+Temporary failures while scheduling part recovery or asynchronous statistics do
+not hold an upload response open for the normal transport retry window. The
+platform retains committed work and retries publication every minute. It preserves
+the original retry identity until a confirmed unavailable task name requires a
+successor. Upload session expiry, cancellation and finalization rules still apply.
+
 ## Storage identifiers
 
 Use `storageEntryId` for a finalized file or folder and `storageUploadSessionId` for an in-progress upload. Upload finalization makes the uploaded Storage version available. The retired Files resource is unavailable.

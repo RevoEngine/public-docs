@@ -213,6 +213,12 @@ that already completed.
 
 Accepted Jobs retain their payload, delivery intent and retry lineage independently of
 transient cache availability. Delivery retries do not create another business attempt.
+Committed delivery and retry intents are recovered every minute after temporary
+queue failures. These transport retries keep the accepted Job identity. Auxiliary
+notification scheduling uses a short wait, so an unavailable queue does not keep
+a completed Job holding its execution capacity. Fresh matching heartbeats protect
+an active Job during recovery, including a heartbeat arriving while it is read.
+
 A lost worker with an unknown effect is reported as requiring recovery; inspect the
 original target before explicitly retrying a write. Automatic retry settings remain
 separate from infrastructure delivery and do not guarantee exactly-once external effects.
