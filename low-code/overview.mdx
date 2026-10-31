@@ -45,6 +45,10 @@ await util.sleep(100);
 return response.data;
 ```
 
+## Wait within the execution budget
+
+Use `await util.sleep(ms)` for a delay of up to 60,000 milliseconds. The wait uses the current execution's timeout budget and stops when the execution is cancelled or times out. An interrupted wait still rejects; expected cancellation does not add a spurious error diagnostic. Returning from an execution also clears pending waits, so await delays that the workflow needs before returning its result.
+
 ## Input, results, and composition
 
 `api.input()` exposes the execution input prepared by the invoking Endpoint, Job,

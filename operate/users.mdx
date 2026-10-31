@@ -21,6 +21,12 @@ Open **Users** and select **Add**. The detail form contains:
 
 After creation, reopen the user to manage **Permission groups** and **Groups**. Membership is deliberately configured after the identity exists so every assignment targets a stable user ID.
 
+## Names and profile images
+
+Names, email addresses and identity-provider details are displayed as literal text. Markup in a name is not interpreted as formatting. Avatar addresses and labels stay within the image attributes; an unsafe address uses the existing initials or missing-image fallback.
+
+Profile images continue through the [Storage upload lifecycle](/operate/storage-uploads). These display protections do not change image uploads, authorization or downloads.
+
 ## Account metadata
 
 Use `metadata` for ordinary account attributes and `metadataAdvanced` for advanced identity data. Each JSON object has its own limit of 16 KiB of UTF-8 JSON and 64 top-level keys. The **Metadata** and **Advanced metadata** editors map to these fields; account grids support structured filtering on them.

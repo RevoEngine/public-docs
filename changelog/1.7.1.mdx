@@ -14,6 +14,8 @@ RevoEngine 1.7.1 retires the legacy Files resource and deprecated low-code entry
 - Standardized account responses and inputs on `metadata` and `metadataAdvanced`.
 - Updated Monaco declarations and SDK 3.0.0 to the current supported authoring contract.
 - Preserved Storage uploads, attachments and the shared upload flows used by account images.
+- Hardened account labels, avatars, editor documentation and chat diagrams against injected content.
+- Removed spurious error diagnostics for expected `util.sleep` cancellation while preserving cancellation and timeouts.
 
 ## In detail
 
@@ -41,6 +43,22 @@ Applications that expose their own established user-response format can map thes
 
 Read [Users](/operate/users).
 
+## Safer identities, editor content and diagrams
+
+Account names, email addresses and identity-provider details render as literal text in labels and grids. Avatar addresses and labels remain contained within image attributes; unsafe addresses use the existing initials or missing-image fallback. Profile image uploads continue through Storage.
+
+Editor documentation and chat diagrams have stronger protection against injected markup and styles. Code editing, useful diagram labels and mathematical expressions retain their existing authoring workflow.
+
+Read [Users](/operate/users) and [Studio sessions](/build/studio-sessions).
+
+## Sleep follows the execution lifecycle
+
+`await util.sleep(ms)` pauses within the current execution's timeout budget. Cancellation or expiry still interrupts the wait, and finishing an execution clears pending waits. An interrupted wait continues to reject rather than completing successfully.
+
+Expected wait cancellation no longer produces a spurious error diagnostic. Real timer failures and errors from other platform calls retain their normal diagnostics. Await delays that the workflow needs before returning its result.
+
+Read [Low-code overview](/low-code/overview) and [Jobs](/operate/jobs).
+
 
 ## Related guides
 
@@ -48,6 +66,7 @@ Read [Users](/operate/users).
 - [Users](/operate/users)
 - [Low-code reference](/low-code/reference/index)
 - [Node.js SDK](/developers/sdk-overview)
+- [Low-code overview](/low-code/overview)
 
 ## Continue through the releases
 
