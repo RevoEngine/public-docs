@@ -237,6 +237,12 @@ Table and View definitions live in the control plane, while generated data struc
 
 Schema-changing operations, clones, exports, scheduled materialized refreshes, and materialized action previews may cross asynchronous execution boundaries. Follow the operation-specific result: an export or Job is tracked separately, an action preview can return a pollable operation, and a successful manual materialized refresh already represents completed work even though its HTTP status is 202.
 
+### Instance readiness
+
+After an instance starts or reconnects, requests can wait while its data connection, schema check and required system schedules become ready. Concurrent requests share that preparation instead of treating it as a schema migration.
+
+A temporary maintenance response still applies when a schema migration is genuinely in progress. Connection and system-schedule initialization failures retain their normal error handling; requests use the instance only after the required preparation succeeds.
+
 ## Production checklist
 
 - Use stable Table and field names.
