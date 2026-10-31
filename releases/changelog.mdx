@@ -7,19 +7,17 @@ description: "Explore RevoEngine's development timeline, product milestones and 
 
 From early experiments in 2020 to an integrated platform for building and operating applications. Follow the product's development, then open a release for its highlights and detailed changes.
 
-<Card title="Latest · 1.7.0 — Introducing Studio" icon="sparkles" href="/changelog/1.7.0">
-  2026-10-27. RevoEngine 1.7.0 introduces Studio: a shared workspace for developing, testing and deploying application code together with your team and an Assistant. This release also adds native Component tests, configurable AI responses, event streaming and background Database schema operations.
+<Card title="Latest · 1.7.1 — Storage and a single runtime API" icon="sparkles" href="/changelog/1.7.1">
+  2026-10-31. RevoEngine 1.7.1 retires the legacy Files resource and deprecated low-code entrypoints. Storage remains the file lifecycle for uploads, generated artifacts and transfers. SDK 3.0.0 exposes the same current runtime contract, including canonical account metadata fields.
 </Card>
 
 ## Explore the current release
 
 | Change | Current operating guide |
 | --- | --- |
-| Studio | [Studio sessions](/build/studio-sessions) |
-| Native Component tests | [Native tests](/build/native-tests) |
-| Custom Assistant conversations and AI responses | [Custom conversations](/ai/assistant#create-a-focused-conversation) |
-| Event streaming | [Endpoint streaming](/operate/endpoints) |
-| Background Database schema operations | [Database definitions](/operate/database-definitions) |
+| Storage throughout the application | [Storage](/operate/storage) |
+| Current low-code namespaces and SDK 3.0.0 | [low-code reference](/low-code/reference/index) |
+| Canonical account metadata | [Users](/operate/users) |
 
 Follow the [Asterion Supply scenario](/platform/asterion-supply) to connect pricing, orders, files, automation and governed AI in one industrial distributor.
 
@@ -38,6 +36,9 @@ Early AI was a conversational alpha alongside that production platform. Platform
 Major product milestones have their own release pages. The sidebar also includes the smaller releases between them, preserving how each capability developed over time.
 
 <CardGroup cols={2}>
+  <Card title="1.7.0 · Introducing Studio" href="/changelog/1.7.0">
+    2026-10-27 — Introduced Studio with shared coding sessions, team and Assistant collaboration, change review, deployment and rollback.
+  </Card>
   <Card title="1.6.0 · Studio: one workspace for Components, Scratch and execution" href="/changelog/1.6.0">
     2026-09-24 — Work with Components and Scratch files in Studio, with moveable tabs, independent splits and saved workspace layouts.
   </Card>

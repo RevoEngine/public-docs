@@ -6,9 +6,7 @@ icon: brackets-curly
 
 Use the smallest namespace that fits the operation. Platform state and external I/O belong to `api` or `storage`; pure transformation belongs to `util`; reusable domain behavior is addressed through `lib.LibraryName.ElementKey.member`.
 
-Use `lib` for new shared-library calls. The older `libs` alias is deprecated and
-is marked accordingly in editor hints. Existing calls and exported type references
-remain supported; the alias resolves to the same library members.
+Use `lib` for shared-library calls and exported type references.
 
 
 Libraries use named exports in JS and TS. The permanent `@default` element exposes `lib.LibraryName.member`, with `lib.LibraryName['@default'].member` as the same binding. Unexported declarations stay local to their element. @default export names cannot match any element key, including exported types. Use named export declarations or local named export clauses; ES default exports, module imports, external re-exports and source CommonJS exports are unsupported.
@@ -59,7 +57,7 @@ return { id, encoded, digest };
 ```
 
 RSA encrypt/decrypt/sign/verify, AES, password hashing, validation and sleep return
-Promises. Await their results, including deprecated `api.*` aliases.
+Promises. Await their results.
 
 SHA-1/SHA-256/MD5, HMAC sign/verify, `randomBytes`, `randomInt` and timing-safe
 comparisons return values synchronously. They do not require `await`.

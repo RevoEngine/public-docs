@@ -298,7 +298,7 @@ The `custom` boolean is the only API classifier. `custom: true` permits a dynami
 
 `STORAGE_CREATED` is emitted after the Storage record is durable and an upload is finalized. With `computeStats: 'async'`, it can arrive before text statistics; subscribe to `STORAGE_SYNCHRONIZED` if the first Job must read cached batches immediately. Reports workspace lifecycle messages are not published as customer Storage events.
 
-Legacy `FILE_FINALIZED`, `FILE_ARCHIVED`, and `FILE_DELETED` exist only for integrations still using the old Files model. Do not select them for a new Storage workflow.
+Use the Storage lifecycle types above. The legacy Files event producers are retired.
 
 ## Incoming file → Event → Job → output
 
@@ -375,9 +375,8 @@ See [Event History](/operate/event-history) for fan-out evidence and replay, [Jo
 ## Available native event types
 
 The Event editor retrieves the currently supported native types from
-`GET /api/v1/automation/event-types`. The catalogue covers existing Storage,
-legacy Files (including `FILE_UPDATED`), user, Service Account and API-key lifecycle
-producers. It excludes unavailable autonomous inbox types. Previously saved types
+`GET /api/v1/automation/event-types`. The catalogue covers Storage, user,
+Service Account and API-key lifecycle producers. It excludes unavailable autonomous inbox types. Previously saved types
 remain visible for inspection; a catalogue loading failure disables type selection.
 Disable **Internal** and enter **Type** for application-owned events.
 

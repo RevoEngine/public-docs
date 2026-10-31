@@ -25,7 +25,7 @@ After creation, reopen the user to manage **Permission groups** and **Groups**. 
 
 Use `metadata` for ordinary account attributes and `metadataAdvanced` for advanced identity data. Each JSON object has its own limit of 16 KiB of UTF-8 JSON and 64 top-level keys. The **Metadata** and **Advanced metadata** editors map to these fields; account grids support structured filtering on them.
 
-New Platform API requests should use these canonical names. Legacy `metaData` and `advancedData` remain accepted during migration, but sending different values under a canonical name and its legacy alias is rejected.
+Platform API requests and low-code account queries accept only these canonical names. Retired account field names are rejected. Account responses and `api.currentUser()` expose `metadata` and `metadataAdvanced`.
 
 Low-code `api.currentUser()` exposes the same fields synchronously. Its `avatar` is a Storage entry ID; the Platform API `/me` response separately supplies a signed download URL. Use `api.getInstanceData('Users')` when you need authorized account-list access and structured metadata filters.
 

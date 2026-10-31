@@ -24,7 +24,7 @@ A pinned Assistant conversation is a separate conversation surface; it is not an
 
 ## Complete widget library
 
-These are the **38 entries in the current Add Widgets palette**. Names below match the app. Most built-in resource grids have no source picker: open the widget, apply its own filter and sort controls, then save the dashboard if that state should reopen. A widget can be visible in the palette yet show **Insufficient permissions** to a viewer without its required role. Resource ACLs remain in force independently of dashboard visibility.
+These are the **36 entries in the current Add Widgets palette**. Names below match the app. Most built-in resource grids have no source picker: open the widget, apply its own filter and sort controls, then save the dashboard if that state should reopen. A widget can be visible in the palette yet show **Insufficient permissions** to a viewer without its required role. Resource ACLs remain in force independently of dashboard visibility.
 
 | Palette entry | What it displays | Configuration in the app |
 | --- | --- | --- |
@@ -59,11 +59,9 @@ These are the **38 entries in the current Add Widgets palette**. Names below mat
 | **Role groups** | Role groups. | Filter/sort the embedded grid, then save. |
 | **Schedule History** | Schedule execution history. | Filter/sort the embedded grid, then save. |
 | **Schedule** | Configured schedules. | Filter/sort the embedded grid, then save. |
-| **Secrets** | Secret metadata subject to access policy. | Filter/sort the embedded grid; dashboard access does not reveal secret values. |
 | **Service accounts** | Service-account registry. | Filter/sort the embedded grid, then save. |
-| **Files** | Legacy file browser. | **Configure → Source → Folder**; optionally **Lock path** and **Disable upload**. |
 | **Storage** | Storage folder browser. | **Configure → Source → Storage folder**; optionally **Lock path** and **Disable upload**. |
-| **Trace** | Trace viewer. | Apply Trace's own service/status/identity/date filters; the applied form is saved in the widget. Instance-admin access. |
+| **Execution logs** | Execution log viewer. | Apply service/status/identity/date filters; the applied form is saved in the widget. Instance-admin access. |
 | **Users** | User registry. | Filter/sort the embedded grid, then save. |
 | **Webhooks** | Webhook registry. | Filter/sort the embedded grid, then save. |
 
@@ -77,10 +75,10 @@ Every widget has **Widget → Label**, **Presentation → Hide header**, and **P
 | --- | --- |
 | Database Table / View / Materialized View | The Source picker searches accessible, non-deleted resources of the matching kind. Table selection stores its database ID; View and Materialized View selection store a view ID. Clearing it leaves the widget unconfigured. |
 | Agents | Choose one accessible agent in the Agent picker. No selection displays **No agent selected**. |
-| Files / Storage | Pick a folder; **Lock path** scopes navigation to that folder; **Disable upload** is the widget's upload control, with effective actions also governed by the viewer's permissions and workspace policy. The two pickers use their respective file and Storage resources. |
+| Storage | Pick a folder; **Lock path** scopes navigation to that folder; **Disable upload** is the widget's upload control, with effective actions also governed by the viewer's permissions and workspace policy. The picker selects an accessible Storage folder. |
 | AI Usage | Choose **Overall**, **Models**, **Tools**, **Skills**, **Most used plugins**, **History** or **All time** and a period. Palette variants preselect a chart but the Analytics selector can change it. Quick periods are 7, 30, 90, 180 or 365 days; a complete custom range is supported up to 366 days. |
 | Jobs Performance | Choose a period with the same picker; there is no chart selector or per-template filter in this widget. |
-| Trace | Configure filters within the Trace panel. Applied service, status, user, endpoint/template, Job, IP and date values are stored with this widget; an open end time remains open. |
+| Execution logs | Configure filters within the Execution logs panel. Applied service, status, user, endpoint/template, Job, IP and date values are stored with this widget; an open end time remains open. |
 | Built-in grids | Apply filters and sorting in the rendered grid, then select dashboard **Save**. The stored `gridState` is separate for each widget. The actual columns and filter operators come from that grid; a custom widget `TABLE` does not persist its live filter state. |
 | Account charts | These three account charts have no extra source control. Use the common Label and Presentation controls. |
 

@@ -1,0 +1,54 @@
+---
+title: "1.7.1 — Storage and a single runtime API"
+sidebarTitle: "1.7.1"
+icon: "tag"
+description: "31 October 2026"
+---
+
+RevoEngine 1.7.1 retires the legacy Files resource and deprecated low-code entrypoints. Storage remains the file lifecycle for uploads, generated artifacts and transfers. SDK 3.0.0 exposes the same current runtime contract, including canonical account metadata fields.
+
+## Highlights
+
+- Removed the legacy Files workspace, Platform API endpoints and resource discovery.
+- Removed deprecated low-code methods and the `libs` alias; use the current runtime namespaces and `lib`.
+- Standardized account responses and inputs on `metadata` and `metadataAdvanced`.
+- Updated Monaco declarations and SDK 3.0.0 to the current supported authoring contract.
+- Preserved Storage uploads, attachments and the shared upload flows used by account images.
+
+## In detail
+
+## Storage throughout the application
+
+The legacy Files resource is retired from navigation, dashboards, search and the Platform API. Use Storage entries and their `storageEntryId` for file operations. Existing Storage upload sessions, HTTP transfers, SFTP transfers and chat attachments continue through their existing lifecycle.
+
+Removing Files does not turn an old file identifier into a Storage entry. Applications must use the Storage contract when selecting an upload destination, opening an artifact or returning a download to a client. Storage authorization, finalization and retention continue to apply.
+
+Read [Storage](/operate/storage) and [Storage uploads](/operate/storage-uploads).
+
+## Current low-code namespaces and SDK 3.0.0
+
+Application code now uses the supported `api`, `storage`, `util`, `transport`, `vault`, `agent` and `lib` surfaces. Deprecated method aliases are removed from execution and editor completion. Shared implementations used by the current namespaces remain available through those namespaces.
+
+SDK 3.0.0 is a breaking authoring-contract update. Replace deprecated method calls and `libs` references before upgrading, then check the generated declarations for the supported signatures. SDK and platform versions are independent; new hosted Components use the platform's SDK pin.
+
+Read the [low-code reference](/low-code/reference/index) and [Node.js SDK](/developers/sdk-overview).
+
+## Canonical account metadata
+
+`api.currentUser()`, account responses and account requests use `metadata` and `metadataAdvanced`. The retired field names are removed from declarations and are rejected in account writes and query selectors. The same contract is available in Monaco and SDK 3.0.0.
+
+Applications that expose their own established user-response format can map these canonical fields in application code. Such a mapping belongs to that application's response contract; it does not restore removed fields on `LoggedUser` or the Platform API.
+
+Read [Users](/operate/users).
+
+
+## Related guides
+
+- [Storage](/operate/storage)
+- [Users](/operate/users)
+- [Low-code reference](/low-code/reference/index)
+- [Node.js SDK](/developers/sdk-overview)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.7.0](/changelog/1.7.0)

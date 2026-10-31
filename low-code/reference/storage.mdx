@@ -348,7 +348,7 @@ Notes:
   parts. `incremental` assigns part numbers by default and also accepts an
   explicit number for repair. `writeMode` is independent: it controls only
   CSV/XLSX row materialization (`staged` or declared-schema `direct`).
-- Use this instead of `storage.appendFile(...)`. Managed direct uploads are
+- Use incremental sessions for append-style writes. Managed direct uploads are
   finalized automatically after Storage confirms the transfer; observe the
   session until `FINALIZED` and do not call `finalizeUploadSession` for that
   path. Explicitly finalize chunked and incremental sessions.

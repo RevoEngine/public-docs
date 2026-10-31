@@ -24,13 +24,13 @@ After saving, reopen the Group and use **Members** to add or remove users and Se
 ## Apply a resource ACL
 
 ```text
-principal has FILE_READ
+principal is authenticated
   + principal belongs to Finance Documents
   + folder ACL allows Finance Documents
   = principal can read that restricted folder
 ```
 
-The same user without `FILE_READ` still cannot download. A user with `FILE_READ` but outside the allowed Group still cannot enter the restricted branch.
+A user outside the allowed Group cannot enter the restricted branch. Storage checks the authenticated account and the effective ACL; membership alone does not grant Storage administration.
 
 For hierarchical Storage, a restricted ancestor continues to constrain descendants. Adding a user to a child-oriented Group cannot bypass an ancestor they are not allowed to access.
 

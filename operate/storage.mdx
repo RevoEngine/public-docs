@@ -125,11 +125,9 @@ CSV, TSV, XLSX, and text uploads default to synchronous computation. Other binar
 - Temporary upload and download URLs are credentials. Never persist or log them.
 - Make downstream Event and Job processing idempotent against the source entry ID and version.
 
-## Storage versus legacy Files
+## Storage identifiers
 
-Use Storage for all new work. The legacy Files API uses `fileId` and a different lifecycle. Do not mix `fileId`, `storageUploadSessionId`, and `storageEntryId`.
-
-Maintain the legacy API only when an existing integration explicitly depends on it. See [Files (legacy)](/operate/files).
+Use `storageEntryId` for a finalized file or folder and `storageUploadSessionId` for an in-progress upload. Upload finalization makes the uploaded Storage version available. The retired Files resource is unavailable.
 
 ## Next steps
 

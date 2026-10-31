@@ -150,8 +150,7 @@
             "pages": [
               "operate/storage",
               "operate/storage-uploads",
-              "operate/storage-structured-files",
-              "operate/files"
+              "operate/storage-structured-files"
             ]
           },
           {
@@ -307,6 +306,7 @@
               {
                 "group": "1.7.x",
                 "pages": [
+                  "changelog/1.7.1",
                   "changelog/1.7.0"
                 ]
               },
@@ -580,6 +580,10 @@
     {
       "source": "/build/playground",
       "destination": "/build/web-ide"
+    },
+    {
+      "source": "/operate/files",
+      "destination": "/operate/storage"
     }
   ]
 }

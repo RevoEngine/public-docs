@@ -1040,7 +1040,6 @@ static getInstanceData(
         | 'Webhooks'
         | 'Components'
         | 'Logs'
-        | 'Files'
         | 'EventsHistory'
         | 'Endpoints'
         | 'Databases'
@@ -1051,7 +1050,7 @@ static getInstanceData(
 ### Example
 
 ```ts
-const files = await api.getInstanceData('Files', {
+const jobs = await api.getInstanceData('Jobs', {
   take: 20,
   sort: ['-createdAt'],
 });
@@ -1847,9 +1846,7 @@ Notes:
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
 - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
-- Revo responses expose `revo.sameInstance`. The runtime compares
-  SHA-256("revo-instance:v1:" + current instance id) internally; `x-revo-oid`
-  is returned only when `revo.sameInstance` is true. Cross-instance or
+- Revo responses expose `revo.sameInstance`. The `x-revo-oid` header is returned only when `revo.sameInstance` is true. Cross-instance or
   unconfirmed Revo headers are removed from the public response.
 - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
 - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.

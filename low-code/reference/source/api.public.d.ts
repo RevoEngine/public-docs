@@ -385,14 +385,6 @@ declare class api {
     ): Promise<T>;
 
   /**
-     * @deprecated Use `api.transactionDatabase()` instead.
-     */
-  static transactionDatabaseData<T>(
-      callback: (tx: DatabaseTransactionApi) => Promise<T> | T,
-      options?: DatabaseTransactionStartOptions,
-    ): Promise<T>;
-
-  /**
      * Reads rows from a database, view, or materialized view using the structured query shape.
      *
      * Notes:
@@ -445,16 +437,6 @@ declare class api {
       callback: (batch: T[], context: { batch: number; processed: number }) => void | Promise<void>,
       options?: DatabaseWalkOptions,
     ): Promise<DatabaseWalkResult>;
-
-  /**
-     * @deprecated Use getDatabaseData(), getDatabaseDataRow(), countDatabase(),
-     * or walkDatabaseData(). They resolve databases, views, and materialized views
-     * through the same logical relation namespace and support relation joins.
-     */
-  static getDatabaseViewData<T = any>(
-      name: string,
-      request?: SelectInput,
-    ): Promise<GetDatabaseDataResponse<T>>;
 
   /**
      * Reads newest-first audit events. Prefer narrow fields and changed/filter over a
@@ -612,235 +594,6 @@ declare class api {
   static queryDatabase(query: string, params?: any[]): Promise<any>;
 
   /**
-     * Returns file metadata.
-     *
-     * @deprecated Use `storage.getFile(storageEntryId)` for Explorer Storage.
-     *
-     * Migration:
-     * const file = await storage.getFile(storageEntryId);
-     *
-     * Example:
-     * const file = await api.getFile(fileId);
-     */
-  static getFile(fileId: string): Promise<File>;
-
-  /**
-     * Reads file content.
-     *
-     * Notes:
-     * - Text file stats are auto-generated on demand and usually precomputed after upload finalization.
-     * - Direct reads are limited to 10 MB unless you request a ranged buffer.
-     *
-     * @deprecated Use `storage.getFileData(storageEntryId, options)` or `storage.getText(storageEntryId)`.
-     *
-     * Migration:
-     * const data = await storage.getFileData(storageEntryId, { batchNumber: 1 });
-     *
-     * Example:
-     * const data = await api.getFileData(fileId, { batchNumber: 1 });
-     */
-  static getFileData(
-      fileId: string,
-      options?: {
-        batchNumber?: number;
-        buffer?: boolean;
-        start?: number;
-        end?: number;
-      },
-    ): Promise<any>;
-
-  /**
-     * Computes or refreshes file metadata such as line batches.
-     *
-     * @deprecated Use `storage.getFileStats(storageEntryId, options)`.
-     *
-     * Migration:
-     * const stats = await storage.getFileStats(storageEntryId, { separator: '\\n', batchSize: 5000 });
-     *
-     * Example:
-     * const stats = await api.getFileStats(fileId, {
-     *   separator: '\\n',
-     *   batchSize: 5000,
-     * });
-     */
-  static getFileStats(
-      fileId: string,
-      options?: {
-        separator?: string;
-        reloadStats?: boolean;
-        ocrType?: 'image' | 'document';
-        ocrOptions?: any;
-        batchSize?: number;
-      },
-    ): Promise<FileExtra>;
-
-  /**
-     * Generates a signed upload URL.
-     * Unavailable with readOnly: true because the URL grants a file-write capability.
-     *
-     * @deprecated Use `storage.createUploadSession({ uploadMode: 'direct', ... })`.
-     *
-     * Migration:
-     * const { session, upload } = await storage.createUploadSession({
-     *   name: 'report.csv',
-     *   uploadMode: 'direct',
-     *   contentTypeHint: 'text/csv',
-     *   computeStats: 'sync',
-     * });
-     *
-     * Example:
-     * const url = await api.getFileUploadUrl(fileId, 300);
-     */
-  static getFileUploadUrl(fileId: string, ttl?: number): Promise<string>;
-
-  /**
-     * Generates a signed download URL.
-     *
-     * @deprecated Use `storage.getDownload(storageEntryId, download?, ttl?)`.
-     *
-     * Migration:
-     * const { downloadUrl } = await storage.getDownload(storageEntryId, true, 300);
-     *
-     * Example:
-     * const url = await api.getFileDownloadUrl(fileId, {
-     *   ttl: 300,
-     *   download: true,
-     * });
-     */
-  static getFileDownloadUrl(
-      fileId: string,
-      options?: { ttl?: number; download?: boolean; customName?: string },
-    ): Promise<string>;
-
-  /**
-     * Appends text, arrays, or buffers to an existing file.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     *
-     * @deprecated Use storage upload sessions for append-style writes.
-     *
-     * Migration:
-     * const { session } = await storage.createUploadSession({
-     *   name: 'report.csv',
-     *   uploadMode: 'incremental',
-     *   contentTypeHint: 'text/csv',
-     *   computeStats: 'sync',
-     * });
-     * await storage.uploadPart(session.storageUploadSessionId, null, { data: 'row1\\nrow2\\n' });
-     * const result = await storage.finalizeUploadSession(session.storageUploadSessionId, { computeStats: 'sync' });
-     *
-     * Example:
-     * await api.appendFile(fileId, 'row1\\nrow2\\n');
-     */
-  static appendFile(
-      fileId: string,
-      data: Uint8Array | string | string[],
-      options?: { saveBase64AsString?: boolean },
-    ): Promise<void>;
-
-  /**
-     * Deletes one or more files.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     *
-     * @deprecated Use `storage.deleteEntry(storageEntryId, { version })`.
-     *
-     * Migration:
-     * await storage.deleteEntry(storageEntryId, { version });
-     *
-     * Example:
-     * await api.deleteFile(fileId);
-     */
-  static deleteFile(fileId: string | string[]): Promise<void>;
-
-  /**
-     * Creates and optionally uploads a file in one call.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     *
-     * @deprecated Use `storage.putObject(...)` for simple writes or storage upload sessions for large writes.
-     *
-     * Migration:
-     * const entry = await storage.putObject({
-     *   name: 'report.csv',
-     *   data: 'id,name\\n1,Acme\\n',
-     *   mimeType: 'text/csv',
-     *   computeStats: 'sync',
-     * });
-     *
-     * Example:
-     * const fileId = await api.saveFile(
-     *   {
-     *     fileName: 'report.csv',
-     *     path: 'exports',
-     *     mime: 'text/csv',
-     *   },
-     *   'id,name\\n1,Acme',
-     * );
-     */
-  static saveFile(
-      file: {
-        fileName: string;
-        path: string;
-        mime: string;
-        refId?: string;
-        refVer?: number;
-        refType?: string;
-        createdBy?: string;
-      },
-      data?: string | string[] | Buffer,
-    ): Promise<string>;
-
-  /**
-     * Creates an empty file placeholder.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     *
-     * @deprecated Use `storage.createUploadSession({ uploadMode: 'direct', ... })`.
-     *
-     * Migration:
-     * const { session, upload } = await storage.createUploadSession({
-     *   name: 'report.csv',
-     *   uploadMode: 'direct',
-     *   contentTypeHint: 'text/csv',
-     *   computeStats: 'sync',
-     * });
-     *
-     * Example:
-     * const fileId = await api.createFile('report.csv', 'exports', 'text/csv');
-     */
-  static createFile(
-      name: string,
-      path: string | null,
-      mime: string,
-      createdBy?: string,
-    ): Promise<string>;
-
-  /**
-     * Creates a folder placeholder.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     *
-     * @deprecated Use `storage.createFolder({ name, parentStorageEntryId })`.
-     *
-     * Migration:
-     * const folder = await storage.createFolder({ name: 'exports', parentStorageEntryId: null });
-     *
-     * Example:
-     * await api.createFolder('exports', null);
-     */
-  static createFolder(
-      name: string,
-      path: string | null,
-      createdBy?: string,
-    ): Promise<string>;
-
-  /**
      * Returns the business current user synchronously. Saved Endpoints default to
      * the invoking user, including end users without platform access. The instance
      * or Endpoint currentUser policy can select EXECUTION_ACCOUNT instead.
@@ -910,16 +663,6 @@ declare class api {
      * const executionId = api.getExecutionId();
      */
   static getExecutionId(): string;
-
-  /**
-     * Returns the current execution id.
-     *
-     * @deprecated Use api.getExecutionId().
-     *
-     * Example:
-     * const id = api.getJobId();
-     */
-  static getJobId(): string;
 
   /**
      * Returns the current operation id.
@@ -1017,16 +760,6 @@ declare class api {
   static throw(code: number, body?: any): void;
 
   /**
-     * Waits asynchronously, capped at 60 seconds per call.
-     *
-     * @deprecated Prefer util.sleep() for new code.
-     *
-     * Example:
-     * await api.sleep(250);
-     */
-  static sleep(ms: number): Promise<void>;
-
-  /**
      * Returns the current instance id.
      *
      * Example:
@@ -1038,7 +771,7 @@ declare class api {
      * Reads data from platform-managed sources.
      *
      * Example:
-     * const files = await api.getInstanceData('Files', {
+     * const jobs = await api.getInstanceData('Jobs', {
      *   take: 20,
      *   sort: ['-createdAt'],
      * });
@@ -1058,7 +791,6 @@ declare class api {
         | 'Webhooks'
         | 'Components'
         | 'Logs'
-        | 'Files'
         | 'EventsHistory'
         | 'Endpoints'
         | 'Databases'
@@ -1073,29 +805,6 @@ declare class api {
      * const details = api.getInstanceDetails();
      */
   static getInstanceDetails(): InstanceDetails;
-
-  /**
-     * Resolves one legacy instance Secret as plaintext.
-     * @deprecated Use await vault.get() for explicit value access.
-     * Retained for callers that still require a plaintext instance Secret.
-     *
-     * Example:
-     * const apiKey = await api.getSecret('CRM_API_KEY');
-     */
-  static getSecret(name: string): Promise<string>;
-
-  /**
-     * Resolves legacy instance Secrets as plaintext.
-     * @deprecated Use await vault.get() for explicit value access.
-     * Retained for callers that still require plaintext instance Secrets.
-     *
-     * Example:
-     * const secrets = await api.getSecrets([
-     *   'CRM_API_KEY',
-     *   'CRM_API_URL',
-     * ]);
-     */
-  static getSecrets(name: string[]): Promise<{ [key: string]: string }>;
 
   /**
      * Publishes a realtime message.
@@ -1563,9 +1272,7 @@ declare class api {
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
      * - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
-     * - Revo responses expose `revo.sameInstance`. The runtime compares
-     *   SHA-256("revo-instance:v1:" + current instance id) internally; `x-revo-oid`
-     *   is returned only when `revo.sameInstance` is true. Cross-instance or
+     * - Revo responses expose `revo.sameInstance`. The `x-revo-oid` header is returned only when `revo.sameInstance` is true. Cross-instance or
      *   unconfirmed Revo headers are removed from the public response.
      * - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
      * - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
@@ -1666,543 +1373,6 @@ declare class api {
         };
       };
     }>;
-
-  /**
-     * Executes multiple SFTP commands in order.
-     * @deprecated Legacy. Use transport.sftpCommands(commands, secretNameOrId) for new code.
-     *
-     * Notes:
-     * - With `readOnly: true`, permits only pwd, ls, stat, lstat, cat, readlink, readat, and glob.
-     * - The full batch is validated before dispatch; any mutating command requires `readOnly: false`.
-     *
-     * Example:
-     * await api.sftpExec([['mkdir', '/archive']], connection);
-     * const secret = await vault.get('SFTP');
-     * await api.sftpExec([['ls', '/incoming']], JSON.parse(secret.revision.value));
-     */
-  static sftpExec(commands: any[], config: SFTPConnection): Promise<any>;
-
-  /**
-     * Streams a Storage entry to SFTP through a short-lived signed
-     * download URL. The SFTP bridge reads the URL and writes directly to the
-     * remote path; file bytes do not pass through low-code memory.
-     * @deprecated Legacy. Use transport.sftpExport(path, { storageEntryId }, secretNameOrId) for new code.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     * - Prefer `{ storageEntryId, namespace? }` for Storage files. String inputs are legacy fileIds.
-     * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
-     *
-     * Legacy example:
-     * await api.sftpPut(fileId, '/outbound/report.csv', connection);
-     *
-     * Storage example:
-     * await api.sftpPut({ storageEntryId }, '/outbound/report.csv', connection);
-     */
-  static sftpPut(
-      source: SFTPFileSourceRef,
-      path: string,
-      config: SFTPConnection,
-    ): Promise<void>;
-
-  /**
-     * Streams an SFTP file directly into Explorer Storage and returns the
-     * finalized Storage entry.
-     * @deprecated Legacy. Use transport.sftpImport(path, storage, secretNameOrId) for new code.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     * - Prefer `{ storage: ... }` to create a Storage entry in one call or `{ storageEntryId, replace: true }` to replace one. String inputs are legacy fileIds.
-     * - Storage refs use the same registered namespace and effective ACL rules as storage.* and HTTP streaming.
-     * - New Storage targets accept the create-upload fields except `uploadMode` and `replaceStorageEntryId`; SFTP always uses a native direct upload.
-     * - The managed transfer finalizes the uploaded object synchronously after Storage verification. Repeated completion signals are idempotent.
-     * - For text files, prefer `computeStats: 'sync'` so line stats are immediately available after finalize.
-     *
-     * Legacy example:
-     * await api.sftpGet(fileId, '/incoming/report.csv', connection);
-     *
-     * Storage example:
-     * const result = await api.sftpGet({
-     *   storage: {
-     *     name: 'daily.csv',
-     *     parentStorageEntryId: folderId,
-     *     contentTypeHint: 'text/csv',
-     *     computeStats: 'sync',
-     *     retention: { ttlSeconds: 604800 },
-     *   },
-     * }, '/incoming/daily.csv', connection);
-     */
-  static sftpGet(
-      target: SFTPFileTargetRef,
-      path: string,
-      config: SFTPConnection,
-    ): Promise<void | { session: StorageUploadSession; entry: StorageEntryView }>;
-
-  /**
-     * AES decrypt helper.
-     *
-     * @deprecated Prefer util.aesDecrypt() for new code.
-     *
-     * Ciphertext: at most 5592464 base64 characters; passphrase: at most 4096 UTF-16 code units.
-     *
-     * Example:
-     * const plain = await api.aesDecrypt(encrypted, passphrase);
-     */
-  static aesDecrypt(encrypted: string, passphrase: string): Promise<string>;
-
-  /**
-     * AES encrypt helper.
-     *
-     * @deprecated Prefer util.aesEncrypt() for new code.
-     *
-     * Payload: at most 1048576 UTF-16 code units; passphrase: at most 4096.
-     *
-     * Example:
-     * const encrypted = await api.aesEncrypt('secret', passphrase);
-     */
-  static aesEncrypt(payload: string, passphrase: string): Promise<string>;
-
-  /**
-     * Compares a value against a password hash.
-     *
-     * @deprecated Prefer util.compareHash() for new code.
-     *
-     * Password: at most 4096 UTF-16 code units; unsupported scrypt work factors return false.
-     *
-     * Example:
-     * const valid = await api.compareHash(password, hash);
-     */
-  static compareHash(
-      password: string | undefined,
-      hash: string | undefined,
-    ): Promise<boolean>;
-
-  /**
-     * Checks whether a value is base64.
-     *
-     * @deprecated Prefer util.isBase64() for new code.
-     *
-     * Example:
-     * const ok = api.isBase64(value);
-     */
-  static isBase64(input: any): boolean;
-
-  /**
-     * Decodes a base64 string.
-     *
-     * @deprecated Prefer util.decodeBase64() for new code.
-     *
-     * Example:
-     * const text = api.decodeBase64(base64String);
-     */
-  static decodeBase64(base64String: string): string;
-
-  /**
-     * Encodes a string to base64.
-     *
-     * @deprecated Prefer util.encodeBase64() for new code.
-     *
-     * Example:
-     * const encoded = api.encodeBase64('hello');
-     */
-  static encodeBase64(plainString: string): string;
-
-  /**
-     * Generates a password hash.
-     *
-     * @deprecated Prefer util.generateHash() for new code.
-     *
-     * Password: at most 4096 UTF-16 code units.
-     *
-     * Example:
-     * const hash = await api.generateHash(password, 10);
-     */
-  static generateHash(
-      password: string | undefined,
-      rounds?: number,
-    ): Promise<string>;
-
-  /**
-     * Validates UUID shape.
-     *
-     * @deprecated Prefer util.isUUID() for new code.
-     *
-     * Example:
-     * const ok = api.isUuid(value);
-     */
-  static isUuid(input: any): boolean;
-
-  /**
-     * Validates UUID shape.
-     *
-     * @deprecated Prefer util.isUUID() for new code.
-     *
-     * Example:
-     * const ok = api.isUUID(value);
-     */
-  static isUUID(input: any): boolean;
-
-  /**
-     * Generates a random UUIDv7.
-     *
-     * @deprecated Prefer util.randomUUID() for new code.
-     *
-     * Example:
-     * const id = api.generateUuid();
-     */
-  static generateUuid(): string;
-
-  /**
-     * Generates a random UUIDv7.
-     *
-     * @deprecated Prefer util.randomUUID() for new code.
-     *
-     * Example:
-     * const id = api.randomUUID();
-     */
-  static randomUUID(): string;
-
-  /**
-     * Returns a random UUIDv7 with no arguments, or a deterministic UUIDv5 only when
-     * both value and namespace are supplied. Do not generate IDs for server-created
-     * platform resources; use this only for caller-owned data values.
-     *
-     * @deprecated Prefer util.getUUID() for new code.
-     *
-     * Example:
-     * const id = api.getUUID('customer-1', 'customers');
-     */
-  static getUUID(...args: [] | [value: string, namespace: string]): string;
-
-  /**
-     * Creates a stable hash from an object.
-     *
-     * @deprecated Prefer util.hashObject() for new code.
-     *
-     * Example:
-     * const hash = api.hashObject({ customerId: 'c-1' });
-     */
-  static hashObject(object: any): string;
-
-  /**
-     * Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
-     *
-     * @deprecated Prefer util.sha1() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = api.sha1('payload');
-     */
-  static sha1(payload: string): string;
-
-  /**
-     * Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
-     *
-     * @deprecated Prefer util.sha256() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = api.sha256('payload');
-     */
-  static sha256(payload: string): string;
-
-  /**
-     * Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
-     *
-     * @deprecated Prefer util.md5() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = api.md5('payload');
-     */
-  static md5(payload: string): string;
-
-  /**
-     * Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
-     *
-     * @deprecated Prefer util.timingSafeEqual() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const match = api.timingSafeEqual(a, b);
-     */
-  static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
-
-  /**
-     * Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
-     *
-     * @deprecated Prefer util.hmac() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const signature = api.hmac('payload', secret, 'sha256', 'hex');
-     */
-  static hmac(
-      payload: Uint8Array | string,
-      secret: string,
-      algorithm?: 'sha1' | 'sha256' | 'sha512',
-      encoding?: 'hex' | 'base64',
-    ): string;
-
-  /**
-     * Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
-     *
-     * @deprecated Prefer util.verifyHmacSignature() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const ok = api.verifyHmacSignature('payload', signature, secret);
-     */
-  static verifyHmacSignature(
-      payload: Uint8Array | string,
-      signature: string,
-      secret: string,
-      algorithm?: 'sha1' | 'sha256' | 'sha512',
-      encoding?: 'hex' | 'base64',
-    ): boolean;
-
-  /**
-     * Encodes base64url.
-     *
-     * @deprecated Prefer util.base64UrlEncode() for new code.
-     *
-     * Example:
-     * const encoded = api.base64UrlEncode('payload');
-     */
-  static base64UrlEncode(input: Uint8Array | string): string;
-
-  /**
-     * Decodes base64url.
-     *
-     * @deprecated Prefer util.base64UrlDecode() for new code.
-     *
-     * Example:
-     * const decoded = api.base64UrlDecode(tokenPart);
-     */
-  static base64UrlDecode(input: string): Uint8Array;
-
-  /**
-     * Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
-     *
-     * @deprecated Prefer util.randomBytes() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const bytes = api.randomBytes(16, 'hex');
-     */
-  static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
-
-  /**
-     * Synchronously generates a random integer in the inclusive min..max range.
-     * Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
-     *
-     * @deprecated Prefer util.randomInt() for new code.
-     *
-     * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const n = api.randomInt(1000, 9999);
-     */
-  static randomInt(min?: number, max?: number): number;
-
-  /**
-     * Generates a random string.
-     *
-     * @deprecated Prefer util.randomString() for new code.
-     *
-     * Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
-     *
-     * Example:
-     * const token = api.randomString(24);
-     */
-  static randomString(length?: number, alphabet?: string): string;
-
-  /**
-     * Generates a numeric one-time code.
-     *
-     * @deprecated Prefer util.otp() for new code.
-     *
-     * Length: integer 0..65536.
-     *
-     * Example:
-     * const code = api.otp(6);
-     */
-  static otp(length?: number): string;
-
-  /**
-     * Decodes a JWT without verifying it.
-     *
-     * @deprecated Prefer util.jwtDecode() for new code.
-     *
-     * Example:
-     * const payload = api.jwtDecode(token);
-     */
-  static jwtDecode(
-      token: string,
-      options?: { complete?: boolean; json?: boolean },
-    ): any;
-
-  /**
-     * Signs a JWT.
-     *
-     * @deprecated Prefer util.jwtSign() for new code.
-     *
-     * Example:
-     * const token = api.jwtSign(
-     *   { sub: 'c-1' },
-     *   secret,
-     *   { expiresIn: '1h' },
-     * );
-     */
-  static jwtSign(
-      payload: string | object,
-      secret: string | { key: string; passphrase: string },
-      options?: {
-        algorithm?:
-          | 'HS256'
-          | 'HS384'
-          | 'HS512'
-          | 'RS256'
-          | 'RS384'
-          | 'RS512'
-          | 'ES256'
-          | 'ES384'
-          | 'ES512'
-          | 'PS256'
-          | 'PS384'
-          | 'PS512'
-          | 'none';
-        keyid?: string;
-        expiresIn?: string | number;
-        notBefore?: string | number;
-        audience?: string | string[];
-        subject?: string;
-        issuer?: string;
-        jwtid?: string;
-        mutatePayload?: boolean;
-        noTimestamp?: boolean;
-        header?: JWTHeader;
-        encoding?: string;
-        allowInsecureKeySizes?: boolean;
-        allowInvalidAsymmetricKeyTypes?: boolean;
-      },
-    ): string;
-
-  /**
-     * Verifies a JWT.
-     *
-     * @deprecated Prefer util.jwtVerify() for new code.
-     *
-     * Example:
-     * const payload = api.jwtVerify(token, secret);
-     */
-  static jwtVerify(
-      token: string,
-      secret: string | { key: string; passphrase: string },
-      options?: {
-        algorithms?: (
-          | 'HS256'
-          | 'HS384'
-          | 'HS512'
-          | 'RS256'
-          | 'RS384'
-          | 'RS512'
-          | 'ES256'
-          | 'ES384'
-          | 'ES512'
-          | 'PS256'
-          | 'PS384'
-          | 'PS512'
-          | 'none'
-        )[];
-        audience?: string | RegExp | Array<string | RegExp>;
-        clockTimestamp?: number;
-        clockTolerance?: number;
-        complete?: boolean;
-        issuer?: string | string[];
-        ignoreExpiration?: boolean;
-        ignoreNotBefore?: boolean;
-        jwtid?: string;
-        nonce?: string;
-        subject?: string;
-        maxAge?: string | number;
-        allowInvalidAsymmetricKeyTypes?: boolean;
-      },
-    ): any;
-
-  /**
-     * Decrypts with RSA-OAEP and SHA-256 asynchronously. PEM import (including passphrase processing) still executes synchronously.
-     *
-     * @deprecated Prefer util.rsaDecrypt() for new code.
-     *
-     * Example:
-     * const plain = await api.rsaDecrypt(privateKey, encrypted, passphrase);
-     */
-  static rsaDecrypt(
-      privateKey: string,
-      payload: string,
-      passphrase?: string,
-    ): Promise<string>;
-
-  /**
-     * Encrypts with RSA-OAEP and SHA-256 asynchronously. PEM import and data encoding still execute synchronously.
-     *
-     * @deprecated Prefer util.rsaEncrypt() for new code.
-     *
-     * Example:
-     * const encrypted = await api.rsaEncrypt(publicKey, 'hello');
-     */
-  static rsaEncrypt(publicKey: string, payload: string): Promise<string>;
-
-  /**
-     * Generates an RSA key pair.
-     *
-     * @deprecated Prefer util.rsaGeneratePair() for new code.
-     *
-     * Asynchronous; modulusLength: multiple of 256 in 1024..4096; passphrase: at most 4096 code units.
-     *
-     * Example:
-     * const pair = await api.rsaGeneratePair({ modulusLength: 2048 });
-     */
-  static rsaGeneratePair(config?: {
-      modulusLength?: number;
-      passphrase?: string;
-    }): Promise<{ publicKey: string; privateKey: string }>;
-
-  /**
-     * Signs data with RSA-PSS and SHA-256 asynchronously. PEM import and input conversion can still occupy the event loop.
-     *
-     * @deprecated Prefer util.rsaSign() for new code.
-     *
-     * Example:
-     * const signature = await api.rsaSign(privateKey, 'hello', passphrase);
-     */
-  static rsaSign(
-      privateKey: string,
-      payload: string,
-      passphrase?: string,
-    ): Promise<string>;
-
-  /**
-     * Verifies an RSA-PSS SHA-256 signature asynchronously, preserving automatic salt-length detection.
-     *
-     * @deprecated Prefer util.rsaVerify() for new code.
-     *
-     * Example:
-     * const ok = await api.rsaVerify(publicKey, 'hello', signature);
-     */
-  static rsaVerify(
-      publicKey: string,
-      payload: string,
-      signature: string,
-    ): Promise<boolean>;
 }
 
 declare class storage {
@@ -2277,7 +1447,6 @@ declare class storage {
      * Reads storage file content.
      *
      * Notes:
-     * - Use this storage API instead of deprecated legacy `api.getFile*` file reads.
      * - CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
      * - mode: "lines" returns physical string lines, including headers and the final empty line; encoding and separator are detected or overridden.
      * - CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false keeps quotes/backslashes literal and ignores escape.
@@ -2338,7 +1507,6 @@ declare class storage {
      * Builds reusable record or worksheet indexes and returns file statistics.
      *
      * Notes:
-     * - Use this storage API instead of deprecated legacy `api.getFileStats` file stats.
      * - mode: "lines" builds a separate physical-line index with lineCount, map, batches, encoding and separator.
      * - CSV stats include physicalLineCount, blankLineCount and endsWithRecordDelimiter independently of logical rowCount.
      * - CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false disables quoting and ignores escape.
@@ -2429,7 +1597,7 @@ declare class storage {
      *   parts. `incremental` assigns part numbers by default and also accepts an
      *   explicit number for repair. `writeMode` is independent: it controls only
      *   CSV/XLSX row materialization (`staged` or declared-schema `direct`).
-     * - Use this instead of `storage.appendFile(...)`. Managed direct uploads are
+     * - Use incremental sessions for append-style writes. Managed direct uploads are
      *   finalized automatically after Storage confirms the transfer; observe the
      *   session until `FINALIZED` and do not call `finalizeUploadSession` for that
      *   path. Explicitly finalize chunked and incremental sessions.
@@ -2761,28 +1929,6 @@ declare class storage {
     ): Promise<StorageDownload>;
 
   /**
-     * @deprecated Use storage.getDocument(storageEntryId, { format: "text", startLine, endLine, maxChars }).
-     * Delegates to the document reader and preserves the original text-window result.
-     *
-     * Example:
-     * const excerpt = await storage.getText(storageEntryId, {
-     *   startLine: 1,
-     *   endLine: 50,
-     * });
-     */
-  static getText(
-      storageEntryId: string,
-      options?: StorageTextReadOptions,
-    ): Promise<StorageTextContent>;
-
-  /** @deprecated Use storage.getDocument with text line options. */
-  static getText(
-      namespace: string,
-      storageEntryId: string,
-      options?: StorageTextReadOptions,
-    ): Promise<StorageTextContent>;
-
-  /**
      * Reads bounded text, JSON, XML, or PDF/DOCX text from Storage. PDF/DOCX
      * extraction is text-only, capped at 40,000 characters and 100 PDF pages,
      * with explicit extraction/truncation and possible-OCR metadata. Source input
@@ -2815,9 +1961,8 @@ declare class transport {
   /**
      * Streams a remote path into Storage, then finalizes it using storage.* namespace/ACL rules.
      * Uses `transport` Secret formats and optional host-key pinning.
-     * Automatic execution.log: details.source identifies the call;
-     * details.error carries code/retryable/resource/reference/statusCode.
-     * runtimeError may expose the same failure/source metadata.
+     * execution.log carries details.source and details.error (code/retryable/resource/reference/statusCode);
+     * runtimeError may expose matching metadata.
      *
      * Example:
      * const imported = await transport.sftpImport('/incoming/daily.csv', {
@@ -3632,30 +2777,10 @@ declare class util {
   /**
      * Validates UUID shape.
      *
-     * @deprecated Prefer util.isUUID() for new code.
-     *
-     * Example:
-     * const ok = util.isUuid(value);
-     */
-  static isUuid(input: any): boolean;
-
-  /**
-     * Validates UUID shape.
-     *
      * Example:
      * const ok = util.isUUID(value);
      */
   static isUUID(input: any): boolean;
-
-  /**
-     * Generates a random UUIDv7.
-     *
-     * @deprecated Prefer util.randomUUID() for new code.
-     *
-     * Example:
-     * const id = util.generateUuid();
-     */
-  static generateUuid(): string;
 
   /**
      * Generates a random UUIDv7.

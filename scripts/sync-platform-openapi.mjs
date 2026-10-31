@@ -228,7 +228,6 @@ const TAG_GUIDES = Object.freeze({
   'Database Views': ['Database Views guide', '/operate/database-views'],
   Databases: ['Databases guide', '/operate/databases'],
   Endpoints: ['Endpoints guide', '/operate/endpoints'],
-  Files: ['Files compatibility guide', '/operate/files'],
   'Instance Vault': ['Secrets and Vault guide', '/operate/secrets'],
   Groups: ['Groups guide', '/operate/groups'],
   Me: ['Authentication guide', '/developers/authentication'],

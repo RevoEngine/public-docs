@@ -12,7 +12,7 @@ A JS or TS library shares business logic across components in the same instance.
 | `Queries` in `Customers` | `lib.Customers.Queries.findById(id)` |
 | Ordinary element named `DEFAULT` | `lib.Customers.DEFAULT.member` |
 
-The library segment is the component **name**, not its category. Names and keys are case-sensitive. `lib` is canonical; the deprecated `libs` namespace resolves to the same bindings.
+The library segment is the component **name**, not its category. Names and keys are case-sensitive. Use the `lib` namespace for all library calls.
 
 ## Start with an empty default
 
@@ -116,7 +116,7 @@ Each element has its own lexical scope. Another element or library is reached th
 
 ## Default aliases and TypeScript
 
-`lib.Orders.calculateTotal` and `lib.Orders['@default'].calculateTotal` are the same function, not two wrappers. The bracket form is useful when inspecting element identity; prefer the short form in application source. `libs.*` preserves the same identity for existing consumers.
+`lib.Orders.calculateTotal` and `lib.Orders['@default'].calculateTotal` are the same function, not two wrappers. The bracket form is useful when inspecting element identity; prefer the short form in application source.
 
 TypeScript types use the canonical namespace, for example `lib.Customers.EmailInput`. The bracket alias types runtime values; a type-only declaration has no runtime property. Use the short namespace in source and type annotations. Completion and definition navigation expose the same public symbols as runtime calls.
 

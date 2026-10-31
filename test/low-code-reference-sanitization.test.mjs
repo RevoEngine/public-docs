@@ -96,3 +96,22 @@ test('public mutation guidance retains atomicity and limits without query optimi
   assert.match(sanitized, /100,000-row/);
   assert.match(sanitized, /static deleteDatabaseData/);
 });
+
+
+test('keeps HTTP instance scope behavior without publishing fingerprint derivation', () => {
+  const source = `declare class api {
+    /**
+     * Performs an outbound HTTP request.
+     * - Revo responses expose \`revo.sameInstance\`. The runtime compares
+     *   SHA-256("revo-instance:v1:" + current instance id) internally; \`x-revo-oid\`
+     *   is returned only when \`revo.sameInstance\` is true. Cross-instance or
+     *   unconfirmed Revo headers are removed from the public response.
+     */
+    static httpCall(config: HttpRequestInterface): Promise<HttpResponse>;
+  }`;
+  const sanitized = sanitizeDeclarationSource(source);
+  assert.doesNotMatch(sanitized, /SHA-256|revo-instance:v1|current instance id/);
+  assert.match(sanitized, /x-revo-oid.*only when `revo\.sameInstance` is true/);
+  assert.match(sanitized, /Cross-instance or\s*\n\s*\*?\s*unconfirmed Revo headers are removed/);
+  assert.match(sanitized, /static httpCall\(config: HttpRequestInterface\)/);
+});

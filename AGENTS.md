@@ -21,7 +21,7 @@ OpenAPI is the source for exact HTTP operations and request schemas. Handwritten
 - Say **Sandbox** for transient/stored component execution, debugging, validation, editor types, SDK runtime calls, and plugin tests.
 - Say **Database**, **View**, **Storage**, **Component**, **Endpoint**, **Automation**, **Assistant**, and **Agent** for current product domains.
 - Do not reintroduce generic **Resources** or top-level **Schemas** as the platform model.
-- Use **Execution ID** for one runtime execution. Mention the deprecated `getJobId()` alias only in compatibility notes.
+- Use **Execution ID** for one runtime execution and `api.getExecutionId()` in examples.
 - Capitalize **Assistant**, **Agent**, **Platform API**, **Storage**, **Sandbox**, and **Web IDE** when referring to RevoEngine products.
 
 ## Page structure
@@ -72,8 +72,7 @@ It is appropriate to explain control-plane versus execution-plane ownership, dur
 - Use `lib.Name.X` for named exports from the permanent `@default` library
   element, and `lib.Name.ElementKey.X` for named exports from other elements.
   Category groups navigation and is not a runtime namespace segment. Unexported
-  declarations are local; prefer canonical `lib.*` over deprecated `libs.*`.
-- Prefer `api.getExecutionId()` over deprecated `api.getJobId()`.
+  declarations are local; use the canonical `lib.*` namespace.
 - Note when a sample is illustrative and its exact DTO comes from OpenAPI or generated editor types.
 
 ## Required checks

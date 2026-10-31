@@ -209,11 +209,6 @@ function main() {
     issues.push('Events guide contains a technical Storage implementation dump or stale ingestion link.');
   }
 
-  const legacyFilesGuide = readFileSync(join(root, 'operate/files.mdx'), 'utf8');
-  if (/backend Files controller/i.test(legacyFilesGuide)) {
-    issues.push('Legacy Files guide must describe the public contract, not backend controllers.');
-  }
-
   const httpGuide = readFileSync(join(root, 'low-code/http.mdx'), 'utf8');
   for (const requiredPattern of [
     /responseType:\s*['"]stream['"]/,

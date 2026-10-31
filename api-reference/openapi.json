@@ -127,7 +127,6 @@
                   "EVENTS",
                   "SECRETS",
                   "STORAGE",
-                  "FILES",
                   "PREFERENCES",
                   "USER_KEYS",
                   "DATABASES",
@@ -282,7 +281,6 @@
                   "EVENTS",
                   "SECRETS",
                   "STORAGE",
-                  "FILES",
                   "PREFERENCES",
                   "USER_KEYS",
                   "DATABASES",
@@ -314,7 +312,6 @@
                   "EVENTS",
                   "SECRETS",
                   "STORAGE",
-                  "FILES",
                   "PREFERENCES",
                   "USER_KEYS",
                   "DATABASES",
@@ -495,7 +492,6 @@
                 "EVENTS",
                 "SECRETS",
                 "STORAGE",
-                "FILES",
                 "PREFERENCES",
                 "USER_KEYS",
                 "DATABASES",
@@ -12356,304 +12352,6 @@
         ]
       }
     },
-    "/api/v1/files": {
-      "get": {
-        "description": "\n    ROLES: FILE_READ,FILE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
-        "operationId": "FilesController_explorer",
-        "parameters": [
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of rows to skip before pagination starts. Parsed from a query-string integer.",
-            "schema": {
-              "minimum": 0,
-              "example": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of rows to return. Parsed from a query-string integer. Most list endpoints default to 100 when omitted.",
-            "schema": {
-              "minimum": 0,
-              "maximum": 10000,
-              "example": 100,
-              "type": "number"
-            }
-          },
-          {
-            "name": "count",
-            "required": false,
-            "in": "query",
-            "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
-            "schema": {
-              "example": true,
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "filter",
-            "required": false,
-            "in": "query",
-            "description": "Filter tree as a JSON string or bracket-style query object. Supports and/or/not groups and field predicates with ops such as eq, ne, gt, gte, lt, lte, like, notLike, ilike, notILike, in, notIn, any, isNull, isNotNull, between, contains, containedBy, arrayHas, arrayHasAny, arrayHasAll, arrayContainedBy, jsonArrayHas, jsonArrayHasAny, jsonArrayHasAll, startsWith, endsWith, true, and false. Field names are allowed logical fields; relation fields use dot paths such as groups.groupId when exposed by the endpoint.",
-            "schema": {
-              "example": "{\"and\":[{\"field\":\"name\",\"op\":\"ilike\",\"value\":\"Ops\"},{\"field\":\"deletedAt\",\"op\":\"isNull\"}]}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "required": false,
-            "in": "query",
-            "description": "Sort definition as a JSON string, indexed array query object, array, or legacy CSV. JSON object values should be ASC or DESC. CSV supports descending fields with a leading dash, for example name,-lastUpdateAt.",
-            "schema": {
-              "example": "{\"name\":\"ASC\",\"lastUpdateAt\":\"DESC\"}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "distinct",
-            "required": false,
-            "in": "query",
-            "description": "Optional DISTINCT ON logical fields as a JSON array string, indexed array query object, array, or legacy CSV. Selected distinct fields are included in the projection.",
-            "schema": {
-              "example": "category,global",
-              "type": "string"
-            }
-          },
-          {
-            "name": "fields",
-            "required": false,
-            "in": "query",
-            "description": "Optional field projection as a JSON array string, indexed array query object, array, or legacy CSV. String fields must be allowlisted logical fields. Advanced select items may use field, fn, raw, cast, coalesce, or case expressions when the endpoint enables dynamic projection.",
-            "schema": {
-              "example": "[\"databaseId\",\"name\",{\"fn\":\"COUNT\",\"args\":[\"users.userId\"],\"as\":\"userCount\",\"filterType\":\"number\"}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "joins",
-            "required": false,
-            "in": "query",
-            "description": "Optional join definitions as a JSON string or bracket-style query object. This is only honored by endpoints that explicitly enable dynamic joins, such as dynamic database data reads. Each join has table, alias, type (left or inner), and an on condition.",
-            "schema": {
-              "example": "[{\"table\":\"groups_users\",\"alias\":\"gu\",\"type\":\"left\",\"on\":{\"left\":\"gu.groupsGroupId\",\"op\":\"=\",\"right\":\"g.groupId\"}}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "groupBy",
-            "required": false,
-            "in": "query",
-            "description": "Optional groupBy logical fields as a JSON array string, indexed array query object, array, or legacy CSV. Only honored when the endpoint enables dynamic grouping or already has grouped defaults.",
-            "schema": {
-              "example": "[\"category\",\"global\"]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "cast",
-            "required": false,
-            "in": "query",
-            "description": "Optional cast mapping as a JSON string or bracket-style query object. Keys are selected aliases or logical fields; values are database definition types such as TEXT, INTEGER, BIGINT, NUMERIC, BOOLEAN, DATE, TIMESTAMP, TIMESTAMPTZ, JSON, JSONB, or UUID where supported.",
-            "schema": {
-              "example": "{\"userCount\":\"INTEGER\"}",
-              "type": "string"
-            }
-          },
-          {
-            "name": "with",
-            "required": false,
-            "in": "query",
-            "description": "Optional CTE definitions as a JSON string or bracket-style query object. Only honored by endpoints that explicitly enable dynamic CTEs.",
-            "schema": {
-              "example": "[{\"name\":\"active_groups\",\"query\":{\"from\":{\"table\":\"groups\",\"alias\":\"g\",\"definition\":[]}}}]",
-              "type": "string"
-            }
-          },
-          {
-            "name": "debug",
-            "required": false,
-            "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
-            "schema": {
-              "example": false,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "User not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "File explorer.",
-        "tags": [
-          "Files"
-        ]
-      },
-      "post": {
-        "description": "\n    ROLES: FILE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
-        "operationId": "FilesController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateFileDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "400": {
-            "description": "Path of file found."
-          },
-          "403": {
-            "description": "Forbidden."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "File explorer.",
-        "tags": [
-          "Files"
-        ]
-      }
-    },
-    "/api/v1/files/{fileId}/download": {
-      "post": {
-        "description": "\n    ROLES: FILE_READ,FILE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
-        "operationId": "FilesController_downloadFile",
-        "parameters": [
-          {
-            "name": "fileId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "User not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "File download.",
-        "tags": [
-          "Files"
-        ],
-        "x-revo-safety-tier": "read"
-      }
-    },
-    "/api/v1/files/{fileId}/preview": {
-      "post": {
-        "description": "\n    ROLES: FILE_READ,FILE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
-        "operationId": "FilesController_previewFile",
-        "parameters": [
-          {
-            "name": "fileId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "User not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "File download.",
-        "tags": [
-          "Files"
-        ],
-        "x-revo-safety-tier": "read"
-      }
-    },
-    "/api/v1/files/delete": {
-      "post": {
-        "description": "\n    ROLES: FILE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
-        "operationId": "FilesController_deleteFiles",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IdDataDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "403": {
-            "description": "Forbidden."
-          },
-          "404": {
-            "description": "User not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "File delete.",
-        "tags": [
-          "Files"
-        ],
-        "x-revo-safety-tier": "destructive"
-      }
-    },
     "/api/v1/storage/workspaces": {
       "get": {
         "operationId": "StorageController_listWorkspaces",
@@ -20130,10 +19828,6 @@
                       "JOB_ATTEMPT_FAILED",
                       "JOB_EXECUTION_FAILED",
                       "JOB_EXECUTION_SUCCEEDED",
-                      "FILE_DELETED",
-                      "FILE_FINALIZED",
-                      "FILE_ARCHIVED",
-                      "FILE_UPDATED",
                       "STORAGE_CREATED",
                       "STORAGE_UPDATED",
                       "STORAGE_SYNCHRONIZED",
@@ -30828,7 +30522,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -30970,14 +30664,6 @@
       "externalDocs": {
         "description": "Endpoints guide",
         "url": "https://docs.revoengine.com/operate/endpoints"
-      }
-    },
-    {
-      "name": "Files",
-      "description": "Compatibility file listing, preview, download, and deletion operations.",
-      "externalDocs": {
-        "description": "Files compatibility guide",
-        "url": "https://docs.revoengine.com/operate/files"
       }
     },
     {
@@ -32999,29 +32685,9 @@
               "timezone": "Europe/Warsaw"
             }
           },
-          "metaData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
-            "description": "Custom profile metadata stored with the account. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use.",
-            "example": {
-              "locale": "pl-PL",
-              "timezone": "Europe/Warsaw"
-            }
-          },
           "metadataAdvanced": {
             "type": "object",
             "nullable": true,
-            "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
-            "example": {
-              "costCenter": "FIN-01",
-              "supportTier": "gold"
-            }
-          },
-          "advancedData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
             "description": "Extended profile settings used by enterprise-specific integrations. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys.",
             "example": {
               "costCenter": "FIN-01",
@@ -33376,21 +33042,9 @@
             "nullable": true,
             "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
-          "metaData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
-            "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
           "metadataAdvanced": {
             "type": "object",
             "nullable": true,
-            "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
-          "advancedData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
             "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
@@ -33492,21 +33146,9 @@
             "nullable": true,
             "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
-          "metaData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
-            "description": "Custom service-account metadata. Top-level keys starting with \"__\" are reserved for backend use. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
           "metadataAdvanced": {
             "type": "object",
             "nullable": true,
-            "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
-          "advancedData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
             "description": "Extended account data with separate permissions. Same JSON format as Metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "access": {
@@ -33545,21 +33187,9 @@
             "nullable": true,
             "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
-          "metaData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
-            "description": "Custom account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
-          },
           "metadataAdvanced": {
             "type": "object",
             "nullable": true,
-            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
-          "advancedData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           }
         },
@@ -33699,21 +33329,9 @@
             "nullable": true,
             "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
           },
-          "metaData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
-            "description": "Replacement account metadata. Maximum 16 KiB of UTF-8 JSON and 64 top-level keys. Top-level keys starting with \"__\" are reserved for backend use."
-          },
           "metadataAdvanced": {
             "type": "object",
             "nullable": true,
-            "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
-          },
-          "advancedData": {
-            "type": "object",
-            "nullable": true,
-            "deprecated": true,
             "description": "Extended account data: maximum 16 KiB of UTF-8 JSON and 64 top-level keys."
           },
           "version": {
@@ -35406,8 +35024,6 @@
                 "RESOURCE_READ",
                 "RESOURCE_WRITE",
                 "RESOURCE_ADMIN",
-                "FILE_READ",
-                "FILE_ADMIN",
                 "STORAGE_ADMIN",
                 "COMPONENT_READ",
                 "COMPONENT_EXECUTE",
@@ -40206,50 +39822,6 @@
         "required": [
           "state",
           "code"
-        ]
-      },
-      "CreateFileDto": {
-        "type": "object",
-        "properties": {
-          "fileName": {
-            "type": "string",
-            "description": "File name.",
-            "example": "report.pdf"
-          },
-          "contentType": {
-            "type": "string",
-            "description": "Content type declared for the uploaded file.",
-            "example": "application/pdf"
-          },
-          "type": {
-            "type": "string",
-            "description": "Logical file type stored by the platform.",
-            "example": "FILE",
-            "enum": [
-              "FILE",
-              "FOLDER"
-            ]
-          },
-          "size": {
-            "type": "number",
-            "description": "Size of the file in bytes.",
-            "example": 204800
-          },
-          "path": {
-            "type": "string",
-            "description": "Optional source or destination path associated with the file.",
-            "example": "/imports/2026/report.pdf"
-          },
-          "force": {
-            "type": "boolean",
-            "description": "Overwrite the existing file when a conflicting target already exists.",
-            "example": false
-          }
-        },
-        "required": [
-          "fileName",
-          "type",
-          "size"
         ]
       },
       "StorageVersionDto": {
@@ -45119,7 +44691,6 @@
               "COMPONENT_ELEMENTS",
               "EVENTS_HISTORY",
               "USER_KEYS",
-              "FILES",
               "STORAGE",
               "REALTIME",
               "LOGS",

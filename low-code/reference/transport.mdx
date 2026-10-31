@@ -20,9 +20,8 @@ This page contains **3 methods**. Search the docs for an exact method name, or u
 
 Streams a remote path into Storage, then finalizes it using storage.* namespace/ACL rules.
 Uses `transport` Secret formats and optional host-key pinning.
-Automatic execution.log: details.source identifies the call;
-details.error carries code/retryable/resource/reference/statusCode.
-runtimeError may expose the same failure/source metadata.
+execution.log carries details.source and details.error (code/retryable/resource/reference/statusCode);
+runtimeError may expose matching metadata.
 
 ### Signature
 
