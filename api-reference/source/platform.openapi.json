@@ -1172,7 +1172,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -1543,7 +1543,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -2191,7 +2191,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -2601,7 +2601,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -3243,7 +3243,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -5090,7 +5090,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -5400,7 +5400,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -5849,7 +5849,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -6159,7 +6159,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -6533,7 +6533,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -7008,7 +7008,7 @@
                   },
                   "debug": {
                     "type": "boolean",
-                    "description": "Request query debug information when available to the caller.",
+                    "description": "Return only the complete estimated read plan without fetching records. count:true also previews the count plan; no data or count query is executed.",
                     "example": false
                   },
                   "with": {
@@ -7653,7 +7653,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -7989,7 +7989,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -8290,7 +8290,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -8948,7 +8948,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -9208,7 +9208,7 @@
                   },
                   "debug": {
                     "type": "boolean",
-                    "description": "Request query debug information when available to the caller.",
+                    "description": "Return only the complete estimated read plan without fetching records. count:true also previews the count plan; no data or count query is executed.",
                     "example": false
                   },
                   "with": {
@@ -9413,16 +9413,6 @@
             }
           },
           {
-            "name": "debug",
-            "required": false,
-            "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
-            "schema": {
-              "example": false,
-              "type": "boolean"
-            }
-          },
-          {
             "name": "join",
             "required": false,
             "in": "query",
@@ -9430,6 +9420,18 @@
             "schema": {
               "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}",
               "type": "string"
+            }
+          },
+          {
+            "name": "debug",
+            "required": false,
+            "in": "query",
+            "description": "Exports do not support diagnostic mode. Use a data-read operation to preview the read plan.",
+            "schema": {
+              "type": "boolean",
+              "enum": [
+                false
+              ]
             }
           },
           {
@@ -10161,7 +10163,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -11100,7 +11102,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -11401,7 +11403,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -11714,7 +11716,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -12472,7 +12474,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Include diagnostic details for the explorer query.",
+            "description": "Return only the estimated explorer read plan without fetching records.",
             "schema": {
               "type": "boolean"
             }
@@ -12733,7 +12735,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Include diagnostic details for the explorer query.",
+            "description": "Return only the estimated explorer read plan without fetching records.",
             "schema": {
               "type": "boolean"
             }
@@ -18006,7 +18008,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -18201,7 +18203,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -18552,7 +18554,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -19026,7 +19028,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -19484,7 +19486,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -19853,7 +19855,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -20317,7 +20319,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -20491,7 +20493,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -21510,7 +21512,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -22172,7 +22174,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -22626,7 +22628,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -26316,7 +26318,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -26600,7 +26602,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -27115,7 +27117,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Include diagnostic details for the explorer query.",
+            "description": "Return only the estimated explorer read plan without fetching records.",
             "schema": {
               "type": "boolean"
             }
@@ -27730,7 +27732,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -28092,7 +28094,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -28994,7 +28996,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -29220,7 +29222,7 @@
             "name": "debug",
             "required": false,
             "in": "query",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
+            "description": "Return only the complete estimated read plan without fetching records. count:true adds the count plan. Unsupported data sources reject diagnostic requests without executing the read.",
             "schema": {
               "example": false,
               "type": "boolean"
@@ -36344,15 +36346,17 @@
               "additionalProperties": true
             }
           },
-          "debug": {
-            "type": "boolean",
-            "description": "Enable debug output for the request, including compiled SQL, bound params, and bounded EXPLAIN plans when the endpoint supports it.",
-            "example": false
-          },
           "join": {
             "type": "object",
             "description": "Legacy dynamic database join map.",
             "example": "{\"orders\":[\"customerId\",\"customerId\",\"left\"]}"
+          },
+          "debug": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "Exports do not support diagnostic mode. Use a data-read operation to preview the read plan."
           },
           "format": {
             "type": "string",
@@ -36465,6 +36469,69 @@
           "patch": {
             "type": "boolean",
             "description": "For upserts, update only properties supplied by each conflicting row. Defaults to true. Set false for the legacy full replacement behavior."
+          },
+          "skipUnchanged": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "oneOf": [
+                  {
+                    "required": [
+                      "include"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "exclude"
+                    ]
+                  }
+                ],
+                "properties": {
+                  "include": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1600,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "exclude": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1600,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            ],
+            "description": "Upsert only: skip existing rows when compared supplied non-primary-key fields are unchanged. Defaults to false. include and exclude are mutually exclusive. A changed compared field writes every supplied PATCH field."
+          },
+          "filter": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            ],
+            "description": "Upsert only: structured field/op/value filter with and/or/not on the current target row. Controls updates, not inserts. Evaluated atomically together with skipUnchanged. No joins or incoming-field references."
           },
           "data": {
             "description": "Data limited to 32mb and 100,000 rows.",
@@ -49859,7 +49926,7 @@
           "url": {
             "type": "string",
             "description": "Relative RevoEngine route for the current instance, including supported grid filters.",
-            "example": "/instance-id/resources/databases?v=2&f.status=ACTIVE",
+            "example": "/instance-id/resources/databases?f.status=eq:ACTIVE",
             "maxLength": 8192
           }
         },
@@ -49888,7 +49955,7 @@
           "url": {
             "type": "string",
             "description": "Validated relative RevoEngine route stored by the share link.",
-            "example": "/instance-id/resources/databases?v=2&f.status=ACTIVE",
+            "example": "/instance-id/resources/databases?f.status=eq:ACTIVE",
             "maxLength": 8192
           }
         },

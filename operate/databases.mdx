@@ -105,6 +105,27 @@ The generated Platform API exposes two complementary read operations:
 
 Both return `data`, `results`, and `next`, plus `total` only when count is requested. The body-based query does not publish a larger guaranteed page ceiling. Keep pages bounded and prefer keyset-like business filters for large data sets instead of increasing `skip` indefinitely.
 
+### Preview a read plan
+
+Use `debug: true` on `api.getDatabaseData` to inspect the complete estimated read
+plan before fetching records. `count: true` also previews the count plan. The
+result contains `debug.explain` and optional `debug.countExplain`; it contains no
+records or pagination result. Omit `debug` to fetch records normally.
+
+```javascript
+const diagnostic = await api.getDatabaseData('orders', {
+  fields: ['orderId'],
+  filter: { field: 'status', op: 'eq', value: 'OPEN' },
+  take: 100,
+  debug: true,
+});
+console.log(diagnostic.debug.explain.join('\n'));
+```
+
+This option retains normal data access checks and query validation. Use it on
+`getDatabaseData`, rather than row, count or walk helpers. An unsupported data
+source rejects the diagnostic request without running the read.
+
 ## Mutate data safely
 
 Dedicated insert, update, upsert, and delete operations apply schema validation and resource authorization. For a check-then-write flow, use a database transaction and keep remote network calls outside it.
@@ -116,6 +137,38 @@ Bulk update and delete accept filters. Preview the affected selection in your ap
 </Warning>
 
 Schema validation, primary-key requirements, foreign references, and uniqueness can reject a write. Large filtered update/delete operations are executed in bounded batches; a later batch failure does not make a previously committed batch disappear unless the caller used an explicit transaction-capable runtime flow. Design idempotency and retry behavior around the operation you selected.
+
+### Conditional upserts
+
+Use conditional upserts when an integration sends repeated snapshots. They reduce redundant writes and row-audit updates while preserving the normal schema, permission and transaction checks. The options are available in low-code and the Platform API in the 3 November update to 1.7.1.
+
+For a Database with `productId`, `cost`, `currency`, `active` and `updatedAt` columns:
+
+```js
+const result = await api.upsertDatabaseData('products', [
+  {
+    productId: '1001',
+    cost: '125.00',
+    currency: 'PLN',
+    active: true,
+    updatedAt: '2026-11-03T10:00:00Z',
+  },
+], {
+  return: false,
+  skipUnchanged: { exclude: ['updatedAt'] },
+  filter: { field: 'active', op: 'eq', value: true },
+});
+```
+
+The `filter` checks the current Database row and controls updates only. A missing row is inserted independently of that filter. The example can update an existing active product; it does not reactivate an inactive product merely because the incoming value is true.
+
+Use `skipUnchanged: true` to compare all supplied fields other than primary keys. An `exclude` list omits technical fields from that decision; an `include` list compares only the selected business fields. Choose one list, with known non-primary-key column names. When a compared field changes, all supplied PATCH fields are written together. Changes only to excluded fields are intentionally not saved.
+
+Omitted fields remain unchanged, explicit nullable null clears a value, and non-nullable null retains the documented default-reset behavior. JSON compares stored text; JSONB compares structure. Existing calls keep their defaults, including returned row data and PATCH behavior.
+
+In conditional mode, `success` counts handled input records, including intentional skips; `affected` counts actual writes. Returned data contains written rows only. Set `return: false` when row data is unnecessary to reduce response overhead. Skipped updates do not create row-audit changes. The conditional options apply only to upsert, not ordinary insert.
+
+The filter uses the existing structured `field`/`op`/`value` syntax with `and`, `or` and `not`. It supports current target fields without joins, raw expressions or incoming-field references. See the [low-code API reference](/low-code/reference/api#api-upsertDatabaseData) for the complete option types.
 
 ### Ordered mass updates
 

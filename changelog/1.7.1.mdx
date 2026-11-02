@@ -1,97 +1,59 @@
 ---
-title: "1.7.1 — Storage and a single runtime API"
+title: "1.7.1 — Storage and runtime API updates"
 sidebarTitle: "1.7.1"
 icon: "tag"
 description: "31 October 2026"
 ---
 
-RevoEngine 1.7.1 retires the legacy Files resource and deprecated low-code entrypoints. Storage remains the file lifecycle for uploads, generated artifacts and transfers. SDK 3.0.0 exposes the same current runtime contract, including canonical account metadata fields.
+RevoEngine 1.7.1 adds conditional Database upserts for repeatable imports, completes the move from legacy Files to Storage and removes deprecated low-code APIs. Review the compatibility changes below before upgrading applications or adopting SDK 3.0.0.
 
 ## Highlights
 
-- Removed the legacy Files workspace, Platform API endpoints and resource discovery.
-- Removed deprecated low-code methods and the `libs` alias; use the current runtime namespaces and `lib`.
-- Standardized account responses and inputs on `metadata` and `metadataAdvanced`.
-- Updated Monaco declarations and SDK 3.0.0 to the current supported authoring contract.
-- Preserved Storage uploads, attachments and the shared upload flows used by account images.
-- Recover queued platform work after temporary transport failures without holding uploads or completed Jobs open.
-- Hardened account labels, avatars, editor documentation and chat diagrams against injected content.
-- Removed spurious error diagnostics for expected `util.sleep` cancellation while preserving cancellation and timeouts.
-- Made concurrent requests wait for ordinary instance readiness instead of reporting schema-migration maintenance.
+- Synchronize repeated data with optional change detection and filters on existing Database rows.
+- Preview Database read plans with `debug: true` without fetching records.
+- Retired legacy Files; use Storage for uploads, downloads and generated files.
+- Removed deprecated low-code methods and the `libs` alias; SDK 3.0.0 uses the current runtime API.
+- Standardized account fields on `metadata` and `metadataAdvanced`.
 
 ## In detail
 
-## Storage throughout the application
+## Conditional Database upserts
 
-The legacy Files resource is retired from navigation, dashboards, search and the Platform API. Use Storage entries and their `storageEntryId` for file operations. Existing Storage upload sessions, HTTP transfers, SFTP transfers and chat attachments continue through their existing lifecycle.
+The 3 November update to 1.7.1 adds `skipUnchanged` to avoid rewriting identical imported data and `filter` to control updates using current Database values. New rows are inserted independently of the filter. Compare all supplied fields or select an `include` or `exclude` list; changes only outside the compared set are intentionally skipped. Use `affected` to count actual writes in conditional mode and `return: false` when row data is unnecessary. Skipped writes do not create row-audit updates.
 
-Removing Files does not turn an old file identifier into a Storage entry. Applications must use the Storage contract when selecting an upload destination, opening an artifact or returning a download to a client. Storage authorization, finalization and retention continue to apply.
+Read [Database mutations](/operate/databases#conditional-upserts) and the [low-code API reference](/low-code/reference/api#api-upsertDatabaseData).
+
+## Preview Database read plans
+
+Use `debug: true` on a structured Database read to inspect the complete estimated plan before fetching records. It now returns a diagnostic result only, including an optional count plan. Remove `debug` when the application needs records.
+
+Read [Database read diagnostics](/operate/databases#preview-a-read-plan).
+
+## Legacy Files retired
+
+The legacy Files workspace and its Platform API endpoints are no longer available. Use Storage and `storageEntryId` for file operations. Existing Files identifiers are not Storage entry identifiers; update integrations that still depend on the retired resource.
 
 Read [Storage](/operate/storage) and [Storage uploads](/operate/storage-uploads).
 
-## Current low-code namespaces and SDK 3.0.0
+## Deprecated low-code APIs removed
 
-Application code now uses the supported `api`, `storage`, `util`, `transport`, `vault`, `agent` and `lib` surfaces. Deprecated method aliases are removed from execution and editor completion. Shared implementations used by the current namespaces remain available through those namespaces.
-
-SDK 3.0.0 is a breaking authoring-contract update. Replace deprecated method calls and `libs` references before upgrading, then check the generated declarations for the supported signatures. SDK and platform versions are independent; new hosted Components use the platform's SDK pin.
+Replace deprecated method calls with their current equivalents and change `libs` references to `lib`. SDK 3.0.0 is a breaking update that follows the same supported runtime API. Check application code against the current reference before upgrading.
 
 Read the [low-code reference](/low-code/reference/index) and [Node.js SDK](/developers/sdk-overview).
 
-## Canonical account metadata
+## Account metadata fields
 
-`api.currentUser()`, account responses and account requests use `metadata` and `metadataAdvanced`. The retired field names are removed from declarations and are rejected in account writes and query selectors. The same contract is available in Monaco and SDK 3.0.0.
-
-Applications that expose their own established user-response format can map these canonical fields in application code. Such a mapping belongs to that application's response contract; it does not restore removed fields on `LoggedUser` or the Platform API.
+Account requests, responses and `api.currentUser()` use `metadata` and `metadataAdvanced`. Update integrations and account query selectors that use retired field names; those names are no longer accepted.
 
 Read [Users](/operate/users).
-
-## Safer identities, editor content and diagrams
-
-Account names, email addresses and identity-provider details render as literal text in labels and grids. Avatar addresses and labels remain contained within image attributes; unsafe addresses use the existing initials or missing-image fallback. Profile image uploads continue through Storage.
-
-Editor documentation and chat diagrams have stronger protection against injected markup and styles. Code editing, useful diagram labels and mathematical expressions retain their existing authoring workflow.
-
-Read [Users](/operate/users) and [Studio sessions](/build/studio-sessions).
-
-## Sleep follows the execution lifecycle
-
-`await util.sleep(ms)` pauses within the current execution's timeout budget. Cancellation or expiry still interrupts the wait, and finishing an execution clears pending waits. An interrupted wait continues to reject rather than completing successfully.
-
-Expected wait cancellation no longer produces a spurious error diagnostic. Real timer failures and errors from other platform calls retain their normal diagnostics. Await delays that the workflow needs before returning its result.
-
-Read [Low-code overview](/low-code/overview) and [Jobs](/operate/jobs).
-
-## Requests wait for instance readiness
-
-Concurrent requests now wait while an instance prepares its data connection, checks its schema and initializes required system schedules. Ordinary preparation no longer returns a schema-migration maintenance response solely because another request is preparing the instance.
-
-Maintenance protection remains in place when a schema migration is actually in progress. Connection and system-schedule initialization failures retain their normal failure handling; requests use the instance only after the required preparation succeeds.
-
-Read [Databases](/operate/databases#instance-readiness).
-
-## Reliable background handoff
-
-Temporary queue-transport failures retry within the platform deadline, including
-requests already in flight. Committed upload, indexing and Job-notification work
-is recovered every minute, while upload responses and completed Jobs use a short
-wait for auxiliary publication. Retry keeps its durable identity and repairs an
-unavailable task name without replaying customer Job logic.
-
-Email preparation can recover after an interruption before the delivery provider
-is called. An uncertain result after a send still requires review to avoid sending
-the same message again. Active Job heartbeats remain protected during recovery.
-
-Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
 
 
 ## Related guides
 
 - [Storage](/operate/storage)
-- [Users](/operate/users)
 - [Low-code reference](/low-code/reference/index)
 - [Node.js SDK](/developers/sdk-overview)
-- [Low-code overview](/low-code/overview)
-- [Databases](/operate/databases)
+- [Users](/operate/users)
 
 ## Continue through the releases
 

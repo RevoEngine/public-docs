@@ -389,6 +389,9 @@ declare class api {
      *
      * Notes:
      * - This is the canonical read API.
+     * - debug:true previews the complete estimated read/count plans without fetching records.
+     *   The result contains only debug.explain and optional debug.countExplain.
+     *   Unsupported data sources and writable caller transactions reject diagnostics.
      * - Pass take: null for a bounded 2,000-row page without a warning.
      * - Omitting take also uses 2,000 rows and logs one warning per execution.
      *
@@ -402,8 +405,18 @@ declare class api {
      */
   static getDatabaseData<T = any>(
       name: string,
-      request?: DatabaseBoundedReadQuery,
+      request: DatabaseBoundedReadQuery & { debug: true },
+    ): Promise<DatabaseExplainResult>;
+
+  static getDatabaseData<T = any>(
+      name: string,
+      request?: DatabaseBoundedReadQuery & { debug?: false },
     ): Promise<GetDatabaseDataResponse<T>>;
+
+  static getDatabaseData<T = any>(
+      name: string,
+      request: DatabaseBoundedReadQuery,
+    ): Promise<GetDatabaseDataResponse<T> | DatabaseExplainResult>;
 
   /**
      * Reads one matching row from a database, view, or materialized view in a single operation,
@@ -433,7 +446,7 @@ declare class api {
      */
   static walkDatabaseData<T = any>(
       name: string,
-      query: SelectInput,
+      query: Omit<SelectInput, 'debug'>,
       callback: (batch: T[], context: { batch: number; processed: number }) => void | Promise<void>,
       options?: DatabaseWalkOptions,
     ): Promise<DatabaseWalkResult>;
@@ -477,6 +490,10 @@ declare class api {
      * For a non-nullable property, null uses its declared database default; without a default it fails.
      * Pass { patch: false } only for the legacy full-replacement conflict behavior.
      * Pass { return: false } to skip returned rows, or { onlyKeys: true } for keys only.
+     * skipUnchanged: true skips identical supplied fields; include or exclude selects compared columns.
+     * filter checks current target values and restricts updates only; new rows are inserted independently.
+     * With either conditional option enabled, success counts handled inputs, affected counts actual writes,
+     * and data contains only written rows. Excluded-only changes do not update any column.
      *
      * Notes:
      * - Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
