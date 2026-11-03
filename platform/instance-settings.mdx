@@ -30,13 +30,14 @@ The product separates personal preferences, Assistant preferences, API keys, and
 | Section | What it governs | Typical operator question |
 | --- | --- | --- |
 | **General** | Instance identity, organization, plan, expiry, base API address, and SLA | Am I changing the intended tenant and environment? |
-| **Usage** | Capacity and runtime limits, plus measured AI, Transfer, Storage, Database, Jobs, Endpoints, and Webhooks consumption | Is this workload within its allowance, and what is consuming capacity? |
+| **Usage** | Measured AI, Transfer, Storage, Database, Jobs, Endpoints, and Webhooks consumption | What is consuming capacity over the selected period? |
+| **Limits** | IAM & Groups, Jobs, Resources, and Endpoints allowances | Is this workload within its allowance? |
 | **Agents** | Global instructions, default plugins, model output budget, memory, artifact retention, and security rules | What defaults and guardrails apply before an Agent starts? |
 | **Components** | Instance-wide Component and shared-library controls | Which reusable-code controls apply across builders and deployments? |
 | **Endpoints** | Endpoint permission identity and inherited Job execution defaults | Which account's permissions govern this execution? |
 | **Retention & Audit** | Version history and retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
 
-Identity, data, and automation capacity controls are grouped under **Usage → Limits**. Legacy links to those limits sections open Usage. Configure execution defaults separately under **Endpoints**; see [Endpoint configuration](/operate/endpoint-configuration).
+Identity, data, and automation capacity controls are grouped under the separate **Limits** section. Legacy links to those limits sections open Limits. **Usage** retains the measured consumption views and time selector. Its information action shows retention, the exact UTC range and metering timestamps. Configure execution defaults separately under **Endpoints**; see [Endpoint configuration](/operate/endpoint-configuration).
 
 ## Read limits correctly
 

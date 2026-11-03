@@ -56,6 +56,10 @@ Use the UI for investigation and deliberate administration. Application code sho
 use the atomic low-code operations rather than implementing a read-then-write race
 through separate HTTP requests.
 
+Browse Database Cache as a tree or a flat list. Search and alphabetical sorting cover the workspace on the server while the grid loads bounded pages. Expanding a folder loads its children; folder and selection counts include matching descendants that are not currently visible. A key with the same name as a folder remains a separate item.
+
+Refresh preserves expanded paths and unsaved value edits. Bulk Delete, Persist and Expire actions first review the selected scope, then report applied, unchanged, missing and concurrently changed keys. An expired or missing key cannot be edited. If a reviewed scope becomes unavailable, refresh and review the remaining keys before retrying.
+
 ## Read-through caching
 
 `api.getOrSetInstanceCache()` atomically returns the existing value or writes the
