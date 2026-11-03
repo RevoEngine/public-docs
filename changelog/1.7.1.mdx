@@ -47,6 +47,44 @@ Account requests, responses and `api.currentUser()` use `metadata` and `metadata
 
 Read [Users](/operate/users).
 
+## Safer identities, editor content and diagrams
+
+Account names, email addresses and identity-provider details render as literal text in labels and grids. Avatar addresses and labels remain contained within image attributes; unsafe addresses use the existing initials or missing-image fallback. Profile image uploads continue through Storage.
+
+Editor documentation and chat diagrams have stronger protection against injected markup and styles. Code editing, useful diagram labels and mathematical expressions retain their existing authoring workflow.
+
+Read [Users](/operate/users) and [Studio sessions](/build/studio-sessions).
+
+## Sleep follows the execution lifecycle
+
+`await util.sleep(ms)` pauses within the current execution's timeout budget. Cancellation or expiry still interrupts the wait, and finishing an execution clears pending waits. An interrupted wait continues to reject rather than completing successfully.
+
+Expected wait cancellation no longer produces a spurious error diagnostic. Real timer failures and errors from other platform calls retain their normal diagnostics. Await delays that the workflow needs before returning its result.
+
+Read [Low-code overview](/low-code/overview) and [Jobs](/operate/jobs).
+
+## Requests wait for instance readiness
+
+Concurrent requests now wait while an instance prepares its data connection, checks its schema and initializes required system schedules. Ordinary preparation no longer returns a schema-migration maintenance response solely because another request is preparing the instance.
+
+Maintenance protection remains in place when a schema migration is actually in progress. Connection and system-schedule initialization failures retain their normal failure handling; requests use the instance only after the required preparation succeeds.
+
+Read [Databases](/operate/databases#instance-readiness).
+
+## Reliable background handoff
+
+Temporary queue-transport failures retry within the platform deadline, including
+requests already in flight. Committed upload, indexing and Job-notification work
+is recovered every minute, while upload responses and completed Jobs use a short
+wait for auxiliary publication. Retry keeps its durable identity and repairs an
+unavailable task name without replaying customer Job logic.
+
+Email preparation can recover after an interruption before the delivery provider
+is called. An uncertain result after a send still requires review to avoid sending
+the same message again. Active Job heartbeats remain protected during recovery.
+
+Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
+
 
 ## Related guides
 
