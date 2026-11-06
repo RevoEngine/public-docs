@@ -42489,7 +42489,7 @@
           },
           "message": {
             "type": "object",
-            "description": "Message."
+            "description": "Event message as a JSON object, up to 10 MiB of serialized UTF-8 JSON."
           },
           "metadata": {
             "type": "object",

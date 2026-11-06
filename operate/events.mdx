@@ -264,9 +264,36 @@ await fetch(`/api/v1/automation/event/${eventId}/run`, {
   Use `scheduleFor` for delayed delivery. A past absolute time or a value more than 30 days ahead is rejected before acceptance.
 </Warning>
 
+### Send large inputs through Storage
+
+For data over 1 MiB, upload a file to a restricted Explorer folder for the
+automation, such as `Automations/Product import/Inputs`. The event message
+supports up to 10 MiB of serialized UTF-8 JSON.
+
+1. Grant the Job execution account read access to the file and each restricted
+   ancestor folder. Private works for personal workflows where the same account
+   uploads and reads the file.
+2. Create a separate file for each publication and finalize the upload before
+   triggering the event. Keep the file available through the scheduled run
+   and the retry window for the workflow.
+3. Send the finalized file's `storageEntryId` in `message`, alongside any fields
+   the event filters need. The Job receives the ID in `api.input().message`.
+   Read record-oriented files in batches with `storage.walkFileData`.
+
+```json
+{
+  "message": {
+    "storageEntryId": "17b13f9b-7e52-4599-9ab9-8c8e119bdd73",
+    "importType": "products"
+  }
+}
+```
+
+See [Storage uploads](/operate/storage-uploads) for upload and finalization steps.
+
 ### What exists before a delayed Event is due?
 
-Event History and Jobs for matching Job templates are created immediately, using the filters and targets accepted with the Event. The Event History row exposes its immutable `scheduledFor`, audit version, and last-update evidence. For an Event scheduled two hours ahead, you can inspect those Jobs now: they wait as `SCHEDULED`, with the same accepted deadline. The Event message remains the input snapshot; later edits to Event filters do not change this accepted occurrence.
+Event acceptance saves the message and delivery obligation. Event History and Jobs for matching Job templates become visible after RevoEngine evaluates the filters and saves the targets. The Event History row exposes its immutable `scheduledFor`, audit version, and last-update evidence. For an Event scheduled two hours ahead, you can inspect those Jobs now: they wait as `SCHEDULED`, with the same accepted deadline. The Event message remains the input snapshot; later edits to Event filters do not change this accepted occurrence.
 
 When the time arrives, Jobs become eligible for dispatch and still respect concurrency. Delivery retry resumes the accepted work without intentionally creating another Job for the same matched target. Make downstream business effects idempotent as well.
 

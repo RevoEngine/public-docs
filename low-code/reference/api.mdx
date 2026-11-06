@@ -1557,9 +1557,12 @@ await api.releaseConcurrencyLimit('sync:customers');
 Schedules a custom event.
 Matches active definitions by `custom: true` and the uppercase event type.
 No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
-Returns an event ID after its immutable publication intent is persisted.
-Queue delivery recovers asynchronously after provider/process failures;
-this receipt does not mean that Event History or target execution has finished.
+The message can use up to 10 MiB of serialized UTF-8 JSON.
+For data over 1 MiB, prefer a finalized file in a restricted Explorer folder.
+Pass its `storageEntryId` and filter fields in `message`. Give the Job execution
+account read access and retain the file through the scheduled run and retries.
+Returns an event ID after the event and its delivery intent are committed.
+Queue delivery and target execution continue asynchronously.
 
 Notes:
 - Use the options object's `scheduleFor`; legacy delay properties are ignored.
