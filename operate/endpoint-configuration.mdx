@@ -84,8 +84,6 @@ Native account, key, and permission administration still checks the caller's own
 | `httpCode` | Successful HTTP response code (`200`–`299`). SSE streams use `200`; omit other success codes in SSE mode. |
 | `noResult` | Suppresses a successful HTTP response body or the automatic SSE result frame. |
 | `popResult` | Preferred response mode for a new Component-backed Endpoint with a body. Returns the exact named visible Component element result; the first character is normalized to uppercase. Do not infer a key such as `Main` or `Data`. |
-| `includeLibs`, `excludeLibs` | Runtime library selection. Prefer explicit necessary libraries. |
-| `skipLibs` | Skip shared-library loading when the Component does not need it. |
 | `hideRequest`, `hideResponse` | Limit request/response persistence in execution history; they do not prevent application code from logging the same value. |
 | `legacyResults` | Enables legacy HTTP response envelopes. Not supported in SSE mode. Do not use for new contracts. |
 | `memory` | Execution memory budget in MiB, up to 1024. |
@@ -163,3 +161,5 @@ The runtime chooses an inline `guard` before a schema Component reference. Confi
 - [JSON Validator](/low-code/json-validator)
 - [Endpoint runtime](/developers/endpoint-runtime)
 - [Platform API](/developers/platform-api)
+
+Manual library-selection options are no longer accepted in 1.8. Follow the [upgrade guide](/developers/upgrading-to-1-8#review-execution-configuration) before changing existing configurations.

@@ -14,6 +14,7 @@ RevoEngine 1.7.1 adds conditional Database upserts for repeatable imports, compl
 - Retired legacy Files; use Storage for uploads, downloads and generated files.
 - Removed deprecated low-code methods and the `libs` alias; SDK 3.0.0 uses the current runtime API.
 - Standardized account fields on `metadata` and `metadataAdvanced`.
+- Improved Assistant context continuity, Live Preview recovery and Sandbox debugging.
 
 ## In detail
 
@@ -85,6 +86,16 @@ the same message again. Active Job heartbeats remain protected during recovery.
 
 Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
 
+## Reliability update · 7 November
+
+The Assistant now keeps the context it needs when a long conversation is shortened, including references to earlier tool results. Large reads can be continued in smaller pages. Terminal executions that reconnect stay pending until their original outcome is confirmed.
+
+Live Preview can reconnect to an existing read-only browser session after a brief interruption. For a pending human interaction, use **Finish & resume** once the original tab and your access are confirmed. The compact preview keeps its position while you resize it.
+
+Direct Sandbox debug applies temporary library edits for the current request, including when execution uses a pinned Studio release. Upload policy rejections and webhook delivery failures retain their recorded outcomes and are distinguished from platform failures in operational diagnostics.
+
+Read [Live Preview](/ai/browser#follow-live-preview), [Studio sessions](/build/studio-sessions) and [Webhooks](/operate/webhooks).
+
 
 ## Related guides
 
@@ -95,4 +106,4 @@ Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
 
 ## Continue through the releases
 
-[All releases](/releases/changelog) · [Earlier: 1.7.0](/changelog/1.7.0)
+[Newer: 1.8.0](/changelog/1.8.0) · [All releases](/releases/changelog) · [Earlier: 1.7.0](/changelog/1.7.0)

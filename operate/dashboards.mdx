@@ -29,7 +29,7 @@ These are the **36 entries in the current Add Widgets palette**. Names below mat
 | Palette entry | What it displays | Configuration in the app |
 | --- | --- | --- |
 | **Agents** | One agent's runs, inbox, storage and configuration. | **Configure → Agent**: choose an accessible agent. |
-| **Custom Widget** | Executable text, chart, table or empty cells. | **Configure → Source, Code/Component, Runtime, Inputs**; see the detailed section below. |
+| **Custom Widget** | Text, charts, tables, forms, inputs and action buttons. | **Configure → Source, Code/Component, Runtime, Inputs**; see the detailed section below. |
 | **Account Distribution Chart** | Service-account versus user-account distribution. | No source-specific settings; use Label and Presentation. |
 | **Account Type Chart** | Platform versus external accounts. | No source-specific settings; use Label and Presentation. |
 | **Account Activity Chart** | Active accounts over time. | No source-specific settings; use Label and Presentation. |
@@ -99,9 +99,9 @@ Each panel can have a dynamic label and can hide its local header or buttons. Fi
 
 ## Custom widgets: inline or reusable code
 
-An analytical widget generated in an Assistant conversation can be saved here through **Convert to dashboard**. Choose a new or existing dashboard, review the original code and inputs, and select a dynamic source or fixed snapshot. Dynamic inline code executes when the dashboard loads and refreshes; a snapshot preserves the displayed result. This is a user-directed save and requires dashboard write access. See [Assistant charts, diagrams and tables](/ai/assistant#charts-diagrams-and-tables-in-answers).
+An analytical widget generated in an Assistant conversation can be saved here through **Convert to dashboard**. Choose a new or existing dashboard, review the original code and inputs, and select a dynamic source or fixed snapshot. Dynamic conversion preserves the complete source, configured inputs and registered action/navigation targets. The source executes when the dashboard loads and refreshes; a fixed snapshot preserves the displayed result with interactions disabled. Unsaved form drafts are not persisted as dashboard inputs. This is a user-directed save and requires dashboard write access. See [Assistant charts, diagrams and tables](/ai/assistant#charts-diagrams-and-tables-in-answers).
 
-A **Custom Widget** renders code output as text, charts, tables, or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
+A **Custom Widget** renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
 
 | Setting | Meaning |
 | --- | --- |
@@ -114,9 +114,11 @@ A **Custom Widget** renders code output as text, charts, tables, or empty space.
 | Timeout | Interactive execution timeout, validated from 5 to 600 seconds. |
 | Memory | Widget execution memory, validated from 32 to 1024 MiB. |
 | Refresh | Optional automatic refresh from 1 to 600 seconds. |
-| Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Inline widgets always request `readOnly: true`. |
+| Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Keep view Components restricted; registered action targets can explicitly request `readOnly: false`. |
 
-Inline code runs in Sandbox with `readOnly: true`; a reusable Component uses its selected restricted-mode setting. Debug execution by itself is not a permission grant or a substitute for the explicit read-only flag. Keep widget calculations read-only and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, or `EMPTY`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
+View code runs in Sandbox. Inline view code requests `readOnly: true`. Reusable widgets with configured interaction targets and subsequent interactive refreshes also request read-only execution. An initial reusable render without target maps retains its selected restricted-mode setting; keep view Components restricted. A registered action target can explicitly request write execution. Debug execution by itself is not a permission grant or a substitute for the explicit read-only flag. Keep widget calculations read-only and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, `EMPTY`, `INPUT`, `FORM` or `BUTTON`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
+
+Add stable cell IDs and declarative `on` actions for partial refresh, record or chart drill-down, multi-selection, forms and Job submission. Named destinations reuse the existing source configuration. Follow [Reactive Custom Widgets](/operate/reactive-widgets) for the complete form → Job → single-tile refresh example and input-preservation rules.
 
 For a dashboard focused on one Endpoint and its related Jobs, pass verified Job template IDs through **Inputs** as JSON, for example `{"templateIds":["verified-template-id"]}`. The following inline JavaScript makes a bounded read, groups the returned runs by UTC day and returns a heading, chart, table and intentional spacer. It labels the result as partial when the 100-row cap may have omitted runs:
 

@@ -1,0 +1,43 @@
+---
+title: "1.8.0 — Interactive workspaces and shared browsing"
+sidebarTitle: "1.8.0"
+icon: "tag"
+description: "7 November 2026"
+---
+
+Turn a dashboard or Assistant answer into an interactive workspace, continue browser work across conversations, and use one supported library configuration across execution clients.
+
+## Highlights
+
+- Use forms, Job actions and drill-down views in dashboards and private Assistant cards.
+- Reuse an authorized browser login across conversations, with separate tabs and explicit human control.
+- Resolve execution libraries automatically and choose the execution identity for direct debugging.
+
+## In detail
+
+## Work with interactive widgets
+
+Filter a chart, open a record, return with Back, or submit a form and follow its Job. Refresh selected cells while keeping the surrounding inputs mounted. Dynamic conversion from an Assistant card preserves its configured actions and destinations; fixed snapshots and shared views remain inactive. Unsaved drafts are not saved dashboard inputs. Follow the [reactive widget guide](/operate/reactive-widgets).
+
+## Continue browser work across conversations
+
+Compatible conversations can reuse a Vault browser profile while keeping their own tabs. Live Preview provides tab controls and explicit human handoff. Finish & resume asks the Assistant to verify the current page; Skip declines that step. Profile access does not replace terminal access or network permission. See [browser profiles and Live Preview](/ai/browser).
+
+## Upgrade execution clients together
+
+Libraries are resolved automatically. The former `skipLibs`, `includeLibs` and `excludeLibs` configuration fields are no longer accepted. Review configurations that relied on those fields before upgrading, and keep the platform, CLI, SDK and editor integration compatible. Direct debugging also supports the configured Endpoint or Job execution identity. Follow the [1.8 upgrade guide](/developers/upgrading-to-1-8) and [Sandbox execution identity](/developers/sandbox-api#execution-identity).
+
+## Since the first 1.7.1 release
+
+This release includes the later 1.7.1 additions. Their original history remains in the [1.7.1 notes](/changelog/1.7.1); current workflows are documented under [Databases](/operate/databases), [Events](/operate/events) and [Studio sessions](/build/studio-sessions). These are carried forward, not new 1.8 capabilities.
+
+
+## Related guides
+
+- [Build a reactive widget](/operate/reactive-widgets)
+- [Work with the browser](/ai/browser)
+- [Prepare a compatible upgrade](/developers/upgrading-to-1-8)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.7.1](/changelog/1.7.1)

@@ -90,3 +90,22 @@ Disconnect normally requests cooperative cancellation. A remote write accepted b
 ## Prefer supported clients
 
 Use [`revo component debug --stream`](/developers/cli-projects) for local component work and [`@revoengine/sdk`](/developers/sdk-overview) for runtime calls. Direct `/v1/runtime/call` integration requires contract-revision negotiation, call correlation, batch limits, and binary/date wire encoding; it is not a general-purpose JSON endpoint.
+
+## Execution identity
+
+Direct debug and saved-component execution requests, including their streaming variants,
+accept an optional `callStrategy`:
+
+- `caller` (default) runs with the current caller behavior.
+- `endpoints` uses the global endpoint execution policy.
+- `jobs` uses the global job execution policy.
+
+Caller admission and executor authority remain separate. Choosing a global policy still
+requires access to its execution account and permitted delegation. Administrator execution
+also requires approved source content; unsaved source is not automatically approved.
+Inherited execution authority cannot be changed by nested code or Assistant execution.
+
+CLI component debugging accepts `--call-strategy=caller|endpoints|jobs`. You can also
+set `callStrategy` in `.revoengine/debug.json`; the command-line flag takes precedence.
+VS Code exposes the same setting in the debugger configuration. Both default to `caller`.
+The setting is independent of `readOnly`; choosing a policy does not enable writes.

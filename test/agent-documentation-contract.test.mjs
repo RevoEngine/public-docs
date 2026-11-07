@@ -31,8 +31,15 @@ test('Agent documentation separates product modes and states the current executi
   assert.doesNotMatch(terminals, /remembered approval/i);
   assert.match(terminals, /Each workspace has its own access and sharing contract/);
   assert.match(terminals, /Recovery has a two-minute window/);
-  assert.match(terminals, /four sessions and sixteen tabs per session/);
-  assert.match(terminals, /recreates the browser context and loses its cookies/);
+  assert.match(terminals, /four browser contexts/);
+  assert.match(terminals, /sixteen conversations and thirty-two tabs in total/);
+  assert.match(terminals, /at most sixteen tabs per conversation/);
+  assert.match(terminals, /closing one conversation closes only its tabs/);
+  assert.match(terminals, /Compatible macOS and Linux runners support them, including service mode/);
+  assert.match(terminals, /Timed or one-time approvals cannot join a shared context/);
+  assert.doesNotMatch(terminals, /add `--browser-profile NAME`|requires foreground mode and macOS Keychain/);
+  assert.match(terminals, /do not expect tabs or unsaved forms to survive/);
+  assert.match(terminals, /profile can restore its last saved website state/);
   assert.match(terminals, /90-second idle timeout/);
   assert.match(comparison, /OpenAI Codex/);
   assert.match(comparison, /Claude Code/);

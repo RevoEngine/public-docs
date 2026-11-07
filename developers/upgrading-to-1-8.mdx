@@ -1,0 +1,44 @@
+---
+title: Upgrade to RevoEngine 1.8
+description: Coordinate execution clients, remove retired library configuration and verify browser and widget workflows.
+icon: arrow-up-right-dots
+---
+
+RevoEngine 1.8 adds interactive widget workflows and shared browser profiles. It also removes manual library-selection configuration. Prepare the platform and its clients as one compatible upgrade; an installed client does not update the instance it connects to.
+
+## Review execution configuration
+
+Libraries are resolved automatically. Remove `skipLibs`, `includeLibs` and `excludeLibs` from Endpoint and Job-template execution options and from equivalent direct execution configuration. A request containing a retired field is rejected even when its value is `false`, `null` or an empty array. Do not simply change its value.
+
+These names are still allowed as ordinary business fields in request bodies, event messages or nested business inputs. Change only locations that previously configured library selection.
+
+Before upgrading, identify configurations that intentionally skipped or restricted libraries. Review their source against the automatic behavior and verify the expected business output on a controlled test instance. Keep an export of the original configuration and a tested restore procedure. The upgrade removes the retired options from stored configurations and retained Job execution options, including completed Jobs; a backend downgrade alone does not restore them. Business payloads are preserved.
+
+## Coordinate clients and platform
+
+The coordinated version set is:
+
+| Product | Version |
+| --- | --- |
+| RevoEngine platform and app | 1.8.0 |
+| CLI | 2.0.0 |
+| VS Code extension | 2.0.0 |
+| Node.js SDK | 4.0.0 |
+
+Use the CLI and editor integration prepared for the 1.8 contract. Old clients can still send removed fields, even if their settings screen shows default values. Re-pull the reviewed configuration after the upgrade and remove obsolete fields from checked-in manifests before the next push.
+
+SDK **4.0.0** targets platform **1.8.0**; SDK **3.0.0** remains the matching choice for **1.7.1**. Platform and client version numbers are independent. Existing hosted Component revisions keep their recorded SDK until explicitly redeployed; newly created hosted Components use the platform's supported SDK version. See the [SDK guide](/developers/sdk-overview).
+
+Direct debugging supports `callStrategy: 'caller'`, `'endpoints'` or `'jobs'`. The latter two select the instance's configured execution policy. They do not grant access or accept an arbitrary execution account. Keep view code read-only and verify the effective identity before enabling writes. See [Sandbox execution identity](/developers/sandbox-api#execution-identity).
+
+## Verify the workflows you use
+
+- Run a representative Endpoint and Job, including configurations that previously selected libraries. Check their business results, identity and failure behavior.
+- Connect an updated terminal runner, choose an assigned Vault profile and verify access independently in each conversation. Complete one human step with **Finish & resume**, and verify that **Skip** declines a separate optional step. See [browser profiles](/ai/browser).
+- Open a saved dashboard and a private Assistant widget. Check a form action, the exact Job result, targeted refresh, drill-down and Back. Shared views and fixed snapshots keep controls inactive. See [reactive widgets](/operate/reactive-widgets).
+
+Saved widget source and configured inputs are separate from unsaved form drafts. Review source and permissions when converting a card into a dynamic dashboard. Updating a version does not itself verify a write or its business result.
+
+## Changes carried forward from 1.7.1
+
+The later 1.7.1 updates remain included. Review [conditional Database upserts](/operate/databases#conditional-upserts), [large Event inputs through Storage](/operate/events#send-large-inputs-through-storage) and [Studio testing and activation](/build/studio-sessions) if upgrading from the initial 1.7.1 release. The [1.7.1 release history](/changelog/1.7.1) records its dated additions; these are not newly introduced by 1.8.

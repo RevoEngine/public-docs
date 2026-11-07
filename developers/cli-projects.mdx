@@ -135,3 +135,5 @@ revo component debug "$COMPONENT_ID" \
 Debug sends the local manifest and element files to Sandbox without first saving them as the remote component. In stream mode, live `api.log()` frames go to stderr and the terminal result goes to stdout. A copy of the result is stored under `.revoengine/output/`.
 
 Local JavaScript/TypeScript library components are included as transient overrides by default. Use `--no-extra-libs` when you intentionally want only server-saved active libraries.
+
+For platform 1.8, use a compatible CLI and remove retired library-selection fields from checked-in execution configuration. Follow [Upgrade to 1.8](/developers/upgrading-to-1-8) before pushing existing manifests.

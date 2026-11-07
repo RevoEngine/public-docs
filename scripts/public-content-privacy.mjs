@@ -2,6 +2,7 @@ import { isIP } from 'node:net';
 
 const privateProse = /\b(?:Redis|Firestore|BigQuery|Postgres|PostgreSQL|Google Cloud|GCP|Cloud Run|Cloud Tasks|Cloud Scheduler|Pub\/Sub|ExcelJS|isolated-vm|QueryWrapper)\b/i;
 const privateRuntimeOptimization = /\b(?:L0|cachedData|canonical(?: source)? snapshots?|source[- ]read start|source hash(?:es)?|digest[- ]addressed|singleflight|cache generation fences?|agent[- ]gateway|executor requests|typed array parameters?|durable outcome receipts?|maintenance recovery tick)\b/i;
+const privateAssistantTool = /\b(?:generate_widget|code_exec|save_image)\b/;
 const privateDiagnosticApi = /\/api\/v1\/assistant\/(?:reports(?:\/|\b)|evidence(?:\/|\b)|threads\/[^\s/]+\/evidence(?:\/|\b))/i;
 
 export function isPrivateDiagnosticApiPath(path) {
@@ -23,6 +24,7 @@ export function publicTextPrivacyIssues(text, { prose = true } = {}) {
   const addresses = text.match(/(?:[0-9a-f]{0,4}:){2,}[0-9a-f:.]*(?:%[A-Za-z0-9_.-]+)?|\b(?:\d{1,3}\.){3}\d{1,3}\b/gi) ?? [];
   if (addresses.some(address => isIP(address))) issues.add('IP address literal');
   if (prose && (privateProse.test(text) || privateType.test(text) || privateRuntimeOptimization.test(text))) issues.add('private implementation prose');
+  if (prose && privateAssistantTool.test(text)) issues.add('private Assistant tool identifier');
   if (prose && privateSourcePath.test(text)) issues.add('private repository path');
   if (prose && privateDiagnosticApi.test(text)) issues.add('private diagnostic API');
   if (/\b(?:redis|rediss):\/\//i.test(text)) issues.add('private infrastructure locator');

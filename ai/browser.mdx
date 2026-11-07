@@ -9,15 +9,15 @@ Use the Assistant's browser to inspect a web application, reproduce a workflow o
 | Task | Browser behavior | State |
 | --- | --- | --- |
 | Read a public page | Direct retrieval, with isolated rendering fallback when supported | Does not borrow saved login cookies or an interactive session. |
-| Test an application or complete an authorized workflow | Interactive browser on a connected terminal | Tabs and cookies belong to the current chat, device and workspace. |
+| Test an application or complete an authorized workflow | Interactive browser on a connected terminal | Each conversation owns its tabs; compatible conversations can share a selected Vault profile and login. |
 | Enter a password or complete a human step | Secure input or private takeover in Live Preview | Sensitive input is kept outside the model-visible conversation. |
-| Reuse a login in another chat | Explicitly saved encrypted browser profile | Requires a supported foreground macOS runner and the same user, instance, device and workspace. |
+| Reuse a login in another chat | Explicitly saved encrypted browser profile | Requires an authorized Vault profile, compatible runner and matching user, instance, device, workspace and network mode. |
 
 ## Connect before testing
 
 [Connect and approve a terminal](/ai/terminals#connect-a-workspace). The CLI installs the browser runtime. Choose the workspace containing the application and the required network scope before starting a login flow.
 
-**Local Access** permits the controlled browser to reach services on the runner's localhost. A localhost application can still require **Full Network Access** if it loads remote assets, APIs or an external login provider. Changing between Local and Full Network Access recreates the browser context and loses its current cookies and form state.
+**Local Access** permits the controlled browser to reach services on the runner's localhost. A localhost application can still require **Full Network Access** if it loads remote assets, APIs or an external login provider. Changing network mode can recreate the browser context. Do not rely on open tabs or unsaved form state surviving; a compatible Vault profile can restore its last saved website state. A shared profile context keeps its current network mode.
 
 Terminal command permissions and networking are independent. Browser access does not grant shell access outside the workspace. See [terminal permissions](/ai/terminals#permissions) and [approval policy](/ai/approvals-and-plans).
 
@@ -44,15 +44,19 @@ Live Preview requires a personal browser session in RevoEngine. A CLI API key ca
   <img src="/images/asterion/browser-live-preview.jpg" alt="RevoEngine Live Preview displaying the synthetic Asterion customer portal with read-only viewing and a Take control action" />
 </Frame>
 
-Watching is read-only. To interact yourself, acknowledge **private takeover**. The Assistant's browser actions and recording pause while you control the session. Complete the human step, then finish takeover and resume. The Assistant checks fresh page state before continuing. A disconnected preview does not silently return control.
+Watching is read-only. Use **Take control** for an explicit human step. Private control pauses recording and protects sensitive input from the Assistant. On compatible runners, control can apply to the current tab or the whole conversation browser. Tab-scoped control leaves other explicitly selected tabs available to the Assistant. Ordinary public control can keep recording active.
+
+Choose **Finish & resume** when the step is complete. The Assistant checks fresh page state before continuing; releasing control alone does not prove that login or another operation succeeded. **Skip browser step** declines a requested step: the Assistant acknowledges that decision and can continue independent work. Skip is not a successful login. A disconnected preview does not silently return control.
+
+Use the preview toolbar to open a tab, close the active tab or stop this conversation's browser. Closing its last tab stops that conversation browser. Minimize or enter fullscreen and return without discarding the floating preview's chosen size.
 
 Use takeover for MFA, a site challenge or a sensitive approval that needs a person. For an ordinary password field, the Assistant can request a secure input popup. The value goes to the connected browser session without appearing in the model-visible tool call. Filling it is distinct from submitting the form and verifying login.
 
 ## Know what survives
 
-Tabs and cookies survive later chat messages and brief reconnects while the runner and browser remain alive. The live context expires after one hour without browser activity. The runner permits four sessions and sixteen tabs per session; active sessions are not silently evicted at capacity. Session inventory remains scoped to the authorized owner.
+Tabs and cookies survive later chat messages and brief reconnects while the runner and browser remain alive. The live context expires after one hour without browser activity. The runner permits four browser contexts. A shared context supports up to sixteen conversations and thirty-two tabs in total, with at most sixteen tabs per conversation. Active contexts are not silently evicted at capacity. Session inventory remains scoped to authorized access.
 
-Closing a browser session or stopping the runner ends that live context. A registered terminal and a saved conversation do not reconstruct it automatically.
+Closing one conversation browser closes its tabs without stopping other conversations sharing the profile. Closing the last member or stopping the runner ends that live context. A fresh navigation can restore the last confirmed Vault state into new tabs; it does not recover unsaved forms or replay earlier clicks.
 
 ### Choose the profile model available on your runner
 
@@ -62,15 +66,15 @@ A profile has an owner, explicit users or Groups, and terminal/workspace assignm
 
 The owner can edit metadata and access, inspect active sessions, stop a session, clear saved website state or remove the profile. Revision conflicts require a fresh read before saving. Stopping one context does not clear the last saved login; clearing state does not log the user out of the website's other devices. The management API returns metadata and session information, not cookies, authentication state or data keys.
 
-**Local named profiles** are a separate foreground macOS option. Connect with `--browser-profile asterion-demo` to preserve encrypted site state for the same user, instance, device and workspace. Encryption keys remain in macOS Keychain. Only one live context can write that profile; close the previous session before opening it elsewhere. This local persistence is unavailable in background service mode and on other platforms.
+### Reuse one profile across conversations
 
-Forget a local profile explicitly:
+Select an assigned Vault profile in Live Preview or ask the Assistant to use an authorized profile. Compatible conversations from the same user can share its live website login on the same instance, terminal and workspace. Both conversations need their own lasting permission for the same Local or Full Network mode. One-time and timed network approvals do not join a shared context.
 
-```bash
-revo terminal browser-profile forget --browser-profile asterion-demo
-```
+Each conversation has its own tabs, selected page and human-control boundary. A login or logout changes website state shared by that profile; closing one conversation does not close the others. Sharing a profile with another user grants use of its website identity subject to access checks, but does not make different users' live contexts the same context.
 
-A saved profile can contain cookies, local storage and IndexedDB. Treat it as sensitive website authentication even though secure-input field values are not copied directly from the dialog. Neither profile model extends network grants or guarantees that the website will continue accepting a saved login. Website logout and server-side session revocation remain separate operations.
+Current runners use Vault profiles on supported desktop and service environments. The former `--browser-profile` connection flag is no longer supported. Existing local profile snapshots are not imported automatically. On a compatible foreground macOS runner, their owner can explicitly import one from Live Preview browser settings; the original snapshot is kept by default. This migration restriction does not apply to normal Vault profile use on supported desktop or service runners. The legacy explicit forget command removes only the selected old local snapshot; it does not clear a Vault profile or sign out other website sessions.
+
+A saved profile can contain cookies, local storage and IndexedDB. Treat it as sensitive website authentication even though secure-input field values are not copied directly from the dialog. A saved profile never extends network grants or guarantees that the website will continue accepting a saved login. Website logout and server-side session revocation remain separate operations.
 
 ## Record or capture a result
 

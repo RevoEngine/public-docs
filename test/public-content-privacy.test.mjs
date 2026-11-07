@@ -108,3 +108,11 @@ test('public OpenAI output token settings are allowed without admitting internal
   assert.deepEqual(publicTextPrivacyIssues('max_output_tokens: 1200'), []);
   assert.ok(publicTextPrivacyIssues('OpenAI Responses max_output_tokens ceiling for normal agent-gateway executor requests.').includes('private implementation prose'));
 });
+
+test('public guides describe Assistant workflows without private tool identifiers', () => {
+  for (const name of ['generate_widget', 'code_exec', 'save_image']) {
+    assert.ok(publicTextPrivacyIssues('Call `' + name + '` to continue.').includes('private Assistant tool identifier'));
+  }
+  assert.deepEqual(publicTextPrivacyIssues('Validate a read-only widget in Sandbox before displaying it.'), []);
+  assert.deepEqual(publicTextPrivacyIssues('widgetConfig, widgetTargets, actionTargets and $widget.targetIds are authoring fields.'), []);
+});

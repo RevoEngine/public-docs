@@ -175,6 +175,7 @@
             "group": "Observability",
             "pages": [
               "operate/dashboards",
+              "operate/reactive-widgets",
               "operate/observability",
               "operate/logs",
               "operate/traces"
@@ -268,6 +269,7 @@
           {
             "group": "Node.js SDK",
             "pages": [
+              "developers/upgrading-to-1-8",
               "developers/sdk-overview",
               "developers/sdk-hosted",
               "developers/sdk-standalone",
@@ -303,6 +305,12 @@
           {
             "group": "Public releases",
             "pages": [
+              {
+                "group": "1.8.x",
+                "pages": [
+                  "changelog/1.8.0"
+                ]
+              },
               {
                 "group": "1.7.x",
                 "pages": [
