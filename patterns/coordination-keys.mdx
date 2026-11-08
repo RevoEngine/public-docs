@@ -7,7 +7,7 @@ icon: key
 
 import { ConcurrencyDemo, PlaygroundStyle, useDemoPlayback, makeQueue, advanceQueue } from "/snippets/revo-playground.jsx";
 
-A key defines which operations belong together. Start from the protected business boundary, then choose the mechanism that enforces it.
+For an invoice integration, choose the key according to the resource you are protecting. `warehouse_sync` can group competing Jobs. `invoice:invoice-1:issue:v1` identifies one effect even if that invoice is retried later. Keep those identities separate.
 
 | Mechanism | Key identifies | Reuse rule |
 | --- | --- | --- |

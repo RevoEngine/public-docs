@@ -4,6 +4,8 @@ description: Follow a request across RevoEngine services without exposing applic
 icon: timeline
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
@@ -11,10 +13,6 @@ import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippe
 An execution journey answers a different question from Activity, database audit, and logs: it follows the technical path of one operation across service boundaries. Use it when you need to know where a request spent time, where it failed, or whether asynchronous work was accepted versus completed.
 
 Open **Security Admin → Observability → Executions**. Operation and Execution references from Jobs, Assistant messages, audit records, logs and dashboards open the shared execution dialog without leaving the current page or changing its URL. Press Escape or click outside to return to the caller. Existing Trace URLs redirect to Observability Executions.
-
-## Explore the behavior
-
-<FlowDemo topic="evidence" />
 
 ## Start with the right identifier
 
@@ -30,15 +28,42 @@ For HTTP endpoint support, capture the UTC timestamp, method/path, response stat
 
 ## Investigation sequence
 
-```text
-caller timestamp and outcome
-  -> Operation ID in Executions
-  -> Execution or Job record
-  -> scoped logs and selected component/version
-  -> durable result or finalized Storage artifact
-```
+<ReadingFlow
+  label="Trace the caller to its recorded outcome"
+  steps={[
+    ["Start with the caller", "Use the Operation ID and observed outcome."],
+    ["Find the execution", "Inspect the selected Endpoint, Component and scoped logs.", "Dispatch recorded → follow the Job ID and its attempt lineage."],
+    ["Verify the result", "Check the durable result or finalized artifact that proves completion."],
+  ]}
+/>
+
+If your starting point is the Job, follow its **Request** reference in the other direction to find the initiating execution. Use **Ancestors** to inspect recorded predecessors. Missing edges remain unknown.
 
 An accepted asynchronous request only establishes that work was queued or started. Confirm a terminal Job/run state, delivery result, or finalized Storage artifact before concluding that work succeeded.
+
+## Explore the behavior
+
+<FlowDemo topic="evidence" />
+
+## Example: where did this invoice Job come from?
+
+A quote only calculates a price. A separate order command reserves inventory and schedules **Invoice pipeline**. In the verified Asterion example, that Job's **Request** reference points back to the originating Endpoint execution, and its **Input** contains the order ID.
+
+<Frame caption="Invoice pipeline completed on its first attempt. Request identifies the initiating execution; Input carries the synthetic order ID.">
+  <img src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" />
+</Frame>
+
+<ScreenshotDetail src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" width={1114} height={1000} />
+
+1. Open the order's Job in **Jobs History**. Check **Attempt status**, **Job result** and the attempt count.
+2. Follow **Request** to investigate the initiating execution, or **Execution** to open this Job's journey.
+3. In Observability, use **Ancestors** to inspect retained predecessors, then choose **Waterfall** for timing or **Flow** for relationships.
+4. Inspect the Job's business result for its invoice ID, Storage entry ID and Webhook ID.
+5. Open those records separately. Confirm the finalized document and current delivery outcome.
+
+The example Job finished successfully and returned an invoice and Storage receipt while its Webhook was still `PENDING`. A later read of the Webhook showed `FINISHED`. The saved Job result is a snapshot: its earlier Webhook status does not update itself when delivery finishes.
+
+If detailed telemetry is unavailable or outside retention, keep the durable Job and resource receipts and state the coverage gap. An unavailable journey does not establish that the Job failed; a successful Job does not establish that every external recipient applied its message.
 
 ## Resolve dates before loading logs
 
@@ -72,23 +97,3 @@ Provide a narrow time range, IDs, sanitized status/error text, resource name/ID,
 <Tip>
 Use the [Observability guide](/operate/observability) for the complete operator workflow, then return here when the investigation needs an execution-first view.
 </Tip>
-
-## Example: where did this invoice Job come from?
-
-A quote only calculates a price. A separate order command reserves inventory and schedules **Invoice pipeline**. In the verified Asterion example, that Job's **Request** reference points back to the originating Endpoint execution, and its **Input** contains the order ID.
-
-<Frame caption="Invoice pipeline completed on its first attempt. Request identifies the initiating execution; Input carries the synthetic order ID.">
-  <img src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" />
-</Frame>
-
-<ScreenshotDetail src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" width={1114} height={1000} />
-
-1. Open the order's Job in **Jobs History**. Check **Attempt status**, **Job result** and the attempt count.
-2. Follow **Request** to investigate the initiating execution, or **Execution** to open this Job's journey.
-3. In Observability, use **Ancestors** to inspect retained predecessors, then choose **Waterfall** for timing or **Flow** for relationships.
-4. Inspect the Job's business result for its invoice ID, Storage entry ID and Webhook ID.
-5. Open those records separately. Confirm the finalized document and current delivery outcome.
-
-The example Job finished successfully and returned an invoice and Storage receipt while its Webhook was still `PENDING`. A later read of the Webhook showed `FINISHED`. The saved Job result is a snapshot: its earlier Webhook status does not update itself when delivery finishes.
-
-If detailed telemetry is unavailable or outside retention, keep the durable Job and resource receipts and state the coverage gap. An unavailable journey does not establish that the Job failed; a successful Job does not establish that every external recipient applied its message.

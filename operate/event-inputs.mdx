@@ -18,6 +18,12 @@ After the supplier predicate matches, this sample uses **Override** to supply `{
 
 ## Configure Runtime input for a Job target
 
+| Given the Event matches | Available in the Component |
+| --- | --- |
+| Published business payload | `api.input('message')` |
+| Published correlation metadata | `api.input('metadata')` |
+| Job template input combined with Event Runtime input | `api.input('templateInputs')` |
+
 Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override**, **Deep Override** and **Replace**, with icons and descriptions.
 
 | Mode | Effective `templateInputs` |

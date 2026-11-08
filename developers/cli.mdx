@@ -4,6 +4,8 @@ description: Authenticate, inspect an instance, configure local editor types, an
 icon: terminal
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 `@revoengine/cli` is the official command-line client for RevoEngine. It requires Node.js 24 or newer.
 
 ```bash
@@ -15,6 +17,15 @@ The package installs `revo` as the primary command. `revoengine` remains a compa
 These guides cover CLI **2.0.0**, with Platform **1.8.0 or later** and the matching VS Code extension **2.0.0 or later**. See [Upgrade to 1.8](/developers/upgrading-to-1-8) before updating existing Endpoint and Job manifests. CLI, Platform and extension versions are independent.
 
 Choose a focused guide for [command options](/developers/cli-command-reference), [projects and synchronization](/developers/cli-projects), [tests and debugging](/developers/cli-tests-and-debugging), [Studio sessions](/developers/cli-studio), [terminal commands](/developers/cli-terminal) or [environment promotion](/developers/cli-environments). Installing the CLI does not enable missing server capabilities.
+
+<ReadingFlow
+  label="From local changes to a selected target"
+  steps={[
+    ["Select", "Sign in and choose the workspace and environment."],
+    ["Compare", "Review drift before applying source changes."],
+    ["Verify", "Inspect the resulting definition or execution."],
+  ]}
+/>
 
 ## Sign in
 

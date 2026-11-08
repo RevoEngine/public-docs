@@ -4,6 +4,8 @@ description: Store, transfer, read, govern, and retire files through one durable
 icon: hard-drive
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Storage is RevoEngine's durable file and folder system. Use it for uploaded source files, generated reports, integration payloads, attachments, Agent artifacts, and operational evidence that must remain addressable by a stable `storageEntryId`.
 
 Storage owns more than bytes. A file entry also carries its location, version, content type, metadata, effective access, retention, archive state, and any derived index used for bounded reads.
@@ -21,14 +23,17 @@ An upload session is **not** a file. It reserves the intended target and records
 
 The file becomes durable and readable only when the session reaches `FINALIZED`.
 
-```text
-RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
-                  |             |
-                  +-> ABORTED    +-> FAILED
-                  +-> EXPIRED
-```
+<ReadingFlow
+  label="Publish a usable Storage file"
+  steps={[
+    ["Reserve", "Create an upload session."],
+    ["Transfer", "Upload or assemble the bytes."],
+    ["Finalize", "Publish the file and return storageEntryId.", "Finalization fails → inspect the session failure."],
+    ["Read", "When structured reading is needed, check index readiness."],
+  ]}
+/>
 
-Treat `FINALIZED` as the publication boundary. Issuing an upload URL, accepting one part, or completing a byte-transfer request is not enough to trigger downstream processing.
+Use the finalized entry ID for reads and later processing. Asynchronous indexing can still be pending after publication. Inspect the session if finalization fails, expires or is cancelled.
 
 ## Choose the write path
 

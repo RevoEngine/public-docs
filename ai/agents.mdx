@@ -4,6 +4,8 @@ description: Turn a narrow operational responsibility into a durable, policy-bou
 icon: robot
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 <Note>
   Autonomous Agents are a stable RevoEngine capability. Execution requires an enabled Agent, an authorized service account and the applicable instance permissions and limits.
 </Note>
@@ -15,6 +17,15 @@ Use an Autonomous Agent when the work should survive a browser session, arrive f
 <Info>
   Agent execution always follows the service account, tenant policy, and operator roles. Configuring a capability never grants access that the execution principal does not already have.
 </Info>
+
+<ReadingFlow
+  label="One responsibility from trigger to evidence"
+  steps={[
+    ["Trigger", "Start directly or use a configured trigger."],
+    ["Run", "The Agent works within its execution identity and policy."],
+    ["Inspect", "Open the run, its conversation and durable result."],
+  ]}
+/>
 
 ## What the Agents workspace makes visible
 

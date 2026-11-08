@@ -4,11 +4,23 @@ description: "Keep shared working code, tests and review together before activat
 icon: "code-branch"
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 <Note>
   Studio coding sessions are enabled separately through **Settings → Agents → Runtime → Studio sessions**, currently marked Preview. The instance must also satisfy the execution prerequisites. Existing Studio editing remains available on other instances.
 </Note>
 
 A Studio session is a durable workspace for changes spanning several Components, tests and supporting files. Humans, Assistants and authorized Agents can work in the same session. Saving a session preserves a draft; it does not deploy Components or activate their runtime.
+
+<ReadingFlow
+  label="Separate draft, evidence and deployment"
+  steps={[
+    ["Save draft", "Keep work across Components and files."],
+    ["Freeze candidate", "Test and review the captured source."],
+    ["Prepare release", "Commit reviewed source and check readiness."],
+    ["Activate", "Switch the selected runtime generation."],
+  ]}
+/>
 
 ## Session lifecycle
 

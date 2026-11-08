@@ -4,7 +4,18 @@ description: Build a governed integration with explicit ownership, credentials, 
 icon: arrows-rotate
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Use this guide when RevoEngine must read from or write to a system that remains an external source of truth.
+
+<ReadingFlow
+  label="Trace an external integration"
+  steps={[
+    ["Accept", "Validate a callback or dispatch background work."],
+    ["Call", "Use the scoped connection to the external system."],
+    ["Verify", "Check a receipt or the destination record for completion."],
+  ]}
+/>
 
 ## 1. Define ownership and completion
 

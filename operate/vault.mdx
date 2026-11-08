@@ -4,13 +4,11 @@ description: Bind instance, personal, and organization credentials to authorized
 icon: vault
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 Vault lets a workload use a credential without saving its value in Component code, an Agent prompt, or a plugin definition. It can hold a Secret you enter or a connected account authorized through an external identity provider. The owner controls which workload may use a personal or organization value.
-
-## Explore the behavior
-
-<FlowDemo topic="vault" />
 
 ## Choose the owner
 
@@ -21,6 +19,24 @@ Vault lets a workload use a credential without saving its value in Component cod
 | Organization | A verified member should use an organization-owned value | The runtime recognizes organization bindings, but a self-service organization Vault flow is not exposed yet |
 
 An unattended process without a verified personal identity should use an instance-owned credential. A personal or organization grant does not give the Component permission to impersonate another owner.
+
+## Authorize one consumer
+
+<ReadingFlow
+  label="Authorize a consumer to use a credential"
+  steps={[
+    ["Store or connect", "The owner saves a Secret or connects an external account."],
+    ["Bind", "Configure the named binding for the Component or plugin."],
+    ["Authorize", "Check the consumer grant and owner context.", "Denied → inspect scope, grants and the current identity."],
+    ["Use", "Run the permitted operation through the configured binding."],
+  ]}
+/>
+
+For example, a personal OAuth connection can let an explicitly authorized plugin call the user's external account. Connecting the account and authorizing the consumer are separate decisions.
+
+## Explore the behavior
+
+<FlowDemo topic="vault" />
 
 ## Secret history and rotation
 

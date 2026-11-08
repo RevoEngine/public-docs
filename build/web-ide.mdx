@@ -4,7 +4,18 @@ description: Edit Components, keep Scratch files, arrange workspace tools and ru
 icon: code
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Studio is the browser workspace for Component authoring and saved Scratch files. Open **Studio** from the main navigation, then choose **Components** for deployable code or **Scratch** for drafts and operational notes. Studio replaces the separate Playground page.
+
+<ReadingFlow
+  label="Studio authoring loop"
+  steps={[
+    ["Edit", "Open a Component and use runtime-aware types."],
+    ["Run", "Debug with sample inputs and inspect results."],
+    ["Review", "Save a version and choose when to activate it."],
+  ]}
+/>
 
 ## Work with Components
 

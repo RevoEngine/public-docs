@@ -4,7 +4,18 @@ description: "Save and share website login state while keeping workspace grants 
 icon: "id-card"
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 A Vault browser profile retains encrypted website state so an authorized browser can reuse a login. It can contain cookies, local storage and IndexedDB. Granting access to a profile can grant use of the website account represented by that state.
+
+<ReadingFlow
+  label="Reuse a saved website login"
+  steps={[
+    ["Save", "Confirm the website state in an encrypted Vault profile."],
+    ["Grant", "Authorize the intended person or Group to use it."],
+    ["Open", "Select it on a compatible runner and verify the account."],
+  ]}
+/>
 
 ## Choose the right kind of state
 

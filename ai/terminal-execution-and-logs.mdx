@@ -4,9 +4,20 @@ description: Follow a real command from approved workspace to output, exit statu
 icon: terminal
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 A terminal executes on your connected computer. Its conversation activity records the command and its outcome; application logs and Job history answer different questions. Start with [connection and permissions](/ai/terminals) and the [CLI commands](/developers/cli-terminal).
+
+<ReadingFlow
+  label="Read one terminal execution"
+  steps={[
+    ["Authorize", "Select the runner, workspace and available grants."],
+    ["Run", "Execute the command and observe its output."],
+    ["Check", "Use the exit status and the application’s evidence to verify the result."],
+  ]}
+/>
 
 ## Validate an integration from a workspace
 

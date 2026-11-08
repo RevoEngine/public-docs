@@ -1,0 +1,37 @@
+---
+title: Examples
+description: Start from a working example for business workflows, streams, widgets, or Agents.
+icon: flask
+---
+
+Choose the result you want to build. Each example links to the configuration, code, or app steps you need to reproduce it.
+
+<CardGroup cols={2}>
+  <Card title="Accept and settle an order" icon="cart-shopping" href="/platform/first-production-workflow">
+    Validate a command, reserve inventory, and follow the background work through to its result.
+  </Card>
+  <Card title="Stream updates to a browser" icon="tower-broadcast" href="/operate/sse-browser-client">
+    Run the HTML client, read streamed events, and recover from a disconnect using the last event ID.
+  </Card>
+  <Card title="Submit a Job from a widget" icon="table-cells" href="/widgets/examples/form-job">
+    Collect inputs, start a Job, and show its outcome in the same view.
+  </Card>
+  <Card title="Connect an AI sales desk" icon="message" href="/developers/customer-ai-portal">
+    Use a customer-facing portal with a pricing Endpoint and an Assistant that looks up business data.
+  </Card>
+</CardGroup>
+
+## Explore a mechanism
+
+Use the [interactive simulations](/patterns/interactive-examples) to see how slot admission, validation, retries, and delivery change with different inputs. They run locally in your browser with synthetic data.
+
+## Find a smaller example
+
+| I want to… | Example |
+| --- | --- |
+| See how the business workflows fit together | [Asterion Supply](/platform/asterion-supply) |
+| Build an Endpoint that streams text and tool events | [SSE Component](/operate/sse-openai-example) and [complete source](/examples/sse/component-source) |
+| Use the browser stream in my own client | [Complete browser application code](/examples/sse/browser-source) |
+| Chart Job outcomes or add actions to a table | [Job chart](/widgets/examples/job-chart) and [table actions](/widgets/examples/table-actions) |
+| Build an interactive card for the Assistant | [Assistant card](/widgets/examples/assistant-card) |
+| Give the Assistant a business tool or configure an Autonomous Agent | [Business plugins](/ai/business-plugins) and [Agent configuration example](/ai/agent-configuration-example) |

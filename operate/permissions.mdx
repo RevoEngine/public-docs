@@ -60,13 +60,7 @@ A Service Account receives only the execution roles it needs. A resource Group s
 
 ## Evaluate effective access
 
-```text
-active principal
-  + enabled platform access
-  + direct or Permission-group platform role
-  + required resource Group/ACL
-  = admitted operation
-```
+For a finance operator reading a restricted Table, check the active account first, then its resource read role, then its membership in the Group listed on the Table. Use the [access flow](/operate/identity-and-access#access-model) to find which layer denied the operation.
 
 The Platform API and governed execution boundaries evaluate current state at request or execution time. UI visibility is only a convenience layer.
 

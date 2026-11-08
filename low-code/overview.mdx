@@ -4,6 +4,8 @@ description: The RevoEngine managed JavaScript and TypeScript programming model.
 icon: wand-magic-sparkles
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 RevoEngine low-code components run in a fresh, managed V8 runtime with an intentionally compact capability surface. TypeScript source is transpiled before the same runtime executes it. The environment is intentionally smaller than Node.js or a browser.
 
 ## When to use low-code
@@ -17,6 +19,15 @@ Choose [Custom Node.js](/build/custom-nodejs) when the workload genuinely needs 
 dependencies, a multi-file module, or Node-specific behavior. Choose a Job rather
 than an Endpoint when the work needs durable history, retry controls, or a longer
 execution budget.
+
+<ReadingFlow
+  label="Follow the input through a low-code execution"
+  steps={[
+    ["Receive", "The caller supplies input through api.input()."],
+    ["Run", "Use platform capabilities under the execution identity."],
+    ["Return", "The caller selects an element result, a map or another outcome."],
+  ]}
+/>
 
 ## Available globals
 

@@ -4,6 +4,8 @@ description: Route platform and business events to governed Jobs or Agents.
 icon: bolt
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 Events turn a typed message into durable work. An Event definition says **which messages it accepts**, **which target receives them**, and **which filter must match** before RevoEngine schedules anything.
@@ -24,18 +26,6 @@ One Event definition has one target. Create several active definitions for the s
 <span id="api-key-expiry-events" aria-hidden="true"></span>
 <span id="chain-component-jobs-from-execution-outcomes" aria-hidden="true"></span>
 
-<CardGroup cols={2}>
-  <Card title="Configure Event input" href="/operate/event-inputs" icon="book-open">Map Event Runtime input onto a Job template.</Card>
-  <Card title="Filter Event messages" href="/operate/event-filters" icon="book-open">Configure message paths, operators and compound conditions.</Card>
-  <Card title="Publish a custom Event" href="/operate/event-publishing" icon="book-open">Create a business signal and test immediate, large or delayed delivery.</Card>
-  <Card title="Native Event types" href="/operate/event-types" icon="book-open">Choose Storage, identity, API-key and Job lifecycle triggers.</Card>
-</CardGroup>
-
-
-## Explore the behavior
-
-<FlowDemo topic="event" />
-
 ## When to use an Event
 
 Use an Event when work should begin because state changed, not because a person called an Endpoint or a clock reached a particular time.
@@ -51,7 +41,25 @@ Use an Event when work should begin because state changed, not because a person 
   Publish small event envelopes and let the target load authoritative data by ID. Event metadata is searchable, but it is not a replacement for a Table or Storage object.
 </Tip>
 
+## Explore the behavior
+
+<ReadingFlow
+  label="Dispatch targets for one Event occurrence"
+  steps={[
+    ["Publish", "Create one typed Event occurrence."],
+    ["Filter", "Evaluate the active definitions for this type.", "No match → record the skipped target."],
+    ["Dispatch", "Send to each matched definition’s configured target."],
+    ["Inspect", "Follow the resulting Job or Agent run."],
+  ]}
+/>
+
+Each definition gets its own decision. A matching subscription can run while another subscription for the same occurrence is skipped.
+
+<FlowDemo topic="event" />
+
 ## Create an Event in the UI
+
+Use [native Event types](/operate/event-types) for platform changes, or [publish a custom Event](/operate/event-publishing) for a business signal. Set [message filters](/operate/event-filters) for admission and [Runtime input](/operate/event-inputs) for the selected Job.
 
 Open **Jobs → Events**, select **Add**, and configure the definition.
 

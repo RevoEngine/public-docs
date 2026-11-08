@@ -4,11 +4,13 @@ description: Separate one accepted occurrence, one initial target Job, delivery 
 icon: arrows-split-up-and-left
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 A message reaching RevoEngine, a Job being created and a partner applying a payment are three different facts. Decide which fact your caller needs to observe before selecting an Event, Job, Webhook or synchronous Endpoint.
 
-## Explore the behavior
+import { DeliveryDemo, PlaygroundStyle, useDemoPlayback, dispatchExample } from "/snippets/revo-playground.jsx";
 
-import { DeliveryDemo, PlaygroundStyle, dispatchExample } from "/snippets/revo-playground.jsx";
+## Explore the behavior
 
 <DeliveryDemo />
 
@@ -27,6 +29,15 @@ import { DeliveryDemo, PlaygroundStyle, dispatchExample } from "/snippets/revo-p
 Do not describe the whole chain as **exactly-once delivery**. One initial child Job per accepted occurrence and subscription is a narrower property. The externally observable business effect requires its own identity and receiver-side protection.
 
 ## Redelivery, replay and retry
+
+<ReadingFlow
+  label="Distinguish redelivery, retry and replay"
+  steps={[
+    ["Accept an occurrence", "Dispatch the initial Job for a matching subscription.", "Transport redelivery → reuse the same occurrence and initial Job."],
+    ["Record the Job outcome", "A retryable terminal error can create a new attempt in the same retry lineage."],
+    ["Replay when intended", "Operator Replay creates a new occurrence and evaluates current subscriptions."],
+  ]}
+/>
 
 **Redelivery** continues the same accepted occurrence. RevoEngine reuses its recorded child identities; it does not create a fresh initial Job for every transport notification. Two Event definitions that target the same Job template are still two subscriptions and can each create a child.
 

@@ -4,6 +4,8 @@ description: Promote RevoEngine definitions safely across development, test, and
 icon: code-branch
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 RevoEngine versions application definitions independently from the environments in which they run. A definition can have historical versions while each environment retains its own instance-local identifiers and activation state.
 
 ## Environment model
@@ -38,6 +40,16 @@ Use a stable metadata key to match components across environments. UUIDs and ele
   }
 }
 ```
+
+<ReadingFlow
+  label="Promote a version through review"
+  steps={[
+    ["Compare", "Read the source and destination definitions."],
+    ["Review drift", "Resolve differences and environment-specific configuration."],
+    ["Promote", "Apply the reviewed change to the destination."],
+    ["Verify active", "Check which version new requests select."],
+  ]}
+/>
 
 ## Promotion workflow
 

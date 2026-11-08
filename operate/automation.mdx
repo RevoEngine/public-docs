@@ -4,41 +4,22 @@ description: Run durable work from templates, schedules, events, and outbound we
 icon: gears
 ---
 
-Automation moves work out of interactive requests and gives it a durable operational history. RevoEngine separates reusable definitions from individual executions.
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
 
-<Tip>
-Read [Jobs and durable execution](/operate/jobs) for concrete patterns, instance-controlled quotas up to 59 minutes and 4 GiB, and guidance on when a Job is the wrong primitive.
-</Tip>
-
-<CardGroup cols={3}>
-  <Card title="Job templates" icon="copy" href="/operate/jobs">
-    Define reusable Component execution, inputs, limits, concurrency, and retry policy.
-  </Card>
-  <Card title="Schedules and events" icon="calendar-check" href="/operate/schedules">
-    Trigger templates, Agents, or supported platform operations over time or from messages.
-  </Card>
-  <Card title="History" icon="clock-rotate-left" href="/operate/event-history">
-    Inspect jobs, event fan-out, logs, retries, cancellation, and replay.
-  </Card>
-</CardGroup>
+Use Automation when work needs a durable outcome that can be inspected after the request that started it. A Job template stores the execution policy. A Job records one execution under that policy.
 
 <span id="job-failure-notifications" aria-hidden="true"></span>
 
-<CardGroup cols={2}>
-  <Card title="Job failure notifications" href="/operate/job-notifications" icon="book-open">Choose channels and intermediate-attempt delivery for your account.</Card>
-</CardGroup>
-
-
 ## Choose the right primitive
 
-| Primitive | Use it when |
-| --- | --- |
-| Job template | The same Component should run repeatedly with consistent policy. |
-| Job | You need one durable execution and its status, result, logs, and lineage. |
-| Schedule | Work should run from a five-field cron expression in an IANA timezone. |
-| Event | Work should react to a platform or custom message, optionally filtered by payload. |
-| Event history | You need the durable record of one event and its target fan-out. |
-| Webhook | RevoEngine should deliver an outbound HTTP request asynchronously. |
+| I need to… | Configure | Verify the result in |
+| --- | --- | --- |
+| Run a Component in the background | [Job template](/operate/jobs) | Job History |
+| Run work at a recurring time | [Schedule](/operate/schedules) | Schedule History and the target's result |
+| React to a business or platform change | [Event](/operate/events) with an optional message filter | Event History and each matching target |
+| Deliver a request to an external system | [Outbound Webhook](/operate/webhooks) | Delivery attempts and the receiver's outcome |
+
+For an alert when a Job fails, configure [Job failure notifications](/operate/job-notifications).
 
 <span id="create-a-job-template" aria-hidden="true"></span>
 
@@ -78,17 +59,16 @@ Operator actions have deliberately different meaning:
 
 ## High-level execution flow
 
-```text
-template / schedule / event / webhook definition
-  -> durable request or history record
-  -> authenticated background dispatch
-  -> current definition and principal revalidated
-  -> execution claimed once per attempt
-  -> result, logs, and lifecycle persisted
-  -> realtime update sent to connected operators
-```
+<ReadingFlow
+  label="Follow a request, schedule or event through automation"
+  steps={[
+    ["Trigger", "A request, Schedule occurrence or matching Event selects a template."],
+    ["Admit", "Create a Job and wait for available capacity."],
+    ["Execute", "Run the Component and record its outcome.", "Outbound notification → follow the Webhook record and its attempts."],
+  ]}
+/>
 
-Delivery systems may repeat a request. Durable identifiers, state transitions, and target-specific idempotency prevent a repeated delivery from becoming an uncontrolled duplicate. Your Component remains responsible for idempotency at external side-effect boundaries.
+Each record answers a different question. Event History can show that a target was selected while Job History still shows it waiting. A successful Job may have created a Webhook whose delivery is still pending. Follow [one Event through a Job to a Webhook](/patterns/event-to-webhook) to see what to inspect at each handoff.
 
 ## Before enabling automation
 

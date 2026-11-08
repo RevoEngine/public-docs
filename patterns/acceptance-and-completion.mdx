@@ -5,22 +5,21 @@ sidebarTitle: Acceptance and completion
 icon: clock
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 Use an asynchronous contract when the work is too slow or retryable for one interactive request. The caller first learns that work was accepted, then follows the operation to completion.
 
-```mermaid
-sequenceDiagram
-  participant C as Caller
-  participant E as Endpoint
-  participant J as Job
-  C->>E: Submit validated command
-  E->>J: Enqueue durable work
-  E-->>C: Accepted + operation ID
-  J->>J: Execute and persist outcome
-  C->>E: Query exact operation ID
-  E-->>C: Status and confirmed result
-```
+<ReadingFlow
+  label="Separate acceptance from completion"
+  steps={[
+    ["Submit", "Send a command to the Endpoint."],
+    ["Accept", "Receive HTTP 202 and the operation identifier."],
+    ["Execute", "The Job runs independently and records its outcome."],
+    ["Observe", "Check the exact identifier for pending, failure or confirmed result."],
+  ]}
+/>
 
 ## Explore the behavior
 
@@ -41,7 +40,7 @@ The status contract should identify pending, running, successful and failed stat
 
 ## Avoid accidental completion signals
 
-- HTTP `202` confirms acceptance, not successful processing.
+- Use the documented operation contract to interpret `202`. An asynchronous Job receipt confirms acceptance. A successful [manual Materialized View refresh](/operate/materialized-views#manual-refresh) also confirms the refresh completed.
 - A Job ID confirms which run to follow, not that it finished.
 - Uploading bytes does not replace finalizing the Storage file.
 - A UI action that received a receipt may still need a completion probe.

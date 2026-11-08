@@ -6,7 +6,19 @@ icon: chart-line
 
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
-RevoEngine provides several evidence surfaces because configuration changes, synchronous calls, background work, and AI activity answer different operational questions.
+Start from the record that can answer your question. A saved configuration, an accepted dispatch and a completed business operation each leave different evidence.
+
+## Start with the question
+
+| Question | Start here |
+| --- | --- |
+| What did this Endpoint request execute? | [Executions](/operate/traces) with the Operation ID from the caller. |
+| Why did a Job run or wait? | [Job History](/operate/jobs#find-jobs-by-trigger-and-requester), then its **Request** or **Execution** reference. |
+| Which subscriptions matched an Event? | [Event History](/operate/event-history) and each concrete target. |
+| Did a partner receive a Webhook? | [Delivery attempts](/operate/webhooks#attempt-lifecycle), then the receiver's own result. |
+| Who changed this Table row? | [Database audit](/operate/database-audit) if it was enabled when the change occurred. |
+| What did the Assistant or Agent do? | Its conversation or run, then associated Executions and Logs. |
+| How much capacity are we using? | [Instance Usage](#instance-usage). |
 
 ## Explore the behavior
 
@@ -14,28 +26,19 @@ RevoEngine provides several evidence surfaces because configuration changes, syn
 
 ## Unified Observability workspace
 
-Open **Security Admin → Observability** with instance-administrator access. The workspace has Overview, Executions, Logs and Agents tabs. Overview, including its performance analysis, shares a UTC time window and investigation context with Executions and Logs. Agents uses its own diagnostic scope. Browsing defaults to the last 24 hours, and population statistics cover up to seven days. Exact Operation, Execution, Job, Event and Schedule identifiers use the native retained correlation index independently of the browsing period, then resolve the dates of the selected execution. Identified journeys can inspect up to 90 days of retained evidence through bounded continuation pages. Sources without that index require an explicit date window; an empty recent search does not establish that an older execution is absent.
+Open **Security Admin → Observability** with instance-administrator access. **Overview** shows trends, **Executions** follows a recorded journey, and **Logs** searches retained messages. These tabs share a UTC investigation window. **Agents** has its own scope.
 
-Use Operation ID to find related execution roots, then select a result to inspect its recorded journey. Component, Endpoint, Job, Event, Schedule and Storage references open the corresponding accessible resource by its confirmed identifier. Names and filenames are display labels. A group without a valid resource identifier remains available for execution inspection. Lists retain successful reads, filters and selection while switching workspaces. Refresh advances the selected time snapshot while keeping the previous results and selection visible until the new read completes. Repeated refreshes are disabled while the current refresh is running. An expired investigation is retried once with a fresh context; permission and query-limit errors remain explicit. Overview Performance sorts and filters the loaded resource aggregates in the browser. Load remaining statistics before comparing the complete population; an incomplete duration population is labelled rather than treated as complete.
+### Find a specific execution
 
-The journey distinguishes recorded parents, missing or ambiguous edges, retry relationships and absent terminal events. A Job's creation-to-start waiting interval is shown separately when both timestamps exist. A missing correlation in historical logs cannot establish causality. Logs includes all retained visible rows in the window, including application messages without an execution origin. Select a row to load its retained payload. Full payloads load on demand throughout the retained 90-day window, including older entries whose background import retained only metadata. If the original payload has expired or is absent, its metadata remains visible. Native Job, Event and Schedule history links appear only for confirmed records; repeated clicks reuse the same resource panel.
+Use an exact Operation, Execution, Job, Event or Schedule ID. The native retained index resolves the execution's dates independently of the browsing window. Select the result to open the recorded journey. Resource links open the accessible object by its confirmed ID.
 
-Review the selected execution's coverage notes alongside its journey. Older records may be unavailable, details may be redacted or truncated, and some parents may be outside the selected window or inaccessible. Refresh to include newly retained evidence; an incomplete journey is not proof that the omitted step never happened.
+### Browse within coverage
 
-Diagnostic reads are bounded by time range, scan allowance, deadline and concurrent-read limits. Start with an Execution ID and a short time range, then widen the investigation only when necessary. An incomplete or limited query is not evidence that an execution never happened. Instance access and visibility rules apply to every read.
+Browsing defaults to the last 24 hours. Population statistics cover up to seven days. Identified journeys can inspect up to 90 days of retained evidence through bounded continuation pages. Sources without the native index need an explicit date range. Check coverage notes for partial results, redaction or missing parents. The Job's creation-to-start wait is visible when both timestamps are recorded.
 
-## Start with the question
+### Inspect a retained log
 
-| Question | Start here |
-| --- | --- |
-| Who changed this resource? | Activity and version history. |
-| Why did an Endpoint call fail? | Endpoint statistics, then Executions and scoped Logs. |
-| What happened to an asynchronous run? | Job History, its Execution action, and retry lineage. |
-| Which targets received an event? | Event History detail. |
-| Was a webhook delivered? | Webhook detail and masked request history. |
-| Is a Component revision ready? | Component runtime status and deployment history. |
-| How much capacity are we using? | Instance Usage. |
-| What did an Assistant or Agent do? | Thread/run activity, tool timeline, usage, and report evidence. |
+Select a Logs row to load its payload on demand. Metadata remains available if the original payload is absent. A log row can exist without a known execution origin. See [Search instance logs](/operate/logs) for the filters and [Traces and correlation](/operate/traces) for matching evidence across records.
 
 ## Correlation identifiers
 
@@ -47,7 +50,7 @@ Collect identifiers before opening a support case:
 | Execution ID | One recorded request, job, or other execution node, including a Storage write. |
 | Job ID | Durable asynchronous job and its lifecycle. |
 | Event history ID | One triggered event and target fan-out. |
-| Webhook ID | One outbound request attempt record. |
+| Webhook ID | One outbound request record with its delivery attempts. |
 | Thread / message ID | One Assistant conversation and turn. |
 | Agent / run ID | One durable Agent definition and execution. |
 | Storage entry / upload session ID | One durable file or in-progress upload. |

@@ -16,7 +16,19 @@ Metadata is a small JSON object attached to a definition or occurrence. Use it t
 | A resource's metadata inside an Event message | For example, the Storage entry's `pipeline` label | `message.metadata.pipeline`, a different path from occurrence metadata |
 | Webhook metadata | Originating Event, Job or operation references | RevoEngine history and search; not automatically the outbound HTTP body or headers |
 
-Definition metadata and publication metadata are separate. Adding an owner to an Event definition does not inject that owner into every published message. Put execution configuration in Runtime input, not in an invented metadata field.
+For `ORDER_APPROVED`, use definition metadata to find the checkout subscription, occurrence metadata to trace one approval, and the message to carry `orderId`. Set the Job's execution configuration in Runtime input.
+
+```mermaid
+flowchart TD
+  A["Published Event occurrence"] --> B["message.orderId · business input"]
+  A --> C["metadata.correlationId · occurrence context"]
+  D["Job template and Event Runtime input"] --> E["templateInputs · execution configuration"]
+  B --> F["Selected Job"]
+  C --> F
+  E --> F
+```
+
+Definition metadata stays with the definition. When the Job creates a Webhook, choose which values to include in its own metadata and which to send in the request.
 
 ## Publish a traceable signal
 

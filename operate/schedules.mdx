@@ -4,6 +4,8 @@ description: Run Jobs, Agents, or materialized-view refreshes on a governed cade
 icon: calendar-clock
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 Schedules connect a five-field cron expression and an IANA timezone to one execution target. They are durable control-plane definitions: operators can pause, run, edit, delete, restore, and audit them independently of any one execution.
@@ -16,12 +18,17 @@ Schedules connect a five-field cron expression and an IANA timezone to one execu
 <span id="agent-schedule-modes" aria-hidden="true"></span>
 <span id="materialized-view-refresh-schedules" aria-hidden="true"></span>
 
-<CardGroup cols={2}>
-  <Card title="Schedule configuration" href="/operate/schedule-configuration" icon="book-open">Configure cron, timezone, target and public definition fields.</Card>
-  <Card title="Configure Schedule input" href="/operate/schedule-inputs" icon="book-open">Run the same Job template with different input for each cadence.</Card>
-  <Card title="Schedule targets" href="/operate/schedule-targets" icon="book-open">Schedule Agents and Materialized View refreshes.</Card>
-</CardGroup>
+## Choose a schedule target
 
+| Target type | Use it for |
+| --- | --- |
+| Job | Repeat a configured Component execution with a stable principal, limits, retries, and input. |
+| Agent | Create recurring Agent work or wake work already waiting in its inbox. |
+| Materialized view | Refresh a saved materialized view without a custom Component wrapper. |
+
+Use an Event instead when the trigger is a business or platform state change. Use an Endpoint when a caller needs a synchronous response.
+
+Set the [cron and timezone](/operate/schedule-configuration) and choose a [target](/operate/schedule-targets). Use [Runtime input](/operate/schedule-inputs) when one Job template needs different values at different times.
 
 ## Explore the behavior
 
@@ -40,16 +47,6 @@ Use grid filters to answer operational questions before opening a definition:
 - which rows are RevoEngine-managed internal schedules.
 
 Selecting a row opens its effective configuration. RevoEngine-managed schedules are labelled `INTERNAL`, hide customer target details, and are read-only; their owning platform resource controls them.
-
-## Choose a schedule target
-
-| Target type | Use it for |
-| --- | --- |
-| Job | Repeat a configured Component execution with a stable principal, limits, retries, and input. |
-| Agent | Create recurring Agent work or wake work already waiting in its inbox. |
-| Materialized view | Refresh a saved materialized view without a custom Component wrapper. |
-
-Use an Event instead when the trigger is a business or platform state change. Use an Endpoint when a caller needs a synchronous response.
 
 ## Run now, pause, and resume
 
@@ -71,14 +68,15 @@ Scheduler configuration shares managed admission capacity. A `429` response incl
 
 ## Delivery semantics
 
-```text
-cron tick
-  -> scheduleId delivered
-  -> current durable definition loaded
-  -> active state and target revalidated
-  -> target scheduled
-  -> target execution owns final result
-```
+<ReadingFlow
+  label="Dispatch a schedule occurrence"
+  steps={[
+    ["Trigger", "Receive a cron tick or a manual Run."],
+    ["Accept", "Check the active definition and target.", "Rejected → inspect the definition and target."],
+    ["Dispatch", "Record the accepted occurrence and dispatch the selected target."],
+    ["Inspect", "Find the target’s result separately."],
+  ]}
+/>
 
 A successful schedule tick means the target was admitted for dispatch, not that its business work finished. Inspect Job history, Agent runs, or the materialized-view state for the outcome.
 

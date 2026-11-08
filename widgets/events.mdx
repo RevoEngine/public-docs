@@ -5,6 +5,8 @@ sidebarTitle: on events
 icon: bolt
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 `on` maps a supported event name to **one action object**. Event names are case-sensitive. A cell does not emit every event listed in the shared contract.
 
 | Event | Emitted by | Data available to the action |
@@ -15,6 +17,15 @@ icon: bolt
 | `rowClick` | TABLE row | `row`; read `row.<field>`. |
 | `pointClick` | CHART point | `datum`; read `datum.<field>`. |
 | `selectionChange` | Selectable TABLE | Read current keys with a selection binding. |
+
+<ReadingFlow
+  label="One input event refreshes one result"
+  steps={[
+    ["Input change", "The viewer commits the value."],
+    ["on.change", "A declared REFRESH action names the target ID."],
+    ["Merge", "The source returns the target cell with the same ID."],
+  ]}
+/>
 
 ## Minimal event mapping
 

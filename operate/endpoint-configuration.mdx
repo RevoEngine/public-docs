@@ -8,6 +8,8 @@ This reference describes the public Endpoint definition managed through the UI o
 
 ## Definition fields
 
+`method` and normalized `path` identify a route. For example, `GET /customers/current` takes precedence over a less-specific `GET /customers/:customerId`. A dynamic segment is decoded into `api.input().parameters`. Keep the active route and its public response compatible with existing callers.
+
 | Field | Required | Behavior |
 | --- | --- | --- |
 | `name` | yes | Operator-facing name. Keep it stable enough for search and audit. |
@@ -69,6 +71,8 @@ The Service Account must remain active and have platform access. Configuring `SE
 Native account, key, and permission administration still checks the caller's own authority. Selecting an execution account does not delegate those management operations.
 
 ## `options` fields
+
+A configured guard validates the structured request before target execution. Use one inline `guard` for route-specific rules or one reusable [JSON Validator Component](/low-code/json-validator) for a shared contract. For a stable error contract, set the status and a safe replacement body. The default modern response is `400`.
 
 | Field | Meaning |
 | --- | --- |

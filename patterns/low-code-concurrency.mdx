@@ -44,7 +44,13 @@ try {
 }
 ```
 
-The same customer can have two admitted operations; a third returns `BUSY`. Other customer keys have independent capacity. The caller decides whether to retry, report busy, or schedule durable work.
+| Requests while a permit is active | Outcome |
+| --- | --- |
+| Two calls for `customer-1` | Both can acquire a slot. |
+| A third call for `customer-1` | Returns `BUSY` without reading orders. |
+| A call for `customer-2` | Uses its own capacity. |
+
+The caller can report busy, retry explicitly, or schedule a Job.
 
 ## Ownership and lifetime
 

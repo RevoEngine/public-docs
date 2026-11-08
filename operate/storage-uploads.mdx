@@ -4,18 +4,25 @@ description: Transfer or assemble a file through direct, incremental, or chunked
 icon: cloud-arrow-up
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 Use an upload session when the bytes arrive outside the current call, the file is too large for one request, parts must be retried, or a CSV/XLSX file is assembled incrementally.
 
 An upload session is a temporary, durable **control record**. It reserves the intended target and stores progress, lease, access, retention, metadata, schema, and compute policy. It is not a Storage file. A readable `storageEntryId` exists only after the session reaches `FINALIZED`.
 
-```text
-RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
-                  |             |
-                  +-> ABORTED    +-> FAILED
-                  +-> EXPIRED
-```
+<ReadingFlow
+  label="Move from an upload session to a file entry"
+  steps={[
+    ["Reserved", "Keep the upload session ID."],
+    ["Uploading", "Transfer bytes or send the parts."],
+    ["Finalizing", "Verify and publish the file.", "Failed → inspect the upload session error."],
+    ["Finalized", "Use the returned Storage entry ID."],
+  ]}
+/>
+
+Cancellation or expiry can end an unfinished session before publication. Use the session ID for upload status and the file entry ID for downstream reads.
 
 ## Explore the behavior
 

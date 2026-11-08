@@ -4,6 +4,8 @@ description: "Build a UI from low-code rows, controls, events and registered act
 icon: table-cells
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 A Custom Widget is a low-code function whose result describes a small user interface. It can display data, collect input, refresh a result, open a detail view or launch a registered action. The same interaction model is used in dashboards and private Assistant cards.
 
 Start with a static result. Add one input and one refresh action before introducing background Jobs or nested views.
@@ -14,6 +16,16 @@ Start with a static result. Add one input and one refresh action before introduc
   <Card title="Types and fields" icon="list" href="/widgets/elements">Choose text, charts, tables, inputs, forms and buttons.</Card>
   <Card title="Events and actions" icon="bolt" href="/widgets/events">Connect a user interaction to a declared action.</Card>
 </CardGroup>
+
+<ReadingFlow
+  label="What happens when a viewer edits a widget"
+  steps={[
+    ["Source", "The server returns the matrix for the current inputs."],
+    ["Render", "The browser displays rows and identifies controls by ID."],
+    ["Interact", "A control emits an event mapped to a declared action."],
+    ["Update", "The action reads fresh data, opens a view or returns an operation receipt."],
+  ]}
+/>
 
 ## The four parts
 

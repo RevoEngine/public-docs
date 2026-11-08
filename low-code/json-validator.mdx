@@ -4,7 +4,18 @@ description: Define reusable request contracts and validate payloads before appl
 icon: shield-check
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 `JSON_VALIDATOR` is a Component type for declarative validation. It contains exactly one element whose source is a JSON validator schema. Use it directly in Sandbox validation, attach it to an Endpoint as a reusable guard, or use an inline copy under an Endpoint's `options.guard` when reuse is unnecessary.
+
+<ReadingFlow
+  label="A guard checks a shaped request"
+  steps={[
+    ["Match route", "Resolve the method and path."],
+    ["Validate", "Check body, query, parameters and permitted headers."],
+    ["Respond or execute", "Invalid input returns a configured error. Valid input can reach the Component."],
+  ]}
+/>
 
 ## Where validation runs
 

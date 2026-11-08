@@ -19,37 +19,25 @@ A reactive Custom Widget adds inputs, selection, events and registered actions t
 
 <FlowDemo topic="widget" />
 
-## Connect inputs, events and destinations
+<span id="connect-inputs-events-and-destinations" aria-hidden="true"></span>
+<span id="form-→-job-→-one-refreshed-tile" aria-hidden="true"></span>
+<span id="open-a-detail-view-and-return" aria-hidden="true"></span>
+<span id="preserve-or-refill-inputs" aria-hidden="true"></span>
+<span id="charts-records-and-multiple-selection" aria-hidden="true"></span>
+<span id="limits-and-next-steps" aria-hidden="true"></span>
+<span id="interactive-cards-in-assistant" aria-hidden="true"></span>
+<span id="ordered-button-commands" aria-hidden="true"></span>
 
-Read [events](/widgets/events), [actions](/widgets/actions) and [bindings](/widgets/bindings).
+## Pick an interaction
 
-## Form → Job → one refreshed tile
+| Operator action | Connect | Example |
+| --- | --- | --- |
+| Change a filter | Input binding → event → refresh a cell by ID | [Partial refresh](/widgets/refresh) |
+| Submit a form | Registered executor → Job acceptance → completion probe | [Form to Job](/widgets/examples/form-job) |
+| Select a record | Pass its key → open a registered view → return to the parent | [Table actions](/widgets/examples/table-actions) |
+| Act in an Assistant conversation | Return an interactive card with allowed actions | [Assistant card](/widgets/examples/assistant-card) |
 
-Follow the [complete form-to-Job example](/widgets/examples/form-job).
-
-## Open a detail view and return
-
-See [navigation](/widgets/navigation).
-
-## Preserve or refill inputs
-
-Read [state and lifecycle](/widgets/state) and [the $widget context](/widgets/context).
-
-## Charts, records and multiple selection
-
-Use [tables](/widgets/tables), [charts](/widgets/charts) and the [selection example](/widgets/examples/table-actions).
-
-## Limits and next steps
-
-Check [limits and troubleshooting](/widgets/limits).
-
-## Interactive cards in Assistant
-
-Follow [the Assistant card example](/widgets/examples/assistant-card).
-
-### Ordered button commands
-
-See [ordered refresh commands](/widgets/refresh#ordered-commands).
+The same `rows` structure describes each view. Use [events](/widgets/events), [actions](/widgets/actions) and [bindings](/widgets/bindings) to map input to an effect. Inspect [widget state](/widgets/state) and [$widget context](/widgets/context) when a value needs to survive a refresh. Check [charts](/widgets/charts), [ordered refresh commands](/widgets/refresh#ordered-commands) and [limits](/widgets/limits) for details.
 
 ## Dashboard header controls
 

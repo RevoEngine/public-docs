@@ -29,30 +29,465 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Platform",
-        "icon": "layer-group",
+        "tab": "Guides",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Start here",
             "pages": [
               "introduction",
+              "quickstart",
               "platform/product-model",
-              "quickstart"
+              {
+                "group": "Workspace",
+                "pages": [
+                  "platform/ui-tour",
+                  "platform/feature-directory",
+                  "platform/personal-settings",
+                  "platform/account-security",
+                  "platform/search",
+                  "platform/instance-settings"
+                ]
+              },
+              {
+                "group": "Concepts",
+                "pages": [
+                  "platform/overview",
+                  "platform/enterprise-execution",
+                  "platform/architecture",
+                  "platform/environments-and-versions",
+                  "platform/security-and-governance",
+                  "platform/limits-and-quotas",
+                  "platform/glossary"
+                ]
+              }
             ]
           },
           {
-            "group": "Workspace",
+            "group": "Build and integrate",
             "pages": [
-              "platform/ui-tour",
-              "platform/feature-directory",
-              "platform/personal-settings",
-              "platform/account-security",
-              "platform/search",
-              "platform/instance-settings"
+              {
+                "group": "Components and Studio",
+                "icon": "code",
+                "pages": [
+                  {
+                    "group": "Components",
+                    "pages": [
+                      "build/overview",
+                      "build/components",
+                      "build/component-configuration",
+                      "build/custom-nodejs"
+                    ]
+                  },
+                  {
+                    "group": "Libraries",
+                    "pages": [
+                      "build/libraries",
+                      "build/library-authoring"
+                    ]
+                  },
+                  {
+                    "group": "Editor and testing",
+                    "pages": [
+                      "build/web-ide",
+                      "build/studio-sessions",
+                      "build/studio-session-workspace",
+                      "build/studio-session-collaboration",
+                      "build/studio-session-review",
+                      "build/studio-session-release",
+                      "build/debugging",
+                      "build/native-tests"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Low-code",
+                "icon": "terminal",
+                "pages": [
+                  {
+                    "group": "Low-code basics",
+                    "pages": [
+                      "low-code/overview",
+                      "low-code/runtime-api"
+                    ]
+                  },
+                  {
+                    "group": "HTTP calls",
+                    "pages": [
+                      "low-code/http",
+                      "low-code/http-json",
+                      "low-code/http-multipart",
+                      "low-code/http-streams",
+                      "low-code/http-storage",
+                      "low-code/http-callbacks"
+                    ]
+                  },
+                  {
+                    "group": "Data and validation",
+                    "pages": [
+                      "low-code/database",
+                      "low-code/sftp",
+                      "low-code/json-validator"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "HTTP endpoints",
+                "icon": "route",
+                "pages": [
+                  "operate/endpoints",
+                  "operate/endpoint-http",
+                  "operate/endpoint-configuration",
+                  "operate/endpoint-sse"
+                ]
+              },
+              {
+                "group": "Custom widgets",
+                "icon": "table-cells",
+                "pages": [
+                  "widgets/overview",
+                  "widgets/quickstart",
+                  "widgets/matrix",
+                  "widgets/source-configuration",
+                  {
+                    "group": "Elements",
+                    "pages": [
+                      "widgets/elements",
+                      "widgets/text-and-buttons",
+                      "widgets/inputs",
+                      "widgets/forms",
+                      "widgets/tables",
+                      "widgets/charts"
+                    ]
+                  },
+                  {
+                    "group": "Interactions",
+                    "pages": [
+                      "operate/reactive-widgets",
+                      "widgets/context",
+                      "widgets/state",
+                      "widgets/bindings",
+                      "widgets/events",
+                      "widgets/actions",
+                      "widgets/refresh",
+                      "widgets/execute",
+                      "widgets/navigation",
+                      "widgets/header-and-timers"
+                    ]
+                  },
+                  {
+                    "group": "Troubleshooting",
+                    "pages": [
+                      "widgets/limits"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "icon": "terminal",
+                "pages": [
+                  {
+                    "group": "Integration basics",
+                    "pages": [
+                      "developers/overview",
+                      "developers/authentication",
+                      "developers/errors"
+                    ]
+                  },
+                  {
+                    "group": "HTTP interfaces",
+                    "pages": [
+                      "developers/platform-api",
+                      "developers/endpoint-runtime",
+                      "developers/sandbox-api"
+                    ]
+                  },
+                  {
+                    "group": "MCP",
+                    "pages": [
+                      "developers/mcp-overview",
+                      "developers/mcp-connect",
+                      "developers/mcp-sessions",
+                      "developers/mcp-tools",
+                      "developers/mcp-resources-and-prompts",
+                      "developers/mcp-plugins",
+                      "developers/mcp-troubleshooting"
+                    ]
+                  },
+                  {
+                    "group": "Node.js SDK",
+                    "pages": [
+                      "developers/sdk-overview",
+                      "developers/sdk-hosted",
+                      "developers/sdk-standalone",
+                      "developers/sdk-storage-and-batching",
+                      "developers/upgrading-to-1-8"
+                    ]
+                  },
+                  {
+                    "group": "CLI and VS Code",
+                    "pages": [
+                      "developers/cli",
+                      "developers/cli-projects",
+                      "developers/cli-environments",
+                      "developers/cli-tests-and-debugging",
+                      "developers/cli-studio",
+                      "developers/cli-terminal",
+                      "developers/vscode-extension"
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {
-            "group": "Tutorials",
+            "group": "Operate",
+            "pages": [
+              {
+                "group": "Data and Storage",
+                "icon": "database",
+                "pages": [
+                  {
+                    "group": "Data",
+                    "pages": [
+                      "operate/databases",
+                      "operate/database-definitions",
+                      "operate/database-audit",
+                      "operate/database-views",
+                      "operate/materialized-views",
+                      "operate/database-cache",
+                      {
+                        "group": "Read and write",
+                        "pages": [
+                          "operate/database-queries",
+                          "operate/database-mutations",
+                          "operate/database-exports"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Storage",
+                    "pages": [
+                      "operate/storage",
+                      "operate/storage-uploads",
+                      {
+                        "group": "Structured files",
+                        "pages": [
+                          "operate/storage-structured-files",
+                          "operate/storage-file-schema",
+                          "operate/storage-csv",
+                          "operate/storage-typed-rows"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Jobs, schedules and events",
+                "icon": "bolt",
+                "pages": [
+                  {
+                    "group": "Jobs and delivery",
+                    "pages": [
+                      "operate/automation",
+                      "operate/jobs",
+                      "operate/job-notifications",
+                      "operate/webhooks",
+                      "operate/event-history"
+                    ]
+                  },
+                  {
+                    "group": "Schedules",
+                    "pages": [
+                      "operate/schedules",
+                      "operate/schedule-configuration",
+                      "operate/schedule-inputs",
+                      "operate/schedule-targets"
+                    ]
+                  },
+                  {
+                    "group": "Events",
+                    "pages": [
+                      "operate/events",
+                      "operate/event-inputs",
+                      "operate/event-filters",
+                      "operate/event-publishing",
+                      "operate/event-types"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Dashboards",
+                "icon": "chart-line",
+                "pages": [
+                  "operate/dashboards",
+                  "widgets/dashboard-library"
+                ]
+              },
+              {
+                "group": "Observability and collaboration",
+                "icon": "chart-simple",
+                "pages": [
+                  {
+                    "group": "Observability",
+                    "pages": [
+                      "operate/observability",
+                      "operate/logs",
+                      "operate/traces"
+                    ]
+                  },
+                  {
+                    "group": "Collaboration",
+                    "pages": [
+                      "operate/chat",
+                      "operate/realtime"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Identity and security",
+                "icon": "shield",
+                "pages": [
+                  "operate/identity-and-access",
+                  "operate/sso-and-oidc",
+                  "operate/users",
+                  "operate/service-accounts",
+                  "operate/groups",
+                  "operate/permissions",
+                  "operate/secrets",
+                  "operate/vault"
+                ]
+              },
+              {
+                "group": "Production workflows",
+                "icon": "diagram-project",
+                "pages": [
+                  "platform/file-processing-workflow",
+                  "platform/external-integration-workflow",
+                  "platform/agent-production-workflow",
+                  "platform/incident-investigation-workflow"
+                ]
+              },
+              {
+                "group": "Patterns",
+                "icon": "layer-group",
+                "pages": [
+                  "low-code/patterns",
+                  {
+                    "group": "Flow control",
+                    "pages": [
+                      "patterns/job-concurrency",
+                      "patterns/coordination-keys",
+                      "patterns/low-code-concurrency"
+                    ]
+                  },
+                  {
+                    "group": "Reliable effects",
+                    "pages": [
+                      "patterns/idempotency",
+                      "patterns/delivery-guarantees",
+                      "patterns/metadata-and-correlation",
+                      "patterns/event-to-webhook",
+                      "patterns/retry-and-uncertainty",
+                      "patterns/acceptance-and-completion",
+                      "patterns/transactions"
+                    ]
+                  },
+                  {
+                    "group": "Data at scale",
+                    "pages": [
+                      "patterns/bounded-data"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "group": "AI and Agents",
+            "pages": [
+              "ai/overview",
+              {
+                "group": "Agent capabilities",
+                "pages": [
+                  "ai/agent-harness",
+                  "ai/tools-and-skills",
+                  "ai/compare-coding-agents"
+                ]
+              },
+              {
+                "group": "Interactive Agents",
+                "pages": [
+                  "ai/assistant",
+                  "ai/assistant-configuration",
+                  "ai/instance-ai-settings",
+                  "ai/assistant-from-code",
+                  "ai/assistant-visuals",
+                  "ai/approvals-and-plans"
+                ]
+              },
+              {
+                "group": "Coding and browser",
+                "pages": [
+                  "ai/agentic-coding",
+                  "ai/terminals",
+                  "ai/terminal-execution-and-logs",
+                  "ai/browser",
+                  "ai/browser-profiles"
+                ]
+              },
+              {
+                "group": "Autonomous Agents",
+                "pages": [
+                  "ai/agents",
+                  "ai/agent-configuration",
+                  "ai/agent-delivery-configuration",
+                  "ai/agent-operations",
+                  "ai/memory-and-workspaces"
+                ]
+              },
+              "ai/plugins"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              {
+                "group": "Legal and support",
+                "icon": "scale-balanced",
+                "pages": [
+                  "resources/introduction",
+                  "resources/platform-terms-and-conditions",
+                  "resources/cloud-services-and-support-terms-and-conditions",
+                  "resources/privacy-policy-and-cookies",
+                  "resources/service-level-agreement-sla",
+                  "resources/support-policy"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "icon": "flask",
+        "groups": [
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/overview",
+              "patterns/interactive-examples"
+            ]
+          },
+          {
+            "group": "Business workflows",
             "pages": [
               "platform/first-production-workflow",
               {
@@ -68,258 +503,21 @@
             ]
           },
           {
-            "group": "Workflow guides",
+            "group": "HTTP and streaming",
             "pages": [
-              "platform/file-processing-workflow",
-              "platform/external-integration-workflow",
-              "platform/agent-production-workflow",
-              "platform/incident-investigation-workflow"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "pages": [
-              "platform/overview",
-              "platform/enterprise-execution",
-              "platform/architecture",
-              "platform/environments-and-versions",
-              "platform/security-and-governance",
-              "platform/limits-and-quotas",
-              "platform/glossary"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Build",
-        "icon": "code",
-        "groups": [
-          {
-            "group": "Components",
-            "pages": [
-              "build/overview",
-              "build/components",
-              "build/component-configuration",
-              "build/custom-nodejs"
-            ]
-          },
-          {
-            "group": "Libraries",
-            "pages": [
-              "build/libraries",
-              "build/library-authoring"
-            ]
-          },
-          {
-            "group": "Editor and testing",
-            "pages": [
-              "build/web-ide",
-              "build/studio-sessions",
-              "build/studio-session-workspace",
-              "build/studio-session-collaboration",
-              "build/studio-session-review",
-              "build/studio-session-release",
-              "build/debugging",
-              "build/native-tests"
-            ]
-          },
-          {
-            "group": "Low-code basics",
-            "pages": [
-              "low-code/overview",
-              "low-code/runtime-api"
-            ]
-          },
-          {
-            "group": "HTTP calls",
-            "pages": [
-              "low-code/http",
-              "low-code/http-json",
-              "low-code/http-multipart",
-              "low-code/http-streams",
-              "low-code/http-storage",
-              "low-code/http-callbacks"
-            ]
-          },
-          {
-            "group": "Data and validation",
-            "pages": [
-              "low-code/database",
-              "low-code/sftp",
-              "low-code/json-validator"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Operate",
-        "icon": "diagram-project",
-        "groups": [
-          {
-            "group": "Endpoints",
-            "pages": [
-              "operate/endpoints",
-              "operate/endpoint-http",
-              "operate/endpoint-configuration",
+              "operate/sse-openai-example",
+              "operate/sse-browser-client",
               {
-                "group": "Streaming",
+                "group": "Complete example sources",
                 "pages": [
-                  "operate/endpoint-sse",
-                  "operate/sse-openai-example",
-                  "operate/sse-browser-client",
-                  {
-                    "group": "Complete example sources",
-                    "pages": [
-                      "examples/sse/component-source",
-                      "examples/sse/browser-source"
-                    ]
-                  }
+                  "examples/sse/component-source",
+                  "examples/sse/browser-source"
                 ]
               }
             ]
           },
           {
-            "group": "Data",
-            "pages": [
-              "operate/databases",
-              "operate/database-definitions",
-              "operate/database-audit",
-              "operate/database-views",
-              "operate/materialized-views",
-              "operate/database-cache",
-              {
-                "group": "Read and write",
-                "pages": [
-                  "operate/database-queries",
-                  "operate/database-mutations",
-                  "operate/database-exports"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Storage",
-            "pages": [
-              "operate/storage",
-              "operate/storage-uploads",
-              {
-                "group": "Structured files",
-                "pages": [
-                  "operate/storage-structured-files",
-                  "operate/storage-file-schema",
-                  "operate/storage-csv",
-                  "operate/storage-typed-rows"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Jobs and delivery",
-            "pages": [
-              "operate/automation",
-              "operate/jobs",
-              "operate/job-notifications",
-              "operate/webhooks",
-              "operate/event-history"
-            ]
-          },
-          {
-            "group": "Schedules",
-            "pages": [
-              "operate/schedules",
-              "operate/schedule-configuration",
-              "operate/schedule-inputs",
-              "operate/schedule-targets"
-            ]
-          },
-          {
-            "group": "Events",
-            "pages": [
-              "operate/events",
-              "operate/event-inputs",
-              "operate/event-filters",
-              "operate/event-publishing",
-              "operate/event-types"
-            ]
-          },
-          {
-            "group": "Observability",
-            "pages": [
-              "operate/observability",
-              "operate/logs",
-              "operate/traces"
-            ]
-          },
-          {
-            "group": "Collaboration",
-            "pages": [
-              "operate/chat",
-              "operate/realtime"
-            ]
-          },
-          {
-            "group": "Identity and security",
-            "pages": [
-              "operate/identity-and-access",
-              "operate/sso-and-oidc",
-              "operate/users",
-              "operate/service-accounts",
-              "operate/groups",
-              "operate/permissions",
-              "operate/secrets",
-              "operate/vault"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Widgets",
-        "icon": "table-cells",
-        "groups": [
-          {
-            "group": "Dashboards",
-            "pages": [
-              "operate/dashboards",
-              "widgets/dashboard-library"
-            ]
-          },
-          {
-            "group": "Start building",
-            "pages": [
-              "widgets/overview",
-              "widgets/quickstart",
-              "widgets/matrix",
-              "widgets/source-configuration"
-            ]
-          },
-          {
-            "group": "Elements",
-            "pages": [
-              "widgets/elements",
-              "widgets/text-and-buttons",
-              "widgets/inputs",
-              "widgets/forms",
-              "widgets/tables",
-              "widgets/charts"
-            ]
-          },
-          {
-            "group": "Interactions",
-            "pages": [
-              "operate/reactive-widgets",
-              "widgets/context",
-              "widgets/state",
-              "widgets/bindings",
-              "widgets/events",
-              "widgets/actions",
-              "widgets/refresh",
-              "widgets/execute",
-              "widgets/navigation",
-              "widgets/header-and-timers"
-            ]
-          },
-          {
-            "group": "Examples",
+            "group": "Custom widget recipes",
             "pages": [
               "widgets/examples/job-chart",
               "widgets/examples/table-actions",
@@ -328,160 +526,11 @@
             ]
           },
           {
-            "group": "Troubleshooting",
+            "group": "AI integrations",
             "pages": [
-              "widgets/limits"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Patterns",
-        "icon": "shapes",
-        "groups": [
-          {
-            "group": "Choose a pattern",
-            "pages": [
-              "low-code/patterns",
-              "patterns/interactive-examples"
-            ]
-          },
-          {
-            "group": "Flow control",
-            "pages": [
-              "patterns/job-concurrency",
-              "patterns/coordination-keys",
-              "patterns/low-code-concurrency"
-            ]
-          },
-          {
-            "group": "Reliable effects",
-            "pages": [
-              "patterns/idempotency",
-              "patterns/delivery-guarantees",
-              "patterns/metadata-and-correlation",
-              "patterns/event-to-webhook",
-              "patterns/retry-and-uncertainty",
-              "patterns/acceptance-and-completion",
-              "patterns/transactions"
-            ]
-          },
-          {
-            "group": "Data at scale",
-            "pages": [
-              "patterns/bounded-data"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "AI & Agents",
-        "icon": "sparkles",
-        "groups": [
-          {
-            "group": "Concepts",
-            "pages": [
-              "ai/overview",
-              "ai/agent-harness",
-              "ai/tools-and-skills",
-              "ai/compare-coding-agents"
-            ]
-          },
-          {
-            "group": "Interactive Agents",
-            "pages": [
-              "ai/assistant",
-              "ai/assistant-configuration",
-              "ai/instance-ai-settings",
-              "ai/assistant-from-code",
-              "ai/assistant-visuals",
-              "ai/approvals-and-plans"
-            ]
-          },
-          {
-            "group": "Coding and browser",
-            "pages": [
-              "ai/agentic-coding",
-              "ai/terminals",
-              "ai/terminal-execution-and-logs",
-              "ai/browser",
-              "ai/browser-profiles"
-            ]
-          },
-          {
-            "group": "Autonomous Agents",
-            "pages": [
-              "ai/agents",
-              "ai/agent-configuration",
-              "ai/agent-delivery-configuration",
-              "ai/agent-configuration-example",
-              "ai/agent-operations",
-              "ai/memory-and-workspaces"
-            ]
-          },
-          {
-            "group": "Plugins",
-            "pages": [
-              "ai/plugins",
-              "ai/business-plugins"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Developers",
-        "icon": "terminal",
-        "groups": [
-          {
-            "group": "Integration basics",
-            "pages": [
-              "developers/overview",
-              "developers/authentication",
-              "developers/errors"
-            ]
-          },
-          {
-            "group": "HTTP interfaces",
-            "pages": [
-              "developers/platform-api",
-              "developers/endpoint-runtime",
-              "developers/sandbox-api",
-              "developers/customer-ai-portal"
-            ]
-          },
-          {
-            "group": "MCP",
-            "pages": [
-              "developers/mcp-overview",
-              "developers/mcp-connect",
-              "developers/mcp-sessions",
-              "developers/mcp-tools",
-              "developers/mcp-resources-and-prompts",
-              "developers/mcp-plugins",
-              "developers/mcp-troubleshooting"
-            ]
-          },
-          {
-            "group": "Node.js SDK",
-            "pages": [
-              "developers/sdk-overview",
-              "developers/sdk-hosted",
-              "developers/sdk-standalone",
-              "developers/sdk-storage-and-batching",
-              "developers/upgrading-to-1-8"
-            ]
-          },
-          {
-            "group": "CLI and VS Code",
-            "pages": [
-              "developers/cli",
-              "developers/cli-projects",
-              "developers/cli-environments",
-              "developers/cli-command-reference",
-              "developers/cli-tests-and-debugging",
-              "developers/cli-studio",
-              "developers/cli-terminal",
-              "developers/vscode-extension"
+              "developers/customer-ai-portal",
+              "ai/business-plugins",
+              "ai/agent-configuration-example"
             ]
           }
         ]
@@ -854,6 +903,12 @@
             ]
           },
           {
+            "group": "Developer tools",
+            "pages": [
+              "developers/cli-command-reference"
+            ]
+          },
+          {
             "group": "Before you start",
             "pages": [
               "api-reference/introduction",
@@ -1020,23 +1075,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Legal",
-        "icon": "scale-balanced",
-        "groups": [
-          {
-            "group": "Policies and terms",
-            "pages": [
-              "resources/introduction",
-              "resources/platform-terms-and-conditions",
-              "resources/cloud-services-and-support-terms-and-conditions",
-              "resources/privacy-policy-and-cookies",
-              "resources/service-level-agreement-sla",
-              "resources/support-policy"
-            ]
-          }
-        ]
       }
     ]
   },
@@ -1150,5 +1188,26 @@
       "source": "/operate/files",
       "destination": "/operate/storage"
     }
-  ]
+  ],
+  "footer": {
+    "links": [
+      {
+        "header": "Legal and support",
+        "items": [
+          {
+            "label": "Policies and terms",
+            "href": "/resources/introduction"
+          },
+          {
+            "label": "Privacy and cookies",
+            "href": "/resources/privacy-policy-and-cookies"
+          },
+          {
+            "label": "Support policy",
+            "href": "/resources/support-policy"
+          }
+        ]
+      }
+    ]
+  }
 }

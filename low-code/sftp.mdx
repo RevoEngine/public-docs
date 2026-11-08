@@ -4,6 +4,8 @@ description: Import, export, and manage remote SFTP paths through Secret-backed 
 icon: folder-arrow-down
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 The `transport` global is the low-code SFTP boundary. It moves files between a remote SFTP server and Storage or runs a bounded batch of supported file commands. It does not expose a remote shell and it does not own file retention, structured parsing, or ACLs.
 
 | Need | Method |
@@ -11,6 +13,15 @@ The `transport` global is the low-code SFTP boundary. It moves files between a r
 | Import a remote file into governed Storage | `transport.sftpImport()` |
 | Export an existing Storage object to a remote path | `transport.sftpExport()` |
 | List, inspect, rename, archive, or remove remote paths | `transport.sftpCommands()` |
+
+<ReadingFlow
+  label="Import a file for later processing"
+  steps={[
+    ["Connect", "Resolve the granted connection Secret."],
+    ["Transfer", "Send remote bytes to the selected Storage path."],
+    ["Finalize", "Use the completed entry as the input to parsing or a Job."],
+  ]}
+/>
 
 ## Configure the connection Secret
 

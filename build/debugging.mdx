@@ -4,11 +4,22 @@ description: Validate transient code, stream logs, and inspect results before ac
 icon: bug
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 The Sandbox can execute transient edited code or a saved component without exposing it through an Endpoint. Use it to verify inputs, platform calls, logs, result shape, timeout behavior, and library resolution.
 
 Debugging is a development execution, not a deployment state. A successful Sandbox
 run does not activate a Component, change an Endpoint, or prove that the production
 service account has the same access as the current editor user.
+
+<ReadingFlow
+  label="Read evidence from one debug run"
+  steps={[
+    ["Set inputs", "Use a small fixture for the same invocation shape."],
+    ["Execute", "Run the selected code in the debugger."],
+    ["Inspect", "Read element results, logs and the execution ID."],
+  ]}
+/>
 
 ## Debug flow
 

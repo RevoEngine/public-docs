@@ -4,6 +4,8 @@ description: How RevoEngine unifies enterprise BaaS capabilities, governed execu
 icon: layer-group
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 {/* product-summary:start */}
 RevoEngine is an enterprise Backend as a Service and governed-execution platform for building, integrating, operating, and improving production applications. It combines application logic, data, Storage, HTTP endpoints, automation, identity, observability, and AI in one instance-scoped application model. Low-code is one authoring option, alongside custom Node.js and external developer tools.
 {/* product-summary:end */}
@@ -28,6 +30,16 @@ Start with [Choose your approach](/platform/product-model) for capability select
 <Info>
   Older RevoEngine documentation used **Resources** and **Schemas** as top-level product concepts. Current documentation uses the concrete domains shown above. Database structures and endpoint input contracts remain explicit, but they are no longer presented as a generic Resources layer.
 </Info>
+
+<ReadingFlow
+  label="From definition to evidence"
+  steps={[
+    ["Define", "Choose identity and a versioned resource."],
+    ["Activate", "Validate and select the version to serve."],
+    ["Run", "Call an Endpoint, dispatch a Job or start an Agent."],
+    ["Verify", "Find the result and execution evidence."],
+  ]}
+/>
 
 ## Typical end-to-end flow
 

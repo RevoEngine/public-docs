@@ -4,6 +4,8 @@ description: Understand public page reads, interactive browser sessions, Live Pr
 icon: globe
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 Use the Assistant's browser to inspect a web application, reproduce a workflow or verify a change on a connected terminal. Public research and interactive browser work have different state and permission boundaries.
@@ -20,6 +22,16 @@ Use the Assistant's browser to inspect a web application, reproduce a workflow o
 </Frame>
 
 <ScreenshotDetail src="/images/asterion/browser-live-quote.jpg" alt="Live browser preview showing a ten-unit contract quote, no stock reservation, profile selection and Take control" width={1228} height={821} />
+
+<ReadingFlow
+  label="A browser test with an authorized login"
+  steps={[
+    ["Connect", "Choose the terminal, workspace and network scope."],
+    ["Open", "Select the browser context or authorized saved profile."],
+    ["Take control", "Complete a human step privately when required."],
+    ["Resume", "Verify the page and capture the expected result."],
+  ]}
+/>
 
 ## Connect before testing
 

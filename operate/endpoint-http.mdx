@@ -11,6 +11,8 @@ request input, authorization and guards.
 
 ## Select the response contract
 
+For a read like `GET /orders/:orderId`, choose one visible result when the client needs a simple JSON object. Use a result map when it needs several named outputs. The same Component can supply either shape.
+
 Choose **HTTP** under **Options → Response mode**. Set the success status and decide
 which Component output is part of your public contract.
 

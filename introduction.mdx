@@ -8,20 +8,20 @@ icon: sparkles
 RevoEngine is an enterprise Backend as a Service and governed-execution platform for building, integrating, operating, and improving production applications. It combines application logic, data, Storage, HTTP endpoints, automation, identity, observability, and AI in one instance-scoped application model. Low-code is one authoring option, alongside custom Node.js and external developer tools.
 {/* product-summary:end */}
 
-Low-code is an authoring option. The durable product contract is broader: every workload is identity-bound, policy-controlled, observable, and connected to its versioned definition.
+Start with a task. Each path shows what to build and where to check the result.
 
 <CardGroup cols={2}>
-  <Card title="Governed application execution" icon="server" href="/platform/enterprise-execution">
-    Deliver endpoints, Jobs, data operations, files, events, and AI work through one identity- and policy-controlled execution plane.
+  <Card title="Run your first Endpoint" icon="bolt" href="/quickstart">
+    Validate a request, return JSON and find the execution.
   </Card>
-  <Card title="Enterprise identity and access" icon="building-shield" href="/operate/identity-and-access">
-    Integrate SSO/hybrid identity, service accounts, roles, Groups, ACLs, short-lived sessions, and machine credentials.
+  <Card title="Follow a complete example" icon="flask" href="/examples/overview">
+    Choose an order, file, widget or Agent workflow.
   </Card>
-  <Card title="Operational evidence" icon="timeline" href="/operate/observability">
-    Follow changes and execution through activity, versions, logs, traces, audit, durable history, and correlation IDs.
+  <Card title="Choose a capability" icon="compass" href="/platform/product-model">
+    Match an application goal to the right RevoEngine surface.
   </Card>
-  <Card title="Governed AI" icon="robot" href="/ai/overview">
-    Use Interactive and Autonomous Agents through one policy-, capability-, memory-, and evidence-aware Agent Harness.
+  <Card title="Look up a contract" icon="brackets-curly" href="/low-code/reference/index">
+    Find a runtime method, its types and examples.
   </Card>
 </CardGroup>
 
@@ -35,18 +35,10 @@ RevoEngine separates configuration from execution:
 This separation keeps authoring predictable while allowing each workload to scale and fail independently.
 
 ```mermaid
-flowchart LR
-    UI["Platform UI"] --> CP["Platform API"]
-    CLI["CLI / SDK"] --> CP
-    CP --> D["Definitions and versions"]
-    D --> E["Endpoint execution"]
-    D --> S["Sandbox and debugger"]
-    D --> A["Automation"]
-    D --> AI["Interactive and Autonomous Agents"]
-    E --> O["Logs, traces, activity"]
-    S --> O
-    A --> O
-    AI --> O
+flowchart TD
+    A["Define and version"] --> B["Validate and activate"]
+    B --> C["Run an Endpoint, Job or Agent"]
+    C --> D["Inspect the outcome"]
 ```
 
 <Tip>
