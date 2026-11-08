@@ -4,6 +4,8 @@ description: Author a reusable pricing library, inspect its Monaco completions, 
 icon: code
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 A distributor needs the same price calculation in its order Endpoint, invoice Job and sales preview. Put that rule in a TypeScript Library called **Pricing**. A change then has one implementation to review, while each caller keeps responsibility for its own permissions and writes.
 
 This example uses fictional Asterion Supply data. It has no dependency on customer code or an external service.
@@ -24,6 +26,8 @@ The platform creates a native, permanent element with the key `@default`. The tr
 <Frame caption="The real Pricing Library in the synthetic Asterion instance: the permanent default element opens as @default.">
   <img src="/images/asterion/library-default.jpg" alt="Studio showing the lowercase default Library element and exported Pricing quote function" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/library-default.jpg" alt="Studio showing the lowercase default Library element and exported Pricing quote function" width={1920} height={1080} />
 
 `@default` is a platform element identity. It does not enable the JavaScript syntax `export default`.
 
@@ -83,6 +87,8 @@ Save and activate the Library through your normal deployment review. Open a cons
 <Frame caption="Completion in a consuming TypeScript Component exposes quote; the unexported integer helper remains private.">
   <img src="/images/asterion/library-monaco-completion.jpg" alt="Monaco completion after lib.Pricing. suggests the exported quote function" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/library-monaco-completion.jpg" alt="Monaco completion after lib.Pricing. suggests the exported quote function" width={1920} height={1011} />
 
 Declare a typed input to see field suggestions:
 

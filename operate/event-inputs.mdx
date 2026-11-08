@@ -4,6 +4,8 @@ description: "Map Event Runtime input onto a Job template."
 icon: book-open
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 ## Example: configure the supplier input
 
 After the supplier predicate matches, this sample uses **Override** to supply `{ "supplierId": "VEGA" }` as runtime input to **Supplier stock intake**. The Job reads `api.input('templateInputs')`. The message filter decides whether dispatch is eligible; the input mode decides what the selected Job receives. Changing one does not automatically change the other.
@@ -11,6 +13,8 @@ After the supplier predicate matches, this sample uses **Override** to supply `{
 <Frame caption="Filter, input mode and JSON input are separate configuration controls.">
   <img src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" width={1114} height={982} />
 
 ## Configure Runtime input for a Job target
 

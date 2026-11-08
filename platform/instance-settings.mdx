@@ -4,6 +4,8 @@ description: "Understand the instance-wide controls for capacity, retention, ide
 icon: "sliders"
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 Instance settings are the control plane for behavior shared by every application in a RevoEngine instance. They expose the effective plan, usage, runtime limits, retention policy, and security defaults in one place.
 
 <Note>
@@ -64,6 +66,8 @@ Old slug links stop working; they are reserved rather than kept as aliases. UUID
 <Frame caption="Retention values shown for the synthetic demo instance. Read the effective values on your own instance.">
   <img src="/images/asterion/instance-retention.jpg" alt="Retention and Audit settings for version history, database audit, logs, Jobs, Events and Webhooks" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/instance-retention.jpg" alt="Retention and Audit settings for version history, database audit, logs, Jobs, Events and Webhooks" width={1092} height={702} />
 
 ## Read limits correctly
 

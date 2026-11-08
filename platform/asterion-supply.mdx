@@ -4,6 +4,8 @@ description: Follow a fictional B2B distributor from supplier feeds and contract
 icon: building
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 Asterion Supply is a fictional distributor of industrial equipment, tools and consumables. It sells to business customers through a portal and integrations. Buyers need current prices and stock; warehouse teams need reliable reservations; finance needs traceable invoices and reconciliation.
 
 The example connects these departments through one business flow. Names, products and records are synthetic. It does not reuse a customer's application, pricing rules or data.
@@ -11,6 +13,8 @@ The example connects these departments through one business flow. Names, product
 <Frame caption="A running customer portal backed by the local Asterion instance. The quote and AI answer use actual Components and the same Pricing Library. All records are synthetic.">
   <img src="/images/asterion/customer-portal.jpg" alt="Asterion industrial supply portal showing a 46.25 EUR contract quote and an AI Sales Desk with completed stock and pricing tools" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/customer-portal.jpg" alt="Asterion industrial supply portal showing a 46.25 EUR contract quote and an AI Sales Desk with completed stock and pricing tools" width={1920} height={1080} />
 
 ## What the local demonstration contains
 
@@ -101,6 +105,8 @@ With an enabled Autonomous Agent, a reconciliation Agent can own a narrower resp
 <Frame caption="A custom KPI widget and sales chart alongside a native Agent runs widget and a Database View of open exceptions. Counts and run statuses come from the running synthetic instance.">
   <img src="/images/asterion/operations-dashboard.jpg" alt="Asterion Operations dashboard with ten million catalog records, sales by day, finished Agent runs and an exception queue" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/operations-dashboard.jpg" alt="Asterion Operations dashboard with ten million catalog records, sales by day, finished Agent runs and an exception queue" width={1920} height={1080} />
 
 The dashboard answers four business questions: how much data is present, what has been invoiced, which exceptions need attention, and what the reconciliation Agent actually did. Its KPI and chart widgets query governed data; the sales chart reads a Materialized View. The Agent widget links a run to its conversation rather than turning a status label into a claim of business success.
 

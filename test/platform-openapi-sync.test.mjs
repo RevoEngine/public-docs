@@ -7,6 +7,7 @@ import {
   enrichPlatformOpenApi,
   operationEntries,
   publicOperationKeys,
+  sanitizePlatformOpenApiSource,
 } from '../scripts/sync-platform-openapi.mjs';
 
 test('public projection retains CSV quote union and the independent record byte limit', () => {
@@ -355,4 +356,30 @@ test('published Assistant creation and continuation preserve the complete persis
     assert.deepEqual(format.properties.strict.enum, [true]);
     assert.equal(format.properties.schema.additionalProperties, true);
   }
+});
+
+test('public access descriptions stay readable without changing roles or account eligibility', () => {
+  const source = fixture();
+  source.paths['/api/v1/access-example'] = { get: {
+    operationId: 'AccessExample_read',
+    description: '\n    ROLES: USER_READ,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: false\n    Requires access to the selected resource.',
+    responses: { 200: { description: 'OK' } },
+  } };
+  const output = sanitizePlatformOpenApiSource(source);
+  const operation = output.paths['/api/v1/access-example'].get;
+  assert.match(operation.description, /\*\*Roles:\*\* `USER_READ`, `USER_ADMIN`/);
+  assert.match(operation.description, /\*\*User access:\*\* Yes/);
+  assert.match(operation.description, /\*\*Service account access:\*\* No/);
+  assert.match(operation.description, /\n\nRequires access to the selected resource\./);
+  source.paths['/api/v1/access-example'].get.description = 'Runs the selected job.\n' + source.paths['/api/v1/access-example'].get.description;
+  const prefixed = sanitizePlatformOpenApiSource(source).paths['/api/v1/access-example'].get.description;
+  assert.equal(prefixed, 'Runs the selected job.\n\n' + operation.description);
+  assert.deepEqual(operation.responses, source.paths['/api/v1/access-example'].get.responses);
+  assert.deepEqual(sanitizePlatformOpenApiSource(output), output);
+
+  source.paths['/api/v1/access-example'].get.description = '\n ROLES: null\n USER: false\n SERVICE ACCOUNT: true\n';
+  const noRoles = sanitizePlatformOpenApiSource(source).paths['/api/v1/access-example'].get.description;
+  assert.match(noRoles, /Not listed\. Resource authorization still applies/);
+  assert.match(noRoles, /\*\*User access:\*\* No/);
+  assert.match(noRoles, /\*\*Service account access:\*\* Yes/);
 });

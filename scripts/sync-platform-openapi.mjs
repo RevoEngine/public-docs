@@ -433,6 +433,26 @@ export function sanitizePlatformOpenApiSource(source) {
     Object.entries(output.paths ?? {}).filter(([path]) => isPublicPath(path)),
   );
 
+  // Format generated access metadata without changing its authorization meaning.
+  for (const { operation } of operationEntries(output)) {
+    if (typeof operation.description !== 'string') continue;
+    const access = operation.description.match(
+      /(?:^|\r?\n)[ \t]*ROLES:[ \t]*([^\r\n]*)\r?\n[ \t]*USER:[ \t]*(true|false)\r?\n[ \t]*SERVICE ACCOUNT:[ \t]*(true|false)[ \t]*(?:\r?\n|$)/,
+    );
+    if (!access) continue;
+    const [, roles, user, serviceAccount] = access;
+    const listedRoles = roles.trim() === 'null'
+      ? 'Not listed. Resource authorization still applies.'
+      : roles.split(',').map(role => `\`${role.trim()}\``).join(', ');
+    operation.description = [
+      operation.description.slice(0, access.index).trim(),
+      `**Roles:** ${listedRoles}`,
+      `**User access:** ${user === 'true' ? 'Yes' : 'No'}.`,
+      `**Service account access:** ${serviceAccount === 'true' ? 'Yes' : 'No'}.`,
+      operation.description.slice(access.index + access[0].length).trim(),
+    ].filter(Boolean).join('\n\n');
+  }
+
   const configOperationSummaries = {
     ConfigController_instanceConfigOverview: 'Get instance configuration.',
     ConfigController_upsertInstanceConfig: 'Update instance configuration.',

@@ -4,6 +4,8 @@ description: Understand public page reads, interactive browser sessions, Live Pr
 icon: globe
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 Use the Assistant's browser to inspect a web application, reproduce a workflow or verify a change on a connected terminal. Public research and interactive browser work have different state and permission boundaries.
 
 | Task | Browser behavior | State |
@@ -16,6 +18,8 @@ Use the Assistant's browser to inspect a web application, reproduce a workflow o
 <Frame caption="Live Preview of a real synthetic customer portal after quoting ten units. The page shows EUR 115.63 and confirms that no stock was reserved.">
   <img src="/images/asterion/browser-live-quote.jpg" alt="Live browser preview showing a ten-unit contract quote, no stock reservation, profile selection and Take control" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/browser-live-quote.jpg" alt="Live browser preview showing a ten-unit contract quote, no stock reservation, profile selection and Take control" width={1228} height={821} />
 
 ## Connect before testing
 
@@ -47,6 +51,8 @@ Live Preview requires a personal browser session in RevoEngine. A CLI API key ca
 <Frame caption="Live Preview of the real local Asterion portal in RevoEngine. Viewing the page does not grant control or reserve stock.">
   <img src="/images/asterion/browser-live-preview.jpg" alt="RevoEngine Live Preview displaying the synthetic Asterion customer portal with read-only viewing and a Take control action" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/browser-live-preview.jpg" alt="RevoEngine Live Preview displaying the synthetic Asterion customer portal with read-only viewing and a Take control action" width={1920} height={1080} />
 
 Watching is read-only. Use **Take control** for an explicit human step. Private control pauses recording and protects sensitive input from the Assistant. On compatible runners, control can apply to the current tab or the whole conversation browser. Tab-scoped control leaves other explicitly selected tabs available to the Assistant. Ordinary public control can keep recording active.
 

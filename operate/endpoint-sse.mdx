@@ -4,6 +4,8 @@ description: Emit live events from Endpoint Components, return final results and
 icon: tower-broadcast
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 <Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
@@ -19,6 +21,8 @@ Choose [HTTP](/operate/endpoint-http) when the caller only needs the final respo
 <Frame caption="A quote stream configured with result, error and done events, disconnect cancellation and a validation error response.">
   <img src="/images/asterion/endpoint-sse-options.jpg" alt="SSE Endpoint settings showing event names, cancellation, validation status 422 and Main result selection" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/endpoint-sse-options.jpg" alt="SSE Endpoint settings showing event names, cancellation, validation status 422 and Main result selection" width={1920} height={1080} />
 
 ## Explore the behavior
 
@@ -36,6 +40,8 @@ Choose [HTTP](/operate/endpoint-http) when the caller only needs the final respo
 <Frame caption="An SSE Endpoint retains the normal route and execution settings. Options adds disconnect policy and terminal event names.">
   <img src="/images/endpoints/sse-options.jpg" alt="Endpoint Options showing SSE response mode, Continue and notify, and result, error and done event names" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/sse-options.jpg" alt="Endpoint Options showing SSE response mode, Continue and notify, and result, error and done event names" width={608} height={417} />
 
 A configuration fragment for one visible element named `Main`:
 
@@ -233,6 +239,8 @@ frames. Stopping a continued preview may leave its execution running.
 <Frame caption="Studio separates application SSE frames from execution logs and final results.">
   <img src="/images/endpoints/sse-debugger.jpg" alt="Studio debugger showing authored model and tool SSE events alongside the final Component result" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/sse-debugger.jpg" alt="Studio debugger showing authored model and tool SSE events alongside the final Component result" width={1459} height={998} />
 
 Test the actual Endpoint runtime after debugging: check rejection before streaming,
 live frames, final `result → done`, disconnect behavior and cursor recovery.

@@ -4,11 +4,15 @@ description: Connect a customer portal to authoritative quotes and a governed As
 icon: messages
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 An external application can combine ordinary RevoEngine Endpoints with an Assistant conversation. The Asterion portal uses an Endpoint for deterministic price calculations and a Component tools plugin for conversational stock and pricing questions. Both call the same [Pricing Library](/build/library-authoring).
 
 <Frame caption="A real local portal: the product form and AI Sales Desk return the same 46.25 EUR contract quote. The product drawing is illustrative; prices, stock and tool activity come from the running synthetic instance.">
   <img src="/images/asterion/customer-portal.jpg" alt="Asterion customer portal with contract pricing, current stock and a completed AI sales consultation" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/customer-portal.jpg" alt="Asterion customer portal with contract pricing, current stock and a completed AI sales consultation" width={1920} height={1080} />
 
 ## Keep authority on the server
 

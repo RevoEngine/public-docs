@@ -889,7 +889,7 @@
     },
     "/api/v1/me": {
       "get": {
-        "description": "\n    ROLES: null\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** Not listed. Resource authorization still applies.\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_me",
         "parameters": [],
         "responses": {
@@ -979,7 +979,7 @@
     },
     "/api/v1/me/time": {
       "get": {
-        "description": "\n    ROLES: null\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** Not listed. Resource authorization still applies.\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_time",
         "parameters": [],
         "responses": {
@@ -1065,7 +1065,7 @@
     },
     "/api/v1/me/keys": {
       "get": {
-        "description": "\n    ROLES: ME_KEY_MANAGER\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ME_KEY_MANAGER`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_getKeys",
         "parameters": [
           {
@@ -1219,7 +1219,7 @@
     },
     "/api/v1/me/key/{key}": {
       "get": {
-        "description": "\n    ROLES: ME_KEY_MANAGER\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ME_KEY_MANAGER`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_getKey",
         "parameters": [
           {
@@ -1258,7 +1258,7 @@
     },
     "/api/v1/me/key": {
       "post": {
-        "description": "\n    ROLES: ME_KEY_MANAGER\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ME_KEY_MANAGER`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_createKey",
         "parameters": [],
         "requestBody": {
@@ -1298,7 +1298,7 @@
     },
     "/api/v1/me/key/{key}/update": {
       "post": {
-        "description": "\n    ROLES: ME_KEY_MANAGER\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ME_KEY_MANAGER`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_updateKey",
         "parameters": [
           {
@@ -1347,7 +1347,7 @@
     },
     "/api/v1/me/key/{key}/delete": {
       "post": {
-        "description": "\n    ROLES: ME_KEY_MANAGER\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ME_KEY_MANAGER`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "MeController_revokeKey",
         "parameters": [
           {
@@ -1436,7 +1436,7 @@
     },
     "/api/v1/accounts": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_getAll",
         "parameters": [
           {
@@ -1584,7 +1584,7 @@
     },
     "/api/v1/accounts/stats": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_stats",
         "parameters": [],
         "responses": {
@@ -1608,7 +1608,7 @@
     },
     "/api/v1/accounts/{userId}": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_getById",
         "parameters": [
           {
@@ -1643,7 +1643,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_updateUser",
         "parameters": [
           {
@@ -1690,7 +1690,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_deleteUser",
         "parameters": [
           {
@@ -1729,7 +1729,7 @@
     },
     "/api/v1/accounts/createUserAccount": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_createUser",
         "parameters": [],
         "requestBody": {
@@ -1766,7 +1766,7 @@
     },
     "/api/v1/accounts/createInternalAccount": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_createInternalAccount",
         "parameters": [],
         "requestBody": {
@@ -1803,7 +1803,7 @@
     },
     "/api/v1/accounts/createServiceAccount": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_createServiceAccount",
         "parameters": [],
         "requestBody": {
@@ -1880,7 +1880,7 @@
     },
     "/api/v1/accounts/{userId}/activate": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_activateUser",
         "parameters": [
           {
@@ -1919,7 +1919,7 @@
     },
     "/api/v1/accounts/{userId}/disable": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_disableUser",
         "parameters": [
           {
@@ -1959,7 +1959,7 @@
     },
     "/api/v1/accounts/{userId}/enablePlatformAccess": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_enablePlatformAccess",
         "parameters": [
           {
@@ -1998,7 +1998,7 @@
     },
     "/api/v1/accounts/{userId}/disablePlatformAccess": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_disablePlatformAccess",
         "parameters": [
           {
@@ -2038,7 +2038,7 @@
     },
     "/api/v1/accounts/{userId}/restore": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_restoreUser",
         "parameters": [
           {
@@ -2077,7 +2077,7 @@
     },
     "/api/v1/accounts/{userId}/keys": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_getKeys",
         "parameters": [
           {
@@ -2237,7 +2237,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_createKey",
         "parameters": [
           {
@@ -2286,7 +2286,7 @@
     },
     "/api/v1/accounts/{userId}/keys/{key}": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_getKey",
         "parameters": [
           {
@@ -2333,7 +2333,7 @@
     },
     "/api/v1/accounts/{userId}/keys/{key}/update": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_updateKey",
         "parameters": [
           {
@@ -2390,7 +2390,7 @@
     },
     "/api/v1/accounts/{userId}/keys/{key}/delete": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_revokeKey",
         "parameters": [
           {
@@ -2496,7 +2496,7 @@
     },
     "/api/v1/endpoints": {
       "get": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getTemplates",
         "parameters": [
           {
@@ -2645,7 +2645,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_createApiTemplate",
         "parameters": [],
         "requestBody": {
@@ -2682,7 +2682,7 @@
     },
     "/api/v1/endpoints/stats": {
       "get": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_endpointStats",
         "parameters": [],
         "responses": {
@@ -2747,7 +2747,7 @@
     },
     "/api/v1/endpoints/openapi": {
       "get": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getRuntimeOpenApi",
         "parameters": [],
         "responses": {
@@ -2771,7 +2771,7 @@
     },
     "/api/v1/endpoints/{endpointId}/openapi": {
       "get": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getRuntimeEndpointOpenApi",
         "parameters": [
           {
@@ -2807,7 +2807,7 @@
     },
     "/api/v1/endpoints/{endpointId}": {
       "get": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getOneTemplate",
         "parameters": [
           {
@@ -2841,7 +2841,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_update",
         "parameters": [
           {
@@ -2898,7 +2898,7 @@
     },
     "/api/v1/endpoints/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_deleteTemplates",
         "parameters": [],
         "requestBody": {
@@ -2939,7 +2939,7 @@
     },
     "/api/v1/endpoints/{endpointId}/activate": {
       "post": {
-        "description": "\n    ROLES: ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_activateTemplate",
         "parameters": [
           {
@@ -2975,7 +2975,7 @@
     },
     "/api/v1/endpoints/{endpointId}/disable": {
       "post": {
-        "description": "\n    ROLES: ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_disableTemplate",
         "parameters": [
           {
@@ -3012,7 +3012,7 @@
     },
     "/api/v1/endpoints/{endpointId}/restore": {
       "post": {
-        "description": "\n    ROLES: ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_restore",
         "parameters": [
           {
@@ -3048,7 +3048,7 @@
     },
     "/api/v1/endpoints/{endpointId}/stats": {
       "post": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_apiStats",
         "parameters": [
           {
@@ -3098,7 +3098,7 @@
     },
     "/api/v1/endpoints/validate": {
       "post": {
-        "description": "\n    ROLES: ENDPOINT_READ,ENDPOINT_WRITE,ENDPOINT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_verify",
         "parameters": [],
         "requestBody": {
@@ -3139,7 +3139,7 @@
     },
     "/api/v1/component": {
       "get": {
-        "description": "\n    ROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_READ`, `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_getAll",
         "parameters": [
           {
@@ -3285,7 +3285,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_createComponents",
         "parameters": [
           {
@@ -3648,7 +3648,7 @@
     },
     "/api/v1/component/{componentId}/elements": {
       "get": {
-        "description": "\n    Returns only the selected component elements sorted by order. Public element payloads include componentElementId; clients should preserve it for durable refs and key renames.\n\n    ROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Returns only the selected component elements sorted by order. Public element payloads include componentElementId; clients should preserve it for durable refs and key renames.\n\n**Roles:** `COMPONENT_READ`, `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_getElementsByComponentId",
         "parameters": [
           {
@@ -3695,7 +3695,7 @@
     },
     "/api/v1/component/{componentId}": {
       "get": {
-        "description": "\n    ROLES: COMPONENT_READ,COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_READ`, `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_getById",
         "parameters": [
           {
@@ -3730,7 +3730,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_updateComponents",
         "parameters": [
           {
@@ -3825,7 +3825,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_removeComponents",
         "parameters": [
           {
@@ -3909,7 +3909,7 @@
     },
     "/api/v1/component/{componentId}/save": {
       "post": {
-        "description": "\n    Replaces the complete element set for the selected component. This is not an upsert/patch endpoint: any element omitted from the request is removed from the component. Prefer POST /component/{componentId}/patch for single-element updates.\n\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Replaces the complete element set for the selected component. This is not an upsert/patch endpoint: any element omitted from the request is removed from the component. Prefer POST /component/{componentId}/patch for single-element updates.\n\n**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_createComponentsDetails",
         "parameters": [
           {
@@ -4013,7 +4013,7 @@
     },
     "/api/v1/component/{componentId}/patch": {
       "post": {
-        "description": "\n    Replaces exactly one existing element in the selected component. Matching uses componentElementId first and falls back to key only for legacy payloads without ids. Use this endpoint for focused single-element updates instead of the full replace save endpoint.\n\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Replaces exactly one existing element in the selected component. Matching uses componentElementId first and falls back to key only for legacy payloads without ids. Use this endpoint for focused single-element updates instead of the full replace save endpoint.\n\n**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_patchComponentElement",
         "parameters": [
           {
@@ -4292,7 +4292,7 @@
     },
     "/api/v1/component/{componentId}/activate": {
       "post": {
-        "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_activate",
         "parameters": [
           {
@@ -4376,7 +4376,7 @@
     },
     "/api/v1/component/{componentId}/disable": {
       "post": {
-        "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_disable",
         "parameters": [
           {
@@ -4461,7 +4461,7 @@
     },
     "/api/v1/component/{componentId}/restore": {
       "post": {
-        "description": "\n    ROLES: COMPONENT_WRITE,COMPONENT_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_restore",
         "parameters": [
           {
@@ -4990,7 +4990,7 @@
     },
     "/api/v1/role-groups": {
       "get": {
-        "description": "\n    ROLES: USER_READ\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_getAll",
         "parameters": [
           {
@@ -5136,7 +5136,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_postGroup",
         "parameters": [],
         "requestBody": {
@@ -5173,7 +5173,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}": {
       "get": {
-        "description": "\n    ROLES: USER_READ\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_getById",
         "parameters": [
           {
@@ -5208,7 +5208,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_updateGroup",
         "parameters": [
           {
@@ -5255,7 +5255,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_removeGroup",
         "parameters": [
           {
@@ -5291,7 +5291,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/members": {
       "get": {
-        "description": "\n    ROLES: USER_READ\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_listMembers",
         "parameters": [
           {
@@ -5451,7 +5451,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/userAdd": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_userAdd",
         "parameters": [
           {
@@ -5500,7 +5500,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/userDelete": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_removeUser",
         "parameters": [
           {
@@ -5550,7 +5550,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/roleAdd": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_roleAdd",
         "parameters": [
           {
@@ -5599,7 +5599,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/roleDelete": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_roleRemove",
         "parameters": [
           {
@@ -5649,7 +5649,7 @@
     },
     "/api/v1/role-groups/{roleGroupId}/restore": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RoleGroupsController_restore",
         "parameters": [
           {
@@ -5688,7 +5688,7 @@
     },
     "/api/v1/roles": {
       "get": {
-        "description": "\n    ROLES: USER_READ\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RolesController_getAll",
         "parameters": [],
         "responses": {
@@ -5712,7 +5712,7 @@
     },
     "/api/v1/roles/{roleKey}": {
       "get": {
-        "description": "\n    ROLES: USER_READ\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "RolesController_getById",
         "parameters": [
           {
@@ -5749,7 +5749,7 @@
     },
     "/api/v1/groups": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_getAll",
         "parameters": [
           {
@@ -5895,7 +5895,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_postType",
         "parameters": [],
         "requestBody": {
@@ -5932,7 +5932,7 @@
     },
     "/api/v1/groups/{groupId}": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_getById",
         "parameters": [
           {
@@ -5967,7 +5967,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_updateType",
         "parameters": [
           {
@@ -6014,7 +6014,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_removeGroup",
         "parameters": [
           {
@@ -6050,7 +6050,7 @@
     },
     "/api/v1/groups/{groupId}/members": {
       "get": {
-        "description": "\n    ROLES: USER_READ,USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_READ`, `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_listMembers",
         "parameters": [
           {
@@ -6210,7 +6210,7 @@
     },
     "/api/v1/groups/{groupId}/uploadAvatar": {
       "post": {
-        "description": "\n    ROLES: USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_uploadGroupAvatar",
         "parameters": [
           {
@@ -6260,7 +6260,7 @@
     },
     "/api/v1/groups/{groupId}/clearAvatar": {
       "post": {
-        "description": "\n    ROLES: USER_ADMIN,USER_WRITE\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_ADMIN`, `USER_WRITE`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_clearGroupAvatar",
         "parameters": [
           {
@@ -6296,7 +6296,7 @@
     },
     "/api/v1/groups/{groupId}/userAdd": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_userAdd",
         "parameters": [
           {
@@ -6345,7 +6345,7 @@
     },
     "/api/v1/groups/{groupId}/userDelete": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_removeUser",
         "parameters": [
           {
@@ -6395,7 +6395,7 @@
     },
     "/api/v1/groups/{groupId}/restore": {
       "post": {
-        "description": "\n    ROLES: USER_WRITE,USER_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "GroupsController_restore",
         "parameters": [
           {
@@ -7931,7 +7931,7 @@
     },
     "/api/v1/databases": {
       "get": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_getAll",
         "parameters": [
           {
@@ -8084,7 +8084,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_create",
         "parameters": [
           {
@@ -8162,7 +8162,7 @@
     },
     "/api/v1/databases/relations/name-availability": {
       "get": {
-        "description": "\n    Checks the namespace shared by tables, views, and materialized views.\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Checks the namespace shared by tables, views, and materialized views.\n\n**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_getRelationNameAvailability",
         "parameters": [
           {
@@ -8205,7 +8205,7 @@
     },
     "/api/v1/databases/stats": {
       "get": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_stats",
         "parameters": [],
         "responses": {
@@ -8460,7 +8460,7 @@
     },
     "/api/v1/databases/{databaseId}": {
       "get": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_getOne",
         "parameters": [
           {
@@ -8512,7 +8512,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_update",
         "parameters": [
           {
@@ -8600,7 +8600,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_delete",
         "parameters": [
           {
@@ -8881,7 +8881,7 @@
     },
     "/api/v1/databases/{databaseId}/getData": {
       "get": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_getData",
         "parameters": [
           {
@@ -9351,7 +9351,7 @@
     },
     "/api/v1/databases/{databaseId}/exportData": {
       "get": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_exportData",
         "parameters": [
           {
@@ -9676,7 +9676,7 @@
         "x-revo-safety-tier": "write"
       },
       "post": {
-        "description": "\n    ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_READ`, `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_exportDataRequest",
         "parameters": [
           {
@@ -9727,7 +9727,7 @@
     },
     "/api/v1/databases/{databaseId}/insertData": {
       "post": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_insertData",
         "parameters": [
           {
@@ -9774,7 +9774,7 @@
     },
     "/api/v1/databases/{databaseId}/updateData": {
       "post": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_updateData",
         "parameters": [
           {
@@ -9821,7 +9821,7 @@
     },
     "/api/v1/databases/{databaseId}/updateRequest": {
       "post": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_updateDatabaseRequest",
         "parameters": [
           {
@@ -9871,7 +9871,7 @@
     },
     "/api/v1/databases/{databaseId}/deleteRequest": {
       "post": {
-        "description": "\n      ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n      USER: true\n      SERVICE ACCOUNT: true\n      ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_deleteDatabaseRequest",
         "parameters": [
           {
@@ -9922,7 +9922,7 @@
     },
     "/api/v1/databases/{databaseId}/deleteData": {
       "post": {
-        "description": "\n    ROLES: RESOURCE_WRITE,RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_WRITE`, `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_deleteData",
         "parameters": [
           {
@@ -9969,7 +9969,7 @@
     },
     "/api/v1/databases/{databaseId}/truncateData": {
       "post": {
-        "description": "\n    TRUNCATE never creates row audit events, even when database audit is enabled.\n    Use an ordinary DELETE request with a filter matching all rows (for example, primary key IS NOT NULL) when row-level audit history must be preserved.\n    ROLES: RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "TRUNCATE never creates row audit events, even when database audit is enabled.\n    Use an ordinary DELETE request with a filter matching all rows (for example, primary key IS NOT NULL) when row-level audit history must be preserved.\n\n**Roles:** `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_truncateData",
         "parameters": [
           {
@@ -10017,7 +10017,7 @@
     },
     "/api/v1/databases/{databaseId}/clone": {
       "post": {
-        "description": "\n    ROLES: RESOURCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_cloneDatabase",
         "parameters": [
           {
@@ -10071,7 +10071,7 @@
     },
     "/api/v1/databases/{databaseId}/restore": {
       "post": {
-        "description": "\n      ROLES: RESOURCE_ADMIN\n      USER: true\n      SERVICE ACCOUNT: true\n      ",
+        "description": "**Roles:** `RESOURCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "DatabaseController_restoreDatabase",
         "parameters": [
           {
@@ -10108,7 +10108,7 @@
     },
     "/api/v1/config/logs": {
       "get": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_instanceLogs",
         "parameters": [
           {
@@ -10256,7 +10256,7 @@
     },
     "/api/v1/config/instance": {
       "get": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_instanceConfigOverview",
         "parameters": [],
         "responses": {
@@ -10282,7 +10282,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_upsertInstanceConfig",
         "parameters": [],
         "requestBody": {
@@ -10389,7 +10389,7 @@
     },
     "/api/v1/config/instance/slug": {
       "put": {
-        "description": "\n    Atomically reserves the requested slug, checks for collisions and updates\n    the global instance configuration using optimistic version control.\n    Real changes are limited to one every 30 days and append an immutable audit\n    event in the same transaction.\n    Only activeUrl returned by this operation is the canonical working frontend\n    link. Earlier slugs remain reserved for this instance but are not aliases.\n\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Atomically reserves the requested slug, checks for collisions and updates\n    the global instance configuration using optimistic version control.\n    Real changes are limited to one every 30 days and append an immutable audit\n    event in the same transaction.\n    Only activeUrl returned by this operation is the canonical working frontend\n    link. Earlier slugs remain reserved for this instance but are not aliases.\n\n**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_updateInstanceSlug",
         "parameters": [],
         "requestBody": {
@@ -10430,7 +10430,7 @@
     },
     "/api/v1/config/instance/usage": {
       "get": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n\n    Assistant analytics use the same selected UTC period across totals, model,\n    account, and daily-series views. The lower bound is inclusive and the upper\n    bound is exclusive. Omit both bounds for the current UTC month through now.\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.\n\nAssistant analytics use the same selected UTC period across totals, model,\n    account, and daily-series views. The lower bound is inclusive and the upper\n    bound is exclusive. Omit both bounds for the current UTC month through now.",
         "operationId": "ConfigController_current",
         "parameters": [
           {
@@ -10652,7 +10652,7 @@
     },
     "/api/v1/config/instance/purgeCache": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_purgeCache",
         "parameters": [],
         "responses": {
@@ -10683,7 +10683,7 @@
     },
     "/api/v1/config/cache": {
       "get": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_cacheKeys",
         "parameters": [
           {
@@ -10717,7 +10717,7 @@
     },
     "/api/v1/config/cache/stats": {
       "post": {
-        "description": "\n      ROLES: INSTANCE_ADMIN\n      USER: true\n      SERVICE ACCOUNT: true\n      ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_cacheKeyStats",
         "parameters": [],
         "requestBody": {
@@ -10752,7 +10752,7 @@
     },
     "/api/v1/config/cache/get": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_cacheKey",
         "parameters": [],
         "requestBody": {
@@ -10787,7 +10787,7 @@
     },
     "/api/v1/config/cache/create": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_setCacheKey",
         "parameters": [],
         "requestBody": {
@@ -10821,7 +10821,7 @@
     },
     "/api/v1/config/cache/expire": {
       "post": {
-        "description": "\n      ROLES: INSTANCE_ADMIN\n      USER: true\n      SERVICE ACCOUNT: true\n      ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_expireInstanceCache",
         "parameters": [],
         "requestBody": {
@@ -10855,7 +10855,7 @@
     },
     "/api/v1/config/cache/persist": {
       "post": {
-        "description": "\n      ROLES: INSTANCE_ADMIN\n      USER: true\n      SERVICE ACCOUNT: true\n      ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_persistInstanceCache",
         "parameters": [],
         "requestBody": {
@@ -10889,7 +10889,7 @@
     },
     "/api/v1/config/cache/delete": {
       "post": {
-        "description": "\n    ROLES: INSTANCE_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_removeInstanceCache",
         "parameters": [],
         "requestBody": {
@@ -11353,7 +11353,7 @@
     },
     "/api/v1/secrets": {
       "get": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_getAll",
         "parameters": [
           {
@@ -11499,7 +11499,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_postSecret",
         "parameters": [],
         "requestBody": {
@@ -11536,7 +11536,7 @@
     },
     "/api/v1/secrets/{secretId}": {
       "get": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_getById",
         "parameters": [
           {
@@ -11571,7 +11571,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_updateSecret",
         "parameters": [
           {
@@ -11618,7 +11618,7 @@
         ]
       },
       "delete": {
-        "description": "\n    ROLES: SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_removeSecret",
         "parameters": [
           {
@@ -11657,7 +11657,7 @@
     },
     "/api/v1/secrets/{secretId}/data": {
       "get": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_secretData",
         "parameters": [
           {
@@ -11817,7 +11817,7 @@
     },
     "/api/v1/secrets/{secretId}/create": {
       "post": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_addSecret",
         "parameters": [
           {
@@ -11871,7 +11871,7 @@
     },
     "/api/v1/secrets/{secretId}/rotate": {
       "post": {
-        "description": "ROLES: SECRET_WRITE,SECRET_ADMIN\nUSER: true\nSERVICE ACCOUNT: true\nAtomically creates an immediately active revision and disables all previous active revisions of this secret, including scheduled revisions. Retains history. Checks total and resulting active revision quotas. Returns revision metadata without the secret value. Does not rotate credentials at an external provider.",
+        "description": "**Roles:** `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.\n\nAtomically creates an immediately active revision and disables all previous active revisions of this secret, including scheduled revisions. Retains history. Checks total and resulting active revision quotas. Returns revision metadata without the secret value. Does not rotate credentials at an external provider.",
         "operationId": "SecretsController_rotateSecret",
         "parameters": [
           {
@@ -11928,7 +11928,7 @@
     },
     "/api/v1/secrets/{secretId}/reveal/{secretDataId}": {
       "post": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_revealSecret",
         "parameters": [
           {
@@ -11974,7 +11974,7 @@
     },
     "/api/v1/secrets/{secretId}/activate/{secretDataId}": {
       "post": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_activateSecret",
         "parameters": [
           {
@@ -12020,7 +12020,7 @@
     },
     "/api/v1/secrets/{secretId}/disable/{secretDataId}": {
       "post": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_disableSecret",
         "parameters": [
           {
@@ -12067,7 +12067,7 @@
     },
     "/api/v1/secrets/{secretId}/destroy/{secretDataId}": {
       "post": {
-        "description": "\n    ROLES: SECRET_READ,SECRET_WRITE,SECRET_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `SECRET_READ`, `SECRET_WRITE`, `SECRET_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "SecretsController_revokeSecret",
         "parameters": [
           {
@@ -18025,7 +18025,7 @@
     },
     "/api/v1/automation/job": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getJobs",
         "parameters": [
           {
@@ -18176,7 +18176,7 @@
     },
     "/api/v1/automation/job/{jobId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getOneJob",
         "parameters": [
           {
@@ -18212,7 +18212,7 @@
     },
     "/api/v1/automation/job/{jobId}/logs": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getJobLogs",
         "parameters": [
           {
@@ -18378,7 +18378,7 @@
     },
     "/api/v1/automation/job/{jobId}/retry": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_retryJob",
         "parameters": [
           {
@@ -18414,7 +18414,7 @@
     },
     "/api/v1/automation/job/{jobId}/run": {
       "post": {
-        "description": "\n    Runs one selected PENDING job while bypassing only job-template concurrency.\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Runs one selected PENDING job while bypassing only job-template concurrency.\n\n**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_runPendingJob",
         "parameters": [
           {
@@ -18450,7 +18450,7 @@
     },
     "/api/v1/automation/job/cancel": {
       "post": {
-        "description": "\n    Records durable cancellation intent. A PROCESSING job remains PROCESSING until its worker acknowledges cancellation or lease reconciliation confirms that the worker lease expired.\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "Records durable cancellation intent. A PROCESSING job remains PROCESSING until its worker acknowledges cancellation or lease reconciliation confirms that the worker lease expired.\n\n**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_cancelJobs",
         "parameters": [],
         "requestBody": {
@@ -18494,7 +18494,7 @@
     },
     "/api/v1/automation/job/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteJobs",
         "parameters": [],
         "requestBody": {
@@ -18535,7 +18535,7 @@
     },
     "/api/v1/automation/job/{jobId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreJob",
         "parameters": [
           {
@@ -18571,7 +18571,7 @@
     },
     "/api/v1/automation/template": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getTemplates",
         "parameters": [
           {
@@ -18720,7 +18720,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_createTemplate",
         "parameters": [],
         "requestBody": {
@@ -18841,7 +18841,7 @@
     },
     "/api/v1/automation/template/{jobTemplateId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getOneTemplate",
         "parameters": [
           {
@@ -18875,7 +18875,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_update",
         "parameters": [
           {
@@ -18924,7 +18924,7 @@
     },
     "/api/v1/automation/template/{jobTemplateId}/run": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    PARAMETER: jobTemplateId accepts an exact active template UUID or unique name.\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.\n\nPARAMETER: jobTemplateId accepts an exact active template UUID or unique name.",
         "operationId": "AutomationController_runFromTemplate",
         "parameters": [
           {
@@ -18970,7 +18970,7 @@
     },
     "/api/v1/automation/template/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteTemplates",
         "parameters": [],
         "requestBody": {
@@ -19011,7 +19011,7 @@
     },
     "/api/v1/automation/template/{jobTemplateId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreTemplate",
         "parameters": [
           {
@@ -19047,7 +19047,7 @@
     },
     "/api/v1/automation/schedule": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getSchedules",
         "parameters": [
           {
@@ -19196,7 +19196,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_createSchedule",
         "parameters": [],
         "requestBody": {
@@ -19233,7 +19233,7 @@
     },
     "/api/v1/automation/schedule/{scheduleId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getSchedule",
         "parameters": [
           {
@@ -19267,7 +19267,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_updateSchedule",
         "parameters": [
           {
@@ -19316,7 +19316,7 @@
     },
     "/api/v1/automation/schedule/{scheduleId}/run": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_runSchedule",
         "parameters": [
           {
@@ -19352,7 +19352,7 @@
     },
     "/api/v1/automation/schedule/{scheduleId}/activate": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_resumeSchedule",
         "parameters": [
           {
@@ -19388,7 +19388,7 @@
     },
     "/api/v1/automation/schedule/{scheduleId}/disable": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_pauseSchedule",
         "parameters": [
           {
@@ -19425,7 +19425,7 @@
     },
     "/api/v1/automation/schedule/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteSchedule",
         "parameters": [],
         "requestBody": {
@@ -19466,7 +19466,7 @@
     },
     "/api/v1/automation/schedule/{scheduleId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreSchedule",
         "parameters": [
           {
@@ -19505,7 +19505,7 @@
     },
     "/api/v1/automation/eventHistory": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getEventHistory",
         "parameters": [
           {
@@ -19656,7 +19656,7 @@
     },
     "/api/v1/automation/eventHistory/{eventId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getEventHistoryDetails",
         "parameters": [
           {
@@ -19692,7 +19692,7 @@
     },
     "/api/v1/automation/eventHistory/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteEventHistory",
         "parameters": [],
         "requestBody": {
@@ -19733,7 +19733,7 @@
     },
     "/api/v1/automation/eventHistory/replay": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_replayEventHistory",
         "parameters": [],
         "requestBody": {
@@ -19780,7 +19780,7 @@
     },
     "/api/v1/automation/eventHistory/{eventId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreEventHistory",
         "parameters": [
           {
@@ -19875,7 +19875,7 @@
     },
     "/api/v1/automation/event": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getEvents",
         "parameters": [
           {
@@ -20024,7 +20024,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_createEvent",
         "parameters": [],
         "requestBody": {
@@ -20061,7 +20061,7 @@
     },
     "/api/v1/automation/event/{eventId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getEventDetails",
         "parameters": [
           {
@@ -20095,7 +20095,7 @@
         ]
       },
       "put": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_updateEvent",
         "parameters": [
           {
@@ -20144,7 +20144,7 @@
     },
     "/api/v1/automation/event/{eventId}/run": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_runEvent",
         "parameters": [
           {
@@ -20190,7 +20190,7 @@
     },
     "/api/v1/automation/event/{eventId}/activate": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_activateEvent",
         "parameters": [
           {
@@ -20226,7 +20226,7 @@
     },
     "/api/v1/automation/event/{eventId}/disable": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_disableEvent",
         "parameters": [
           {
@@ -20263,7 +20263,7 @@
     },
     "/api/v1/automation/event/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteEvents",
         "parameters": [],
         "requestBody": {
@@ -20304,7 +20304,7 @@
     },
     "/api/v1/automation/event/{eventId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreEvent",
         "parameters": [
           {
@@ -20515,7 +20515,7 @@
     },
     "/api/v1/automation/webhook": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getWebhooks",
         "parameters": [
           {
@@ -20664,7 +20664,7 @@
         ]
       },
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_createWebhook",
         "parameters": [],
         "requestBody": {
@@ -20701,7 +20701,7 @@
     },
     "/api/v1/automation/webhook/{webhookId}": {
       "get": {
-        "description": "\n    ROLES: AUTOMATION_READ,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getOneWebhook",
         "parameters": [
           {
@@ -20821,7 +20821,7 @@
     },
     "/api/v1/automation/webhook/cancel": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_RUNNER,AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_cancelWebhooks",
         "parameters": [],
         "requestBody": {
@@ -20862,7 +20862,7 @@
     },
     "/api/v1/automation/webhook/delete": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_deleteWebhooks",
         "parameters": [],
         "requestBody": {
@@ -20903,7 +20903,7 @@
     },
     "/api/v1/automation/webhook/{webhookId}/restore": {
       "post": {
-        "description": "\n    ROLES: AUTOMATION_ADMIN\n    USER: true\n    SERVICE ACCOUNT: true\n    ",
+        "description": "**Roles:** `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_restoreWebhook",
         "parameters": [
           {

@@ -4,6 +4,8 @@ description: Share governed stock lookup and contract pricing between a customer
 icon: plug
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 Asterion's buyer portal and finance team need the same answers: is this product available, and what does the customer's contract charge? A Component-backed plugin exposes two small business actions. The AI chooses an action and explains its result; the Component owns the lookup, identity boundary and calculation.
 
 The example uses synthetic industrial-distribution data. Complete [the Pricing Library](/build/library-authoring) first, and create the records described in [Asterion Supply](/platform/asterion-supply#model-the-operational-records).
@@ -108,6 +110,8 @@ The activity should show the product lookup and contract calculation. With the s
 <Frame caption="A real Assistant consultation in Asterion. Both business-tool calls completed, and the answer gives the verified contract price without reserving stock.">
   <img src="/images/asterion/assistant-business-plugin.jpg" alt="RevoEngine Assistant with completed stock and contract-pricing plugin calls and a 46.25 EUR quote" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/assistant-business-plugin.jpg" alt="RevoEngine Assistant with completed stock and contract-pricing plugin calls and a 46.25 EUR quote" width={1920} height={1080} />
 
 For an API integration, `pluginIds` attaches the plugin. If you restrict `toolNames`, admit the built-in dispatch tools `plugin_load` and `plugin_call`. Custom aliases such as `asterion_quote_contract` identify plugin operations; they are not replacements for those built-in dispatch tool names.
 

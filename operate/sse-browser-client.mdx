@@ -4,6 +4,8 @@ description: Run the complete HTML chat against the OpenAI SSE Component, inspec
 icon: comments
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 This is the complete browser application used to test the
 [OpenAI tools Component](/operate/sse-openai-example). It sends a real POST to the
 Endpoint runtime, displays generated text and keeps authored SSE events separate
@@ -31,6 +33,8 @@ The run below used **one tool execution and two model requests** and returned `7
 <Frame caption="The HTML client calling the real SSE Endpoint: model text, persisted event IDs, final result and done are visible separately.">
   <img src="/images/endpoints/html-chat-completed.jpg" alt="HTML SSE chat displaying 37 times 19 equals 703, one tool call, two model requests, and result followed by done" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/html-chat-completed.jpg" alt="HTML SSE chat displaying 37 times 19 equals 703, one tool call, two model requests, and result followed by done" width={2056} height={1082} />
 
 **Send** starts a new message; **Resume from last ID** reconnects;
 **Replay from start** replays the journal.
@@ -87,9 +91,13 @@ first column. The archive already uses the correct executable file names.
   <img src="/images/endpoints/html-chat-disconnected.jpg" alt="HTML SSE chat disconnected at event ID 2 with a pending tool and the resume button available" />
 </Frame>
 
+<ScreenshotDetail src="/images/endpoints/html-chat-disconnected.jpg" alt="HTML SSE chat disconnected at event ID 2 with a pending tool and the resume button available" width={2056} height={1082} />
+
 <Frame caption="Recovery from the saved cursor includes run.disconnected and the persisted calc result. The original run completes without starting another producer.">
   <img src="/images/endpoints/html-chat-recovery.jpg" alt="Recovered HTML chat showing the disconnect notification, calc arguments and value 703, with one tool call and two model requests" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/html-chat-recovery.jpg" alt="Recovered HTML chat showing the disconnect notification, calc arguments and value 703, with one tool call and two model requests" width={2056} height={1082} />
 
 To read the result again, click **Resume from last ID** after completion. To see every stored event,
 click **Replay from start**. Both requests observe the saved run. Neither repeats

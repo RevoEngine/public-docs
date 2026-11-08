@@ -4,6 +4,8 @@ description: "Limit simultaneous Job executions with a shared key and bounded wa
 icon: layer-group
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 import { ConcurrencyDemo, PlaygroundStyle, useDemoPlayback, makeQueue, advanceQueue } from "/snippets/revo-playground.jsx";
 
 Use Job concurrency when several Jobs compete for the same external account or shared resource. A configured key groups executions; the limit controls how many can run simultaneously.
@@ -67,5 +69,7 @@ The retry policy allows **3 total attempts**, starts with a **5-second** minimum
 <Frame caption="Concurrency controls overlap; retry controls later attempts after failure. Neither guarantees one business effect.">
   <img src="/images/asterion/job-concurrency-retry.jpg" alt="Invoice Job with shared concurrency key, limit one, TTL 180 seconds and three total retry attempts" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/job-concurrency-retry.jpg" alt="Invoice Job with shared concurrency key, limit one, TTL 180 seconds and three total retry attempts" width={1114} height={1000} />
 
 For per-customer isolation, deliberately choose a key containing that customer's stable business identity in a supported keyed execution path. For one invoice per order, also use a unique business key and recover the existing invoice receipt; a different concurrency key alone cannot prevent duplicates.

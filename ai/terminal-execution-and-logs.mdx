@@ -4,6 +4,8 @@ description: Follow a real command from approved workspace to output, exit statu
 icon: terminal
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 A terminal executes on your connected computer. Its conversation activity records the command and its outcome; application logs and Job history answer different questions. Start with [connection and permissions](/ai/terminals) and the [CLI commands](/developers/cli-terminal).
 
 ## Validate an integration from a workspace
@@ -29,6 +31,8 @@ The command exited **0** after both assertions passed. Each response had its own
 <Frame caption="Actual terminal command, captured output and exit code from the synthetic quote service.">
   <img src="/images/asterion/terminal-quote-output.jpg" alt="Terminal activity showing two quote responses, totals 4625 and 11563, and exit code zero" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/terminal-quote-output.jpg" alt="Terminal activity showing two quote responses, totals 4625 and 11563, and exit code zero" width={1464} height={760} />
 
 ## Read the activity
 

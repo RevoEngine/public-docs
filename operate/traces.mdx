@@ -4,6 +4,8 @@ description: Follow a request across RevoEngine services without exposing applic
 icon: timeline
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
 An execution journey answers a different question from Activity, database audit, and logs: it follows the technical path of one operation across service boundaries. Use it when you need to know where a request spent time, where it failed, or whether asynchronous work was accepted versus completed.
@@ -78,6 +80,8 @@ A quote only calculates a price. A separate order command reserves inventory and
 <Frame caption="Invoice pipeline completed on its first attempt. Request identifies the initiating execution; Input carries the synthetic order ID.">
   <img src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/job-origin-and-input.jpg" alt="Finished invoice Job with its originating Request reference and order ID in templateInputs" width={1114} height={1000} />
 
 1. Open the order's Job in **Jobs History**. Check **Attempt status**, **Job result** and the attempt count.
 2. Follow **Request** to investigate the initiating execution, or **Execution** to open this Job's journey.

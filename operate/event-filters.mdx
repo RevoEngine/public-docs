@@ -4,6 +4,8 @@ description: "Configure message paths, operators and compound conditions."
 icon: book-open
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 import { FilterDemo, PlaygroundStyle, routeExample } from "/snippets/revo-playground.jsx";
 
 ## Example: admit one supplier feed
@@ -13,6 +15,8 @@ The Asterion subscription listens for `ASTERION_SUPPLIER_FEED_READY` and targets
 <Frame caption="The Event definition separates searchable metadata, a message predicate and the target Job.">
   <img src="/images/asterion/event-filter-and-metadata.jpg" alt="Supplier feed Event targeting a Job, with demo metadata and supplierId equal VEGA filter" />
 </Frame>
+
+<ScreenshotDetail src="/images/asterion/event-filter-and-metadata.jpg" alt="Supplier feed Event targeting a Job, with demo metadata and supplierId equal VEGA filter" width={1114} height={1024} />
 
 ## Explore the behavior
 

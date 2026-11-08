@@ -4,6 +4,8 @@ description: Build a lightweight OpenAI wrapper with streamed text, a callback-b
 icon: wand-magic-sparkles
 ---
 
+import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
+
 This example exposes a small OpenAI tool loop through a RevoEngine SSE Endpoint.
 A user asks for a calculation, the model requests `calc`, the Component executes it
 and streams the final answer. Reconnecting with the same run ID observes the saved
@@ -53,6 +55,8 @@ point it at this Endpoint. The OpenAI key stays in the instance Secret.
 <Frame caption="The documented Component behind the HTML chat: one calculation, streamed events, a final return and result/done completion.">
   <img src="/images/endpoints/html-chat-completed.jpg" alt="HTML chat running this OpenAI Component, showing answer 703, event IDs, one tool call and two model requests" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/html-chat-completed.jpg" alt="HTML chat running this OpenAI Component, showing answer 703, event IDs, one tool call and two model requests" width={2056} height={1082} />
 
 See the client's [disconnect and recovery screenshots](/operate/sse-browser-client#reproduce-disconnect-and-recovery)
 for the same run, and [all four application files](/examples/sse/browser-source#complete-application-code)
@@ -296,6 +300,8 @@ from logs and the final result.
 <Frame caption="The sample running in Studio: emitted events and final results are separate debugger views.">
   <img src="/images/endpoints/sse-debugger.jpg" alt="OpenAI SSE sample in the Studio debugger with tool lifecycle events and the final return value" />
 </Frame>
+
+<ScreenshotDetail src="/images/endpoints/sse-debugger.jpg" alt="OpenAI SSE sample in the Studio debugger with tool lifecycle events and the final return value" width={1459} height={998} />
 
 Then repeat the test through the actual Endpoint runtime. Debugger transport and
 runtime response framing are different boundaries; one does not substitute for the
