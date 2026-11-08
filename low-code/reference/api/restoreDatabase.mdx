@@ -1,0 +1,31 @@
+---
+title: api.restoreDatabase()
+sidebarTitle: restoreDatabase()
+description: Public low-code contract, signatures and examples for api.restoreDatabase.
+icon: code
+---
+
+<span id="api-restoreDatabase" aria-hidden="true"></span>
+
+## `api.restoreDatabase()`
+
+Restores a deleted logical database by its original name.
+The name must identify exactly one accessible deleted database; for ambiguous
+names select the database by ID through REST or the UI. Strings always mean names.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static restoreDatabase(name: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.restoreDatabase('orders');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

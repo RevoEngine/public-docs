@@ -1,0 +1,38 @@
+---
+title: storage.restoreEntry()
+sidebarTitle: restoreEntry()
+description: Public low-code contract, signatures and examples for storage.restoreEntry.
+icon: code
+---
+
+<span id="storage-restoreEntry" aria-hidden="true"></span>
+
+## `storage.restoreEntry()`
+
+Restores an archived storage entry. Permanently deleted entries cannot be restored.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static restoreEntry(
+      storageEntryId: string,
+      data: StorageRestoreInput,
+    ): Promise<StorageEntryView>;
+
+static restoreEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageRestoreInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.restoreEntry(storageEntryId, { version: currentVersion });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

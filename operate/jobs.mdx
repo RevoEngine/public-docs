@@ -4,7 +4,13 @@ description: Decide when to use a Job, configure its limits, and operate it as a
 icon: briefcase
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 A Job is a durable execution record for a Component. Use one when a task must outlive an HTTP request, needs a schedule/event trigger, can take meaningful time, or must leave a reviewable status, logs, retry lineage, and result.
+
+## Explore the behavior
+
+<FlowDemo topic="job" />
 
 ## Why use a Job instead of an Endpoint
 
@@ -70,7 +76,7 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
     "input": { "region": "eu", "mode": "incremental" },
     "hideRequest": true,
     "memory": 512,
-    "concurrency": { "key": "crm-sync-eu", "limit": 1, "ttl": 2100 },
+    "concurrency": { "key": "crm-sync-eu", "limit": 1, "retryDelaySeconds": 30 },
     "retry": {
       "enabled": true,
       "maxAttempts": 4,
@@ -87,7 +93,7 @@ A new Job Template follows the latest active Component revision when no digest i
 
 ## Runtime input from Events and Schedules
 
-The template's **Runtime input** is stored as `options.input` and exposed to the Component through `api.input('templateInputs')`. A Job-targeting [Event](/operate/events#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedules#configure-runtime-input-for-a-job-target) can configure its own Runtime input in **Options**:
+The template's **Runtime input** is stored as `options.input` and exposed to the Component through `api.input('templateInputs')`. A Job-targeting [Event](/operate/event-inputs#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedule-inputs#configure-runtime-input-for-a-job-target) can configure its own Runtime input in **Options**:
 
 - **Override** (default) shallowly overlays the automation input onto template defaults; Event or Schedule keys win.
 - **Replace** replaces the whole template input for that execution; `{}` clears it.
@@ -137,7 +143,7 @@ The durable record makes these questions answerable after the caller has gone aw
 
 ## Design for retries and timeouts
 
-Jobs are at-least-once from the perspective of external systems. A timeout, worker interruption, or delivery retry can leave the platform without proof that a remote side effect did not happen.
+A Job can produce an external effect before its outcome is confirmed. Application retries or a deliberate new run can repeat that effect. A timeout, worker interruption or failed response does not prove that the remote service made no change; retry policy is not a guarantee of successful delivery or exactly-once effects.
 
 1. Create an idempotency key per business effect before calling the provider.
 2. Store/check the provider correlation ID before scheduling a retry.
@@ -226,4 +232,8 @@ separate from infrastructure delivery and do not guarantee exactly-once external
 
 ## Follow-up execution through Events
 
-Ordinary Component Jobs publish native success, failed-attempt and final-failure signals. Use `JOB_EXECUTION_SUCCEEDED` to chain a follow-up Job, `JOB_ATTEMPT_FAILED` to react to each failed attempt, or `JOB_EXECUTION_FAILED` to act only when no automatic retry remains. Filter by the source Job template and make the follow-up action idempotent. See [Job execution Events](/operate/events#chain-component-jobs-from-execution-outcomes) for the payload, execution-series identity and cycle protection.
+Ordinary Component Jobs publish native success, failed-attempt and final-failure signals. Use `JOB_EXECUTION_SUCCEEDED` to chain a follow-up Job, `JOB_ATTEMPT_FAILED` to react to each failed attempt, or `JOB_EXECUTION_FAILED` to act only when no automatic retry remains. Filter by the source Job template and make the follow-up action idempotent. See [Job execution Events](/operate/event-types#chain-component-jobs-from-execution-outcomes) for the payload, execution-series identity and cycle protection.
+
+See [Job concurrency](/patterns/job-concurrency) for key and slot semantics, and [retry policy](/patterns/retry-and-uncertainty) for attempt limits and backoff.
+
+For Event dispatch, Webhook attempts and business-effect guarantees, compare [delivery boundaries](/patterns/delivery-guarantees).

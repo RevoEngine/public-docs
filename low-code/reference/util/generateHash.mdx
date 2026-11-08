@@ -1,0 +1,31 @@
+---
+title: util.generateHash()
+sidebarTitle: generateHash()
+description: Public low-code contract, signatures and examples for util.generateHash.
+icon: code
+---
+
+<span id="util-generateHash" aria-hidden="true"></span>
+
+## `util.generateHash()`
+
+Generates a password hash.
+
+Password: at most 4096 UTF-16 code units.
+
+### Signature
+
+```ts
+static generateHash(
+      password: string | undefined,
+      rounds?: number,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const hash = await util.generateHash(password, 10);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

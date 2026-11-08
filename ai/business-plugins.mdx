@@ -113,7 +113,7 @@ For an API integration, `pluginIds` attaches the plugin. If you restrict `toolNa
 
 ## Use the same plugin from an Agent
 
-On an instance with Autonomous Agent preview enabled, attach the plugin in the Agent's **Plugins** configuration. Use a dedicated service account with the necessary resource access. Select initial loading separately from attachment when the UI offers it.
+For an enabled Autonomous Agent, attach the plugin in the Agent's **Plugins** configuration. Use a dedicated service account with the necessary resource access. Select initial loading separately from attachment when the UI offers it.
 
 Give the Agent a bounded task: verify one quote, retain the returned execution identifiers in its workspace, and report whether it verified the saved receipt. Inspect the run's conversation, tool activity and artifact independently. An Agent may finish after reporting a limitation; `FINISHED` alone does not establish that every requested verification passed.
 

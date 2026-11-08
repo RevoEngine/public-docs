@@ -1,0 +1,41 @@
+---
+title: api.updateDatabase()
+sidebarTitle: updateDatabase()
+description: Public low-code contract, signatures and examples for api.updateDatabase.
+icon: code
+---
+
+<span id="api-updateDatabase" aria-hidden="true"></span>
+
+## `api.updateDatabase()`
+
+Outside an explicit caller transaction, waits for a durable schema operation and verified DDL commit.
+Explicit caller transactions retain synchronous DDL within their configured transaction budget.
+The old definition/version remains authoritative until commit.
+Updates selected logical-database fields by name. The public contract requires the current
+version for optimistic locking; send only the fields that should change. Do not
+copy server-owned databaseId, timestamps, or size into this payload.
+options.indexes replaces the complete managed index set; unchanged named indexes
+retain their physical index and metadata version. Omit options to preserve it.
+definition replaces the complete column set: preserve databaseDefinitionId for
+existing columns and omit definition for an index-only update.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static updateDatabase(name: string, data: DatabaseUpdateInput): Promise<Database>;
+```
+### Example
+
+```ts
+await api.updateDatabase('orders', {
+  version: current.version,
+  audit: true,
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

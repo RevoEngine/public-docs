@@ -1,0 +1,26 @@
+---
+title: agent.listPlugins()
+sidebarTitle: listPlugins()
+description: Public low-code contract, signatures and examples for agent.listPlugins.
+icon: code
+---
+
+<span id="agent-listPlugins" aria-hidden="true"></span>
+
+## `agent.listPlugins()`
+
+Lists agent plugins configured for an agent.
+
+### Signature
+
+```ts
+static listPlugins(agentId: string): Promise<AgentPlugin[]>;
+```
+### Example
+
+```ts
+const tools = await agent.listPlugins(agentId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

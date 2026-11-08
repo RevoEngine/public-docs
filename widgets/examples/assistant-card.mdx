@@ -1,0 +1,201 @@
+---
+title: "Build an interactive Assistant card"
+description: "Publish a validated form with Job status and retained drill-down views."
+sidebarTitle: Assistant card
+icon: book-open
+---
+
+## Interactive cards in Assistant
+
+Ask the Assistant for a form, a Job action, a result tile and a drill-down. Ask it to validate the card before displaying it. This preflight executes the read-only initial view and validates the complete widget contract without saving or displaying a card. Creating the card after preflight executes and validates the source again; the renderer then displays that saved result.
+
+Initial validation does not prove partial refreshes, drill-down destinations, registered actions or browser rendering. Test each view branch in read-only Sandbox with representative `$widget.targetIds` and `$widget.values`; assert the exact returned cell IDs and values, including permitted zero and empty inputs. These probes must not launch the registered write actions. Verify those actions separately within the intended test scope.
+
+The existing Custom Widget matrix is unchanged. The generator can return `{ matrix, summary, widgetConfig }`; `widgetConfig` registers the same `widgetTargets` and `actionTargets` used in dashboard settings. A single self-contained generator becomes the read-only view source automatically. If generation uses libraries or multiple elements, provide a complete reusable `INLINE` or `COMPONENT` source instead.
+
+The card first displays the validated result without executing it again. Subsequent interactions execute the registered sources with the viewer's current permissions. Generating a card does not start its Job: a write needs a registered action with `readOnly: false` and an operator interaction. View sources and completion probes remain read-only. Fullscreen retains the mounted form and drafts.
+
+This complete generator body demonstrates **form → Job → refresh one tile**, followed by a clickable detail view with **Back**. Replace `VERIFIED_JOB_TEMPLATE_ID` with a verified active Job template. The template must validate inputs and enforce the business operation's idempotency. The result tile reads the exact confirmed Job using `$widget.actionResult.jobId`. Registered source syntax and initial bindings are checked before publication; each nested source must be a valid independent function body.
+
+```javascript
+const ui = api.input()?.$widget ?? {};
+const wanted = (id) =>
+  (ui.targetIds ?? ['*']).some(
+    (target) => target === '*' || target === id,
+  );
+const matrix = [];
+if (wanted('form'))
+  matrix.push([
+    {
+      id: 'form',
+      type: 'FORM',
+      submitLabel: 'Start job',
+      fields: [
+        {
+          id: 'quantity',
+          type: 'INPUT',
+          control: 'number',
+          label: 'Quantity',
+          value: 2,
+          required: true,
+          min: 1,
+          max: 100,
+        },
+      ],
+      on: {
+        submit: {
+          type: 'EXECUTE',
+          target: 'launch',
+          input: { quantity: { from: 'input', id: 'quantity' } },
+          waitFor: {
+            target: 'status',
+            input: { jobId: { from: 'result', path: 'jobId' } },
+            path: 'status',
+            equals: 'FINISHED',
+            failed: ['ERROR', 'CANCELLED', 'EXPIRED'],
+            intervalSeconds: 2,
+            timeoutSeconds: 120,
+          },
+          refresh: 'total',
+          cooldownSeconds: 3,
+        },
+      },
+    },
+  ]);
+if (wanted('total')) {
+  const jobId = ui.actionResult?.jobId;
+  const job = jobId
+    ? (
+        await api.getInstanceData('Jobs', {
+          filter: { jobId: { equals: jobId } },
+          fields: ['jobId', 'status'],
+          take: 1,
+        })
+      ).data[0]
+    : null;
+  matrix.push([
+    {
+      id: 'total',
+      type: 'TEXT',
+      value: job
+        ? job.jobId + ': ' + job.status
+        : 'No confirmed job yet.',
+      on: {
+        click: {
+          type: 'OPEN_WIDGET',
+          target: 'details',
+          mode: 'replace',
+          input: { quantity: { from: 'input', id: 'quantity' } },
+        },
+      },
+    },
+  ]);
+}
+return {
+  matrix,
+  summary: 'Submit a job, then refresh only the total tile.',
+  widgetConfig: {
+    actionTargets: {
+      launch: {
+        sourceType: 'INLINE',
+        codeType: 'CODE_JS',
+        readOnly: false,
+        code: `
+const quantity = api.input().quantity;
+if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100)
+  throw new Error('Invalid quantity');
+return {
+  jobId: await api.triggerJob('VERIFIED_JOB_TEMPLATE_ID', { quantity }),
+};
+`,
+      },
+      status: {
+        sourceType: 'INLINE',
+        codeType: 'CODE_JS',
+        readOnly: true,
+        code: `
+const result = await api.getInstanceData('Jobs', {
+  filter: { jobId: { equals: api.input().jobId } },
+  fields: ['jobId', 'status'],
+  take: 1,
+});
+if (!result.data.length) throw new Error('Job not found');
+return result.data[0];
+`,
+      },
+    },
+    widgetTargets: {
+      details: {
+        sourceType: 'INLINE',
+        codeType: 'CODE_JS',
+        readOnly: true,
+        code: `
+const quantity = api.input().quantity;
+return [
+  [{ id: 'detail', type: 'TEXT', value: 'Quantity: ' + quantity }],
+  [
+    {
+      id: 'back',
+      type: 'BUTTON',
+      label: 'Back',
+      on: { click: { type: 'BACK' } },
+    },
+    {
+      id: 'more',
+      type: 'BUTTON',
+      label: 'More',
+      on: {
+        click: {
+          type: 'OPEN_WIDGET',
+          target: 'deeper',
+          mode: 'replace',
+          input: { quantity },
+        },
+      },
+    },
+  ],
+];
+`,
+      },
+      deeper: {
+        sourceType: 'INLINE',
+        codeType: 'CODE_JS',
+        readOnly: true,
+        code: `
+return [
+  [
+    {
+      id: 'deep',
+      type: 'TEXT',
+      value: 'Received quantity: ' + api.input().quantity,
+    },
+  ],
+  [
+    {
+      id: 'back',
+      type: 'BUTTON',
+      label: 'Back',
+      on: { click: { type: 'BACK' } },
+    },
+  ],
+];
+`,
+      },
+    },
+  },
+};
+```
+
+The source branches on `$widget.targetIds` before reading data. After confirmed completion, only `total` is returned, so the form remains mounted and retains its values. Clicking that tile opens `details`, then More opens a second level using the received quantity. Back restores each retained frame. The worker receives `quantity` in `api.input().templateInputs`.
+
+For horizontal bar charts, use a number x-axis and a category y-axis, or omit explicit axes. Text category values on a number axis are rejected before the card is published.
+
+Chat artifacts allow at most 8 rows, 4 cells per row, 5000 flat records per chart/table, 12 table columns and 2 MB for rows plus sources. Each target map allows 32 entries, with at most four nested target levels. Inline source code is limited to 120000 characters. Source `inputs` is JSON object text without `$widget`; timeout is 5–600 seconds and memory is 32–1024 MB. These limits do not grant execution access.
+
+Before sharing a result, verify the real form submit, exact Job completion, retained inputs after partial refresh, two drill levels with Back, and dynamic dashboard conversion. A validated artifact alone does not prove browser rendering or Job success. A page reload restores configured defaults, not unsaved form drafts. Shared/report readers see disabled controls and cannot run actions from the card.
+
+### Ordered button commands
+
+For calculator keypads or other stateful commands, use `on.click: { type: "REFRESH", target: "display", concurrency: "queue" }`. Each queued click reads the preceding merged state; `$widget.event.sourceId` identifies the key. A synchronized INPUT can retain the display value between clicks. Only return the requested display cell; the keypad remains mounted. The per-frame queue permits 64 pending commands. Overflow discards pending commands and shows an error. Errors, manual refresh, nonqueued refresh actions, remount and Back cancellation discard pending commands. The default is latest overlapping read wins. This does not queue writes or persist a calculation across a page reload.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

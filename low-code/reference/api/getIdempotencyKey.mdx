@@ -1,0 +1,26 @@
+---
+title: api.getIdempotencyKey()
+sidebarTitle: getIdempotencyKey()
+description: Public low-code contract, signatures and examples for api.getIdempotencyKey.
+icon: code
+---
+
+<span id="api-getIdempotencyKey" aria-hidden="true"></span>
+
+## `api.getIdempotencyKey()`
+
+Reads stored idempotency metadata.
+
+### Signature
+
+```ts
+static getIdempotencyKey(key: string): Promise<any>;
+```
+### Example
+
+```ts
+const current = await api.getIdempotencyKey('orders:123');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

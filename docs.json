@@ -33,22 +33,43 @@
         "icon": "layer-group",
         "groups": [
           {
-            "group": "Get started",
-            "icon": "rocket",
+            "group": "Start here",
             "pages": [
               "introduction",
               "platform/product-model",
-              "quickstart",
-              "platform/ui-tour",
-              "platform/search"
+              "quickstart"
             ]
           },
           {
-            "group": "Guides",
-            "icon": "compass",
+            "group": "Workspace",
+            "pages": [
+              "platform/ui-tour",
+              "platform/feature-directory",
+              "platform/personal-settings",
+              "platform/account-security",
+              "platform/search",
+              "platform/instance-settings"
+            ]
+          },
+          {
+            "group": "Tutorials",
             "pages": [
               "platform/first-production-workflow",
-              "platform/asterion-supply",
+              {
+                "group": "Build the order workflow",
+                "pages": [
+                  "tutorials/order-state",
+                  "tutorials/order-reservation",
+                  "tutorials/order-settlement",
+                  "tutorials/order-verification"
+                ]
+              },
+              "platform/asterion-supply"
+            ]
+          },
+          {
+            "group": "Workflow guides",
+            "pages": [
               "platform/file-processing-workflow",
               "platform/external-integration-workflow",
               "platform/agent-production-workflow",
@@ -56,14 +77,12 @@
             ]
           },
           {
-            "group": "Architecture and concepts",
-            "icon": "cubes",
+            "group": "Concepts",
             "pages": [
               "platform/overview",
               "platform/enterprise-execution",
               "platform/architecture",
               "platform/environments-and-versions",
-              "platform/instance-settings",
               "platform/security-and-governance",
               "platform/limits-and-quotas",
               "platform/glossary"
@@ -76,44 +95,58 @@
         "icon": "code",
         "groups": [
           {
-            "group": "Build applications",
+            "group": "Components",
             "pages": [
               "build/overview",
               "build/components",
               "build/component-configuration",
+              "build/custom-nodejs"
+            ]
+          },
+          {
+            "group": "Libraries",
+            "pages": [
               "build/libraries",
-              "build/library-authoring",
-              "build/custom-nodejs",
+              "build/library-authoring"
+            ]
+          },
+          {
+            "group": "Editor and testing",
+            "pages": [
               "build/web-ide",
               "build/studio-sessions",
-              "build/native-tests",
-              "build/debugging"
+              "build/studio-session-workspace",
+              "build/studio-session-collaboration",
+              "build/studio-session-review",
+              "build/studio-session-release",
+              "build/debugging",
+              "build/native-tests"
             ]
           },
           {
-            "group": "Low-code runtime",
+            "group": "Low-code basics",
             "pages": [
               "low-code/overview",
-              "low-code/runtime-api",
-              "low-code/http",
-              "low-code/sftp",
-              "low-code/json-validator",
-              "low-code/database",
-              "low-code/patterns"
+              "low-code/runtime-api"
             ]
           },
           {
-            "group": "Low-code reference",
+            "group": "HTTP calls",
             "pages": [
-              "low-code/reference/index",
-              "low-code/reference/api",
-              "low-code/reference/vault",
-              "low-code/reference/serviceAccount",
-              "low-code/reference/storage",
-              "low-code/reference/transport",
-              "low-code/reference/agent",
-              "low-code/reference/sse",
-              "low-code/reference/util"
+              "low-code/http",
+              "low-code/http-json",
+              "low-code/http-multipart",
+              "low-code/http-streams",
+              "low-code/http-storage",
+              "low-code/http-callbacks"
+            ]
+          },
+          {
+            "group": "Data and validation",
+            "pages": [
+              "low-code/database",
+              "low-code/sftp",
+              "low-code/json-validator"
             ]
           }
         ]
@@ -127,10 +160,22 @@
             "pages": [
               "operate/endpoints",
               "operate/endpoint-http",
-              "operate/endpoint-sse",
-              "operate/sse-openai-example",
-              "operate/sse-browser-client",
-              "operate/endpoint-configuration"
+              "operate/endpoint-configuration",
+              {
+                "group": "Streaming",
+                "pages": [
+                  "operate/endpoint-sse",
+                  "operate/sse-openai-example",
+                  "operate/sse-browser-client",
+                  {
+                    "group": "Complete example sources",
+                    "pages": [
+                      "examples/sse/component-source",
+                      "examples/sse/browser-source"
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {
@@ -142,49 +187,81 @@
               "operate/database-views",
               "operate/materialized-views",
               "operate/database-cache",
-              "operate/database-exports"
+              {
+                "group": "Read and write",
+                "pages": [
+                  "operate/database-queries",
+                  "operate/database-mutations",
+                  "operate/database-exports"
+                ]
+              }
             ]
           },
           {
-            "group": "Files",
+            "group": "Storage",
             "pages": [
               "operate/storage",
               "operate/storage-uploads",
-              "operate/storage-structured-files"
+              {
+                "group": "Structured files",
+                "pages": [
+                  "operate/storage-structured-files",
+                  "operate/storage-file-schema",
+                  "operate/storage-csv",
+                  "operate/storage-typed-rows"
+                ]
+              }
             ]
           },
           {
-            "group": "Automation",
+            "group": "Jobs and delivery",
             "pages": [
               "operate/automation",
               "operate/jobs",
-              "operate/schedules",
-              "operate/events",
+              "operate/job-notifications",
               "operate/webhooks",
               "operate/event-history"
             ]
           },
           {
-            "group": "Collaboration and realtime",
+            "group": "Schedules",
             "pages": [
-              "operate/chat",
-              "operate/realtime"
+              "operate/schedules",
+              "operate/schedule-configuration",
+              "operate/schedule-inputs",
+              "operate/schedule-targets"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "operate/events",
+              "operate/event-inputs",
+              "operate/event-filters",
+              "operate/event-publishing",
+              "operate/event-types"
             ]
           },
           {
             "group": "Observability",
             "pages": [
-              "operate/dashboards",
-              "operate/reactive-widgets",
               "operate/observability",
               "operate/logs",
               "operate/traces"
             ]
           },
           {
+            "group": "Collaboration",
+            "pages": [
+              "operate/chat",
+              "operate/realtime"
+            ]
+          },
+          {
             "group": "Identity and security",
             "pages": [
               "operate/identity-and-access",
+              "operate/sso-and-oidc",
               "operate/users",
               "operate/service-accounts",
               "operate/groups",
@@ -196,16 +273,118 @@
         ]
       },
       {
+        "tab": "Widgets",
+        "icon": "table-cells",
+        "groups": [
+          {
+            "group": "Dashboards",
+            "pages": [
+              "operate/dashboards",
+              "widgets/dashboard-library"
+            ]
+          },
+          {
+            "group": "Start building",
+            "pages": [
+              "widgets/overview",
+              "widgets/quickstart",
+              "widgets/matrix",
+              "widgets/source-configuration"
+            ]
+          },
+          {
+            "group": "Elements",
+            "pages": [
+              "widgets/elements",
+              "widgets/text-and-buttons",
+              "widgets/inputs",
+              "widgets/forms",
+              "widgets/tables",
+              "widgets/charts"
+            ]
+          },
+          {
+            "group": "Interactions",
+            "pages": [
+              "operate/reactive-widgets",
+              "widgets/context",
+              "widgets/state",
+              "widgets/bindings",
+              "widgets/events",
+              "widgets/actions",
+              "widgets/refresh",
+              "widgets/execute",
+              "widgets/navigation",
+              "widgets/header-and-timers"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "widgets/examples/job-chart",
+              "widgets/examples/table-actions",
+              "widgets/examples/form-job",
+              "widgets/examples/assistant-card"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "widgets/limits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Patterns",
+        "icon": "shapes",
+        "groups": [
+          {
+            "group": "Choose a pattern",
+            "pages": [
+              "low-code/patterns",
+              "patterns/interactive-examples"
+            ]
+          },
+          {
+            "group": "Flow control",
+            "pages": [
+              "patterns/job-concurrency",
+              "patterns/coordination-keys",
+              "patterns/low-code-concurrency"
+            ]
+          },
+          {
+            "group": "Reliable effects",
+            "pages": [
+              "patterns/idempotency",
+              "patterns/delivery-guarantees",
+              "patterns/metadata-and-correlation",
+              "patterns/event-to-webhook",
+              "patterns/retry-and-uncertainty",
+              "patterns/acceptance-and-completion",
+              "patterns/transactions"
+            ]
+          },
+          {
+            "group": "Data at scale",
+            "pages": [
+              "patterns/bounded-data"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "AI & Agents",
         "icon": "sparkles",
         "groups": [
           {
-            "group": "Start here",
+            "group": "Concepts",
             "pages": [
               "ai/overview",
               "ai/agent-harness",
-              "ai/compare-coding-agents",
-              "ai/tools-and-skills"
+              "ai/tools-and-skills",
+              "ai/compare-coding-agents"
             ]
           },
           {
@@ -213,10 +392,20 @@
             "pages": [
               "ai/assistant",
               "ai/assistant-configuration",
+              "ai/instance-ai-settings",
+              "ai/assistant-from-code",
+              "ai/assistant-visuals",
+              "ai/approvals-and-plans"
+            ]
+          },
+          {
+            "group": "Coding and browser",
+            "pages": [
               "ai/agentic-coding",
               "ai/terminals",
+              "ai/terminal-execution-and-logs",
               "ai/browser",
-              "ai/approvals-and-plans"
+              "ai/browser-profiles"
             ]
           },
           {
@@ -224,12 +413,14 @@
             "pages": [
               "ai/agents",
               "ai/agent-configuration",
+              "ai/agent-delivery-configuration",
+              "ai/agent-configuration-example",
               "ai/agent-operations",
               "ai/memory-and-workspaces"
             ]
           },
           {
-            "group": "Extend Agents",
+            "group": "Plugins",
             "pages": [
               "ai/plugins",
               "ai/business-plugins"
@@ -242,20 +433,24 @@
         "icon": "terminal",
         "groups": [
           {
-            "group": "Integrate",
+            "group": "Integration basics",
             "pages": [
               "developers/overview",
-              "developers/platform-api",
-              "developers/endpoint-runtime",
-              "developers/customer-ai-portal",
-              "developers/sandbox-api",
               "developers/authentication",
               "developers/errors"
             ]
           },
           {
-            "group": "Model Context Protocol",
-            "icon": "plug",
+            "group": "HTTP interfaces",
+            "pages": [
+              "developers/platform-api",
+              "developers/endpoint-runtime",
+              "developers/sandbox-api",
+              "developers/customer-ai-portal"
+            ]
+          },
+          {
+            "group": "MCP",
             "pages": [
               "developers/mcp-overview",
               "developers/mcp-connect",
@@ -269,26 +464,406 @@
           {
             "group": "Node.js SDK",
             "pages": [
-              "developers/upgrading-to-1-8",
               "developers/sdk-overview",
               "developers/sdk-hosted",
               "developers/sdk-standalone",
-              "developers/sdk-storage-and-batching"
+              "developers/sdk-storage-and-batching",
+              "developers/upgrading-to-1-8"
             ]
           },
           {
-            "group": "CLI",
+            "group": "CLI and VS Code",
             "pages": [
               "developers/cli",
               "developers/cli-projects",
-              "developers/cli-environments"
+              "developers/cli-environments",
+              "developers/cli-command-reference",
+              "developers/cli-tests-and-debugging",
+              "developers/cli-studio",
+              "developers/cli-terminal",
+              "developers/vscode-extension"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "icon": "brackets-curly",
+        "groups": [
+          {
+            "group": "Low-code method reference",
+            "pages": [
+              "low-code/reference/index",
+              {
+                "group": "vault",
+                "pages": [
+                  "low-code/reference/vault",
+                  "low-code/reference/vault/get",
+                  "low-code/reference/vault/create",
+                  "low-code/reference/vault/update",
+                  "low-code/reference/vault/delete",
+                  "low-code/reference/vault/rotate",
+                  "low-code/reference/vault/listRevisions",
+                  "low-code/reference/vault/getAccessToken",
+                  "low-code/reference/vault/getIntegrationMetadata",
+                  "low-code/reference/vault/discoverIntegration",
+                  "low-code/reference/vault/connectIntegration",
+                  "low-code/reference/vault/disconnectIntegration"
+                ]
+              },
+              {
+                "group": "serviceAccount",
+                "pages": [
+                  "low-code/reference/serviceAccount",
+                  "low-code/reference/serviceAccount/get",
+                  "low-code/reference/serviceAccount/list",
+                  "low-code/reference/serviceAccount/create",
+                  "low-code/reference/serviceAccount/update",
+                  "low-code/reference/serviceAccount/delete",
+                  "low-code/reference/serviceAccount/activate",
+                  "low-code/reference/serviceAccount/disable",
+                  "low-code/reference/serviceAccount/restore",
+                  "low-code/reference/serviceAccount/enablePlatformAccess",
+                  "low-code/reference/serviceAccount/disablePlatformAccess",
+                  "low-code/reference/serviceAccount/getKeys",
+                  "low-code/reference/serviceAccount/getKey",
+                  "low-code/reference/serviceAccount/createKey",
+                  "low-code/reference/serviceAccount/updateKey",
+                  "low-code/reference/serviceAccount/rotateKey",
+                  "low-code/reference/serviceAccount/revokeKey"
+                ]
+              },
+              {
+                "group": "api",
+                "pages": [
+                  "low-code/reference/api",
+                  {
+                    "group": "Database",
+                    "pages": [
+                      "low-code/reference/api/createDatabase",
+                      "low-code/reference/api/cloneDatabase",
+                      "low-code/reference/api/exportDatabase",
+                      "low-code/reference/api/startDatabaseOperation",
+                      "low-code/reference/api/importDatabase",
+                      "low-code/reference/api/updateDatabaseImportMapping",
+                      "low-code/reference/api/commitDatabaseImport",
+                      "low-code/reference/api/updateDatabase",
+                      "low-code/reference/api/deleteDatabase",
+                      "low-code/reference/api/restoreDatabase",
+                      "low-code/reference/api/truncateDatabase",
+                      "low-code/reference/api/transactionDatabase",
+                      "low-code/reference/api/getDatabaseData",
+                      "low-code/reference/api/getDatabaseDataRow",
+                      "low-code/reference/api/countDatabase",
+                      "low-code/reference/api/walkDatabaseData",
+                      "low-code/reference/api/getDatabaseAudit",
+                      "low-code/reference/api/insertDatabaseData",
+                      "low-code/reference/api/upsertDatabaseData",
+                      "low-code/reference/api/updateDatabaseData",
+                      "low-code/reference/api/deleteDatabaseData",
+                      "low-code/reference/api/updateDatabaseDataRequest",
+                      "low-code/reference/api/deleteDatabaseDataRequest",
+                      "low-code/reference/api/queryDatabase"
+                    ]
+                  },
+                  {
+                    "group": "Execution context",
+                    "pages": [
+                      "low-code/reference/api/currentUser",
+                      "low-code/reference/api/isDebug",
+                      "low-code/reference/api/getContext",
+                      "low-code/reference/api/getErrors",
+                      "low-code/reference/api/getExecutionId",
+                      "low-code/reference/api/getOperationId",
+                      "low-code/reference/api/executeComponent",
+                      "low-code/reference/api/input",
+                      "low-code/reference/api/log",
+                      "low-code/reference/api/exit",
+                      "low-code/reference/api/throw"
+                    ]
+                  },
+                  {
+                    "group": "Cache",
+                    "pages": [
+                      "low-code/reference/api/getCache",
+                      "low-code/reference/api/setCache",
+                      "low-code/reference/api/getInstanceCache",
+                      "low-code/reference/api/setInstanceCache",
+                      "low-code/reference/api/setInstanceCacheIfNotExists",
+                      "low-code/reference/api/getOrSetInstanceCache",
+                      "low-code/reference/api/removeInstanceCache",
+                      "low-code/reference/api/existsInstanceCache",
+                      "low-code/reference/api/persistInstanceCache",
+                      "low-code/reference/api/expireInstanceCache",
+                      "low-code/reference/api/getExpireInstanceCache",
+                      "low-code/reference/api/listInstanceCache",
+                      "low-code/reference/api/incrementInstanceCache",
+                      "low-code/reference/api/decrementInstanceCache",
+                      "low-code/reference/api/compareAndSetInstanceCache"
+                    ]
+                  },
+                  {
+                    "group": "Platform",
+                    "pages": [
+                      "low-code/reference/api/getCurrentInstance",
+                      "low-code/reference/api/getInstanceData",
+                      "low-code/reference/api/getInstanceDetails",
+                      "low-code/reference/api/publishMessage"
+                    ]
+                  },
+                  {
+                    "group": "Coordination",
+                    "pages": [
+                      "low-code/reference/api/acquireIdempotencyKey",
+                      "low-code/reference/api/getIdempotencyKey",
+                      "low-code/reference/api/releaseIdempotencyKey",
+                      "low-code/reference/api/concurrencyLimit",
+                      "low-code/reference/api/rateLimit",
+                      "low-code/reference/api/releaseRateLimit",
+                      "low-code/reference/api/releaseConcurrencyLimit"
+                    ]
+                  },
+                  {
+                    "group": "Automation",
+                    "pages": [
+                      "low-code/reference/api/triggerEvent",
+                      "low-code/reference/api/triggerTarget",
+                      "low-code/reference/api/triggerJob",
+                      "low-code/reference/api/triggerWebhook",
+                      "low-code/reference/api/cancelJobs",
+                      "low-code/reference/api/retryJobs",
+                      "low-code/reference/api/deleteJobs",
+                      "low-code/reference/api/cancelWebhooks",
+                      "low-code/reference/api/retryWebhooks",
+                      "low-code/reference/api/deleteWebhooks",
+                      "low-code/reference/api/previewAutomationOperation",
+                      "low-code/reference/api/getAutomationOperation",
+                      "low-code/reference/api/getAutomationOperationItems"
+                    ]
+                  },
+                  {
+                    "group": "HTTP",
+                    "pages": [
+                      "low-code/reference/api/httpCall"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "storage",
+                "pages": [
+                  "low-code/reference/storage",
+                  {
+                    "group": "Files and folders",
+                    "pages": [
+                      "low-code/reference/storage/explore",
+                      "low-code/reference/storage/resolveFolderPath",
+                      "low-code/reference/storage/ensureFolderPath",
+                      "low-code/reference/storage/getEntry",
+                      "low-code/reference/storage/createFolder",
+                      "low-code/reference/storage/updateEntry",
+                      "low-code/reference/storage/moveEntry",
+                      "low-code/reference/storage/archiveEntry",
+                      "low-code/reference/storage/restoreEntry",
+                      "low-code/reference/storage/deleteEntry"
+                    ]
+                  },
+                  {
+                    "group": "Read and write content",
+                    "pages": [
+                      "low-code/reference/storage/getFile",
+                      "low-code/reference/storage/getFileData",
+                      "low-code/reference/storage/walkFileData",
+                      "low-code/reference/storage/getFileStats",
+                      "low-code/reference/storage/putObject",
+                      "low-code/reference/storage/getDownload",
+                      "low-code/reference/storage/getDocument"
+                    ]
+                  },
+                  {
+                    "group": "Upload sessions",
+                    "pages": [
+                      "low-code/reference/storage/createUploadSession",
+                      "low-code/reference/storage/extendUploadSession",
+                      "low-code/reference/storage/getUploadSession",
+                      "low-code/reference/storage/uploadPart",
+                      "low-code/reference/storage/finalizeUploadSession",
+                      "low-code/reference/storage/abortUploadSession"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "transport",
+                "pages": [
+                  "low-code/reference/transport",
+                  "low-code/reference/transport/sftpImport",
+                  "low-code/reference/transport/sftpExport",
+                  "low-code/reference/transport/sftpCommands"
+                ]
+              },
+              {
+                "group": "agent",
+                "pages": [
+                  "low-code/reference/agent",
+                  {
+                    "group": "Agent definitions",
+                    "pages": [
+                      "low-code/reference/agent/list",
+                      "low-code/reference/agent/get",
+                      "low-code/reference/agent/create",
+                      "low-code/reference/agent/update"
+                    ]
+                  },
+                  {
+                    "group": "Inbox",
+                    "pages": [
+                      "low-code/reference/agent/listInbox",
+                      "low-code/reference/agent/getInboxItem",
+                      "low-code/reference/agent/pushInbox",
+                      "low-code/reference/agent/updateInboxItem",
+                      "low-code/reference/agent/removeInboxItem"
+                    ]
+                  },
+                  {
+                    "group": "Plugins",
+                    "pages": [
+                      "low-code/reference/agent/listPlugins",
+                      "low-code/reference/agent/getPlugin"
+                    ]
+                  },
+                  {
+                    "group": "Runs",
+                    "pages": [
+                      "low-code/reference/agent/listRuns",
+                      "low-code/reference/agent/getRun",
+                      "low-code/reference/agent/listRunEvents",
+                      "low-code/reference/agent/listRunThreads",
+                      "low-code/reference/agent/startRun",
+                      "low-code/reference/agent/resumeRun",
+                      "low-code/reference/agent/retryRun",
+                      "low-code/reference/agent/tickRun",
+                      "low-code/reference/agent/cancelRun",
+                      "low-code/reference/agent/reconcileRuns"
+                    ]
+                  },
+                  {
+                    "group": "Assistant conversations",
+                    "pages": [
+                      "low-code/reference/agent/listThreads",
+                      "low-code/reference/agent/getThread",
+                      "low-code/reference/agent/getThreadState",
+                      "low-code/reference/agent/getThreadShare",
+                      "low-code/reference/agent/enableThreadShare",
+                      "low-code/reference/agent/disableThreadShare",
+                      "low-code/reference/agent/getSharedThread",
+                      "low-code/reference/agent/listSharedThreadMessages",
+                      "low-code/reference/agent/getSharedThreadMessageExecutionDetails",
+                      "low-code/reference/agent/getSharedThreadMessageArtifact",
+                      "low-code/reference/agent/forkSharedThreadMessage",
+                      "low-code/reference/agent/createThread",
+                      "low-code/reference/agent/createResponse",
+                      "low-code/reference/agent/deleteThread",
+                      "low-code/reference/agent/restoreThread",
+                      "low-code/reference/agent/listThreadMessages",
+                      "low-code/reference/agent/sendMessage",
+                      "low-code/reference/agent/retryMessage",
+                      "low-code/reference/agent/cancelThread",
+                      "low-code/reference/agent/forkMessage",
+                      "low-code/reference/agent/renameThread",
+                      "low-code/reference/agent/resolveAction",
+                      "low-code/reference/agent/approveAction",
+                      "low-code/reference/agent/rejectAction",
+                      "low-code/reference/agent/submitAction",
+                      "low-code/reference/agent/watchMessage",
+                      "low-code/reference/agent/compactThread"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "sse",
+                "pages": [
+                  "low-code/reference/sse",
+                  "low-code/reference/sse/onDisconnect",
+                  "low-code/reference/sse/send",
+                  "low-code/reference/sse/json",
+                  "low-code/reference/sse/comment",
+                  "low-code/reference/sse/remainingTime"
+                ]
+              },
+              {
+                "group": "util",
+                "pages": [
+                  "low-code/reference/util",
+                  {
+                    "group": "Validation and utilities",
+                    "pages": [
+                      "low-code/reference/util/sleep",
+                      "low-code/reference/util/isUUID",
+                      "low-code/reference/util/randomUUID",
+                      "low-code/reference/util/getUUID",
+                      "low-code/reference/util/randomBytes",
+                      "low-code/reference/util/randomInt",
+                      "low-code/reference/util/randomString",
+                      "low-code/reference/util/validate"
+                    ]
+                  },
+                  {
+                    "group": "Cryptography",
+                    "pages": [
+                      "low-code/reference/util/aesDecrypt",
+                      "low-code/reference/util/aesEncrypt",
+                      "low-code/reference/util/timingSafeEqual",
+                      "low-code/reference/util/hmac",
+                      "low-code/reference/util/verifyHmacSignature",
+                      "low-code/reference/util/otp",
+                      "low-code/reference/util/jwtDecode",
+                      "low-code/reference/util/jwtSign",
+                      "low-code/reference/util/jwtVerify",
+                      "low-code/reference/util/rsaDecrypt",
+                      "low-code/reference/util/rsaEncrypt",
+                      "low-code/reference/util/rsaGeneratePair",
+                      "low-code/reference/util/rsaSign",
+                      "low-code/reference/util/rsaVerify"
+                    ]
+                  },
+                  {
+                    "group": "Hashing",
+                    "pages": [
+                      "low-code/reference/util/compareHash",
+                      "low-code/reference/util/generateHash",
+                      "low-code/reference/util/hashObject",
+                      "low-code/reference/util/sha1",
+                      "low-code/reference/util/sha256",
+                      "low-code/reference/util/md5"
+                    ]
+                  },
+                  {
+                    "group": "Encoding",
+                    "pages": [
+                      "low-code/reference/util/isBase64",
+                      "low-code/reference/util/decodeBase64",
+                      "low-code/reference/util/encodeBase64",
+                      "low-code/reference/util/base64UrlEncode",
+                      "low-code/reference/util/base64UrlDecode"
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {
-            "group": "VS Code",
+            "group": "Before you start",
             "pages": [
-              "developers/vscode-extension"
+              "api-reference/introduction",
+              "api-reference/authentication",
+              "api-reference/http-codes"
             ]
+          },
+          {
+            "group": "Platform API",
+            "openapi": "api-reference/openapi.json"
           }
         ]
       },
@@ -443,24 +1018,6 @@
                 ]
               }
             ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "icon": "brackets-curly",
-        "groups": [
-          {
-            "group": "Before you start",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication",
-              "api-reference/http-codes"
-            ]
-          },
-          {
-            "group": "Platform API",
-            "openapi": "api-reference/openapi.json"
           }
         ]
       },

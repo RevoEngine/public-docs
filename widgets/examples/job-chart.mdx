@@ -1,0 +1,90 @@
+---
+title: "Chart Job runs"
+description: "Read a bounded Jobs dataset and show a chart beside a table."
+icon: chart-column
+---
+
+For a dashboard focused on one Endpoint and its related Jobs, pass verified Job template IDs through **Inputs** as JSON, for example `{"templateIds":["verified-template-id"]}`. The following inline JavaScript makes a bounded read, groups the returned runs by UTC day and returns a heading, chart, table and intentional spacer. It labels the result as partial when the 100-row cap may have omitted runs:
+
+```js
+const ids = Array.isArray(api.input()?.templateIds)
+  ? api.input().templateIds
+  : [];
+if (!ids.length) {
+  return [
+    [
+      {
+        type: 'TEXT',
+        value: 'Select Job template IDs in widget Inputs.',
+      },
+    ],
+  ];
+}
+
+const page = await api.getInstanceData('Jobs', {
+  take: 100,
+  sort: ['-scheduledFor'],
+  fields: ['jobTemplateId', 'status', 'scheduledFor'],
+  filter: { jobTemplateId: { in: ids } },
+});
+const jobs = Array.isArray(page?.data) ? page.data : [];
+const dailyCounts = new Map();
+for (const job of jobs) {
+  const day = String(job.scheduledFor ?? '').slice(0, 10); // UTC date from ISO timestamp.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
+  const entry = dailyCounts.get(day) ?? { day, runs: 0, failed: 0 };
+  entry.runs += 1;
+  if (job.status === 'ERROR') entry.failed += 1;
+  dailyCounts.set(day, entry);
+}
+const daily = [...dailyCounts.values()].sort((a, b) =>
+  a.day.localeCompare(b.day),
+);
+const scope =
+  jobs.length === 100
+    ? 'Latest 100 runs; totals may be partial'
+    : 'All returned runs';
+return [
+  [
+    {
+      type: 'TEXT',
+      value: `## Job runs by UTC day\n${scope}`,
+      width: 100,
+    },
+  ],
+  [
+    {
+      type: 'CHART',
+      width: 55,
+      data: daily,
+      options: {
+        series: [
+          { type: 'bar', xKey: 'day', yKey: 'runs', yName: 'Runs' },
+          { type: 'bar', xKey: 'day', yKey: 'failed', yName: 'Errors' },
+        ],
+      },
+    },
+    {
+      type: 'TABLE',
+      width: 40,
+      data: daily,
+      definition: [
+        { field: 'day', headerName: 'UTC day', type: 'DATE' },
+        { field: 'runs', headerName: 'Runs', type: 'NUMBER' },
+        { field: 'failed', headerName: 'Errors', type: 'NUMBER' },
+      ],
+    },
+    { type: 'EMPTY', width: 5 },
+  ],
+];
+```
+
+Keep the chosen time window and timezone visible, bound pagination, and mark totals as partial if a cap omits rows. A Jobs Performance panel summarizes the instance, so use a custom chart for a trend restricted to one Endpoint's related Jobs. Save the matching filters and sort separately on the server-side Jobs History panel; Trace needs the Endpoint's own ID.
+
+<Tip>
+  Use a pinned Component digest when an incident or executive dashboard must keep a reviewed revision. Use Latest when new active revisions should be picked up automatically.
+</Tip>
+
+The outer dashboard grid has 20 columns. In the Platform API, a dashboard preference's `data` is one flat array of panel objects. Each panel stores its position and size as `x`, `y`, `cols`, and `rows`; the custom widget's returned rows and cell widths control only the layout inside that panel. A server-side Jobs History panel can retain its column filter and sort order when the dashboard is saved. A custom `TABLE` uses the returned data in the browser; its live table filters are not saved as dashboard state. Trace stores its own applied filters, including an optional Endpoint selection.
+
+Next: [query and refresh only the cells you need](/widgets/refresh).

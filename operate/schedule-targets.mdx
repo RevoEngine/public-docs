@@ -1,0 +1,46 @@
+---
+title: "Schedule targets"
+description: "Schedule Agents and Materialized View refreshes."
+icon: book-open
+---
+
+## Agent schedule modes
+
+Agent targets expose two distinct modes:
+
+- **Run task** creates concrete recurring work with an instruction and trigger lineage. Choose `INBOX` for durable queued delivery or `DIRECT_RUN` for an immediate run.
+- **Wake inbox** asks the Agent to claim work already queued. If the inbox is empty, the tick is a no-op; it does not invent a fallback run.
+
+Write an Agent instruction as an executable outcome, including scope and completion evidence. Do not put secrets in the instruction.
+
+The public Agent target configuration is explicit:
+
+```json
+{
+  "targetType": "AGENT",
+  "targetId": "38f2ad85-3f40-4be1-a404-72fe2c0f26ce",
+  "targetConfig": {
+    "scheduleMode": "RUN_TASK",
+    "deliveryMode": "INBOX",
+    "instruction": "Reconcile yesterday's unsettled transactions and write a summary to the workspace."
+  }
+}
+```
+
+`WAKE_INBOX` stores only the wake mode; it does not use a delivery mode or instruction. Agent schedules always execute the current Agent definition rather than pinning an older Agent version.
+
+## Materialized View refresh schedules
+
+Selecting **Materialized view** in the UI persists a governed platform-operation target:
+
+```json
+{
+  "targetType": "PLATFORM_OPERATION",
+  "targetId": "32f6eaa2-152e-4753-9987-f58ac2fbde55",
+  "targetConfig": { "kind": "refresh_materialized_view" }
+}
+```
+
+Create and manage this schedule from the Materialized View workflow or the Schedule editor. Other platform-operation kinds are system-owned and cannot be created as arbitrary customer schedules.
+
+Continue with [schedules](/operate/schedules).

@@ -4,11 +4,17 @@ description: Deliver governed asynchronous HTTP requests and inspect every attem
 icon: webhook
 ---
 
+import { WebhookDemo, PlaygroundStyle, webhookAttempt } from "/snippets/revo-playground.jsx";
+
 RevoEngine Webhooks are durable **outbound HTTP attempts**. Use them when RevoEngine should notify an external system asynchronously without holding an Endpoint response open.
 
 <Warning>
   This workspace does not create inbound subscriptions. To receive a partner callback, publish an authenticated [Endpoint](/operate/endpoints), validate the request, and then create a Job or Event.
 </Warning>
+
+## Explore the behavior
+
+<WebhookDemo />
 
 ## Create a webhook in the UI
 
@@ -16,9 +22,10 @@ Open **Webhooks** and select **Trigger webhook**. The form exposes:
 
 | Field | Required | Meaning |
 | --- | --- | --- |
-| Custom ID | No | Caller-provided UUID for correlation and duplicate control. |
+| Custom ID | No | Caller-provided UUID used as the Webhook ID. Creation rejects an ID already present; it does not return an existing successful result. |
 | Maximum retries | No | Additional attempts after the initial delivery: `0` disables retries, a positive value caps retries, and `-1` permits retries while delivery remains retained. Omission inherits instance policy. |
 | Save details | No | Retain request details for later inspection. |
+| Stop on unauthenticated | No | Stop after an attempt returns HTTP 401 (`UNAUTHENTICATED`), even if retries remain. The API field is `stopOnStatuses: ["UNAUTHENTICATED"]`. |
 | URL | Yes | Absolute `http` or `https` destination. Use HTTPS in production. |
 | Method | Yes | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`. |
 | Body | For body methods | JSON object or array for `POST`, `PUT`, and `PATCH`. |
@@ -93,9 +100,15 @@ Cancellation stops eligible future processing; it cannot recall a request alread
 
 ## Design for reliable delivery
 
-The receiver should treat the custom ID or another stable business key as idempotent. A transport timeout is ambiguous: the receiver may have committed the request even though RevoEngine did not receive its response.
+A transport timeout is ambiguous: the receiver may have committed the request even though RevoEngine did not receive its response. Put a stable business key explicitly in the receiver-supported request header or body, and require the receiver to enforce it. Neither `customId` nor Webhook metadata automatically implements that receiver contract.
 
-Use metadata to correlate the webhook with the originating Job, Event history, or business object. Alert on terminal failure and exhausted attempts rather than every transient retry.
+For example, if the partner supports `Idempotency-Key`, configure `request.headers["Idempotency-Key"]` as `order-1:ready:v1` on every attempt for that operation. A newly created Webhook can still represent the same business operation.
+
+`customId` must be a UUID. Reusing an existing value rejects creation; it is not a successful idempotent acknowledgement. After an uncertain create response, inspect that Webhook ID before deciding whether to create another request.
+
+A successful HTTP 2xx finishes delivery. If the partner responds 202 and processes work later, observe its separate business status. Cancellation, `maxRetries: 0` and exhausted retries cannot prove that the receiver made no change. See [delivery guarantees](/patterns/delivery-guarantees).
+
+Use [metadata](/patterns/metadata-and-correlation) to correlate the webhook with the originating Job, Event history, or business object. Alert on terminal failure and exhausted attempts rather than every transient retry.
 
 <AccordionGroup>
   <Accordion title="The partner reports a duplicate">
@@ -120,3 +133,5 @@ Use metadata to correlate the webhook with the originating Job, Event history, o
 - Monitor terminal failure and cancellation.
 
 See [HTTP integrations](/low-code/http) when the integration needs an immediate response, multipart data, SSE, or streamed files.
+
+Follow the complete [Event → Job → Webhook example](/patterns/event-to-webhook) to connect configuration, inputs, correlation and observable outcomes.

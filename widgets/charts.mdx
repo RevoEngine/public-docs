@@ -1,0 +1,107 @@
+---
+title: "Charts and data"
+description: "Map returned records to chart series and clickable data points."
+icon: chart-column
+---
+
+A CHART needs a `data` array and an `options` object. The series keys refer to properties in the data records.
+
+```js
+return [
+  [
+    {
+      id: 'ordersByStatus',
+      type: 'CHART',
+      height: 280,
+      data: [
+        { status: 'Open', count: 12 },
+        { status: 'Completed', count: 28 },
+      ],
+      options: {
+        series: [
+          {
+            type: 'bar',
+            xKey: 'status',
+            yKey: 'count',
+            yName: 'Orders',
+          },
+        ],
+      },
+    },
+  ],
+];
+```
+
+The example displays two categories, **Open: 12** and **Completed: 28**. `xKey` and `yKey` are record fields, not UI cell IDs.
+
+## Series fields
+
+| Field | Purpose |
+| --- | --- |
+| `data` | Records used by the chart. |
+| `options.series` | Array of series definitions. |
+| `series[].type` | Chart-series type, such as `bar` or `line`. |
+| `series[].xKey`, `yKey` | Data properties for Cartesian series. |
+| `series[].yName` | Visible series name. |
+| `on.pointClick` | Action for a clicked datum, accessed through `event.datum`. |
+
+Use numeric data on numeric axes. For horizontal bars, use a number x-axis and a category y-axis, or omit explicit axes. A label such as `Open` cannot be placed on a number axis.
+
+## Supported series in Assistant cards
+
+The serializable chart contract accepts the following series. Required keys name properties in `data` records; a nonempty dataset must contain those properties.
+
+| Series | Required data keys |
+| --- | --- |
+| `bar`, `line`, `area`, `scatter`, `waterfall` | `xKey`, `yKey` |
+| `pie`, `donut` | `angleKey` |
+| `bubble` | `xKey`, `yKey`, `sizeKey` |
+| `histogram` | `xKey` |
+| `range-area`, `range-bar` | `xKey`, `yLowKey`, `yHighKey` |
+| `heatmap` | `xKey`, `yKey`; optional `colorKey` |
+| `box-plot` | `xKey`, `minKey`, `q1Key`, `medianKey`, `q3Key`, `maxKey` |
+| `funnel`, `pyramid` | `stageKey`, `valueKey` |
+
+Use 1–16 series. Box-plot quantiles must be finite and ordered from minimum to maximum. Funnel and pyramid values must be finite numbers. Chart callbacks and listener functions are not part of the serializable contract; use `on.pointClick` for interactions.
+
+## Gauges
+
+A gauge puts its type and value directly in `options`. Use an empty data array and omit series and legend:
+
+```js
+return [
+  [
+    {
+      id: 'completion',
+      type: 'CHART',
+      height: 240,
+      data: [],
+      options: {
+        type: 'radial-gauge',
+        value: 72,
+        scale: { min: 0, max: 100 },
+      },
+    },
+  ],
+];
+```
+
+`radial-gauge` and `linear-gauge` require finite values within the numeric scale. Optional `targets` contains up to 16 objects whose `value` also lies within that scale.
+
+## Chart-to-filter pattern
+
+Declare a status INPUT and a result TABLE first. A chart action can then set the control from the clicked datum and refresh the table:
+
+```js
+const on = {
+  pointClick: {
+    type: 'REFRESH',
+    target: 'orders',
+    set: { status: { from: 'event', path: 'datum.status' } },
+  },
+};
+```
+
+This fragment belongs on the chart; `status` and `orders` must exist in the current frame. `set` does not create a missing input.
+
+For a complete bounded query with a chart and table, see [Chart Job runs](/widgets/examples/job-chart).

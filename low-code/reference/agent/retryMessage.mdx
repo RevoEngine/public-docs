@@ -1,0 +1,37 @@
+---
+title: agent.retryMessage()
+sidebarTitle: retryMessage()
+description: Public low-code contract, signatures and examples for agent.retryMessage.
+icon: code
+---
+
+<span id="agent-retryMessage" aria-hidden="true"></span>
+
+## `agent.retryMessage()`
+
+Retries one assistant message.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static retryMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+    ): Promise<AssistantThreadResponse>;
+
+static retryMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.retryMessage(assistantThreadId, assistantMessageId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

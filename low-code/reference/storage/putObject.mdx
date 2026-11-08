@@ -1,0 +1,36 @@
+---
+title: storage.putObject()
+sidebarTitle: putObject()
+description: Public low-code contract, signatures and examples for storage.putObject.
+icon: code
+---
+
+<span id="storage-putObject" aria-hidden="true"></span>
+
+## `storage.putObject()`
+
+Uploads a small object in one request in the default `explorer` namespace.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static putObject(data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
+
+static putObject(namespace: string, data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const file = await storage.putObject({
+  name: 'summary.md',
+  data: '# Daily summary',
+  mimeType: 'text/markdown',
+  computeStats: 'sync',
+});
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

@@ -1,0 +1,78 @@
+---
+title: "Feature directory"
+description: "Find the product contract, configuration and practical examples for each RevoEngine workspace."
+icon: "map"
+---
+
+Start with the feature you need. Each guide explains the general RevoEngine contract; Asterion Supply examples demonstrate possible uses with synthetic business data. A sample’s settings are not platform defaults or a requirement to model your application the same way.
+
+## Build and release
+
+| Feature | Use it for | Guide |
+| --- | --- | --- |
+| Components and elements | Reusable business logic, validation and integration adapters | [Components](/build/components), [configuration](/build/component-configuration) |
+| Libraries | Shared pricing, transformations and typed contracts | [Libraries](/build/libraries), [authoring](/build/library-authoring) |
+| Custom Node.js | Work requiring a configured custom runtime | [Custom runtime](/build/custom-nodejs) |
+| Studio Components / Usage / Scratch | Source editing, dependency navigation, experiments and debugging | [Studio](/build/web-ide), [debugging](/build/debugging) |
+| Studio sessions | Saved multi-Component drafts, collaboration, tests, review and activation | [Session workflow](/build/studio-sessions) |
+| Native tests | Captured fixtures and separately approved integration evidence | [Tests](/build/native-tests) |
+| Versions and history | Compare changes, identify active code and plan recovery | [Versions](/platform/environments-and-versions) |
+| CLI / SDK / MCP | Local projects, automation and governed external tools | [CLI](/developers/cli), [SDK](/developers/sdk-overview), [MCP](/developers/mcp-sessions) |
+
+## Serve and deliver work
+
+| Feature | Use it for | Guide |
+| --- | --- | --- |
+| HTTP Endpoints | A completed lookup, quote or bounded command response | [HTTP responses](/operate/endpoint-http), [configuration and identity](/operate/endpoint-configuration) |
+| SSE Endpoints | Incremental progress or AI output while a request remains connected | [Streaming lifecycle](/operate/endpoint-sse), [browser client](/operate/sse-browser-client) |
+| Job templates and history | Durable background work with policy, attempts and retained results | [Jobs](/operate/jobs), [failure notifications](/operate/job-notifications) |
+| Events and Event History | Filter a business occurrence, select targets, inspect fan-out and replay | [Events](/operate/events), [filters](/operate/event-filters), [history](/operate/event-history) |
+| Schedules and Schedule History | Timed Jobs, Agent work or materialized-view refresh | [Schedules](/operate/schedules), [target configuration](/operate/schedule-targets) |
+| Webhooks | Outbound HTTP delivery with bounded attempts and evidence | [Webhooks](/operate/webhooks), [delivery guarantees](/patterns/delivery-guarantees) |
+| Realtime | Refresh connected clients after resource changes | [Realtime](/operate/realtime) |
+| Concurrency, keys and idempotency | Bound parallel work and distinguish duplicate admission from repeated business effects | [Concurrency](/patterns/job-concurrency), [idempotency](/patterns/idempotency) |
+| Metadata and correlation | Attach searchable business context without confusing it with payload or permissions | [Metadata](/patterns/metadata-and-correlation) |
+
+## Store, query and present data
+
+| Feature | Use it for | Guide |
+| --- | --- | --- |
+| Database Tables | Typed rows, keys, schema and indexes | [Definitions](/operate/database-definitions), [queries](/operate/database-queries), [mutations](/operate/database-mutations) |
+| Views / Materialized Views | Governed projections and refreshed reporting data | [Views](/operate/database-views), [refresh](/operate/materialized-views) |
+| Database Operations | Retained validation, schema, import and export progress | [Database workspace](/operate/databases), [exports](/operate/database-exports) |
+| Database Audit | Inspect authorized row-change history | [Audit](/operate/database-audit) |
+| Cache Explorer | Inspect derived values and expiry | [Cache](/operate/database-cache) |
+| Storage | Files, folders, ACLs, uploads, previews and expiry | [Storage](/operate/storage), [uploads](/operate/storage-uploads) |
+| Structured files | CSV/XLSX schema and typed row processing | [Structured files](/operate/storage-structured-files) |
+| Dashboards | Role-aware operational views | [Dashboards](/operate/dashboards) |
+| Custom widgets | Rows, matrix layout, fields, IDs, inputs, actions and reactive state | [Widget basics](/widgets/overview), [examples](/widgets/examples/form-job) |
+
+## AI and collaboration
+
+| Feature | Use it for | Guide |
+| --- | --- | --- |
+| Interactive Assistant | Investigate, author and operate with the current user’s access | [Assistant](/ai/assistant) |
+| Autonomous Agents | Stable governed workers with identity, runs, sessions and Inbox | [Agents](/ai/agents), [configuration](/ai/agent-configuration), [operations](/ai/agent-operations) |
+| Plans and approvals | Review intended work and govern consequential actions | [Approval lifecycle](/ai/approvals-and-plans) |
+| Plugins and skills | Attach approved domain guidance and capabilities | [Plugins](/ai/plugins), [business tools](/ai/business-plugins), [skills](/ai/tools-and-skills) |
+| Memory and workspaces | Separate current work, durable context and files | [Memory](/ai/memory-and-workspaces) |
+| Terminals | Run commands, tests and file operations on an approved workspace | [Terminal permissions and lifecycle](/ai/terminals) |
+| Browser / Live Preview | Inspect a running application, complete a private human step and capture evidence | [Browser](/ai/browser), [saved profiles](/ai/browser-profiles) |
+| Shared threads and reports | Share permitted conversation history or send product feedback | [Assistant workflow](/ai/assistant) |
+| Chat and System inbox | Human collaboration and operational notifications | [Chat](/operate/chat) |
+
+## Govern and diagnose
+
+| Feature | Use it for | Guide |
+| --- | --- | --- |
+| Users / Service Accounts | Human and workload identities with separate lifecycles | [Users](/operate/users), [Service Accounts](/operate/service-accounts) |
+| Groups / Permissions | Resource membership and reusable platform roles | [Groups](/operate/groups), [Permissions](/operate/permissions) |
+| SSO / OIDC / MFA / devices | Enterprise identity and eligible instance sessions | [SSO](/operate/sso-and-oidc), [account security](/platform/account-security) |
+| Secrets / Vault | Versioned credentials, personal grants and external OAuth connections | [Secrets](/operate/secrets), [Vault](/operate/vault) |
+| Personal settings | Appearance, editor behavior, notifications and Assistant defaults | [Personal settings](/platform/personal-settings) |
+| Instance settings | Identity, addresses, auth policy, usage, limits, libraries, execution and retention | [Settings reference](/platform/instance-settings), [AI policy](/ai/instance-ai-settings) |
+| Observability / executions | Find the initiating request, dependent executions and outcome | [Observability](/operate/observability) |
+| Logs / Trace / Activity history | Inspect recorded evidence and correlate resource or runtime changes | [Logs](/operate/logs), [Trace](/operate/traces) |
+| Search / favourites / Quick Access | Find exact resources and return to saved views | [Search](/platform/search), [UI tour](/platform/ui-tour) |
+
+Availability still depends on roles, resource access, instance policy and the specific feature’s documented prerequisites. A visible navigation item is not permission to invoke every action inside it.

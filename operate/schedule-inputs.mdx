@@ -1,0 +1,46 @@
+---
+title: "Configure Schedule input"
+description: "Run the same Job template with different input for each cadence."
+icon: book-open
+---
+
+## Configure Runtime input for a Job target
+
+For a Job target, use the expanded **Options** section at the bottom of the Schedule editor. Enter a JSON object in **Runtime input**, using the same editor as Job templates, and select **Override**, **Deep Override** or **Replace** from the dropdown with icons and descriptions.
+
+| Mode | Effective `templateInputs` |
+| --- | --- |
+| **Override** (default) | `{ ...jobTemplateInput, ...scheduleInput }`: Schedule keys take precedence; other Job defaults remain. |
+| **Deep Override** | Recursively combines nested objects with automation values taking precedence. Arrays are replaced in full; `null` stays a value. |
+| **Replace** | Only the Schedule input. An empty `{}` clears all Job template defaults for this execution. |
+
+Override is shallow: nested objects and arrays replace the value at their top-level key rather than merging recursively. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
+
+Use **Deep Override** to change part of a nested configuration. For example, Job defaults `{ "export": { "format": "csv", "encoding": "utf8" } }` and automation input `{ "export": { "format": "xlsx" } }` produce `{ "export": { "format": "xlsx", "encoding": "utf8" } }`. An empty nested object preserves existing nested values; a change of value type replaces the whole value. Arrays are never concatenated, and `null` does not delete a field. Existing **Override** and **Replace** behavior is unchanged.
+
+The Component reads the resolved object through `api.input('templateInputs')`. These settings apply to both cron occurrences and manual **Run**. They do not change the Job template's execution policy, concurrency, or retry settings, and do not configure Agent or Materialized View targets.
+
+The Platform API uses `inputMode: "override"` for **Override**, `inputMode: "deep_override"` for **Deep Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+
+New definitions use `input: {}` and `inputMode: "override"` by default, preserving Job defaults. API updates retain stored fields when those fields are omitted. Send both fields to return to the defaults.
+
+### One export Job, two cadences
+
+Keep one price-list export Job template with Runtime input:
+
+```json
+{ "region": "eu", "full": false }
+```
+
+Create two Schedules targeting that same template:
+
+| Schedule | Cron | Runtime input | Input mode |
+| --- | --- | --- | --- |
+| Weekday partial export | `0 2 * * MON-FRI` | `{ "full": false }` | Override |
+| Weekend full export | `0 2 * * SAT` | `{ "full": true }` | Override |
+
+Both keep `region: "eu"` and share the template's Component, principal, concurrency, and retry policy. The Component selects the export path from `api.input('templateInputs').full`.
+
+An accepted occurrence retains its Runtime input and mode. Later Schedule edits affect subsequent occurrences, not Jobs already queued or running or their retry attempts.
+
+Continue with [schedules](/operate/schedules).

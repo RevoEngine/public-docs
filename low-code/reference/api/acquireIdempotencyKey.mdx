@@ -1,0 +1,34 @@
+---
+title: api.acquireIdempotencyKey()
+sidebarTitle: acquireIdempotencyKey()
+description: Public low-code contract, signatures and examples for api.acquireIdempotencyKey.
+icon: code
+---
+
+<span id="api-acquireIdempotencyKey" aria-hidden="true"></span>
+
+## `api.acquireIdempotencyKey()`
+
+Acquires a durable instance-scoped idempotency key.
+
+Notes:
+- Cache outages do not remove duplicate protection; durable storage failure rejects admission.
+- Unavailable with readOnly: true; throws READ_ONLY_OPERATION_FORBIDDEN.
+
+### Signature
+
+```ts
+static acquireIdempotencyKey(
+      key: string,
+      ttl: number,
+      value?: any,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const first = await api.acquireIdempotencyKey('orders:123', 600, { state: 'running' });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,30 @@
+---
+title: vault.rotate()
+sidebarTitle: rotate()
+description: Public low-code contract, signatures and examples for vault.rotate.
+icon: code
+---
+
+<span id="vault-rotate" aria-hidden="true"></span>
+
+## `vault.rotate()`
+
+Adds a new immutable revision to an existing parent. Returns its metadata, never value.
+Default/null validFrom activates now and retires previous eligible/scheduled revisions.
+A future validFrom schedules activation while the current value remains available until then.
+Duplicate validFrom conflicts. Cache invalidation follows commit; no relogin is required.
+Instance total/active revision quotas remain enforced.
+
+### Signature
+
+```ts
+static rotate(name: string, data: SecretRotateInput, options?: SecretRotateOptions): Promise<SecretWithRevision | null>;
+```
+### Example
+
+```ts
+const rotated = await vault.rotate('TOKEN', { value: input.token }, { scope: 'user', validFrom: null });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

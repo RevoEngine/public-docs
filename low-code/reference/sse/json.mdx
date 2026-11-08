@@ -1,0 +1,26 @@
+---
+title: sse.json()
+sidebarTitle: json()
+description: Public low-code contract, signatures and examples for sse.json.
+icon: code
+---
+
+<span id="sse-json" aria-hidden="true"></span>
+
+## `sse.json()`
+
+Serialize JSON and send it as SSE data. Configured automatic terminal event names are reserved; null disables a terminal frame.
+
+### Signature
+
+```ts
+static json(data: JsonValue, options?: SseOptions): Promise<void>;
+```
+### Example
+
+```ts
+await sse.json({ current: 1, total: 10 }, { event: 'progress', id: '1' });
+```
+
+
+See [all sse methods](/low-code/reference/sse) or [runtime basics](/low-code/overview).

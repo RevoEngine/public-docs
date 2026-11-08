@@ -1,0 +1,62 @@
+---
+title: util.jwtSign()
+sidebarTitle: jwtSign()
+description: Public low-code contract, signatures and examples for util.jwtSign.
+icon: code
+---
+
+<span id="util-jwtSign" aria-hidden="true"></span>
+
+## `util.jwtSign()`
+
+Signs a JWT.
+
+### Signature
+
+```ts
+static jwtSign(
+      payload: string | object,
+      secret: string | { key: string; passphrase: string },
+      options?: {
+        algorithm?:
+          | 'HS256'
+          | 'HS384'
+          | 'HS512'
+          | 'RS256'
+          | 'RS384'
+          | 'RS512'
+          | 'ES256'
+          | 'ES384'
+          | 'ES512'
+          | 'PS256'
+          | 'PS384'
+          | 'PS512'
+          | 'none';
+        keyid?: string;
+        expiresIn?: string | number;
+        notBefore?: string | number;
+        audience?: string | string[];
+        subject?: string;
+        issuer?: string;
+        jwtid?: string;
+        mutatePayload?: boolean;
+        noTimestamp?: boolean;
+        header?: JWTHeader;
+        encoding?: string;
+        allowInsecureKeySizes?: boolean;
+        allowInvalidAsymmetricKeyTypes?: boolean;
+      },
+    ): string;
+```
+### Example
+
+```ts
+const token = util.jwtSign(
+  { sub: 'c-1' },
+  secret,
+  { expiresIn: '1h' },
+);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

@@ -1,0 +1,21 @@
+---
+title: serviceAccount.revokeKey()
+sidebarTitle: revokeKey()
+description: Public low-code contract, signatures and examples for serviceAccount.revokeKey.
+icon: code
+---
+
+<span id="serviceAccount-revokeKey" aria-hidden="true"></span>
+
+## `serviceAccount.revokeKey()`
+
+Revokes a key without requiring a delegation ceiling; role, ACL and target rank still apply.
+Example: await serviceAccount.revokeKey('erp-sync', input.userKeyId);
+
+### Signature
+
+```ts
+static revokeKey(ref: ServiceAccountRef, userKeyId: string): Promise<ServiceAccountKey>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

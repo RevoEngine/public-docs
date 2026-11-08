@@ -1,0 +1,29 @@
+---
+title: agent.cancelThread()
+sidebarTitle: cancelThread()
+description: Public low-code contract, signatures and examples for agent.cancelThread.
+icon: code
+---
+
+<span id="agent-cancelThread" aria-hidden="true"></span>
+
+## `agent.cancelThread()`
+
+Cancels in-flight work on a thread.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static cancelThread(assistantThreadId: string, expectedVersion: number): Promise<void>;
+```
+### Example
+
+```ts
+await agent.cancelThread(assistantThreadId, thread.version);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

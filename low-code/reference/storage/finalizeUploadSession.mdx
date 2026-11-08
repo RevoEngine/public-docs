@@ -1,0 +1,40 @@
+---
+title: storage.finalizeUploadSession()
+sidebarTitle: finalizeUploadSession()
+description: Public low-code contract, signatures and examples for storage.finalizeUploadSession.
+icon: code
+---
+
+<span id="storage-finalizeUploadSession" aria-hidden="true"></span>
+
+## `storage.finalizeUploadSession()`
+
+Finalizes a chunked or incremental upload session and materializes the
+Storage entry. Managed direct uploads finalize automatically and should be
+observed with `getUploadSession()` instead of calling this method.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static finalizeUploadSession(
+      storageUploadSessionId: string,
+      data?: StorageUploadSessionFinalizeInput,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
+
+static finalizeUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+      data?: StorageUploadSessionFinalizeInput,
+    ): Promise<{ session: StorageUploadSession; entry: StorageEntryView; fileStats?: StorageFileStats }>;
+```
+### Example
+
+```ts
+const result = await storage.finalizeUploadSession(storageUploadSessionId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

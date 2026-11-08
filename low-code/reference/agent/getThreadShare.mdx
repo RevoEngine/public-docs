@@ -1,0 +1,28 @@
+---
+title: agent.getThreadShare()
+sidebarTitle: getThreadShare()
+description: Public low-code contract, signatures and examples for agent.getThreadShare.
+icon: code
+---
+
+<span id="agent-getThreadShare" aria-hidden="true"></span>
+
+## `agent.getThreadShare()`
+
+Returns the current share state for a thread owned by the current user.
+
+### Signature
+
+```ts
+static getThreadShare(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadShare | null>;
+```
+### Example
+
+```ts
+const share = await agent.getThreadShare(assistantThreadId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

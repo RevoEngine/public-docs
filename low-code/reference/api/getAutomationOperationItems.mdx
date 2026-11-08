@@ -1,0 +1,26 @@
+---
+title: api.getAutomationOperationItems()
+sidebarTitle: getAutomationOperationItems()
+description: Public low-code contract, signatures and examples for api.getAutomationOperationItems.
+icon: code
+---
+
+<span id="api-getAutomationOperationItems" aria-hidden="true"></span>
+
+## `api.getAutomationOperationItems()`
+
+Read a page of safe per-item outcomes without saved request bodies. Pass nextCursor as after to read the next page.
+
+### Signature
+
+```ts
+static getAutomationOperationItems(operationId: string, after?: string): Promise<{ data: Array<{ resourceId: string; status: string; resultId: string | null; errorCode: string | null }>; nextCursor: string | null }>;
+```
+### Example
+
+```ts
+const page = await api.getAutomationOperationItems(input.operationId);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,34 @@
+---
+title: agent.pushInbox()
+sidebarTitle: pushInbox()
+description: Public low-code contract, signatures and examples for agent.pushInbox.
+icon: code
+---
+
+<span id="agent-pushInbox" aria-hidden="true"></span>
+
+## `agent.pushInbox()`
+
+Enqueues a new inbox item for an agent.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static pushInbox(
+      agentId: string,
+      data: AgentInboxItemCreateInput,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.pushInbox(agentId, {
+  instruction: 'Review failed deploy logs.',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

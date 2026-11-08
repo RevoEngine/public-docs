@@ -1,0 +1,51 @@
+---
+title: storage.walkFileData()
+sidebarTitle: walkFileData()
+description: Public low-code contract, signatures and examples for storage.walkFileData.
+icon: code
+---
+
+<span id="storage-walkFileData" aria-hidden="true"></span>
+
+## `storage.walkFileData()`
+
+Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
+or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
+and binary files are not supported in record mode. mode: "lines" supports physical text lines without parsing CSV fields.
+Omitted take scans all rows. XLSX uses the first visible sheet by default;
+XML requires recordPath.
+Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
+Source changes or callback errors stop the scan. Invalid CSV syntax rejects indexing
+with STORAGE_CSV_INVALID before the first business callback; diagnostics contain no raw data.
+Keep only aggregates.
+
+### Overloads
+
+```ts
+static walkFileData<T = any>(
+      storageEntryId: string,
+      read: StorageWalkReadOptions,
+      callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
+      options?: StorageWalkOptions,
+    ): Promise<StorageWalkResult>;
+
+static walkFileData<T = any>(
+      namespace: string,
+      storageEntryId: string,
+      read: StorageWalkReadOptions,
+      callback: (rows: T[], context: StorageWalkContext) => void | Promise<void>,
+      options?: StorageWalkOptions,
+    ): Promise<StorageWalkResult>;
+```
+### Example
+
+```ts
+let processed = 0;
+await storage.walkFileData(storageEntryId, {}, async (rows) => {
+  processed += rows.length;
+}, { fullScan: true });
+return { processed };
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

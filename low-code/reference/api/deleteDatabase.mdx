@@ -1,0 +1,29 @@
+---
+title: api.deleteDatabase()
+sidebarTitle: deleteDatabase()
+description: Public low-code contract, signatures and examples for api.deleteDatabase.
+icon: code
+---
+
+<span id="api-deleteDatabase" aria-hidden="true"></span>
+
+## `api.deleteDatabase()`
+
+Soft-deletes a logical database and its active partition subtree by name.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static deleteDatabase(name: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.deleteDatabase('orders');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

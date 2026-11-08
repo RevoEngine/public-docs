@@ -1,0 +1,26 @@
+---
+title: api.getExpireInstanceCache()
+sidebarTitle: getExpireInstanceCache()
+description: Public low-code contract, signatures and examples for api.getExpireInstanceCache.
+icon: code
+---
+
+<span id="api-getExpireInstanceCache" aria-hidden="true"></span>
+
+## `api.getExpireInstanceCache()`
+
+Returns cache TTL in seconds, 0 for no expiry, or null when the key does not exist.
+
+### Signature
+
+```ts
+static getExpireInstanceCache(key: string): Promise<number | null>;
+```
+### Example
+
+```ts
+const ttl = await api.getExpireInstanceCache('sync:state');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

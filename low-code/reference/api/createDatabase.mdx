@@ -1,0 +1,44 @@
+---
+title: api.createDatabase()
+sidebarTitle: createDatabase()
+description: Public low-code contract, signatures and examples for api.createDatabase.
+icon: code
+---
+
+<span id="api-createDatabase" aria-hidden="true"></span>
+
+## `api.createDatabase()`
+
+Creates a logical database through durable Database Operations and waits for verified DDL commit.
+Accepted work survives a disconnected caller. Standard index builds can block writes.
+The server assigns databaseId, version, and timestamps;
+never generate or send those values. A normal database needs at least one definition.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static createDatabase(data: DatabaseCreateInput): Promise<Database>;
+```
+### Example
+
+```ts
+await api.createDatabase({
+  name: 'audit_log',
+  category: 'Ops',
+  desc: 'Audit',
+  restricted: false,
+  groups: [],
+  users: [],
+  definition: [{
+    name: 'auditId', type: 'UUID',
+    isPrimaryKey: true, isArray: false, isUnique: true,
+    isNullable: false, isIndex: true, foreignReferences: [],
+  }],
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

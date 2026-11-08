@@ -1,0 +1,26 @@
+---
+title: sse.send()
+sidebarTitle: send()
+description: Public low-code contract, signatures and examples for sse.send.
+icon: code
+---
+
+<span id="sse-send" aria-hidden="true"></span>
+
+## `sse.send()`
+
+Send text as SSE data. Await for backpressure, not acknowledgement by the receiver.
+
+### Signature
+
+```ts
+static send(data: string, options?: SseOptions): Promise<void>;
+```
+### Example
+
+```ts
+await sse.send('Hello', { event: 'delta', id: '1', retry: 3000 });
+```
+
+
+See [all sse methods](/low-code/reference/sse) or [runtime basics](/low-code/overview).

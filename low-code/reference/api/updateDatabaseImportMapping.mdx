@@ -1,0 +1,22 @@
+---
+title: api.updateDatabaseImportMapping()
+sidebarTitle: updateDatabaseImportMapping()
+description: Public low-code contract, signatures and examples for api.updateDatabaseImportMapping.
+icon: code
+---
+
+<span id="api-updateDatabaseImportMapping" aria-hidden="true"></span>
+
+## `api.updateDatabaseImportMapping()`
+
+Revalidates a corrected source-to-target mapping.
+
+### Signature
+
+```ts
+static updateDatabaseImportMapping(
+      importId: string, mapping: NonNullable<ImportDatabaseOptions['mapping']>,
+    ): Promise<{ importId: string; status: string }>;
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

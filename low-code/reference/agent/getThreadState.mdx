@@ -1,0 +1,28 @@
+---
+title: agent.getThreadState()
+sidebarTitle: getThreadState()
+description: Public low-code contract, signatures and examples for agent.getThreadState.
+icon: code
+---
+
+<span id="agent-getThreadState" aria-hidden="true"></span>
+
+## `agent.getThreadState()`
+
+Returns the hidden runtime planning state for a thread.
+
+### Signature
+
+```ts
+static getThreadState(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadState>;
+```
+### Example
+
+```ts
+const state = await agent.getThreadState(assistantThreadId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

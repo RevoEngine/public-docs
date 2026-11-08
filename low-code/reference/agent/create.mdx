@@ -1,0 +1,41 @@
+---
+title: agent.create()
+sidebarTitle: create()
+description: Public low-code contract, signatures and examples for agent.create.
+icon: code
+---
+
+<span id="agent-create" aria-hidden="true"></span>
+
+## `agent.create()`
+
+Creates a new agent. The server creates agentId, status, managed workspace,
+timestamps, and version; supply an existing service-account user id only.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static create(data: AgentCreateInput): Promise<Agent>;
+```
+### Example
+
+```ts
+const created = await agent.create({
+  name: 'Ops copilot',
+  serviceAccountUserId: userId,
+  config: {
+    systemInstructions: 'Translate each requested message to English.',
+    contextMode: 'minimal',
+    responseFormat: { type: 'json', strict: true, schema: {
+      type: 'object', properties: { translation: { type: 'string' } },
+      required: ['translation'], additionalProperties: false,
+    } },
+  },
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

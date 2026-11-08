@@ -1,0 +1,28 @@
+---
+title: util.timingSafeEqual()
+sidebarTitle: timingSafeEqual()
+description: Public low-code contract, signatures and examples for util.timingSafeEqual.
+icon: code
+---
+
+<span id="util-timingSafeEqual" aria-hidden="true"></span>
+
+## `util.timingSafeEqual()`
+
+Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
+```
+### Example
+
+```ts
+const match = util.timingSafeEqual(a, b);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

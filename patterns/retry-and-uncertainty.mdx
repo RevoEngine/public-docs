@@ -1,0 +1,54 @@
+---
+title: "Retries and uncertain outcomes"
+description: "Distinguish execution failure, delivery retry and an effect awaiting confirmation."
+sidebarTitle: Retries and uncertainty
+icon: arrows-rotate
+---
+
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
+A retry is a new attempt to achieve the same business result. Before enabling it, decide how repeated calls identify that operation and where the outcome can be verified.
+
+## Explore the behavior
+
+<FlowDemo topic="job" />
+
+## Three different situations
+
+| Situation | What to do |
+| --- | --- |
+| Job reaches terminal `ERROR` | The configured retry policy may create a child attempt. |
+| Job is waiting for a concurrency slot | Retry admission; this is not a failed business attempt. |
+| HTTP timeout or interrupted write | Inspect durable evidence or the destination before repeating the effect. |
+
+## Job retry policy
+
+Set the following object under a template's `options.retry`:
+
+```json
+{
+  "enabled": true,
+  "maxAttempts": 3,
+  "minBackoffSeconds": 30,
+  "maxBackoffSeconds": 300,
+  "maxDoublings": 3,
+  "bypassConcurrencyOnRetry": false
+}
+```
+
+`maxAttempts` includes the original attempt, so this allows two retries. A failed Job remains in history and its child carries retry lineage. Cancellation, success and expiration do not create automatic retry children.
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `enabled` | `false` | Enables automatic retry on terminal error. |
+| `maxAttempts` | Unbounded when omitted or null and retry is enabled | Total attempts; a configured finite value is at least 2. |
+| `minBackoffSeconds` | 30 | Initial delay before jitter; at least 1 and no greater than the maximum. |
+| `maxBackoffSeconds` | 3600 | Maximum delay; 60 seconds to 30 days. |
+| `maxDoublings` | 5 | Exponential doublings before linear growth; 0–16. |
+| `bypassConcurrencyOnRetry` | `false` | Whether automatic retry children bypass template admission. |
+
+## Reconcile uncertain effects
+
+A disconnected caller cannot establish whether a remote mutation committed. Keep its operation key and receipt, query the destination or durable business record, and classify the result as confirmed success, confirmed failure or still unknown.
+
+Do not turn unknown into zero, an empty dataset or an automatic second payment. [Idempotency](/patterns/idempotency) makes retries safer, while [Job history](/operate/jobs#read-attempt-status-and-job-result) shows what each attempt actually established.

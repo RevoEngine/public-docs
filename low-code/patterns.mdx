@@ -1,106 +1,36 @@
 ---
-title: Production patterns
-description: Practical patterns for reliable RevoEngine low-code components.
-icon: list-check
+title: "Patterns"
+description: "Choose a focused pattern for capacity, retries, transactions and data size."
+icon: shapes
 ---
 
-## Validate early
+Start from the failure or workload you need to control. Each pattern explains the boundary, configuration and observable result.
 
-Reject missing or invalid input before external calls. Keep endpoint validation and component checks aligned so background and direct executions behave consistently.
+<CardGroup cols={2}>
+  <Card title="Job concurrency" icon="layer-group" href="/patterns/job-concurrency">Protect a shared system with a configured execution limit.</Card>
+  <Card title="Key design" icon="key" href="/patterns/coordination-keys">Decide which operations should share capacity or duplicate protection.</Card>
+  <Card title="Low-code admission" icon="code" href="/patterns/low-code-concurrency">Acquire a slot for a bounded operation with a dynamic key.</Card>
+  <Card title="Idempotency" icon="shield-check" href="/patterns/idempotency">Keep repeated delivery from repeating an intended business effect.</Card>
+  <Card title="Retries and uncertainty" icon="arrows-rotate" href="/patterns/retry-and-uncertainty">Distinguish failure from an outcome that still needs confirmation.</Card>
+  <Card title="Acceptance and completion" icon="clock" href="/patterns/acceptance-and-completion">Expose the operation ID before a background result is ready.</Card>
+  <Card title="Local transactions" icon="database" href="/patterns/transactions">Keep local writes atomic and external work reconcilable.</Card>
+  <Card title="Bounded data" icon="filter" href="/patterns/bounded-data">Choose pagination, streaming and partial results deliberately.</Card>
+</CardGroup>
 
-```js
-const orderId = api.input('orderId');
-if (typeof orderId !== 'string' || orderId.length === 0) {
-  api.throw(400, { code: 'INVALID_ORDER_ID' });
-}
-```
+## Authoring practices
 
-## Make retries explicit
+Validate input before external calls and enforce business constraints in the executing Component. Use Libraries for shared in-process rules, Components for execution units, Endpoints for HTTP boundaries and Jobs for durable work. Resolve Secrets at runtime and avoid copying them into logs or results.
 
-RevoEngine does not blindly retry synchronous endpoint or SDK mutations. Use idempotency keys supported by the destination and record the correlation identifier with the execution result.
+Return stable execution, operation or resource IDs so the next caller can follow evidence. See [runtime basics](/low-code/overview), [Library authoring](/build/library-authoring), [Secrets](/operate/secrets) and [Observability](/operate/observability).
 
-For durable work, place the retry policy on a Job or Agent workflow and make the business effect idempotent. A timeout or disconnected caller does not prove that the previous attempt failed.
-
-```js
-const operationKey = `invoice:${api.input('invoiceId')}:issue:v1`;
-// Persist or send this key through the destination's supported idempotency contract.
-```
-
-## Bound every read
-
-Select only required database fields, use filters and `take`, and paginate. Use Storage streaming for large files and database export APIs for full datasets.
-
-Do not use one large in-memory read as a substitute for a batch workflow. For structured files, declare a schema when you know it, select the required sheet or delimiter, and process bounded pages after finalization.
-
-## Keep transactions local
-
-Use a database transaction for related database changes that must commit together. Do not keep it open while waiting on an external HTTP call, user approval, file transfer, or long-running computation.
-
-```text
-load and validate local state
-  -> commit the local transaction
-  -> enqueue durable external work
-  -> record the external result with an idempotency key
-```
-
-When the external effect and local database cannot share one transaction, design an explicit state machine such as `PENDING → COMPLETED` or `PENDING → FAILED` and make reconciliation possible.
-
-## Keep side effects observable
-
-Log stable identifiers and decisions, not entire payloads. Return resource or execution IDs that an operator can use in Activity, Trace, or Job history.
-
-## Separate reusable logic
-
-- Libraries: shared in-process business rules.
-- Components: reusable execution units with their own inputs and results.
-- Endpoints: synchronous HTTP contracts.
-- Job templates: durable background work.
-- Events: decoupled typed routing.
-
-Publish a reviewed Component as an Agent plugin when a model should select the capability but the business rule must remain deterministic, versioned, and testable. Use a skill for workflow guidance; do not hide executable business logic in prose.
-
-## Handle uncertainty
-
-If an HTTP request, upload, or custom runtime call is interrupted after dispatch, the outcome can be indeterminate. Check the destination or durable RevoEngine record before repeating the operation.
-
-For uploads, distinguish the temporary upload session from the finalized Storage entry. Downstream processing should start from the durable entry and its lifecycle event, not merely from a successful byte transfer.
-
-## Separate acceptance from completion
-
-Endpoints should return synchronously only when the full operation fits the configured timeout and the caller needs the result immediately. For work that is slow, retryable, fan-out, or dependent on an external provider:
-
-1. validate the request;
-2. persist an operation or enqueue a Job;
-3. return an operation identifier;
-4. expose status and terminal evidence separately.
-
-HTTP `202` means accepted, not completed. Document which identifier the caller should poll or correlate.
-
-## Protect secrets
-
-Use `await vault.get()` or `await vault.getAccessToken()` and build the HTTP header explicitly. Queue names and read credentials in the executing handler. Redact error context. Never return a secret value from a Component.
-
-## Return evidence, not internal noise
-
-A production result should tell the next operator or system what happened without exposing implementation details:
-
-```json
-{
-  "operationId": "…",
-  "status": "ACCEPTED",
-  "resourceId": "…"
-}
-```
-
-Keep provider payloads, credentials, stack traces, and large diagnostic objects out of public responses. Correlate them through authorized Logs, Trace, Activity, Job History, or Agent run evidence.
-
-## Production review checklist
-
-- Input is validated at the public boundary and again where business invariants are enforced.
-- Reads, pages, file batches, execution time, and concurrency are bounded.
-- Retried work cannot duplicate a payment, message, provisioned resource, or database transition.
-- External calls do not run inside long-lived database transactions.
-- The execution principal has only the access required by the Component.
-- Secrets are resolved at runtime and never copied to output or logs.
-- The result includes stable correlation or resource identifiers.
-- Failure and indeterminate outcomes have an operator recovery path.
+<span id="validate-early" aria-hidden="true"></span>
+<span id="make-retries-explicit" aria-hidden="true"></span>
+<span id="bound-every-read" aria-hidden="true"></span>
+<span id="keep-transactions-local" aria-hidden="true"></span>
+<span id="keep-side-effects-observable" aria-hidden="true"></span>
+<span id="separate-reusable-logic" aria-hidden="true"></span>
+<span id="handle-uncertainty" aria-hidden="true"></span>
+<span id="separate-acceptance-from-completion" aria-hidden="true"></span>
+<span id="protect-secrets" aria-hidden="true"></span>
+<span id="return-evidence-not-internal-noise" aria-hidden="true"></span>
+<span id="production-review-checklist" aria-hidden="true"></span>

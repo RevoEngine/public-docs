@@ -1,0 +1,21 @@
+---
+title: serviceAccount.getKey()
+sidebarTitle: getKey()
+description: Public low-code contract, signatures and examples for serviceAccount.getKey.
+icon: code
+---
+
+<span id="serviceAccount-getKey" aria-hidden="true"></span>
+
+## `serviceAccount.getKey()`
+
+Reads a key by its UUID; the credential value is never returned.
+Example: const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+
+### Signature
+
+```ts
+static getKey(ref: ServiceAccountRef, userKeyId: string): Promise<ServiceAccountKey>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

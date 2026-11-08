@@ -1,0 +1,20 @@
+---
+title: api.previewAutomationOperation()
+sidebarTitle: previewAutomationOperation()
+description: Public low-code contract, signatures and examples for api.previewAutomationOperation.
+icon: code
+---
+
+<span id="api-previewAutomationOperation" aria-hidden="true"></span>
+
+## `api.previewAutomationOperation()`
+
+Preview is advisory; submit freezes a fresh selection. No request bodies are returned.
+
+### Signature
+
+```ts
+static previewAutomationOperation(resource: 'jobs' | 'webhooks', action: 'cancel' | 'retry' | 'delete', input: JobsBulkInput | WebhooksBulkInput): Promise<{ matched: number; eligible: number }>;
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

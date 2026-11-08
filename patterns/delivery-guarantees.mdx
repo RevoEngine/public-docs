@@ -1,0 +1,60 @@
+---
+title: Delivery, dispatch and exactly-once effects
+description: Separate one accepted occurrence, one initial target Job, delivery attempts and the business result.
+icon: arrows-split-up-and-left
+---
+
+A message reaching RevoEngine, a Job being created and a partner applying a payment are three different facts. Decide which fact your caller needs to observe before selecting an Event, Job, Webhook or synchronous Endpoint.
+
+## Explore the behavior
+
+import { DeliveryDemo, PlaygroundStyle, dispatchExample } from "/snippets/revo-playground.jsx";
+
+<DeliveryDemo />
+
+## Define the boundary before the guarantee
+
+| Boundary | What RevoEngine coordinates | What it does not establish |
+| --- | --- | --- |
+| Accepted Event | Persists the occurrence and its delivery intent before returning its ID | Target completion or an external business effect |
+| Event → Job target | Reuses the recorded initial Job for the same occurrence and Event definition on dispatch redelivery | One Job across different subscriptions, new publications or operator Replays |
+| Schedule occurrence → Job | Reuses the execution associated with that occurrence | One execution across separate due times or manual Runs |
+| Job attempt | Claims eligible execution and protects its terminal transition; application retries are separate attempts | A transaction with a remote service |
+| Outbound Webhook | Coordinates outgoing attempts, records evidence and enforces retry policy | Exactly-once application of the request by the receiver |
+| Endpoint invocation | Processes one caller request under its access, guard and execution policy | Automatic deduplication of a caller's repeated request |
+| Realtime message | Notifies connected clients of changes | A durable replay log or complete delivery history |
+
+Do not describe the whole chain as **exactly-once delivery**. One initial child Job per accepted occurrence and subscription is a narrower property. The externally observable business effect requires its own identity and receiver-side protection.
+
+## Redelivery, replay and retry
+
+**Redelivery** continues the same accepted occurrence. RevoEngine reuses its recorded child identities; it does not create a fresh initial Job for every transport notification. Two Event definitions that target the same Job template are still two subscriptions and can each create a child.
+
+**Replay** is an operator action that creates new occurrence history and evaluates current definitions and filters. It can create new Jobs even when the original Jobs finished. Replaying history does not restore the external world to its previous state.
+
+**Job retry** creates a later attempt with lineage to the earlier attempt and saved input. Waiting for a concurrency slot is not an application failure and does not by itself mean a new attempt.
+
+**Webhook retry** attempts the outbound request again within its delivery policy. `maxRetries: 0` permits one outgoing attempt; a duplicate dispatch does not bypass the attempt limit. That attempt can still commit at the receiver and lose its response. One attempt is not proof of exactly one successful effect.
+
+## Choose the business identity
+
+For issuing the invoice for `order-1`, use a key such as `order-1:invoice:v1` across retries and Replays. The business must decide when a changed request is a genuinely new operation.
+
+| Identifier | Keep it for | Why it is not sufficient on its own |
+| --- | --- | --- |
+| Event occurrence ID | Finding one publication and its deliveries | Replay creates a new occurrence |
+| Event definition ID | Identifying one subscription | The definition can process many business operations |
+| Job / Execution ID | Inspecting a concrete attempt | A later attempt has a different execution identity |
+| Webhook ID / `customId` | Locating one outbound request record | The receiver must explicitly receive and enforce a business key |
+| `metadata.correlationId` | Finding related work | Correlation does not reject duplicate effects |
+| Business operation key | Recognizing the intended effect across deliveries | The receiver must store and enforce it for an adequate retention period |
+
+## Reconcile an uncertain outcome
+
+1. Retain the acceptance receipt and business operation key.
+2. Inspect Job or Webhook history and the receiver's durable record.
+3. If the effect is confirmed, return the stored result instead of repeating it.
+4. If failure before any effect is confirmed, retry under the intended policy.
+5. If the outcome remains unknown, expose that uncertainty and reconcile it before an irreversible retry.
+
+Use [idempotency](/patterns/idempotency) for admission and business-key design, [Webhook delivery](/operate/webhooks) for attempt configuration, and [metadata and correlation](/patterns/metadata-and-correlation) for tracing the chain.

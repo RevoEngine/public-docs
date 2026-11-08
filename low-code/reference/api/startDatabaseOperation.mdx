@@ -1,0 +1,32 @@
+---
+title: api.startDatabaseOperation()
+sidebarTitle: startDatabaseOperation()
+description: Public low-code contract, signatures and examples for api.startDatabaseOperation.
+icon: code
+---
+
+<span id="api-startDatabaseOperation" aria-hidden="true"></span>
+
+## `api.startDatabaseOperation()`
+
+Explicitly starts an UPDATE, DELETE, reviewed view mutation, or TRUNCATE in Operations.
+Existing mutation methods remain synchronous. This call cannot join transactionDatabase.
+System messages are suppressed by default; set skipNotification: false to opt in.
+Retry resumes the remaining durable workset without repeating committed batches.
+
+### Signature
+
+```ts
+static startDatabaseOperation(name: string, options: Omit<DatabaseOperationInput, 'databaseName'>): Promise<{ accepted: true; jobId: string; status: string }>;
+```
+### Example
+
+```ts
+const operation = await api.startDatabaseOperation('orders', {
+  action: 'UPDATE', request: { filter: { field: 'status', op: 'eq', value: 'READY' } },
+  data: { status: 'PROCESSED' }, skipNotification: false,
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

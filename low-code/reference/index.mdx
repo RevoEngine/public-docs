@@ -14,10 +14,10 @@ The low-code runtime is an isolated execution environment, not Node.js or a brow
 | --- | ---: | --- |
 | [`vault`](/low-code/reference/vault) | 11 | Unified instance and user Secret lifecycle, revision values and OAuth integration management. |
 | [`serviceAccount`](/low-code/reference/serviceAccount) | 16 | Service Account lifecycle, management ACLs, execution memberships, and immutable API-key rotation. |
-| [`api`](/low-code/reference/api) | 80 | Execution, platform, Database, HTTP, automation, and compatibility methods. |
-| [`storage`](/low-code/reference/storage) | 46 | Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods. |
+| [`api`](/low-code/reference/api) | 75 | Execution, platform, Database, HTTP, automation, and compatibility methods. |
+| [`storage`](/low-code/reference/storage) | 23 | Explorer Storage folders, objects, sessions, downloads, retention, and lifecycle methods. |
 | [`transport`](/low-code/reference/transport) | 3 | Storage-backed SFTP import, export, and remote file operations with Secret-backed connections. |
-| [`agent`](/low-code/reference/agent) | 56 | Durable Agent, inbox, run, plugin, and Assistant-thread methods. |
+| [`agent`](/low-code/reference/agent) | 48 | Durable Agent, inbox, run, plugin, and Assistant-thread methods. |
 | [`sse`](/low-code/reference/sse) | 5 | Text and JSON events, comments, event IDs, reconnect hints, and remaining execution time. |
 | [`util`](/low-code/reference/util) | 33 | Validation, timing, identifiers, encoding, hashing, signatures, JWT, and crypto helpers. |
 
@@ -30,4 +30,4 @@ The low-code runtime is an isolated execution environment, not Node.js or a brow
 - `util` owns validation and security helpers, including hashing, cryptography, encoding, and identifiers.
 - Active library declarations are resolved through `lib.LibraryName.ElementKey.X`, or `lib.LibraryName.X` for exports from the permanent @default element (initially documentation only), where `X` is an explicitly exported function, class, constant, or other public symbol. `inject()` reads an earlier element in the same ordered component.
 
-Refresh after a declaration change with `npm run sync:low-code-reference`.
+Each method is published on its own page; overloads stay together.

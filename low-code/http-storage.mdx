@@ -1,0 +1,66 @@
+---
+title: "Stream HTTP to Storage"
+description: "Persist an HTTP response without buffering the entire file."
+icon: book-open
+---
+
+## Stream HTTP responses into Storage
+
+Use `responseType: 'storage'` with a flat `target` to keep a large response without buffering it in the Component.
+
+```js
+const folder = await storage.ensureFolderPath('finance/statements');
+
+const response = await api.httpCall(
+  {
+    url: `https://bank.example.com/v2/statements/${api.input(
+      'statementId',
+    )}`,
+    method: 'GET',
+    headers: {
+      'X-API-Key': (await vault.get('BANK_API_KEY')).revision.value,
+    },
+  },
+  {
+    responseType: 'storage',
+    target: {
+      parentStorageEntryId: folder.storageEntryId,
+      name: `${api.input('statementId')}.csv`,
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+      metadata: { source: 'bank-statements' },
+    },
+  },
+);
+
+if (!response.storage)
+  api.throw(502, { upstreamStatus: response.status });
+return response.storage.entry;
+```
+
+Only successful `2xx` bodies are stored. The runtime creates a direct upload session, streams the response, and finalizes it before returning `response.storage.entry`; `response.data` is then `undefined`. Failed writes abort the new session, while a failed replacement keeps the existing entry.
+
+The inverse direction uses `requestType: 'storage'` and `source`:
+
+```js
+await api.httpCall(
+  {
+    url: 'https://signature.example.com/v1/documents',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${
+        (await vault.get('SIGNATURE_TOKEN')).revision.value
+      }`,
+    },
+  },
+  {
+    requestType: 'storage',
+    responseType: 'json',
+    source: { storageEntryId: api.input('documentStorageEntryId') },
+  },
+);
+```
+
+`source` and `target` can be combined for an external conversion API. A target may also fill and finalize an existing active, empty, direct upload session. For caller-controlled parts, incremental generation, repair, schema policy, or resumable upload behavior, use [Storage upload sessions](/operate/storage-uploads) instead.
+
+Continue with [http](/low-code/http).

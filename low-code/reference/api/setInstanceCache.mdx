@@ -1,0 +1,33 @@
+---
+title: api.setInstanceCache()
+sidebarTitle: setInstanceCache()
+description: Public low-code contract, signatures and examples for api.setInstanceCache.
+icon: code
+---
+
+<span id="api-setInstanceCache" aria-hidden="true"></span>
+
+## `api.setInstanceCache()`
+
+Writes instance-scoped cache.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static setInstanceCache(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await api.setInstanceCache('sync:state', { step: 'loading' }, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,36 @@
+---
+title: api.truncateDatabase()
+sidebarTitle: truncateDatabase()
+description: Public low-code contract, signatures and examples for api.truncateDatabase.
+icon: code
+---
+
+<span id="api-truncateDatabase" aria-hidden="true"></span>
+
+## `api.truncateDatabase()`
+
+Removes all rows from a logical database selected by name.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- TRUNCATE does not create row audit events, even when database audit is enabled.
+- Use an ordinary filtered delete, such as primary key IS NOT NULL, to preserve row audit events.
+- Identity counters are preserved by default.
+- Set restartIdentity only when generated key reuse is explicitly intended.
+
+### Signature
+
+```ts
+static truncateDatabase(
+      name: string,
+      options?: TruncateDatabaseOptions,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await api.truncateDatabase('orders', { restartIdentity: false });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -4,10 +4,16 @@ description: Use the instance-scoped application cache for derived state and dur
 icon: bolt
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 Database Cache is the tenant application-cache namespace exposed in
 **Databases → Cache**. Use it for derived or short-lived state that can be rebuilt
 from a durable source. It is not a replacement for a Table, Storage object, Job
 history, or external system of record.
+
+## Explore the behavior
+
+<FlowDemo topic="cache" />
 
 ## Choose the correct cache boundary
 

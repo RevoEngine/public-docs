@@ -1,0 +1,70 @@
+---
+title: Metadata and correlation
+description: Put ownership, routing context and business correlation in the right place without turning metadata into a hidden control plane.
+icon: tags
+---
+
+Metadata is a small JSON object attached to a definition or occurrence. Use it to find related work, record ownership and supply explicit routing context. It is not secret storage, a permission grant or automatic duplicate protection.
+
+## Choose the right object
+
+| Location | Useful content | What consumes it |
+| --- | --- | --- |
+| Component, Event or Job-template definition metadata | Owner, environment, managed integration, portable `stableKey` | Discovery, administration and explicitly configured tools such as CLI identity matching |
+| Published Event metadata | `correlationId`, `operationKey`, `source` | Event history, API filters over `metadata.*`, and the target's `api.input('metadata')` |
+| Event message | Business IDs and the fields subscribers inspect | Filters over `message.*`; the target's `api.input('message')` |
+| A resource's metadata inside an Event message | For example, the Storage entry's `pipeline` label | `message.metadata.pipeline`, a different path from occurrence metadata |
+| Webhook metadata | Originating Event, Job or operation references | RevoEngine history and search; not automatically the outbound HTTP body or headers |
+
+Definition metadata and publication metadata are separate. Adding an owner to an Event definition does not inject that owner into every published message. Put execution configuration in Runtime input, not in an invented metadata field.
+
+## Publish a traceable signal
+
+Run this fragment in a low-code Component after establishing that the order was approved. Register an active custom `ORDER_APPROVED` Event targeting the intended Job template first.
+
+```js
+const eventId = await api.triggerEvent(
+  'ORDER_APPROVED',
+  { orderId: 'order-1', region: 'eu', total: 12500 },
+  {
+    metadata: {
+      correlationId: 'checkout-1',
+      operationKey: 'order-1:invoice:v1',
+      source: 'checkout',
+    },
+  },
+);
+return { accepted: true, eventId };
+```
+
+The returned ID confirms durable Event acceptance, not invoice completion. In the target Component, read `api.input('message')` and `api.input('metadata')`. Validate their contents, load the authoritative order and deliberately carry the operation key into the receiver contract or business record.
+
+For a later Webhook, set its own `metadata` explicitly if you want the same correlation values in Webhook history. Set `request.body` or a receiver-supported header separately when the partner needs that identity. Metadata is not silently forwarded between every product boundary.
+
+## Filter in the correct namespace
+
+An API Event filter can select the occurrence's source:
+
+```json
+{ "field": "metadata.source", "op": "eq", "value": "checkout" }
+```
+
+The visual Event filter editor accepts **message-relative** fields. Entering `metadata.pipeline` there selects `message.metadata.pipeline`, not the occurrence's top-level metadata. Use the API for a filter on top-level `metadata.source`. Explore this distinction in [Event filters](/operate/event-filters#explore-the-behavior).
+
+When searching history, use the structured filter supported by that list operation. Database row filters, Event subscription filters and Platform API history filters are separate contracts; do not copy one query shape into another surface unchanged.
+
+## Keep correlation and protection separate
+
+A `correlationId` groups related activity, such as all steps in checkout. An `operationKey` identifies one business effect, such as issuing one invoice. A resource ID identifies a stored object. They can appear together, but serve different purposes.
+
+Setting `metadata.operationKey` does not call `api.acquireIdempotencyKey()` or make an external service idempotent. Use the [idempotency pattern](/patterns/idempotency) and retain the durable result. A new Event history ID on Replay should not accidentally create a new business identity.
+
+## Limits and handling
+
+Standard user metadata accepts JSON values and is bounded to **16 KiB of UTF-8 JSON** and **64 top-level keys**. Top-level names beginning with `__` are reserved. Use a small consistent schema; avoid changing a numeric field to a string across producers.
+
+Store large payloads in Storage or Tables and carry their IDs. Keep credentials, raw authorization headers and sensitive personal data out of metadata, which is designed for discovery and operational inspection. Update behavior belongs to the resource's API contract; do not assume that a partial metadata object performs a deep merge.
+
+Continue with [Event input](/operate/event-inputs), [delivery guarantees](/patterns/delivery-guarantees) and [Trace](/operate/traces).
+
+Follow the complete [Event → Job → Webhook example](/patterns/event-to-webhook) to connect configuration, inputs, correlation and observable outcomes.

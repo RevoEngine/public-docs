@@ -4,7 +4,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { codeExamples } from '../scripts/documentation-examples.mjs';
 
-const page = readFileSync(new URL('../operate/reactive-widgets.mdx', import.meta.url), 'utf8');
+const page = ['../widgets/examples/form-job.mdx', '../widgets/navigation.mdx']
+  .map(path => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n');
 const examples = codeExamples(page);
 const view = examples.find(item => item.code.includes("wanted('jobForm')")).code;
 const start = examples.find(item => item.code.includes('api.triggerJob(')).code;
@@ -45,14 +46,15 @@ test('published widget submits the form and requests only its result tile after 
 
 test('published start component validates arguments and guards duplicate dispatches', async () => {
   const cache = new Map();
+  const guards = new Set();
   let triggers = 0;
   const input = { templateId: 'template-1', batch: ' BATCH-001 ', $widget: { requestId: 'request-1' } };
   const api = {
     input: () => input,
-    setInstanceCacheIfNotExists: async (key, value, ttl) => {
+    acquireIdempotencyKey: async (key, ttl, value) => {
       assert.equal(ttl, 3600);
-      if (cache.has(key)) return false;
-      cache.set(key, value);
+      if (guards.has(key)) return false;
+      guards.add(key);
       return true;
     },
     getInstanceCache: async key => cache.get(key),
@@ -67,6 +69,9 @@ test('published start component validates arguments and guards duplicate dispatc
   assert.deepEqual(plain(await execute(start, api)), { jobId: 'job-1' });
   assert.deepEqual(plain(await execute(start, api)), { jobId: 'job-1' });
   assert.equal(triggers, 1);
+  cache.clear();
+  await assert.rejects(execute(start, api), /unconfirmed/);
+  assert.equal(triggers, 1, 'losing the cache receipt must not release durable admission');
   input.batch = ' ';
   await assert.rejects(execute(start, api), /required/);
   assert.equal(triggers, 1);
@@ -74,12 +79,13 @@ test('published start component validates arguments and guards duplicate dispatc
 
 test('published start component does not enqueue again when the receipt write is uncertain', async () => {
   const cache = new Map();
+  const guards = new Set();
   let triggers = 0;
   const api = {
     input: () => ({ templateId: 'template-1', batch: 'BATCH-001', $widget: { requestId: 'request-2' } }),
-    setInstanceCacheIfNotExists: async (key, value) => {
-      if (cache.has(key)) return false;
-      cache.set(key, value); return true;
+    acquireIdempotencyKey: async (key, ttl, value) => {
+      if (guards.has(key)) return false;
+      guards.add(key); return true;
     },
     getInstanceCache: async key => cache.get(key),
     setInstanceCache: async () => { throw new Error('receipt write interrupted'); },
@@ -118,7 +124,7 @@ test('published target configuration explicitly separates the write executor and
 test('published drill-down passes the clicked ID into a self-contained destination with Back', async () => {
   const json = [...page.matchAll(/^```json\n([\s\S]*?)^```/gm)].map(match => JSON.parse(match[1]));
   const target = json.find(value => value.orderDetail).orderDetail;
-  const parentCode = examples.find(item => item.code.includes("target: 'orderDetail', mode: 'replace'")).code;
+  const parentCode = examples.find(item => item.code.includes("target: 'orderDetail'") && item.code.includes("mode: 'replace'")).code;
   const parent = plain(await execute(parentCode, { input: () => ({}) }));
   const action = parent[0][0].on.rowClick;
   assert.equal(action.target, 'orderDetail');

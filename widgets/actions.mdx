@@ -1,0 +1,51 @@
+---
+title: "Action reference"
+description: "Choose the target and configuration for each declarative action."
+icon: bolt
+---
+
+Every action has a `type`. Its target means something different for reads, navigation and execution.
+
+| Type | `target` | Result |
+| --- | --- | --- |
+| `REFRESH` | Cell ID, array of IDs, or `'*'` | Reruns the current source and merges the requested cells. |
+| `OPEN_WIDGET` | One `widgetTargets` key | Opens a registered destination. |
+| `EXECUTE` | One `actionTargets` key | Executes a registered source and optionally confirms its outcome. |
+| `BACK` | Omitted | Restores the previous replacement frame. |
+
+## REFRESH
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `target` | string or string array | Required | Existing cells or `'*'`. |
+| `set` | Binding map | None | Commits values into declared INPUTs before reading. |
+| `concurrency` | `latest`, `queue` | `latest` | Whether overlapping reads keep the latest result or run in order. |
+
+See [partial refresh](/widgets/refresh) for a complete source that honors `targetIds`.
+
+## OPEN_WIDGET
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `target` | string | Required | Registered view name. |
+| `input` | Binding map | None | Arguments merged over target defaults. |
+| `mode` | `replace`, `panel`, `inline` | `replace` | Where the destination opens. |
+| `hostId` | string | Required for inline | Existing cell that hosts the destination. |
+
+See [navigation](/widgets/navigation). A destination name is not a Component ID supplied by the clicked row.
+
+## EXECUTE
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `target` | string | Required | Registered executor name. |
+| `input` | Binding map | None | Arguments merged over target defaults. |
+| `waitFor` | Probe configuration | None | Confirms asynchronous completion before success. |
+| `refresh` | Cell ID or array | No follow-up read | Cells to read after confirmation. |
+| `cooldownSeconds` | number | 0 | Client lock after successful execution; 0–86400. |
+
+See [execution and completion](/widgets/execute). Writes require explicit `readOnly: false` on the target and the caller's normal authorization.
+
+## BACK
+
+Use `{ type: 'BACK' }` to restore a retained replacement frame. It does not close an independent panel or navigate its parent. Pending writes and probes must finish first. See [state and lifecycle](/widgets/state).

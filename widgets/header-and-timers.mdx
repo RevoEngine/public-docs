@@ -1,0 +1,24 @@
+---
+title: "Header controls and timers"
+description: "Configure refresh controls, performance indicators and automatic reads."
+sidebarTitle: Headers and timers
+icon: book-open
+---
+
+## Dashboard header controls
+
+In the widget settings, **Widget header** exposes **Show refresh** (on by default)
+and **Show performance** (off by default). Existing widgets use these defaults
+without a migration. The optional boolean fields are `showRefresh` and
+`showPerformance` inside `specificCustomWidgetConfig`, or `widgetConfig` when
+generating a chat card. Dynamic conversion preserves both settings.
+
+Hiding refresh removes the dashboard header button only: timers, cell actions
+and the error recovery button still work. Hiding performance leaves error,
+warning and log indicators visible. `refreshTime` configures a whole-widget timer;
+per-cell `refresh.intervalSeconds` remains independent. When neither is configured,
+the legacy fallback refreshes the whole widget every 6000 seconds (100 minutes).
+Per-cell timers suppress that fallback. Timer reads pause while the document or
+replacement frame is hidden. These controls do not change access permissions or read-only behavior.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

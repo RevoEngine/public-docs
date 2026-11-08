@@ -1,0 +1,28 @@
+---
+title: api.getCache()
+sidebarTitle: getCache()
+description: Public low-code contract, signatures and examples for api.getCache.
+icon: code
+---
+
+<span id="api-getCache" aria-hidden="true"></span>
+
+## `api.getCache()`
+
+Reads execution-scoped in-memory cache. Returns a detached mutable copy by
+default, or the same value when written with `&#123; reference: true &#125;`.
+Missing keys return `undefined`. Entries never cross execution boundaries.
+
+### Signature
+
+```ts
+static getCache(key: string): any;
+```
+### Example
+
+```ts
+const token = api.getCache('token');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

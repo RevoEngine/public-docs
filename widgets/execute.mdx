@@ -1,0 +1,59 @@
+---
+title: "Execute and confirm completion"
+description: "Register a write action and distinguish an accepted operation from its result."
+sidebarTitle: Execute and wait
+icon: play
+---
+
+EXECUTE selects one named `actionTargets` entry. Keep view code and completion probes read-only; use `readOnly: false` only on a target that intentionally changes state.
+
+## Execution sequence
+
+1. Validate and commit form inputs.
+2. Resolve the registered target and its input bindings.
+3. Execute the target once.
+4. If configured, poll the read-only `waitFor` target using the returned receipt.
+5. On confirmed success, retain the receipt in `$widget.actionResult` and refresh the requested cells.
+6. Apply the optional cooldown before releasing the control.
+
+A successful Job enqueue returns a receipt. It does not prove that the Job finished. Use the exact receipt ID when querying completion.
+
+## Completion probe configuration
+
+| `waitFor` field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `target` | string | Required | Registered read-only `actionTargets` entry. |
+| `input` | Binding map | None | Usually maps the execution result's ID. |
+| `path` | string | Required | Status property in the probe result. |
+| `equals` | scalar | Required | Value that confirms success. |
+| `failed` | Scalar array | None | Terminal failure values; up to 32. |
+| `intervalSeconds` | number | 2 | Poll interval, 1–600 seconds. |
+| `timeoutSeconds` | number | 120 | Maximum wait, 1–3600 seconds. |
+
+This action fragment requires the `startBatch` and `batchStatus` targets and a `result` cell:
+
+```js
+const action = {
+  type: 'EXECUTE',
+  target: 'startBatch',
+  waitFor: {
+    target: 'batchStatus',
+    input: { jobId: { from: 'result', path: 'jobId' } },
+    path: 'status',
+    equals: 'FINISHED',
+    failed: ['ERROR', 'CANCELLED', 'EXPIRED'],
+    intervalSeconds: 2,
+    timeoutSeconds: 120,
+  },
+  refresh: 'result',
+  cooldownSeconds: 3,
+};
+```
+
+## Errors and uncertainty
+
+The submit control and its form fields stay locked during execution, confirmation and cooldown. A terminal failure reports an error. A timeout or interrupted network call leaves the outcome uncertain; the runtime does not automatically replay the write. When a receipt exists, the operator can check status again.
+
+Cooldown prevents repeated clicks in this mounted UI. It is not a server lock, durable idempotency guarantee or authorization check. Validate input, permissions and business idempotency in the executing Component.
+
+Use the [complete form-to-Job example](/widgets/examples/form-job) for source code and target configuration.

@@ -1,0 +1,29 @@
+---
+title: sse.onDisconnect()
+sidebarTitle: onDisconnect()
+description: Public low-code contract, signatures and examples for sse.onDisconnect.
+icon: code
+---
+
+<span id="sse-onDisconnect" aria-hidden="true"></span>
+
+## `sse.onDisconnect()`
+
+Register one callback for continue-and-notify disconnect policy. Invoked at most once in the same isolate.
+Shares the original execution deadline; no extra time is granted. continue skips it and cancel disposes the isolate.
+Registration after disconnect still notifies once while execution remains alive. Callback failures appear in diagnostics.
+CPU-bound code, a hard timeout or process failure can prevent notification; this is not a durable cleanup guarantee.
+
+### Signature
+
+```ts
+static onDisconnect(callback: () => void | Promise<void>): void;
+```
+### Example
+
+```ts
+sse.onDisconnect(async () => { await api.setInstanceCache('connection-state', { disconnected: true }, 300); });
+```
+
+
+See [all sse methods](/low-code/reference/sse) or [runtime basics](/low-code/overview).

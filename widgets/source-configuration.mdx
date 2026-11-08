@@ -1,0 +1,84 @@
+---
+title: "Configure a Custom Widget"
+description: "Choose Inline or Component sources, inputs, execution limits and revisions."
+sidebarTitle: Source configuration
+icon: book-open
+---
+
+## Choose the source
+
+A **Custom Widget** renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
+
+| Setting | Meaning |
+| --- | --- |
+| Source | Inline code or a reusable Component. A new widget starts in inline mode. |
+| Language and code | JavaScript or TypeScript source for inline mode. |
+| Component | Executable Component in reusable mode. |
+| Revision | Latest or an optional pinned Component digest in reusable mode. |
+| Element | Optional result element in a multi-element Component. |
+| Inputs | JSON object text passed to either source; use `{}` when no arguments are needed. |
+| Timeout | New editor configuration starts at 5 seconds; allowed range 5–600. |
+| Memory | New editor configuration starts at 32 MiB; allowed range 32–1024. |
+| Refresh | Optional automatic refresh from 1 to 600 seconds. |
+| Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Keep view Components restricted; registered action targets can explicitly request `readOnly: false`. |
+
+## Execution and permissions
+
+View code runs in Sandbox. Inline view code requests `readOnly: true`. Reusable widgets with configured interaction targets and subsequent interactive refreshes also request read-only execution. An initial reusable render without target maps retains its selected restricted-mode setting; keep view Components restricted. A registered action target can explicitly request write execution.
+
+Debug execution by itself is not a permission grant or a substitute for the explicit read-only flag. Keep widget calculations read-only and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, `EMPTY`, `INPUT`, `FORM` or `BUTTON`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
+
+Add stable cell IDs and declarative `on` actions for partial refresh, record or chart drill-down, multi-selection, forms and Job submission. Named destinations reuse the existing source configuration. Follow [Reactive Custom Widgets](/operate/reactive-widgets) for the complete form → Job → single-tile refresh example and input-preservation rules.
+
+See [Chart Job runs](/widgets/examples/job-chart) for a complete read-only data example.
+
+## Registered source fields
+
+`widgetTargets` names read-only destinations. `actionTargets` names executors and read-only status probes. In the dashboard editor, these correspond to **Widget destinations (JSON)** and **Action components (JSON)**. They belong to source configuration, not to a returned cell.
+
+| Field | Type | Required or default |
+| --- | --- | --- |
+| `sourceType` | `INLINE` or `COMPONENT` | Set explicitly. |
+| `codeType` | `CODE_JS` or `CODE_TS` | Required for INLINE; the new dashboard editor starts with TypeScript. |
+| `code` | string | Complete independent function body for INLINE. |
+| `componentId` | string | Required for COMPONENT. |
+| `element` | string | Select the intended Component result element explicitly when registering a multi-element source. |
+| `componentDigest` | string or null | Optional pinned digest; choose this or `componentVersion`. |
+| `componentVersion` | integer or null | Optional version; do not combine with a digest. |
+| `inputs` | JSON object string or null | Configured arguments; mapped action arguments override matching keys. |
+| `readOnly` | boolean | Views/probes are read-only; an executor must explicitly set `false` to request writes. |
+| `timeout` | integer | Optional; set 5–600 seconds for a deliberate target budget. |
+| `memory` | integer | Optional; set 32–1024 MiB for a deliberate target budget. |
+| `widgetTargets` | Named source map | Optional; up to 32 destinations. |
+| `actionTargets` | Named source map | Optional; up to 32 executors/probes. |
+| `refreshTime` | integer or null | Optional whole-widget interval, 1–600 seconds. |
+| `showRefresh` | boolean | `true`; dashboard header control. |
+| `showPerformance` | boolean | `false`; dashboard performance indicator. |
+
+The serialized dashboard stores this configuration under `specificCustomWidgetConfig`; Assistant generation uses `widgetConfig`. Target maps can be inherited by child views. Keep each Inline body self-contained: a code string cannot access variables in the outer generator.
+
+## Register a small destination
+
+Paste this complete map into **Widget destinations (JSON)**:
+
+```json
+{
+  "details": {
+    "sourceType": "INLINE",
+    "codeType": "CODE_JS",
+    "code": "return [[{ id: 'detailsText', type: 'TEXT', value: 'Details view' }]];",
+    "inputs": "{}",
+    "readOnly": true,
+    "timeout": 5,
+    "memory": 32
+  }
+}
+```
+
+Then a BUTTON can use `on.click: { type: 'OPEN_WIDGET', target: 'details' }`. The short code string is the entire destination body. For a longer body, author and validate it as normal code before placing it in configuration, or use a reusable Component.
+
+See [navigation](/widgets/navigation), [execution](/widgets/execute) and [header controls](/widgets/header-and-timers).
+
+## Convert an Assistant result
+
+An analytical widget generated in an Assistant conversation can be saved here through **Convert to dashboard**. Choose a new or existing dashboard, review the original code and inputs, and select a dynamic source or fixed snapshot. Dynamic conversion preserves the complete source, configured inputs and registered action/navigation targets. The source executes when the dashboard loads and refreshes; a fixed snapshot preserves the displayed result with interactions disabled. Unsaved form drafts are not persisted as dashboard inputs. This is a user-directed save and requires dashboard write access. See [Assistant charts, diagrams and tables](/ai/assistant-visuals#charts-diagrams-and-tables-in-answers).

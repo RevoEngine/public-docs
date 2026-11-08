@@ -1,0 +1,42 @@
+---
+title: "Bindings and paths"
+description: "Pass control values, clicked records, selection or receipts into an action."
+icon: link
+---
+
+A binding maps one action argument to a literal value or a reference. Bindings are JSON data; the browser does not evaluate JavaScript expressions inside them.
+
+| Binding | Reads |
+| --- | --- |
+| `{ from: 'input', id: 'status' }` | Committed INPUT value. |
+| `{ from: 'event', path: 'row.orderId' }` | Property of the clicked TABLE record. |
+| `{ from: 'event', path: 'datum.status' }` | Property of the clicked CHART datum. |
+| `{ from: 'selection', id: 'orders', path: 'keys' }` | Selected keys from a selectable TABLE. |
+| `{ from: 'result', path: 'jobId' }` | EXECUTE receipt passed into `waitFor.input`. |
+| `'OPEN'`, `2`, `false`, `null`, `['OPEN', 'LATE']` | Literal scalar or scalar array. |
+
+## Reference fields
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `from` | `input`, `event`, `selection`, `result` | Always. |
+| `id` | string | For `input` and `selection`. |
+| `path` | string | Optional; reads an existing own-property path. |
+
+Paths use dots, such as `row.customer.id`. They are not expressions: `row.total * 2` and `rows[0].id` do not evaluate. A missing value causes a binding error; compute derived values in the source or receiving Component. Reserved object-prototype paths are rejected.
+
+## Input versus set
+
+This action fragment passes an existing `quantity` control into a registered `submitOrder` executor:
+
+```js
+const action = {
+  type: 'EXECUTE',
+  target: 'submitOrder',
+  input: { quantity: { from: 'input', id: 'quantity' } },
+};
+```
+
+Use `set` on REFRESH to update existing INPUT state before rereading a view. It does not create controls or edit the saved source configuration. Use `input` on EXECUTE or OPEN_WIDGET to supply the registered target's arguments.
+
+Binding keys follow the [ID rules](/widgets/matrix#ids-and-data-fields). A map accepts up to 100 entries. Literal strings are limited to 4000 characters and scalar arrays to 5000 items. See [actions](/widgets/actions) for target-specific fields.

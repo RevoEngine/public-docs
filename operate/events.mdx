@@ -4,9 +4,37 @@ description: Route platform and business events to governed Jobs or Agents.
 icon: bolt
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 Events turn a typed message into durable work. An Event definition says **which messages it accepts**, **which target receives them**, and **which filter must match** before RevoEngine schedules anything.
 
 One Event definition has one target. Create several active definitions for the same type when one business signal must fan out to independent Jobs or Agents; Event History records which targets matched and which filters skipped delivery.
+
+<span id="configure-runtime-input-for-a-job-target" aria-hidden="true"></span>
+<span id="filter-event-messages" aria-hidden="true"></span>
+<span id="filter-operators" aria-hidden="true"></span>
+<span id="create-a-custom-business-event" aria-hidden="true"></span>
+<span id="example-approved-high-value-order" aria-hidden="true"></span>
+<span id="trigger-a-controlled-test" aria-hidden="true"></span>
+<span id="send-large-inputs-through-storage" aria-hidden="true"></span>
+<span id="what-exists-before-a-delayed-event-is-due" aria-hidden="true"></span>
+<span id="built-in-event-families" aria-hidden="true"></span>
+<span id="storage-lifecycle-cookbook" aria-hidden="true"></span>
+<span id="available-native-event-types" aria-hidden="true"></span>
+<span id="api-key-expiry-events" aria-hidden="true"></span>
+<span id="chain-component-jobs-from-execution-outcomes" aria-hidden="true"></span>
+
+<CardGroup cols={2}>
+  <Card title="Configure Event input" href="/operate/event-inputs" icon="book-open">Map Event Runtime input onto a Job template.</Card>
+  <Card title="Filter Event messages" href="/operate/event-filters" icon="book-open">Configure message paths, operators and compound conditions.</Card>
+  <Card title="Publish a custom Event" href="/operate/event-publishing" icon="book-open">Create a business signal and test immediate, large or delayed delivery.</Card>
+  <Card title="Native Event types" href="/operate/event-types" icon="book-open">Choose Storage, identity, API-key and Job lifecycle triggers.</Card>
+</CardGroup>
+
+
+## Explore the behavior
+
+<FlowDemo topic="event" />
 
 ## When to use an Event
 
@@ -45,46 +73,6 @@ Open **Jobs → Events**, select **Add**, and configure the definition.
 
 For a Job target, the selected template carries the Component, execution principal, input defaults, limits, concurrency, and retry policy. For an Agent target, delivery uses the current Agent definition.
 
-## Configure Runtime input for a Job target
-
-Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override**, **Deep Override** and **Replace**, with icons and descriptions.
-
-| Mode | Effective `templateInputs` |
-| --- | --- |
-| **Override** (default) | `{ ...jobTemplateInput, ...eventInput }`: Event keys take precedence; other Job defaults remain. |
-| **Deep Override** | Recursively combines nested objects with automation values taking precedence. Arrays are replaced in full; `null` stays a value. |
-| **Replace** | Only the Event input. An empty `{}` removes all Job template defaults for this execution. |
-
-Override is shallow: a supplied nested object or array replaces the whole value at that key. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
-
-Use **Deep Override** to change part of a nested configuration. For example, Job defaults `{ "export": { "format": "csv", "encoding": "utf8" } }` and automation input `{ "export": { "format": "xlsx" } }` produce `{ "export": { "format": "xlsx", "encoding": "utf8" } }`. An empty nested object preserves existing nested values; a change of value type replaces the whole value. Arrays are never concatenated, and `null` does not delete a field. Existing **Override** and **Replace** behavior is unchanged.
-
-For example, a Job template with `{ "region": "eu", "mode": "incremental" }` and an Event with `{ "mode": "full" }` in Override mode execute with `{ "region": "eu", "mode": "full" }`.
-
-The Platform API uses these fields on the Event definition:
-
-```json
-{
-  "input": { "mode": "full" },
-  "inputMode": "override"
-}
-```
-
-Read the resolved values in the Component:
-
-```js
-const templateInputs = api.input('templateInputs');
-const message = api.input('message');
-```
-
-Event Runtime input configures `templateInputs`; it does not replace the Event `message`, `type`, or user `metadata`. Agent delivery remains configured through its target settings.
-
-The Platform API uses `inputMode: "override"` for **Override**, `inputMode: "deep_override"` for **Deep Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
-
-New definitions default to `input: {}` and `inputMode: "override"`, preserving Job defaults. On an API update, omitted fields retain their stored values. Send both `input: {}` and `inputMode: "override"` to restore the default configuration.
-
-Each accepted delivery retains its Runtime input and mode. Editing the Event changes future deliveries; it does not rewrite the input of Jobs already queued or running, or their retry attempts. The Job template continues to own execution policy, concurrency, and retry settings.
-
 ## Operate configured Events
 
 The **Jobs → Events** grid is the inventory of current and deleted definitions. It exposes name, category, description, active state, Internal classification, Type, target references, metadata, creation/update ownership, version, and deletion state. Every visible column can be used as an operator filter where its data type allows it.
@@ -101,231 +89,6 @@ Open a row to review the effective target, delivery mode, metadata, and filter b
 | **Restore** | Makes a deleted definition available again; review target and filter before activation. |
 
 Instance settings govern the total and active Event-definition quotas. An active definition whose target was deleted, disabled, or is no longer authorized cannot be admitted until that dependency is corrected.
-
-## Create a custom business event
-
-Disable **Internal** when the signal belongs to your application rather than a RevoEngine resource lifecycle, then enter `ORDER_APPROVED` in **Type**. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added. Event names are normalized to uppercase.
-
-With **Internal** enabled, Type is a selector populated from the supported platform catalogue. Switching back to Internal clears a custom name that is not in that catalogue. The usage hint shows `api.input('message')` for internal messages and `api.triggerEvent()` for a custom event.
-
-Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `SEND_EMAIL_NOW`.
-
-### Example: approved high-value order
-
-Create a Job template first, then register one filtered Event definition:
-
-```bash
-curl --request POST "$REVO_API_URL/api/v1/automation/event" \
-  --header "Authorization: Bearer $REVO_TOKEN" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "name": "High-value approved orders",
-    "category": "Order assurance",
-    "desc": "Checks balance, persists a transaction, and notifies the risk provider.",
-    "type": "ORDER_APPROVED",
-    "custom": true,
-    "targetType": "JOB_TEMPLATE",
-    "targetId": "'"$JOB_TEMPLATE_ID"'",
-    "active": true,
-    "filter": {
-      "and": [
-        { "field": "message.order.total", "op": "gte", "value": 10000 },
-        { "field": "message.order.currency", "op": "in", "value": ["EUR", "PLN"] },
-        { "field": "message.account.status", "op": "eq", "value": "ACTIVE" }
-      ]
-    },
-    "metadata": { "owner": "risk-platform", "environment": "production" }
-  }'
-```
-
-Trigger the definition with a small envelope. The Job should reload the authoritative order and account by ID, verify the balance in a database transaction, create an idempotent transaction record, call the risk provider with a Secret-backed API key, write any durable receipt to Storage, and return its `operationId` and evidence IDs.
-
-```bash
-curl --request POST "$REVO_API_URL/api/v1/automation/event/$EVENT_ID/run" \
-  --header "Authorization: Bearer $REVO_TOKEN" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "message": {
-      "order": { "orderId": "ord_8d31", "total": 12500, "currency": "EUR" },
-      "account": { "accountId": "acc_201", "status": "ACTIVE" }
-    },
-    "metadata": {
-      "correlationId": "checkout_99f1",
-      "producer": "checkout-endpoint"
-    }
-  }'
-```
-
-<Note>
-  The Event message is routing context, not financial truth. The target must reload balance, order status, and prior transaction state under its own principal before it commits a side effect.
-</Note>
-
-## Filter event messages
-
-The visual filter builder supports **all**, **any**, and **none** matching. Enter message paths without the `message.` prefix; use dot notation for nested properties.
-
-```text
-customer.region      eq       eu
-order.total          gte      10000
-order.currency       in       EUR,PLN
-```
-
-Supported comparisons include equality, numeric ordering, list membership, null checks, contains, starts/ends with, and case-sensitive or case-insensitive pattern matching.
-
-The UI accepts only the property inside the event `message`. For example, enter `name`, `mimeType`, or `metadata.kind`; the editor persists the safe query path as `message.name`, `message.mimeType`, or `message.metadata.kind`. Do not type the `message.` prefix into the visual field.
-
-For a CSV ingestion subscription, configure all conditions:
-
-```text
-mimeType              eq       text/csv
-metadata.pipeline     eq       settlements
-name                  ilike    settlement-*.csv
-```
-
-Wildcard text entered as `*` is normalized to the query wildcard used by the stored filter. Property paths are limited to safe dot notation; prototype-related segments and prefixed paths are rejected.
-
-### Filter operators
-
-| Operator | Behavior |
-| --- | --- |
-| `eq`, `ne` | Exact JSON-value equality or inequality. |
-| `gt`, `gte`, `lt`, `lte` | Numeric comparison; non-numeric values do not match. |
-| `in`, `notIn` | Exact comparison against a required array of candidates. |
-| `isNull`, `isNotNull` | Tests missing/`null` versus a present non-null value; no comparison value is required. |
-| `contains` | Substring, array-member, or partial object containment according to the actual value type. |
-| `startsWith`, `endsWith` | Case-sensitive string boundary match. |
-| `like`, `notLike` | SQL-style `%` and `_` pattern match. The UI converts `*` to `%`. |
-| `ilike`, `notILike` | Case-insensitive pattern match. |
-
-The visual builder supports up to six safe message-path segments and deliberately writes only `message.*` filters. The Platform API accepts a validated filter tree over `message.*`, searchable `metadata.*`, or the event `type`, with nested `and`, `or`, and `not` groups and at most twelve field-path segments. Unsafe keys such as `__proto__`, `prototype`, and `constructor` are rejected on both surfaces.
-
-```json
-{
-  "or": [
-    { "field": "metadata.source", "op": "eq", "value": "checkout" },
-    {
-      "and": [
-        { "field": "type", "op": "eq", "value": "ORDER_APPROVED" },
-        { "field": "message.order.region", "op": "in", "value": ["eu", "uk"] }
-      ]
-    }
-  ]
-}
-```
-
-<Warning>
-  A filter is an admission rule, not a data validator. Validate the complete business payload in the target Component before creating side effects.
-</Warning>
-
-## Trigger a controlled test
-
-Saved active custom Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`.
-
-1. Open the Event and select **Run**.
-2. Enter a JSON `message` representative of production traffic.
-3. Optionally set `scheduleFor` to an ISO 8601 date-time with timezone or Unix timestamp in milliseconds, from acceptance through 30 days ahead.
-4. Submit and retain the returned `eventId` and `triggerId` acceptance receipt.
-5. Open **Event History** and confirm which targets were scheduled or skipped.
-
-```json
-{
-  "message": {
-    "orderId": "ord_8d31",
-    "status": "APPROVED",
-    "region": "eu"
-  },
-  "metadata": {
-    "correlationId": "checkout_99f1",
-    "source": "acceptance-test"
-  }
-}
-```
-
-Use `scheduleFor` when the caller already owns an absolute business deadline:
-
-```js
-const scheduleFor = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-await fetch(`/api/v1/automation/event/${eventId}/run`, {
-  method: 'POST',
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    scheduleFor,
-    message: { orderId: 'ord_8d31', status: 'APPROVED', region: 'eu' },
-    metadata: { correlationId: 'checkout_99f1', source: 'acceptance-test' },
-  }),
-});
-```
-
-<Warning>
-  Use `scheduleFor` for delayed delivery. A past absolute time or a value more than 30 days ahead is rejected before acceptance.
-</Warning>
-
-### Send large inputs through Storage
-
-For data over 1 MiB, upload a file to a restricted Explorer folder for the
-automation, such as `Automations/Product import/Inputs`. The event message
-supports up to 10 MiB of serialized UTF-8 JSON.
-
-1. Grant the Job execution account read access to the file and each restricted
-   ancestor folder. Private works for personal workflows where the same account
-   uploads and reads the file.
-2. Create a separate file for each publication and finalize the upload before
-   triggering the event. Keep the file available through the scheduled run
-   and the retry window for the workflow.
-3. Send the finalized file's `storageEntryId` in `message`, alongside any fields
-   the event filters need. The Job receives the ID in `api.input().message`.
-   Read record-oriented files in batches with `storage.walkFileData`.
-
-```json
-{
-  "message": {
-    "storageEntryId": "17b13f9b-7e52-4599-9ab9-8c8e119bdd73",
-    "importType": "products"
-  }
-}
-```
-
-See [Storage uploads](/operate/storage-uploads) for upload and finalization steps.
-
-### What exists before a delayed Event is due?
-
-Event acceptance saves the message and delivery obligation. Event History and Jobs for matching Job templates become visible after RevoEngine evaluates the filters and saves the targets. The Event History row exposes its immutable `scheduledFor`, audit version, and last-update evidence. For an Event scheduled two hours ahead, you can inspect those Jobs now: they wait as `SCHEDULED`, with the same accepted deadline. The Event message remains the input snapshot; later edits to Event filters do not change this accepted occurrence.
-
-When the time arrives, Jobs become eligible for dispatch and still respect concurrency. Delivery retry resumes the accepted work without intentionally creating another Job for the same matched target. Make downstream business effects idempotent as well.
-
-<Note>
-  A request timeout is not cancellation. Accepted work can finish materializing through recovery. Check Event History before submitting the same business event again.
-</Note>
-
-## Built-in event families
-
-The current catalogue includes lifecycle events for:
-
-- Storage create, update, synchronize, archive, restore, and delete;
-- legacy File finalize, archive, and delete;
-- User and Service Account create, update, activate, deactivate, restore, and delete;
-- account API-key create, update, and delete.
-
-The `custom` boolean is the only API classifier. `custom: true` permits a dynamic business message; `custom: false` selects a supported platform lifecycle event and can only be replayed from existing history. Matching uses both `type` and `custom`, so identical names in different classes do not collide. The UI's Internal control presents the inverse of `custom`.
-
-### Storage lifecycle cookbook
-
-| Event type | Durable fact | Typical target |
-| --- | --- | --- |
-| `STORAGE_CREATED` | A folder or finalized new file entry exists. | Validate a new incoming object or index a folder. |
-| `STORAGE_UPDATED` | Mutable entry data or a replaced file version changed. | Refresh a projection or reprocess a replacement. |
-| `STORAGE_SYNCHRONIZED` | Asynchronous text statistics finished and the entry projection was updated. | Start line-batched parsing that depends on `lineCount` and `batchNumber`. |
-| `STORAGE_ARCHIVED` | An entry or subtree entered the archived lifecycle. | Remove it from a downstream search index. |
-| `STORAGE_RESTORED` | A manually archived entry or subtree became active again. | Rebuild an external projection. |
-| `STORAGE_DELETED` | The archived entry entered permanent deletion and managed content cleanup. | Remove external references and retention evidence. |
-
-`STORAGE_CREATED` is emitted after the Storage record is durable and an upload is finalized. With `computeStats: 'async'`, it can arrive before text statistics; subscribe to `STORAGE_SYNCHRONIZED` if the first Job must read cached batches immediately. Reports workspace lifecycle messages are not published as customer Storage events.
-
-Use the Storage lifecycle types above. The legacy Files event producers are retired.
 
 ## Incoming file → Event → Job → output
 
@@ -367,7 +130,9 @@ Acceptance confirms that RevoEngine recorded the event; it does not mean every t
 
 Storage commits are not rolled back if post-commit lifecycle event enqueueing fails. Operators should therefore reconcile important ingestion sources against Storage entries as well as monitor Event History; the durable file remains the source of truth.
 
-Event delivery can be repeated by infrastructure or by an operator replay. Targets that call payment, provisioning, or messaging systems must enforce an idempotency key such as `eventHistoryId + targetId`.
+Redelivery of the same accepted occurrence reuses the recorded initial child Job for each Event definition. Two definitions targeting the same template still count as separate subscriptions. An operator Replay creates new occurrence history and can create new Jobs under current definitions and filters.
+
+Targets that call payment, provisioning or messaging systems need a stable **business operation key**, such as `order-1:invoice:v1`, enforced at the side-effect boundary. A key based only on an Event history ID changes on Replay and cannot prevent the same invoice from being issued again. Compare [delivery guarantees](/patterns/delivery-guarantees) and [metadata and correlation](/patterns/metadata-and-correlation).
 
 ### Diagnose by boundary
 
@@ -399,68 +164,4 @@ Event delivery can be repeated by infrastructure or by an operator replay. Targe
 
 See [Event History](/operate/event-history) for fan-out evidence and replay, [Jobs](/operate/jobs) for durable target execution, and [Storage](/operate/storage) for lifecycle, ACL, retention, and batching semantics.
 
-## Available native event types
-
-The Event editor retrieves the currently supported native types from
-`GET /api/v1/automation/event-types`. The catalogue covers Storage, user,
-Service Account and API-key lifecycle producers. It excludes unavailable autonomous inbox types. Previously saved types
-remain visible for inspection; a catalogue loading failure disables type selection.
-Disable **Internal** and enter **Type** for application-owned events.
-
-## API key expiry events
-
-`ACCOUNT_API_KEY_EXPIRING` announces an upcoming expiry at a planned reminder
-instant. `ACCOUNT_API_KEY_EXPIRED` is emitted when the key's expiry becomes due.
-The native lifecycle includes 7-day, 24-hour and expiry instants; authorized human
-preferences can add first-reminder and custom automation-only offsets. Events
-at an identical offset for the same key and expiry share one occurrence.
-Notification email/System-message opt-out does not stop these events.
-
-| Message field | Meaning |
-| --- | --- |
-| `noticeId` | Stable occurrence identity for retry-safe processing. |
-| `userKeyId` | API-key record to inspect; never the credential. |
-| `userId` | Account that owns the key. |
-| `name` | API-key display name. |
-| `expireAt` | Current absolute expiry, as an ISO 8601 UTC timestamp. |
-| `scheduledFor` | Planned reminder instant, as an ISO 8601 UTC timestamp. |
-| `reminderDays` | Days before expiry; `1` is the fixed 24-hour notice and `0` means expired. |
-| `reason` | `EXPIRATION` or `ROTATION_GRACE` for a predecessor key. |
-
-For a reminder one day before expiry, select `ACCOUNT_API_KEY_EXPIRING` and add
-this filter in the visual editor:
-
-```text
-reminderDays          eq       1
-```
-
-The Platform API filter uses `message.reminderDays`. Add `message.userId` or
-`message.userKeyId` to scope the integration. The target should reload current
-key/account metadata under its execution principal and make its reaction
-idempotent with `noticeId`. Do not assume that a replacement has already been
-installed in the consumer merely because rotation created it.
-
-Reminders are published when due, after current key-state validation. Revocation
-or a changed rotation cutoff suppresses obsolete occurrences; uncertain account
-changes defer processing. Existing-key adoption schedules future stages only.
-
-
-## Chain Component Jobs from execution outcomes
-
-Use these native types to start a follow-up Job from a committed execution outcome:
-
-| Type | When it is published |
-| --- | --- |
-| `JOB_ATTEMPT_FAILED` | Each failed attempt, including an attempt with an automatic retry scheduled. |
-| `JOB_EXECUTION_FAILED` | A failed attempt with no further automatic retry committed. |
-| `JOB_EXECUTION_SUCCEEDED` | A Component Job finishes successfully. |
-
-These types cover ordinary Component Jobs. Cancellation, platform operations and Webhook delivery do not publish these events. Existing terminal Jobs are not replayed when the feature is enabled.
-
-For a success chain, select `JOB_EXECUTION_SUCCEEDED`, choose the follow-up Job template and filter by the source `jobTemplateId`. In the visual filter editor enter `jobTemplateId`; the API filter uses `message.jobTemplateId`. An unfiltered definition accepts outcomes from every matching Job template.
-
-The message carries `jobId` and `executionId` for the source attempt, `executionSeriesId` for the execution series, `jobTemplateId`, `name`, `category`, `status`, `completedAt`, `processingTime`, `executionUserId`, `initiatedByUserId`, `requestedFrom` and retry context: `retryRootJobId`, `retryParentJobId`, `retryAttempt`, `retryMode`, `retryScheduled`, `retryScheduledFor` and `final`. Failed outcomes include a bounded `errorCode` and may include a processing recovery reason. Inputs, outputs, secret values, error messages and stack traces are excluded.
-
-Automatic retries retain `executionSeriesId`. A manual retry starts a new execution series, while historical retry links and the attempt counter remain available. A final failure describes the automatic retry policy at that point; an operator can still retry manually afterward. The target executes with its configured principal and must load any source data it needs through authorized APIs.
-
-Event delivery may be retried. Targets should make their business side effects idempotent. Lifecycle chains retain their Event-definition ancestry: a repeated definition is skipped with `JOB_EVENT_CHAIN_CYCLE`, and a chain beyond 32 definitions is skipped with `JOB_EVENT_CHAIN_DEPTH_EXCEEDED`. Event History records these skipped deliveries, including when replaying an outcome. Manual Job execution or manual retry starts fresh ancestry.
+Follow the complete [Event → Job → Webhook example](/patterns/event-to-webhook) to connect configuration, inputs, correlation and observable outcomes.

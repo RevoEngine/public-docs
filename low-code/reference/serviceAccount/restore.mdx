@@ -1,0 +1,21 @@
+---
+title: serviceAccount.restore()
+sidebarTitle: restore()
+description: Public low-code contract, signatures and examples for serviceAccount.restore.
+icon: code
+---
+
+<span id="serviceAccount-restore" aria-hidden="true"></span>
+
+## `serviceAccount.restore()`
+
+Restores a deleted account as inactive; deleted credentials are not restored.
+Example: await serviceAccount.restore('erp-sync');
+
+### Signature
+
+```ts
+static restore(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

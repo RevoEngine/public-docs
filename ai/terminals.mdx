@@ -22,13 +22,13 @@ The CLI keeps a stable device registration across restarts. Connecting another d
 
 The temporary or whole-thread permissions below apply to the selected chat, device and workspace. A permission for one workspace does not authorize another. If older duplicate registrations make the name ambiguous, select the intended registration explicitly with `--terminal-id`.
 
-## Runner safeguards in CLI 1.0.34
+## Use an updated runner
 
-CLI 1.0.34 verifies the workspace location of the file actually opened
+Current CLI releases verify the workspace location of the file actually opened
 before an upload can send bytes. Timeout, cancellation and permission expiry also
 retain ownership of the controlled process group through cleanup, rather than
 treating the command leader's exit as proof that all its children stopped.
-Upgrade the connected runner to CLI 1.0.34 to use these safeguards.
+These safeguards were introduced in CLI 1.0.34 and are included in CLI 2.0.0.
 
 Use `revo terminal --help` for current connection commands. Browser authentication
 profiles are managed in Revo Vault; `terminal connect --browser-profile` is obsolete
@@ -134,6 +134,8 @@ The terminal settings and conversation show activity for authorized viewers. A p
 
 ## Related guides
 
+- [Terminal execution and logs](/ai/terminal-execution-and-logs)
+- [Terminal command reference](/developers/cli-terminal)
 - [RevoEngine CLI](/developers/cli)
 - [Approvals and plans](/ai/approvals-and-plans)
 - [Secrets and Vault](/operate/secrets)
@@ -166,7 +168,7 @@ MFA approvals and secret codes still require you.
 During takeover, create or select a named encrypted profile and choose it as the
 default for this user, instance, device and workspace. A later chat restores that
 selection automatically; you do not need to ask the Assistant to save it in memory.
-Profiles retain the foreground macOS and single-writer restrictions described above.
+Profiles follow the compatible runner and shared-session boundaries described above.
 Website authentication and current network permissions still determine access.
 
 Recording is opt-in: select a local file, private Storage, or both. Native WebM

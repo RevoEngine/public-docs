@@ -1,0 +1,44 @@
+---
+title: api.triggerJob()
+sidebarTitle: triggerJob()
+description: Public low-code contract, signatures and examples for api.triggerJob.
+icon: code
+---
+
+<span id="api-triggerJob" aria-hidden="true"></span>
+
+## `api.triggerJob()`
+
+Schedules an active job template by its exact ID or exact unique name.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
+- The input argument is copied directly into the target job's flat
+  `api.input().templateInputs`, shallow-spread over template defaults.
+  Non-colliding defaults remain and matching keys are overwritten; it is not
+  nested under `templateInputs.input` or exposed at top level.
+- Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
+- Retired positional date and relative-delay arguments are ignored.
+
+### Signature
+
+```ts
+static triggerJob(
+      templateIdOrName: string,
+      templateInputs?: Record<string, JsonValue>,
+      options?: AutomationScheduleOptions,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const jobId = await api.triggerJob(
+  templateId,
+  { customerId: 'c-1' },
+  { scheduleFor: new Date(Date.now() + 15 * 60 * 1000) },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

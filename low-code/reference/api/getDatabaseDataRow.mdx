@@ -1,0 +1,25 @@
+---
+title: api.getDatabaseDataRow()
+sidebarTitle: getDatabaseDataRow()
+description: Public low-code contract, signatures and examples for api.getDatabaseDataRow.
+icon: code
+---
+
+<span id="api-getDatabaseDataRow" aria-hidden="true"></span>
+
+## `api.getDatabaseDataRow()`
+
+Reads one matching row from a database, view, or materialized view in a single operation,
+returning null when absent.
+The query supports fields, filter, joins and sort but not take, skip or count.
+Specify sort when choosing among multiple matching rows matters.
+Example: const customer = await api.getDatabaseDataRow('customers',
+  &#123; filter: &#123; field: 'customerId', op: 'eq', value: customerId &#125; &#125;);
+
+### Signature
+
+```ts
+static getDatabaseDataRow<T = any>(name: string, query: DatabaseRowQuery): Promise<T | null>;
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

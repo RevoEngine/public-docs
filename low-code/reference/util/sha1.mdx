@@ -1,0 +1,28 @@
+---
+title: util.sha1()
+sidebarTitle: sha1()
+description: Public low-code contract, signatures and examples for util.sha1.
+icon: code
+---
+
+<span id="util-sha1" aria-hidden="true"></span>
+
+## `util.sha1()`
+
+Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static sha1(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.sha1('payload');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

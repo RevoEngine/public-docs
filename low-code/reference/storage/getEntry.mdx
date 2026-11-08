@@ -1,0 +1,36 @@
+---
+title: storage.getEntry()
+sidebarTitle: getEntry()
+description: Public low-code contract, signatures and examples for storage.getEntry.
+icon: code
+---
+
+<span id="storage-getEntry" aria-hidden="true"></span>
+
+## `storage.getEntry()`
+
+Returns metadata for any storage entry. Without an explicit namespace the
+entry is resolved by its globally unique id, matching the REST Storage API.
+
+### Overloads
+
+```ts
+static getEntry(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+static getEntry(
+      namespace: string,
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.getEntry(storageEntryId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

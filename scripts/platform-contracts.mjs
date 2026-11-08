@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { LOW_CODE_REFERENCE_GLOBALS } from './generate-low-code-reference.mjs';
+import { referenceFiles } from './generate-low-code-reference.mjs';
 import {
   operationEntries,
   publicOpenApiPath,
@@ -14,8 +14,7 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = join(root, 'platform-contracts.json');
 const lowCodeSnapshotPath = join(root, 'low-code', 'reference', 'source', 'api.public.d.ts');
-const lowCodeGeneratedPaths = ['index', ...LOW_CODE_REFERENCE_GLOBALS]
-  .map((name) => join(root, 'low-code', 'reference', `${name}.mdx`));
+const lowCodeGeneratedPaths = () => referenceFiles(readFileSync(lowCodeSnapshotPath, 'utf8'));
 const args = new Set(process.argv.slice(2));
 
 function repoPath(file) {
@@ -34,7 +33,7 @@ function runScript(script, mode, requireSource) {
 }
 
 function requireGeneratedFiles() {
-  for (const file of [sourceSnapshotPath, publicOpenApiPath, lowCodeSnapshotPath, ...lowCodeGeneratedPaths]) {
+  for (const file of [sourceSnapshotPath, publicOpenApiPath, lowCodeSnapshotPath, ...lowCodeGeneratedPaths()]) {
     if (!existsSync(file)) throw new Error(`Missing generated contract artifact: ${repoPath(file)}`);
   }
 }
@@ -57,7 +56,7 @@ function buildManifest() {
       },
       lowCodeRuntime: {
         snapshot: repoPath(lowCodeSnapshotPath),
-        generated: lowCodeGeneratedPaths.map(repoPath),
+        generated: lowCodeGeneratedPaths().map(repoPath),
       },
     },
   };

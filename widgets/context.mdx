@@ -1,0 +1,43 @@
+---
+title: "The $widget context"
+description: "Read current targets, input values, selection, event and action receipts."
+sidebarTitle: $widget context
+icon: brackets-curly
+---
+
+`api.input()` reads the source's configured arguments. Later interactive executions add a reserved **`$widget`** object. The spelling is `$widget`, with the dollar sign first.
+
+```js
+const input = api.input() ?? {};
+const ui = input.$widget ?? {};
+const targetIds = ui.targetIds ?? ['*'];
+const status = ui.values?.status ?? input.defaultStatus ?? 'OPEN';
+```
+
+Initial rendering preserves the original configured input shape. Always handle missing `$widget` on the first execution. Do not place `$widget` in saved **Inputs**.
+
+## Context fields
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `targetIds` | string array | Requested cell IDs; `['*']` means the whole view. |
+| `reason` | `initial`, `manual`, `action`, `interval` | Why the read was requested. |
+| `values` | Object keyed by INPUT ID | Committed values, including submitted FORM fields. |
+| `selection` | Object keyed by TABLE ID | Each selection has `keys`, an array of string or numeric record keys. |
+| `event` | Optional object | Interaction details, including `sourceId` and `type`; type-specific fields are described in [events](/widgets/events). |
+| `requestId` | Optional string | Identity of this read or action dispatch. |
+| `actionResult` | Optional value | Receipt of the last successfully confirmed action in this frame. |
+
+`actionResult` is absent before confirmation and after remount. It survives ordinary refresh and retained Back navigation. Use a confirmed `jobId` from that receipt to query the exact Job, rather than guessing from the newest row in history.
+
+## Three different kinds of input
+
+| Input | Set where | Used for |
+| --- | --- | --- |
+| Source `inputs` | Saved configuration; JSON object text | Stable defaults and resource IDs. |
+| INPUT `value` | Returned cell definition | Initial or synchronized control value. |
+| Action `input` | `on` action; binding map | Arguments passed to a registered destination or executor. |
+
+Configured defaults and mapped action arguments are merged, with mapped keys winning. A child with no INPUT controls can still read passed arguments through `api.input()`. An `input` binding, however, requires an actual INPUT in the current frame.
+
+See [bindings](/widgets/bindings) for the exact reference syntax and [state](/widgets/state) for drafts and reload behavior.

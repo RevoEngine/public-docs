@@ -1,0 +1,37 @@
+---
+title: storage.getUploadSession()
+sidebarTitle: getUploadSession()
+description: Public low-code contract, signatures and examples for storage.getUploadSession.
+icon: code
+---
+
+<span id="storage-getUploadSession" aria-hidden="true"></span>
+
+## `storage.getUploadSession()`
+
+Returns the current upload session state together with uploaded part manifests.
+
+Notes:
+- Available with `readOnly: true` because it only reads session state.
+- Multipart sessions expose uploaded parts with computed byte ranges.
+
+### Overloads
+
+```ts
+static getUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSessionView>;
+
+static getUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSessionView>;
+```
+### Example
+
+```ts
+const state = await storage.getUploadSession(storageUploadSessionId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

@@ -1,0 +1,30 @@
+---
+title: api.publishMessage()
+sidebarTitle: publishMessage()
+description: Public low-code contract, signatures and examples for api.publishMessage.
+icon: code
+---
+
+<span id="api-publishMessage" aria-hidden="true"></span>
+
+## `api.publishMessage()`
+
+Publishes a realtime message.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- Currently only the 'ALL' channel is supported.
+
+### Signature
+
+```ts
+static publishMessage(channel: string, message: any): Promise<void>;
+```
+### Example
+
+```ts
+await api.publishMessage('ALL', { state: 'started' });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

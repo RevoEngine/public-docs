@@ -1,0 +1,29 @@
+---
+title: serviceAccount.rotateKey()
+sidebarTitle: rotateKey()
+description: Public low-code contract, signatures and examples for serviceAccount.rotateKey.
+icon: code
+---
+
+<span id="serviceAccount-rotateKey" aria-hidden="true"></span>
+
+## `serviceAccount.rotateKey()`
+
+Creates a new credential; gracePeriodMs defaults to 0, max 365 days.
+Omit expireAt to inherit it, pass null for no expiration, or a date at least four hours ahead.
+
+### Signature
+
+```ts
+static rotateKey(ref: ServiceAccountRef, userKeyId: string, input: ServiceAccountKeyRotateInput): Promise<ServiceAccountKeyRotated>;
+```
+### Example
+
+```ts
+const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+const { newKey } = await serviceAccount.rotateKey('erp-sync', key.userKeyId, { version: key.version, gracePeriodMs: 60000 });
+await vault.rotate('ERP_API_KEY', { value: newKey.secret });
+```
+
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

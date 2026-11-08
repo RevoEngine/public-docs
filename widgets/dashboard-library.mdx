@@ -1,0 +1,82 @@
+---
+title: "Built-in widget library"
+description: "Choose a built-in dashboard panel and its source."
+icon: book-open
+---
+
+## Complete widget library
+
+These are the **36 entries in the current Add Widgets palette**. Names below match the app. Most built-in resource grids have no source picker: open the widget, apply its own filter and sort controls, then save the dashboard if that state should reopen. A widget can be visible in the palette yet show **Insufficient permissions** to a viewer without its required role. Resource ACLs remain in force independently of dashboard visibility.
+
+| Palette entry | What it displays | Configuration in the app |
+| --- | --- | --- |
+| **Agents** | One agent's runs, inbox, storage and configuration. | **Configure → Agent**: choose an accessible agent. |
+| **Custom Widget** | Text, charts, tables, forms, inputs and action buttons. | **Configure → Source, Code/Component, Runtime, Inputs**; see the detailed section below. |
+| **Account Distribution Chart** | Service-account versus user-account distribution. | No source-specific settings; use Label and Presentation. |
+| **Account Type Chart** | Platform versus external accounts. | No source-specific settings; use Label and Presentation. |
+| **Account Activity Chart** | Active accounts over time. | No source-specific settings; use Label and Presentation. |
+| **Components** | Component registry. | Filter/sort the embedded grid, then save. |
+| **Databases** | Database registry. | Filter/sort the embedded grid, then save. |
+| **Database Audit** | Database audit events. | Filter/sort the embedded grid, then save. |
+| **Database Cache** | Database cache entries. | Filter/sort the embedded grid, then save. |
+| **Database Table** | Rows of one database table. | **Configure → Source → Database Table**; choose the table, then set grid filters/sort. |
+| **Database View** | Rows of one database view. | **Configure → Source → Database View**; choose the view, then set grid filters/sort. |
+| **Database Materialized View** | Rows of one materialized view. | **Configure → Source → Database Materialized View**; choose the materialized view, then set grid filters/sort. |
+| **Endpoints** | Endpoint registry. | Filter/sort the embedded grid, then save. |
+| **Endpoints Performance** | Endpoint metrics grid with statistics drill-down. | Filter/sort the embedded grid, then save. This is not a selector for one endpoint. |
+| **AI Usage Overall** | Overall Assistant usage. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage Models** | Usage by model. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage Tools** | Tool usage. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage Skills** | Skill usage. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage Most Used Plugins** | Plugin usage. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage History** | Usage over time. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **AI Usage All Time** | All-time usage variant. | **Configure → Analytics**: chart and period; instance-admin access. |
+| **Events History** | Automation event history. | Filter/sort the embedded grid, then save. |
+| **Events** | Configured automation events. | Filter/sort the embedded grid, then save. |
+| **Groups** | User groups. | Filter/sort the embedded grid, then save. |
+| **Jobs History** | Individual Job runs and their status. | Filter/sort the embedded grid, then save. Use this for failures or retries. |
+| **Jobs Performance** | Instance-wide Job throughput and processing time by day. | **Configure → Analytics → Period**; this is not scoped to one Job template. |
+| **Jobs** | Job template registry. | Filter/sort the embedded grid, then save. |
+| **Logs** | System logs. | Filter/sort the embedded grid; instance-admin access. |
+| **Role groups** | Role groups. | Filter/sort the embedded grid, then save. |
+| **Schedule History** | Schedule execution history. | Filter/sort the embedded grid, then save. |
+| **Schedule** | Configured schedules. | Filter/sort the embedded grid, then save. |
+| **Service accounts** | Service-account registry. | Filter/sort the embedded grid, then save. |
+| **Storage** | Storage folder browser. | **Configure → Source → Storage folder**; optionally **Lock path** and **Disable upload**. |
+| **Execution logs** | Execution log viewer. | Apply service/status/identity/date filters; the applied form is saved in the widget. Instance-admin access. |
+| **Users** | User registry. | Filter/sort the embedded grid, then save. |
+| **Webhooks** | Webhook registry. | Filter/sort the embedded grid, then save. |
+
+The app can also render **Endpoint Summary** in existing stored dashboard definitions, but it is not an Add Widgets palette entry. The three Database source entries share one renderer for views or use the table renderer as appropriate; the seven AI Usage entries share one renderer with different initial chart settings. Do not substitute a palette label for the stored renderer type when using the Platform API.
+
+## Configure a widget
+
+Every widget has **Widget → Label**, **Presentation → Hide header**, and **Presentation → Hide actions**, plus **Remove**. Hiding the header also clears Hide actions. Configuration opens in a tab beside **Widgets** while the dashboard is unlocked.
+
+| Widget family | Controls and saved behavior |
+| --- | --- |
+| Database Table / View / Materialized View | The Source picker searches accessible, non-deleted resources of the matching kind. Table selection stores its database ID; View and Materialized View selection store a view ID. Clearing it leaves the widget unconfigured. |
+| Agents | Choose one accessible agent in the Agent picker. No selection displays **No agent selected**. |
+| Storage | Pick a folder; **Lock path** scopes navigation to that folder; **Disable upload** is the widget's upload control, with effective actions also governed by the viewer's permissions and workspace policy. The picker selects an accessible Storage folder. |
+| AI Usage | Choose **Overall**, **Models**, **Tools**, **Skills**, **Most used plugins**, **History** or **All time** and a period. Palette variants preselect a chart but the Analytics selector can change it. Quick periods are 7, 30, 90, 180 or 365 days; a complete custom range is supported up to 366 days. |
+| Jobs Performance | Choose a period with the same picker; there is no chart selector or per-template filter in this widget. |
+| Execution logs | Configure filters within the Execution logs panel. Applied service, status, user, endpoint/template, Job, IP and date values are stored with this widget; an open end time remains open. |
+| Built-in grids | Apply filters and sorting in the rendered grid, then select dashboard **Save**. The stored `gridState` is separate for each widget. The actual columns and filter operators come from that grid; a custom widget `TABLE` does not persist its live filter state. |
+| Account charts | These three account charts have no extra source control. Use the common Label and Presentation controls. |
+
+<Warning>
+  An unloaded or permission-denied panel is not a valid zero. The dashboard preference grants no access to an embedded resource that the viewer cannot otherwise read.
+</Warning>
+
+## Preserve an operator view
+
+Embedded grids retain meaningful filter and sort state in the saved dashboard definition. Use this to build views such as:
+
+- failed Jobs for one settlement category;
+- Endpoint latency and Trace evidence for a customer-facing API;
+- pending Webhooks for one external integration;
+- a restricted Storage folder for an operations team.
+
+Each panel can have a dynamic label and can hide its local header or buttons. File and Storage panels can start at a configured path; path locking and drag controls can prevent a focused workspace from becoming a general file browser.
+
+Continue with [dashboards](/operate/dashboards).

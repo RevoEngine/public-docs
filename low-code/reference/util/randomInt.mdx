@@ -1,0 +1,29 @@
+---
+title: util.randomInt()
+sidebarTitle: randomInt()
+description: Public low-code contract, signatures and examples for util.randomInt.
+icon: code
+---
+
+<span id="util-randomInt" aria-hidden="true"></span>
+
+## `util.randomInt()`
+
+Synchronously generates a random integer in the inclusive min..max range.
+Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static randomInt(min?: number, max?: number): number;
+```
+### Example
+
+```ts
+const n = util.randomInt(1000, 9999);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

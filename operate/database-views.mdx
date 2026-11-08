@@ -4,9 +4,15 @@ description: Build governed, reusable read models with structured queries or res
 icon: binoculars
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 A Database View is a named read model over one or more accessible Tables. It gives dashboards, Endpoints, Components, exports, and operators one stable output contract without copying the source data. The saved definition is read-only: querying a View never mutates its sources.
 
 Use a regular View when results should reflect current source rows on every read. Use a [Materialized View](/operate/materialized-views) when the query is expensive and a controlled freshness boundary is acceptable. Low-code reads and structured joins use the same Database methods for Tables, Views, and Materialized Views; export each through `api.exportDatabase()`. New logical names must be unique across all three relation types.
+
+## Explore the behavior
+
+<FlowDemo topic="view" />
 
 ## Create a View in the workspace
 

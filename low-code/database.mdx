@@ -4,7 +4,13 @@ description: Query and mutate RevoEngine databases safely from low-code.
 icon: database
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 Use the structured query API for most reads and writes. It provides explicit fields, filters, grouping, sorting, pagination, and JSON-path behavior without assembling SQL strings.
+
+## Explore the behavior
+
+<FlowDemo topic="transaction" />
 
 ## Read rows
 
@@ -45,9 +51,15 @@ Use `walkDatabaseData()` for a Job that processes many rows. Specify either a no
 ```js
 const result = await api.walkDatabaseData(
   'orders',
-  { fields: ['orderId', 'status'], filter: { field: 'status', op: 'eq', value: 'NEW' }, take: 100000 },
+  {
+    fields: ['orderId', 'status'],
+    filter: { field: 'status', op: 'eq', value: 'NEW' },
+    take: 100000,
+  },
   async (batch) => {
-    await api.upsertDatabaseData('order_export', batch, { return: false });
+    await api.upsertDatabaseData('order_export', batch, {
+      return: false,
+    });
   },
 );
 
@@ -74,7 +86,7 @@ CSV is the default; select `format: 'tsv'`, `'ndjson'`, or `'xlsx'` when the con
 
 ## Import Storage data
 
-Use `api.importDatabase(name, options)` to preview a Storage-backed CSV, TSV, NDJSON, or XLSX file. Supply `storageEntryId`, `format`, `mode` (`insert` or `upsert`), and `onError` (`abort` or `skipRow`). The call returns an import ID and operation job ID; preview validates rows and proposes a source-column mapping without writing to the target. Read the Database operation status and validation report before committing. System messages and emails are suppressed by default; set `skipNotification: false` to opt in, subject to notification preferences. See [Import from Storage](/operate/databases#import-from-storage) for the browser upload lifecycle and exported-value conventions.
+Use `api.importDatabase(name, options)` to preview a Storage-backed CSV, TSV, NDJSON, or XLSX file. Supply `storageEntryId`, `format`, `mode` (`insert` or `upsert`), and `onError` (`abort` or `skipRow`). The call returns an import ID and operation job ID; preview validates rows and proposes a source-column mapping without writing to the target. Read the Database operation status and validation report before committing. System messages and emails are suppressed by default; set `skipNotification: false` to opt in, subject to notification preferences. See [Import from Storage](/operate/database-mutations#import-from-storage) for the browser upload lifecycle and exported-value conventions.
 
 When the mapping needs correction, call `api.updateDatabaseImportMapping(importId, mapping)` and wait for revalidation. Then call `api.commitDatabaseImport(importId)` to start the write. Commit rejects unresolved decisions and checks that the Storage source and target definitions still match the preview. `autoCommit` skips manual approval only after the same full validation; ambiguous mappings still require review. See the [generated low-code API reference](/low-code/reference/api) for the exact method signatures.
 
@@ -97,7 +109,9 @@ to change one property.
 await api.upsertDatabaseData(
   'orders',
   [{ orderId: 'order-1', status: 'QUEUED' }],
-  { onlyKeys: true },
+  {
+    onlyKeys: true,
+  },
 );
 ```
 
@@ -134,12 +148,17 @@ const created = await api.transactionDatabase(async (tx) => {
   const customerId = api.input('customerId');
   const existing = await tx.getDatabaseData(
     'customers',
-    { filter: { field: 'customerId', op: 'eq', value: customerId }, take: 1 },
+    {
+      filter: { field: 'customerId', op: 'eq', value: customerId },
+      take: 1,
+    },
     { lock: 'update' },
   );
 
   if (existing.results === 0) {
-    await tx.insertDatabaseData('customers', [{ customerId, status: 'ACTIVE' }]);
+    await tx.insertDatabaseData('customers', [
+      { customerId, status: 'ACTIVE' },
+    ]);
   }
   return existing.results === 0;
 });

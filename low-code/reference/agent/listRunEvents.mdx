@@ -1,0 +1,26 @@
+---
+title: agent.listRunEvents()
+sidebarTitle: listRunEvents()
+description: Public low-code contract, signatures and examples for agent.listRunEvents.
+icon: code
+---
+
+<span id="agent-listRunEvents" aria-hidden="true"></span>
+
+## `agent.listRunEvents()`
+
+Lists persisted events for a run.
+
+### Signature
+
+```ts
+static listRunEvents(agentRunId: string): Promise<AgentRunEvent[]>;
+```
+### Example
+
+```ts
+const events = await agent.listRunEvents(agentRunId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -4,9 +4,15 @@ description: Batch runtime calls safely and move small or large objects through 
 icon: boxes-stacked
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 The SDK batches remote calls for throughput, but batching is not a transaction. Use Storage upload sessions when bytes are too large for the JSON runtime batch or when a file must be assembled across calls.
 
 An upload session is a temporary durable control record, not a file. It stores the intended target, progress, lease, access, retention, metadata, schema, and compute policy. A readable `storageEntryId` exists only after the session reaches `FINALIZED`.
+
+## Explore the behavior
+
+<FlowDemo topic="batching" />
 
 ## Automatic batching
 
@@ -22,7 +28,9 @@ const [customers, agents] = await Promise.all([
 Sequential awaits naturally dispatch separate batches:
 
 ```ts
-const customers = await revo.api.getDatabaseData('Customers', { take: 100 });
+const customers = await revo.api.getDatabaseData('Customers', {
+  take: 100,
+});
 const agents = await revo.agents.list();
 ```
 
@@ -101,14 +109,22 @@ export async function uploadGeneratedCsv(
     }
 
     const state = await runtime.storage.getUploadSession(sessionId);
-    console.log({ uploadedParts: state.uploadedParts, uploadedBytes: state.uploadedBytes });
-
-    const { entry } = await runtime.storage.finalizeUploadSession(sessionId, {
-      computeStats: 'sync',
+    console.log({
+      uploadedParts: state.uploadedParts,
+      uploadedBytes: state.uploadedBytes,
     });
+
+    const { entry } = await runtime.storage.finalizeUploadSession(
+      sessionId,
+      {
+        computeStats: 'sync',
+      },
+    );
     return entry;
   } catch (error) {
-    await runtime.storage.abortUploadSession(sessionId).catch(() => undefined);
+    await runtime.storage
+      .abortUploadSession(sessionId)
+      .catch(() => undefined);
     throw error;
   }
 }
@@ -159,9 +175,9 @@ do {
 
 `getFileData()` builds missing structured statistics when needed. If the persisted mapping must be recomputed, call `getFileStats(storageEntryId, { reloadStats: true })` first; `reloadStats` is not a `getFileData()` option. For XLSX, select `sheet` when the first visible worksheet is not the intended source. XML requires `recordPath`.
 
-CSV indexing validates quote syntax and source field counts before returning records. `STORAGE_CSV_INVALID` includes bounded location diagnostics without raw rows or cell values. Its per-record `maxRecordBytes` guard defaults to 64 MiB independently of read size. Set the same dialect for indexing and reading; `quote: false` deliberately keeps literal quotes and backslashes and ignores `escape`. See [CSV validation and physical counts](/operate/storage-structured-files#csv-errors-stop-record-processing).
+CSV indexing validates quote syntax and source field counts before returning records. `STORAGE_CSV_INVALID` includes bounded location diagnostics without raw rows or cell values. Its per-record `maxRecordBytes` guard defaults to 64 MiB independently of read size. Set the same dialect for indexing and reading; `quote: false` deliberately keeps literal quotes and backslashes and ignores `escape`. See [CSV validation and physical counts](/operate/storage-csv#csv-errors-stop-record-processing).
 
-For CSV/TSV, readers default to `onError: 'abort'`. Set `onError: 'skipRow'` on statistics and every page read to skip records with the wrong source field count. The returned `csvReport` contains the exact skipped count and bounded original-file locations for the whole source; do not sum it across pages. Invalid syntax and oversized records still abort. See [CSV record error policy](/operate/storage-structured-files#handle-csv-records-with-the-wrong-column-count) for upload settings, walkers, and diagnostic fields.
+For CSV/TSV, readers default to `onError: 'abort'`. Set `onError: 'skipRow'` on statistics and every page read to skip records with the wrong source field count. The returned `csvReport` contains the exact skipped count and bounded original-file locations for the whole source; do not sum it across pages. Invalid syntax and oversized records still abort. See [CSV record error policy](/operate/storage-csv#handle-csv-records-with-the-wrong-column-count) for upload settings, walkers, and diagnostic fields.
 
 Plain text can still be read through line windows. Explicit `mode: 'lines'` also reads a CSV as strings without interpreting its fields, preserving headers, blanks and the terminal empty element. That mode is for custom text processing, rather than automatic recovery from malformed CSV. Storage record/line batches are unrelated to SDK request batching.
 

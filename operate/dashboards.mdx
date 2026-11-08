@@ -6,6 +6,21 @@ icon: chart-line
 
 Dashboards turn the RevoEngine control plane into an operator-specific workspace. A dashboard can combine live resource grids, performance and identity charts, Trace, Storage, and custom widgets on one movable grid.
 
+<span id="complete-widget-library" aria-hidden="true"></span>
+<span id="configure-a-widget" aria-hidden="true"></span>
+<span id="preserve-an-operator-view" aria-hidden="true"></span>
+<span id="custom-widgets-inline-or-reusable-code" aria-hidden="true"></span>
+
+<CardGroup cols={2}>
+  <Card title="Built-in widget library" href="/widgets/dashboard-library" icon="book-open">Choose a built-in dashboard panel and its source.</Card>
+  <Card title="Configure a Custom Widget" href="/widgets/source-configuration" icon="book-open">Choose Inline or Component sources, inputs, execution limits and revisions.</Card>
+</CardGroup>
+
+
+<Frame caption="A synthetic operations dashboard combines counts, business trends and Agent run state. Each widget still has its own source and permissions.">
+  <img src="/images/asterion/operations-dashboard.jpg" alt="Asterion operations dashboard with catalog, orders, invoices, exception counts, trend chart and Agent runs" />
+</Frame>
+
 ## Create a dashboard in the app
 
 1. Open **Dashboards** and select **Manage**. Use **Add dashboard** (`+`) in the search field.
@@ -21,157 +36,6 @@ Use **Manage** to open, search, rename, change visibility/default, or delete a s
 The [Asterion Supply example](/platform/asterion-supply) combines four live widgets: catalog/order/invoice counts, daily sales from a Materialized View, an exception View, and the finance Agent. Select the Agent in **Configure → Agent** to inspect its runs and workspace evidence beside business data. Its presence on a dashboard does not grant the viewer permission to run it.
 
 A pinned Assistant conversation is a separate conversation surface; it is not an additional dashboard widget type. Use the current **Agents** widget for Agent operations and link business work to its verified run or artifact.
-
-## Complete widget library
-
-These are the **36 entries in the current Add Widgets palette**. Names below match the app. Most built-in resource grids have no source picker: open the widget, apply its own filter and sort controls, then save the dashboard if that state should reopen. A widget can be visible in the palette yet show **Insufficient permissions** to a viewer without its required role. Resource ACLs remain in force independently of dashboard visibility.
-
-| Palette entry | What it displays | Configuration in the app |
-| --- | --- | --- |
-| **Agents** | One agent's runs, inbox, storage and configuration. | **Configure → Agent**: choose an accessible agent. |
-| **Custom Widget** | Text, charts, tables, forms, inputs and action buttons. | **Configure → Source, Code/Component, Runtime, Inputs**; see the detailed section below. |
-| **Account Distribution Chart** | Service-account versus user-account distribution. | No source-specific settings; use Label and Presentation. |
-| **Account Type Chart** | Platform versus external accounts. | No source-specific settings; use Label and Presentation. |
-| **Account Activity Chart** | Active accounts over time. | No source-specific settings; use Label and Presentation. |
-| **Components** | Component registry. | Filter/sort the embedded grid, then save. |
-| **Databases** | Database registry. | Filter/sort the embedded grid, then save. |
-| **Database Audit** | Database audit events. | Filter/sort the embedded grid, then save. |
-| **Database Cache** | Database cache entries. | Filter/sort the embedded grid, then save. |
-| **Database Table** | Rows of one database table. | **Configure → Source → Database Table**; choose the table, then set grid filters/sort. |
-| **Database View** | Rows of one database view. | **Configure → Source → Database View**; choose the view, then set grid filters/sort. |
-| **Database Materialized View** | Rows of one materialized view. | **Configure → Source → Database Materialized View**; choose the materialized view, then set grid filters/sort. |
-| **Endpoints** | Endpoint registry. | Filter/sort the embedded grid, then save. |
-| **Endpoints Performance** | Endpoint metrics grid with statistics drill-down. | Filter/sort the embedded grid, then save. This is not a selector for one endpoint. |
-| **AI Usage Overall** | Overall Assistant usage. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage Models** | Usage by model. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage Tools** | Tool usage. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage Skills** | Skill usage. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage Most Used Plugins** | Plugin usage. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage History** | Usage over time. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **AI Usage All Time** | All-time usage variant. | **Configure → Analytics**: chart and period; instance-admin access. |
-| **Events History** | Automation event history. | Filter/sort the embedded grid, then save. |
-| **Events** | Configured automation events. | Filter/sort the embedded grid, then save. |
-| **Groups** | User groups. | Filter/sort the embedded grid, then save. |
-| **Jobs History** | Individual Job runs and their status. | Filter/sort the embedded grid, then save. Use this for failures or retries. |
-| **Jobs Performance** | Instance-wide Job throughput and processing time by day. | **Configure → Analytics → Period**; this is not scoped to one Job template. |
-| **Jobs** | Job template registry. | Filter/sort the embedded grid, then save. |
-| **Logs** | System logs. | Filter/sort the embedded grid; instance-admin access. |
-| **Role groups** | Role groups. | Filter/sort the embedded grid, then save. |
-| **Schedule History** | Schedule execution history. | Filter/sort the embedded grid, then save. |
-| **Schedule** | Configured schedules. | Filter/sort the embedded grid, then save. |
-| **Service accounts** | Service-account registry. | Filter/sort the embedded grid, then save. |
-| **Storage** | Storage folder browser. | **Configure → Source → Storage folder**; optionally **Lock path** and **Disable upload**. |
-| **Execution logs** | Execution log viewer. | Apply service/status/identity/date filters; the applied form is saved in the widget. Instance-admin access. |
-| **Users** | User registry. | Filter/sort the embedded grid, then save. |
-| **Webhooks** | Webhook registry. | Filter/sort the embedded grid, then save. |
-
-The app can also render **Endpoint Summary** in existing stored dashboard definitions, but it is not an Add Widgets palette entry. The three Database source entries share one renderer for views or use the table renderer as appropriate; the seven AI Usage entries share one renderer with different initial chart settings. Do not substitute a palette label for the stored renderer type when using the Platform API.
-
-## Configure a widget
-
-Every widget has **Widget → Label**, **Presentation → Hide header**, and **Presentation → Hide actions**, plus **Remove**. Hiding the header also clears Hide actions. Configuration opens in a tab beside **Widgets** while the dashboard is unlocked.
-
-| Widget family | Controls and saved behavior |
-| --- | --- |
-| Database Table / View / Materialized View | The Source picker searches accessible, non-deleted resources of the matching kind. Table selection stores its database ID; View and Materialized View selection store a view ID. Clearing it leaves the widget unconfigured. |
-| Agents | Choose one accessible agent in the Agent picker. No selection displays **No agent selected**. |
-| Storage | Pick a folder; **Lock path** scopes navigation to that folder; **Disable upload** is the widget's upload control, with effective actions also governed by the viewer's permissions and workspace policy. The picker selects an accessible Storage folder. |
-| AI Usage | Choose **Overall**, **Models**, **Tools**, **Skills**, **Most used plugins**, **History** or **All time** and a period. Palette variants preselect a chart but the Analytics selector can change it. Quick periods are 7, 30, 90, 180 or 365 days; a complete custom range is supported up to 366 days. |
-| Jobs Performance | Choose a period with the same picker; there is no chart selector or per-template filter in this widget. |
-| Execution logs | Configure filters within the Execution logs panel. Applied service, status, user, endpoint/template, Job, IP and date values are stored with this widget; an open end time remains open. |
-| Built-in grids | Apply filters and sorting in the rendered grid, then select dashboard **Save**. The stored `gridState` is separate for each widget. The actual columns and filter operators come from that grid; a custom widget `TABLE` does not persist its live filter state. |
-| Account charts | These three account charts have no extra source control. Use the common Label and Presentation controls. |
-
-<Warning>
-  An unloaded or permission-denied panel is not a valid zero. The dashboard preference grants no access to an embedded resource that the viewer cannot otherwise read.
-</Warning>
-
-## Preserve an operator view
-
-Embedded grids retain meaningful filter and sort state in the saved dashboard definition. Use this to build views such as:
-
-- failed Jobs for one settlement category;
-- Endpoint latency and Trace evidence for a customer-facing API;
-- pending Webhooks for one external integration;
-- a restricted Storage folder for an operations team.
-
-Each panel can have a dynamic label and can hide its local header or buttons. File and Storage panels can start at a configured path; path locking and drag controls can prevent a focused workspace from becoming a general file browser.
-
-## Custom widgets: inline or reusable code
-
-An analytical widget generated in an Assistant conversation can be saved here through **Convert to dashboard**. Choose a new or existing dashboard, review the original code and inputs, and select a dynamic source or fixed snapshot. Dynamic conversion preserves the complete source, configured inputs and registered action/navigation targets. The source executes when the dashboard loads and refreshes; a fixed snapshot preserves the displayed result with interactions disabled. Unsaved form drafts are not persisted as dashboard inputs. This is a user-directed save and requires dashboard write access. See [Assistant charts, diagrams and tables](/ai/assistant#charts-diagrams-and-tables-in-answers).
-
-A **Custom Widget** renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
-
-| Setting | Meaning |
-| --- | --- |
-| Source | Inline code or a reusable Component. A new widget starts in inline mode. |
-| Language and code | JavaScript or TypeScript source for inline mode. |
-| Component | Executable Component in reusable mode. |
-| Revision | Latest or an optional pinned Component digest in reusable mode. |
-| Element | Optional result element in a multi-element Component. |
-| Inputs | Optional JSON passed to either source. |
-| Timeout | Interactive execution timeout, validated from 5 to 600 seconds. |
-| Memory | Widget execution memory, validated from 32 to 1024 MiB. |
-| Refresh | Optional automatic refresh from 1 to 600 seconds. |
-| Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Keep view Components restricted; registered action targets can explicitly request `readOnly: false`. |
-
-View code runs in Sandbox. Inline view code requests `readOnly: true`. Reusable widgets with configured interaction targets and subsequent interactive refreshes also request read-only execution. An initial reusable render without target maps retains its selected restricted-mode setting; keep view Components restricted. A registered action target can explicitly request write execution. Debug execution by itself is not a permission grant or a substitute for the explicit read-only flag. Keep widget calculations read-only and never embed secrets. Both sources return a matrix of rows containing elements of type `TEXT`, `CHART`, `TABLE`, `EMPTY`, `INPUT`, `FORM` or `BUTTON`. Chart elements require an options object and a data array. Table elements require a data array and column definitions.
-
-Add stable cell IDs and declarative `on` actions for partial refresh, record or chart drill-down, multi-selection, forms and Job submission. Named destinations reuse the existing source configuration. Follow [Reactive Custom Widgets](/operate/reactive-widgets) for the complete form → Job → single-tile refresh example and input-preservation rules.
-
-For a dashboard focused on one Endpoint and its related Jobs, pass verified Job template IDs through **Inputs** as JSON, for example `{"templateIds":["verified-template-id"]}`. The following inline JavaScript makes a bounded read, groups the returned runs by UTC day and returns a heading, chart, table and intentional spacer. It labels the result as partial when the 100-row cap may have omitted runs:
-
-```js
-const ids = Array.isArray(api.input()?.templateIds) ? api.input().templateIds : [];
-if (!ids.length) {
-  return [[{ type: 'TEXT', value: 'Select Job template IDs in widget Inputs.' }]];
-}
-
-const page = await api.getInstanceData('Jobs', {
-  take: 100,
-  sort: ['-scheduledFor'],
-  fields: ['jobTemplateId', 'status', 'scheduledFor'],
-  filter: { jobTemplateId: { in: ids } }
-});
-const jobs = Array.isArray(page?.data) ? page.data : [];
-const dailyCounts = new Map();
-for (const job of jobs) {
-  const day = String(job.scheduledFor ?? '').slice(0, 10); // UTC date from ISO timestamp.
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
-  const entry = dailyCounts.get(day) ?? { day, runs: 0, failed: 0 };
-  entry.runs += 1;
-  if (job.status === 'ERROR') entry.failed += 1;
-  dailyCounts.set(day, entry);
-}
-const daily = [...dailyCounts.values()].sort((a, b) => a.day.localeCompare(b.day));
-const scope = jobs.length === 100 ? 'Latest 100 runs; totals may be partial' : 'All returned runs';
-return [
-  [{ type: 'TEXT', value: `## Job runs by UTC day\n${scope}`, width: 100 }],
-  [
-    { type: 'CHART', width: 55, data: daily, options: {
-      series: [
-        { type: 'bar', xKey: 'day', yKey: 'runs', yName: 'Runs' },
-        { type: 'bar', xKey: 'day', yKey: 'failed', yName: 'Errors' }
-      ]
-    } },
-    { type: 'TABLE', width: 40, data: daily, definition: [
-      { field: 'day', headerName: 'UTC day', type: 'DATE' },
-      { field: 'runs', headerName: 'Runs', type: 'NUMBER' },
-      { field: 'failed', headerName: 'Errors', type: 'NUMBER' }
-    ] },
-    { type: 'EMPTY', width: 5 }
-  ]
-];
-```
-
-Keep the chosen time window and timezone visible, bound pagination, and mark totals as partial if a cap omits rows. A Jobs Performance panel summarizes the instance, so use a custom chart for a trend restricted to one Endpoint's related Jobs. Save the matching filters and sort separately on the server-side Jobs History panel; Trace needs the Endpoint's own ID.
-
-<Tip>
-  Use a pinned Component digest when an incident or executive dashboard must keep a reviewed revision. Use Latest when new active revisions should be picked up automatically.
-</Tip>
-
-The outer dashboard grid has 20 columns. In the Platform API, a dashboard preference's `data` is one flat array of panel objects. Each panel stores its position and size as `x`, `y`, `cols`, and `rows`; the custom widget's returned rows and cell widths control only the layout inside that panel. A server-side Jobs History panel can retain its column filter and sort order when the dashboard is saved. A custom `TABLE` uses the returned data in the browser; its live table filters are not saved as dashboard state. Trace stores its own applied filters, including an optional Endpoint selection.
 
 ## Refresh and source of truth
 

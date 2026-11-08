@@ -1,0 +1,56 @@
+---
+title: api.exportDatabase()
+sidebarTitle: exportDatabase()
+description: Public low-code contract, signatures and examples for api.exportDatabase.
+icon: code
+---
+
+<span id="api-exportDatabase" aria-hidden="true"></span>
+
+## `api.exportDatabase()`
+
+Exports a logical table, saved view, or materialized view by name directly into Storage as CSV, TSV, NDJSON, or XLSX.
+The root and every structured join may independently target any of these relation types.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- By default waits for the export, final compose, and storage entry persistence.
+- CSV is the default and its dialect, headers, and byte map are indexed during upload.
+- XLSX streams directly from the database through the native Storage writer into the final resumable upload,
+  preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
+  A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
+- By default the call completes synchronously in its current runtime. Set `async: true` to queue it on Processor and receive a jobId.
+- Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
+  or provide an accessible Explorer folder storageEntryId.
+
+### Signature
+
+```ts
+static exportDatabase<TAsync extends boolean = false>(
+      name: string,
+      options?: ExportDatabaseOptions & { async?: TAsync },
+    ): Promise<
+      TAsync extends true
+        ? ExportDatabaseAcceptedResponse
+        : TAsync extends false
+          ? ExportDatabaseCompletedResponse
+          : ExportDatabaseResponse
+    >;
+```
+### Example
+
+```ts
+const result = await api.exportDatabase('contracts', {
+  format: 'xlsx',
+  storageDestination: 'ROOT',
+  fileName: 'contracts-full.xlsx',
+  restricted: false,
+  fields: ['contractId', 'customerId'],
+  sort: { contractId: 'ASC' },
+});
+
+return result.storageEntryId;
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

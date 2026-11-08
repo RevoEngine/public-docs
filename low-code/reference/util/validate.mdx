@@ -1,0 +1,55 @@
+---
+title: util.validate()
+sidebarTitle: validate()
+description: Public low-code contract, signatures and examples for util.validate.
+icon: code
+---
+
+<span id="util-validate" aria-hidden="true"></span>
+
+## `util.validate()`
+
+Validates a payload with the platform schema validator used by Endpoints.
+
+Notes:
+- Prefer enum/const, types, lengths, numeric bounds and supported date/time formats over regex when equivalent.
+- Use regex only for a required text pattern; even simple patterns can materially increase Endpoint guard preparation time.
+- Use profile: 'strict' for new schemas; omitted profiles retain legacy behavior.
+- required controls presence, nullable controls null, and empty controls empty strings and arrays.
+- Use additionalProperties: 'allow', 'strip' or 'reject' for unknown fields.
+- Legacy whitelist: true retains unknown fields. With whitelist: false, whitelistErrors: false removes them; true reports errors.
+- The result contains valid, errors, issues and value. Structured issues expose code, path, message and optional params.
+- After success, use value so configured field removal is respected.
+- Input, schema and execution limits apply; cyclic data is rejected. Capacity or execution failures can reject the Promise.
+
+### Signature
+
+```ts
+static validate(
+      payload: any,
+      schema: ValidatorSchemaInput,
+    ): Promise<ValidationResult<any>>;
+```
+### Example
+
+```ts
+const result = await util.validate(
+  api.input()?.body,
+  {
+    profile: 'strict',
+    additionalProperties: 'reject',
+    schema: {
+      type: 'object',
+      required: true,
+      objectSchema: [
+        { property: 'status', schema: { type: 'string', required: true, enum: ['pending', 'ready'] } },
+      ],
+    },
+  },
+);
+if (!result.valid) throw new Error('Invalid request');
+const validatedInput = result.value;
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

@@ -1,0 +1,26 @@
+---
+title: vault.create()
+sidebarTitle: create()
+description: Public low-code contract, signatures and examples for vault.create.
+icon: code
+---
+
+<span id="vault-create" aria-hidden="true"></span>
+
+## `vault.create()`
+
+Creates a new parent and first revision atomically. An existing name conflicts. No value in the result.
+
+### Signature
+
+```ts
+static create(name: string, data: SecretCreateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+```
+### Example
+
+```ts
+const secret = await vault.create('TOKEN', { value: input.token }, { scope: 'user' });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

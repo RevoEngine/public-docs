@@ -1,0 +1,58 @@
+---
+title: util.jwtVerify()
+sidebarTitle: jwtVerify()
+description: Public low-code contract, signatures and examples for util.jwtVerify.
+icon: code
+---
+
+<span id="util-jwtVerify" aria-hidden="true"></span>
+
+## `util.jwtVerify()`
+
+Verifies a JWT.
+
+### Signature
+
+```ts
+static jwtVerify(
+      token: string,
+      secret: string | { key: string; passphrase: string },
+      options?: {
+        algorithms?: (
+          | 'HS256'
+          | 'HS384'
+          | 'HS512'
+          | 'RS256'
+          | 'RS384'
+          | 'RS512'
+          | 'ES256'
+          | 'ES384'
+          | 'ES512'
+          | 'PS256'
+          | 'PS384'
+          | 'PS512'
+          | 'none'
+        )[];
+        audience?: string | RegExp | Array<string | RegExp>;
+        clockTimestamp?: number;
+        clockTolerance?: number;
+        complete?: boolean;
+        issuer?: string | string[];
+        ignoreExpiration?: boolean;
+        ignoreNotBefore?: boolean;
+        jwtid?: string;
+        nonce?: string;
+        subject?: string;
+        maxAge?: string | number;
+        allowInvalidAsymmetricKeyTypes?: boolean;
+      },
+    ): any;
+```
+### Example
+
+```ts
+const payload = util.jwtVerify(token, secret);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

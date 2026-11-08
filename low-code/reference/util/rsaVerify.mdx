@@ -1,0 +1,30 @@
+---
+title: util.rsaVerify()
+sidebarTitle: rsaVerify()
+description: Public low-code contract, signatures and examples for util.rsaVerify.
+icon: code
+---
+
+<span id="util-rsaVerify" aria-hidden="true"></span>
+
+## `util.rsaVerify()`
+
+Verifies an RSA-PSS SHA-256 signature asynchronously, preserving automatic salt-length detection.
+
+### Signature
+
+```ts
+static rsaVerify(
+      publicKey: string,
+      payload: string,
+      signature: string,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const ok = await util.rsaVerify(publicKey, 'hello', signature);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

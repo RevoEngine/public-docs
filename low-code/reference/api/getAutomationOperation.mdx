@@ -1,0 +1,26 @@
+---
+title: api.getAutomationOperation()
+sidebarTitle: getAutomationOperation()
+description: Public low-code contract, signatures and examples for api.getAutomationOperation.
+icon: code
+---
+
+<span id="api-getAutomationOperation" aria-hidden="true"></span>
+
+## `api.getAutomationOperation()`
+
+Read the durable operation and its progress. Counters describe requests processed, not downstream completion.
+
+### Signature
+
+```ts
+static getAutomationOperation(operationId: string): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.getAutomationOperation(input.operationId);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

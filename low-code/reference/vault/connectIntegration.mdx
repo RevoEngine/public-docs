@@ -1,0 +1,30 @@
+---
+title: vault.connectIntegration()
+sidebarTitle: connectIntegration()
+description: Public low-code contract, signatures and examples for vault.connectIntegration.
+icon: code
+---
+
+<span id="vault-connectIntegration" aria-hidden="true"></span>
+
+## `vault.connectIntegration()`
+
+Saves the guarded definition and starts interactive OAuth. Returns an authorization URL;
+the verified initiating user completes consent through the existing frontend callback.
+Instance scope requires a verified personal instance administrator. Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static connectIntegration(name: string, data: VaultConnectIntegrationInput, options?: SecretScopeOptions): Promise<VaultIntegrationConnectResult | null>;
+```
+### Example
+
+```ts
+const pending = await vault.connectIntegration('CRM', {
+  resourceUrl: input.resourceUrl, scopes: ['read'], expectedRevision: null,
+}, { scope: 'user' });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

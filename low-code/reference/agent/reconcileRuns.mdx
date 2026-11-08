@@ -1,0 +1,29 @@
+---
+title: agent.reconcileRuns()
+sidebarTitle: reconcileRuns()
+description: Public low-code contract, signatures and examples for agent.reconcileRuns.
+icon: code
+---
+
+<span id="agent-reconcileRuns" aria-hidden="true"></span>
+
+## `agent.reconcileRuns()`
+
+Reconciles stalled runs with the loop scheduler.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static reconcileRuns(): Promise<any>;
+```
+### Example
+
+```ts
+await agent.reconcileRuns();
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -1,0 +1,41 @@
+---
+title: "Receive callbacks"
+description: "Choose Endpoints, Events and Webhooks for the correct HTTP direction."
+icon: book-open
+---
+
+## Receive callbacks and events
+
+`api.httpCall()` does not receive traffic. Configure an authenticated Endpoint with a request guard, then read the validated request context from `api.input()` inside its Component.
+
+```js
+const request = api.input();
+const externalEvent = request.body;
+
+if (!externalEvent?.id || !externalEvent?.orderId) {
+  api.throw(400, { message: 'Invalid event envelope' });
+}
+
+const eventId = await api.triggerEvent(
+  'PARTNER_ORDER_CHANGED',
+  {
+    externalEventId: externalEvent.id,
+    orderId: externalEvent.orderId,
+    status: externalEvent.status,
+  },
+  {
+    metadata: {
+      provider: 'partner',
+      externalEventId: externalEvent.id,
+    },
+  },
+);
+
+return { accepted: true, eventId };
+```
+
+The Endpoint input root contains `body`, `query`, `headers`, and `parameters`; operator-owned template values remain separate. Treat every caller field as untrusted, do not forward inbound headers wholesale, and deduplicate external event IDs before performing a business mutation. If the sender signs raw bytes, do not reconstruct the signature input from parsed JSON unless its protocol defines canonical JSON.
+
+Use an Event after acceptance when several Jobs or Agents should react independently. Use a Job directly when exactly one durable workflow owns the callback.
+
+Continue with [http](/low-code/http).

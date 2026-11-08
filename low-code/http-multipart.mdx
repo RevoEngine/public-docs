@@ -1,0 +1,54 @@
+---
+title: "Send multipart form data"
+description: "Build multipart requests from scalar values and Storage files."
+icon: book-open
+---
+
+## Submit multipart form data
+
+Put `formData` on the first request argument. For one Storage-backed binary part, leave that part's value empty and provide `source` in options.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://kyc.example.com/v1/reviews',
+    method: 'POST',
+    formData: [
+      { key: 'customerId', value: api.input('customerId') },
+      { key: 'document' },
+    ],
+  },
+  {
+    requestType: 'form-data',
+    responseType: 'json',
+    source: { storageEntryId: api.input('identityDocumentId') },
+  },
+);
+
+return response.data;
+```
+
+Reference each Storage entry directly when the request contains several files:
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://archive.example.com/v1/packages',
+    method: 'POST',
+    formData: [
+      { key: 'caseId', value: api.input('caseId') },
+      { key: 'contract', storageEntryId: api.input('contractId') },
+      {
+        key: 'attachments',
+        storageEntryId: api.input('attachmentArchiveId'),
+        options: { filename: 'attachments.zip' },
+      },
+    ],
+  },
+  { requestType: 'form-data', responseType: 'json' },
+);
+```
+
+The runtime creates the MIME boundary. Do not set a manual multipart `Content-Type` header without the matching generated boundary.
+
+Continue with [http](/low-code/http).

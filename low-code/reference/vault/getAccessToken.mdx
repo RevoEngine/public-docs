@@ -1,0 +1,29 @@
+---
+title: vault.getAccessToken()
+sidebarTitle: getAccessToken()
+description: Public low-code contract, signatures and examples for vault.getAccessToken.
+icon: code
+---
+
+<span id="vault-getAccessToken" aria-hidden="true"></span>
+
+## `vault.getAccessToken()`
+
+Returns a usable integration access token and its matching expiry; refreshes when required.
+Saved component/Tool reads retain their exact grants. Direct SDK reads require owner/admin access.
+Never returns refresh tokens or client secrets. Do not log the result.
+
+### Signature
+
+```ts
+static getAccessToken(name: string, options?: SecretScopeOptions): Promise<VaultAccessToken>;
+```
+### Example
+
+```ts
+const token = await vault.getAccessToken('CRM', { scope: 'user' });
+await api.httpCall({ url: input.url, headers: { Authorization: `Bearer ${token.accessToken}` } });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

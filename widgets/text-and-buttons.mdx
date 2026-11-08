@@ -1,0 +1,67 @@
+---
+title: "Text, buttons and empty cells"
+description: "Show text, offer a declared action or reserve a destination area."
+sidebarTitle: Text and buttons
+icon: font
+---
+
+## Text
+
+```js
+return [
+  [
+    {
+      id: 'summary',
+      type: 'TEXT',
+      value: '## Orders\n12 open orders need review.',
+    },
+  ],
+];
+```
+
+Static TEXT renders its `value` as Markdown. A TEXT cell with `on.click` becomes an action button whose visible text is `label ?? value`; do not rely on rich Markdown in that clickable label.
+
+## Buttons
+
+This complete read-only widget refreshes its summary when the button is clicked:
+
+```js
+const targets = api.input()?.$widget?.targetIds ?? ['*'];
+const rows = [];
+if (targets.includes('*') || targets.includes('refreshSummary')) {
+  rows.push([
+    {
+      id: 'refreshSummary',
+      type: 'BUTTON',
+      label: 'Refresh summary',
+      on: { click: { type: 'REFRESH', target: 'summary' } },
+    },
+  ]);
+}
+if (targets.includes('*') || targets.includes('summary')) {
+  rows.push([
+    {
+      id: 'summary',
+      type: 'TEXT',
+      value: 'Read at ' + new Date().toISOString(),
+    },
+  ]);
+}
+return rows;
+```
+
+`disabled: true` disables the button. `on.click` holds one action object. For a write, register an [EXECUTE target](/widgets/execute) with explicit permission and server-side input validation.
+
+## Empty cells
+
+```js
+return [
+  [
+    { type: 'TEXT', value: 'Left', width: 45 },
+    { id: 'detailHost', type: 'EMPTY', width: 10 },
+    { type: 'TEXT', value: 'Right', width: 45 },
+  ],
+];
+```
+
+EMPTY deliberately reserves space. Add an ID when it should host an [inline destination](/widgets/navigation). It is not a loading or error indicator.

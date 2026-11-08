@@ -1,0 +1,34 @@
+---
+title: api.decrementInstanceCache()
+sidebarTitle: decrementInstanceCache()
+description: Public low-code contract, signatures and examples for api.decrementInstanceCache.
+icon: code
+---
+
+<span id="api-decrementInstanceCache" aria-hidden="true"></span>
+
+## `api.decrementInstanceCache()`
+
+Atomically decrements an integer cache key.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- 'by' must be an integer.
+
+### Signature
+
+```ts
+static decrementInstanceCache(
+      key: string,
+      by?: number,
+      seconds?: number,
+    ): Promise<number>;
+```
+### Example
+
+```ts
+const count = await api.decrementInstanceCache('sync:counter');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

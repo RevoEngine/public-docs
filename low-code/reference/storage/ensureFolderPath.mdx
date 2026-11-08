@@ -1,0 +1,42 @@
+---
+title: storage.ensureFolderPath()
+sidebarTitle: ensureFolderPath()
+description: Public low-code contract, signatures and examples for storage.ensureFolderPath.
+icon: code
+---
+
+<span id="storage-ensureFolderPath" aria-hidden="true"></span>
+
+## `storage.ensureFolderPath()`
+
+Resolves a folder path and idempotently creates any missing segments.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- Existing folders are never mutated.
+- ACL options apply to every newly created segment.
+
+### Overloads
+
+```ts
+static ensureFolderPath(
+      path: string,
+      options?: StorageEnsureFolderPathOptions,
+    ): Promise<StorageEntryView>;
+
+static ensureFolderPath(
+      path: string,
+      options: StorageEnsureFolderPathOptions | undefined,
+      namespace: string,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.ensureFolderPath('exports/daily', {
+  restricted: true,
+});
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

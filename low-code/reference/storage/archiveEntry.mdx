@@ -1,0 +1,38 @@
+---
+title: storage.archiveEntry()
+sidebarTitle: archiveEntry()
+description: Public low-code contract, signatures and examples for storage.archiveEntry.
+icon: code
+---
+
+<span id="storage-archiveEntry" aria-hidden="true"></span>
+
+## `storage.archiveEntry()`
+
+Archives an entry without deleting its backing object.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static archiveEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
+static archiveEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.archiveEntry(storageEntryId, { version: currentVersion });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

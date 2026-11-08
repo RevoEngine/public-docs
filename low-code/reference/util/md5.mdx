@@ -1,0 +1,28 @@
+---
+title: util.md5()
+sidebarTitle: md5()
+description: Public low-code contract, signatures and examples for util.md5.
+icon: code
+---
+
+<span id="util-md5" aria-hidden="true"></span>
+
+## `util.md5()`
+
+Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static md5(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.md5('payload');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

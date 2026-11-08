@@ -1,0 +1,21 @@
+---
+title: serviceAccount.get()
+sidebarTitle: get()
+description: Public low-code contract, signatures and examples for serviceAccount.get.
+icon: code
+---
+
+<span id="serviceAccount-get" aria-hidden="true"></span>
+
+## `serviceAccount.get()`
+
+Reads a service account admitted by IAM and its management ACL.
+Example: const account = await serviceAccount.get(&#123; name: 'erp-sync' &#125;);
+
+### Signature
+
+```ts
+static get(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

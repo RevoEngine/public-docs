@@ -1,0 +1,29 @@
+---
+title: api.getExecutionId()
+sidebarTitle: getExecutionId()
+description: Public low-code contract, signatures and examples for api.getExecutionId.
+icon: code
+---
+
+<span id="api-getExecutionId" aria-hidden="true"></span>
+
+## `api.getExecutionId()`
+
+Returns the UUID that identifies the current low-code execution.
+For durable jobs this is the job id. Endpoint and Sandbox executions
+receive an independent execution UUID while retaining their operation id
+for distributed request tracing.
+
+### Signature
+
+```ts
+static getExecutionId(): string;
+```
+### Example
+
+```ts
+const executionId = api.getExecutionId();
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

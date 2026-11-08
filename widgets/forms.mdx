@@ -1,0 +1,66 @@
+---
+title: "Forms and fields"
+description: "Group INPUT controls and commit their values in one submission."
+icon: rectangle-list
+---
+
+A FORM is a cell containing a `fields` array of INPUT definitions. These are **form fields**, not TABLE columns and not database definitions. Fields use the same INPUT contract and share the frame's ID namespace.
+
+## A read-only form
+
+```js
+const ui = api.input()?.$widget ?? {};
+const targets = ui.targetIds ?? ['*'];
+const wanted = (id) => targets.includes('*') || targets.includes(id);
+const rows = [];
+
+if (wanted('quantityForm')) {
+  rows.push([
+    {
+      id: 'quantityForm',
+      type: 'FORM',
+      label: 'Calculate quantity',
+      submitLabel: 'Calculate',
+      fields: [
+        {
+          id: 'quantity',
+          type: 'INPUT',
+          control: 'number',
+          label: 'Quantity',
+          value: 2,
+          required: true,
+          min: 1,
+          max: 100,
+        },
+      ],
+      on: { submit: { type: 'REFRESH', target: 'total' } },
+    },
+  ]);
+}
+if (wanted('total')) {
+  rows.push([
+    {
+      id: 'total',
+      type: 'TEXT',
+      value: 'Units: ' + (ui.values?.quantity ?? 2),
+    },
+  ]);
+}
+return rows;
+```
+
+Initially the result is **Units: 2**. Editing the field leaves the result unchanged until **Calculate** or Enter submits the form. Invalid values block submission. A successful submit refreshes only `total`, preserving the form and its input.
+
+## Configuration
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `id` | string | Required | Form identity. |
+| `fields` | INPUT array | Required | Up to 64 controls; nested forms are not supported. |
+| `label` | string | Absent | Form heading. |
+| `submitLabel` | string | `Apply` | Submit-button text. |
+| `on.submit` | Action | No action | Runs after fields have been validated and committed together. |
+
+Do not reuse the form ID for a field. A field's `id` becomes a key in `$widget.values`, so `quantity` is read directly as `ui.values.quantity`, not as `ui.values.quantityForm.quantity`.
+
+To start durable work, use [form → Job → result](/widgets/examples/form-job). Keep the view read-only and place writes in an explicitly registered action.

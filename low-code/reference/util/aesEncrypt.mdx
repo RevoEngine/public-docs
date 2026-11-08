@@ -1,0 +1,28 @@
+---
+title: util.aesEncrypt()
+sidebarTitle: aesEncrypt()
+description: Public low-code contract, signatures and examples for util.aesEncrypt.
+icon: code
+---
+
+<span id="util-aesEncrypt" aria-hidden="true"></span>
+
+## `util.aesEncrypt()`
+
+AES encrypt helper.
+
+Payload: at most 1048576 UTF-16 code units; passphrase: at most 4096.
+
+### Signature
+
+```ts
+static aesEncrypt(payload: string, passphrase: string): Promise<string>;
+```
+### Example
+
+```ts
+const encrypted = await util.aesEncrypt('secret', passphrase);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

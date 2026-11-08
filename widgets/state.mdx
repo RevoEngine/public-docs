@@ -1,0 +1,30 @@
+---
+title: "Input state and lifecycle"
+description: "Understand configured inputs, committed values, drafts and retained frames."
+sidebarTitle: State and lifecycle
+icon: book-open
+---
+
+## Preserve or refill inputs
+
+Initial rendering receives the configured inputs unchanged. Later interactive reads receive that JSON object plus `$widget`:
+
+| Field | Meaning |
+| --- | --- |
+| `targetIds` | Cells requested by this execution. |
+| `reason` | `initial`, `manual`, `action` or `interval`. |
+| `values` | Committed INPUT values by ID. |
+| `selection` | Selected table keys, keyed by table ID. |
+| `event` | Event data, such as a clicked row or chart datum. |
+| `actionResult` | Receipt of the last confirmed action in this frame; retained for refresh and Back, cleared on remount. |
+| `requestId` | Identifier of the read or action dispatch. |
+
+Read current values from `$widget.values` before falling back to configured `api.input()` defaults. `set` changes declared INPUT state, not the configured arguments. An `input` binding refers only to an actual INPUT cell in the current frame. In a child view without controls, read passed arguments from `api.input()` and forward scalar values in the next action's `input` map.
+
+Do not supply the reserved `$widget` key in configured interactive inputs. Form fields commit together on submit. A standalone INPUT commits on change by default; optional `commit: 'blur'` and `debounceMs` control when it commits.
+
+`valueMode: 'initial'` is the default: returned defaults do not replace an existing value. Use `valueMode: 'sync'` when low-code should refill an input, such as a delivery method derived from a selected country. A synchronized value applies only when no newer edit or pending draft exists. Ordinary refresh keeps drafts and mounted renderer instances; stale responses cannot overwrite newer committed state.
+
+State belongs to the mounted widget. Back retains previous drill-down frames, including drafts and selection, for up to 12 levels. A page reload initializes a new widget; panels and inline destinations have independent state.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

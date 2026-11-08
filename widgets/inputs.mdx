@@ -1,0 +1,65 @@
+---
+title: "Inputs"
+description: "Configure input controls, values, commit timing and client validation."
+icon: sliders
+---
+
+An INPUT holds one editable scalar value. Its stable `id` is the key used by `$widget.values` and `from: 'input'` bindings.
+
+## Control types
+
+| `control` | Value | Notes |
+| --- | --- | --- |
+| `text` | string | Default control. |
+| `textarea` | string | Multiline text. |
+| `number` | number, or `''` when cleared | Apply `min` and `max` where needed. |
+| `date` | string | Browser date value such as `2026-01-15`; clearing produces `''`. |
+| `select` | string, number or boolean | Exactly one of the declared option values. |
+| `checkbox` | boolean | Defaults to `false` when no value is provided. |
+
+```js
+return [
+  [
+    {
+      id: 'status',
+      type: 'INPUT',
+      control: 'select',
+      label: 'Order status',
+      value: 'OPEN',
+      options: [
+        { label: 'Open', value: 'OPEN' },
+        { label: 'Completed', value: 'DONE' },
+      ],
+    },
+  ],
+];
+```
+
+This example creates a control only. Add `on.change` when committing a value should also refresh another cell, as in the [quickstart](/widgets/quickstart).
+
+## Configuration
+
+| Field | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `id` | string | Required | Unique INPUT identity. |
+| `control` | string | `text` | One of the six controls above. |
+| `value` | scalar or null | `''`, or `false` for checkbox | Initial value. |
+| `label` | string | Input ID | Visible label. |
+| `description` | string | Absent | Help text below the control. |
+| `placeholder` | string | Empty; select uses `Select…` | Prompt when the control has no value. |
+| `options` | Array of `{ label, value }` | Required for select | Up to 1000 options. |
+| `required` | boolean | `false` | Rejects empty values; required checkbox must be checked. |
+| `disabled` | boolean | `false` | Prevents edits and commits. |
+| `min`, `max` | finite number | Unbounded | Numeric limits; minimum cannot exceed maximum. |
+| `maxLength` | integer | Unbounded | 1–100000; scalar contract limits also apply. |
+| `commit` | `change`, `blur`, `submit` | `change` outside a FORM | When drafts become committed state. |
+| `debounceMs` | number | No delay | 0–10000; delays a standalone change commit. |
+| `valueMode` | `initial`, `sync` | `initial` | Whether a returned value can refill an existing input. |
+
+Use `submit` inside a [FORM](/widgets/forms), which supplies the commit action. A standalone submit-only input has no form submission path.
+
+## Values and drafts
+
+Typing creates a draft. A successful commit validates it and updates `$widget.values`. A FORM commits its fields together. With `valueMode: 'initial'`, later server defaults do not replace existing values. With `sync`, a returned value may refill the control only if there is no newer edit or pending draft.
+
+Use nullish defaults (`??`) when `0`, `false` or `''` are meaningful. UI validation improves feedback; the write Component must enforce the same business constraints. See [state and lifecycle](/widgets/state).

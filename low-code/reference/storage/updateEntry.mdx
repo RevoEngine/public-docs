@@ -1,0 +1,41 @@
+---
+title: storage.updateEntry()
+sidebarTitle: updateEntry()
+description: Public low-code contract, signatures and examples for storage.updateEntry.
+icon: code
+---
+
+<span id="storage-updateEntry" aria-hidden="true"></span>
+
+## `storage.updateEntry()`
+
+Updates mutable storage entry fields such as name, metadata, or ACLs.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static updateEntry(
+      storageEntryId: string,
+      data: StorageEntryUpdateInput,
+    ): Promise<StorageEntryView>;
+
+static updateEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageEntryUpdateInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.updateEntry(storageEntryId, {
+  name: 'report-final.csv',
+  version: currentVersion,
+});
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

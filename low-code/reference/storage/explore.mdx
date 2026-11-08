@@ -1,0 +1,28 @@
+---
+title: storage.explore()
+sidebarTitle: explore()
+description: Public low-code contract, signatures and examples for storage.explore.
+icon: code
+---
+
+<span id="storage-explore" aria-hidden="true"></span>
+
+## `storage.explore()`
+
+Lists files and folders from the default `explorer` namespace.
+
+### Overloads
+
+```ts
+static explore(query?: StorageExploreRequest): Promise<StorageExploreResult>;
+
+static explore(namespace: string, query?: StorageExploreRequest): Promise<StorageExploreResult>;
+```
+### Example
+
+```ts
+const listing = await storage.explore({ parentStorageEntryId: folderId });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

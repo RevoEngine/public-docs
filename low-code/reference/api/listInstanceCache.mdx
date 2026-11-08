@@ -1,0 +1,26 @@
+---
+title: api.listInstanceCache()
+sidebarTitle: listInstanceCache()
+description: Public low-code contract, signatures and examples for api.listInstanceCache.
+icon: code
+---
+
+<span id="api-listInstanceCache" aria-hidden="true"></span>
+
+## `api.listInstanceCache()`
+
+Lists instance cache keys by prefix or pattern.
+
+### Signature
+
+```ts
+static listInstanceCache(key: string): Promise<string[]>;
+```
+### Example
+
+```ts
+const keys = await api.listInstanceCache('sync:*');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

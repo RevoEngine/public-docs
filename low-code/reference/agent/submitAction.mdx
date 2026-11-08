@@ -1,0 +1,41 @@
+---
+title: agent.submitAction()
+sidebarTitle: submitAction()
+description: Public low-code contract, signatures and examples for agent.submitAction.
+icon: code
+---
+
+<span id="agent-submitAction" aria-hidden="true"></span>
+
+## `agent.submitAction()`
+
+Submits operator input for an action-required checkpoint.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static submitAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+
+static submitAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.submitAction(assistantThreadId, actionId, {
+  responsePayload: { selectedPlanId: 'plan-1' },
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -1,0 +1,61 @@
+---
+title: "Selection and table actions"
+description: "Open a row or submit selected keys through registered targets."
+icon: book-open
+---
+
+Configure the named view and action targets before using this example. Read [Tables](/widgets/tables) for columns and row identity.
+
+## Charts, records and multiple selection
+
+Bindings can read `input`, `event`, `selection` or an action `result`. Paths select existing properties and are not evaluated expressions.
+
+```js
+return [
+  [
+    {
+      id: 'orders',
+      type: 'TABLE',
+      rowKey: 'id',
+      selection: { mode: 'multiple' },
+      data: [{ id: 'order-1', customer: 'Example customer' }],
+      definition: [
+        { field: 'customer', headerName: 'Customer', type: 'TEXT' },
+      ],
+      on: {
+        rowClick: {
+          type: 'OPEN_WIDGET',
+          target: 'orderDetail',
+          mode: 'panel',
+          input: { orderId: { from: 'event', path: 'row.id' } },
+        },
+      },
+      buttons: [
+        {
+          id: 'process',
+          label: 'Process selected',
+          requiresSelection: true,
+          on: {
+            click: {
+              type: 'EXECUTE',
+              target: 'processOrders',
+              input: {
+                ids: { from: 'selection', id: 'orders', path: 'keys' },
+              },
+              refresh: 'orders',
+            },
+          },
+        },
+      ],
+    },
+  ],
+];
+```
+
+Register `widgetTargets.orderDetail` and `actionTargets.processOrders` before using this example. The latter must finish its work before returning, or provide a receipt and a `waitFor` probe as in the Job example. Table keys must be unique strings or finite numbers. Checking a row changes selection independently of opening it. A refresh retains selected keys only while they are present in the returned table data.
+
+A chart's `on.pointClick` can use `{ from: 'event', path: 'datum.status' }`. For example, a REFRESH action can `set` an existing status INPUT and request only the table. Declare that INPUT first: `set` does not create missing fields. TEXT and BUTTON cells use `on.click`; tables also support `on.selectionChange`.
+
+Use `refresh: { intervalSeconds: 30 }` on a cell for its own timer, optionally with `targets: ['anotherCell']`. Intervals range from 1 to 86400 seconds. Hidden drill-down views pause their reads; overlapping interval reads are skipped. The full widget Refresh setting remains available separately.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

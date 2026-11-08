@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -7,30 +7,36 @@ import { deprecatedLowCodeMethods } from '../scripts/check-content.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+function namespaceText(global) {
+  return readdirSync(join(root, 'low-code/reference', global))
+    .filter(name => name.endsWith('.mdx'))
+    .map(name => readFileSync(join(root, 'low-code/reference', global, name), 'utf8')).join('\n');
+}
+
 test('Service Account reference retains the native camelCase namespace and immutable rotation contract', () => {
-  const reference = readFileSync(join(root, 'low-code/reference/serviceAccount.mdx'), 'utf8');
+  const reference = namespaceText('serviceAccount');
   assert.match(reference, /## `serviceAccount\.create\(\)`/);
   assert.match(reference, /## `serviceAccount\.rotateKey\(\)`/);
   assert.match(reference, /gracePeriodMs/);
   assert.match(reference, /newKey\.secret/);
   assert.match(reference, /expireAt is immutable/);
   const methods = [...reference.matchAll(/^## `serviceAccount\.([A-Za-z]+)\(\)`$/gm)].map(match => match[1]);
-  assert.deepEqual(methods, ['get', 'list', 'create', 'update', 'delete', 'activate', 'disable', 'restore', 'enablePlatformAccess', 'disablePlatformAccess', 'getKeys', 'getKey', 'createKey', 'updateKey', 'rotateKey', 'revokeKey']);
+  assert.deepEqual(methods.sort(), ['get', 'list', 'create', 'update', 'delete', 'activate', 'disable', 'restore', 'enablePlatformAccess', 'disablePlatformAccess', 'getKeys', 'getKey', 'createKey', 'updateKey', 'rotateKey', 'revokeKey'].sort());
   const navigation = JSON.parse(readFileSync(join(root, 'docs.json'), 'utf8'));
   assert.ok(JSON.stringify(navigation).includes('low-code/reference/serviceAccount'));
 });
 
 test('groups overloaded low-code methods into one reference section', () => {
-  const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
+  const reference = namespaceText('api');
 
   assert.equal(reference.match(/^## `api\.httpCall\(\)`$/gm)?.length, 1);
-  assert.equal(reference.match(/\[`api\.httpCall\(\)`\]\(#api-httpCall\)/g)?.length, 1);
+  assert.match(readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8'), /id="api-httpCall"[\s\S]*?\/low-code\/reference\/api\/httpCall/);
   assert.match(reference, /## `api\.httpCall\(\)`[\s\S]*?### Overloads[\s\S]*?streamFormat: 'sse'/);
   assert.match(reference, /### Overloads[\s\S]*?responseType: 'storage'/);
 });
 
 test('Storage reference shows both id-only and namespace signatures', () => {
-  const reference = readFileSync(join(root, 'low-code/reference/storage.mdx'), 'utf8');
+  const reference = namespaceText('storage');
   assert.match(reference, /## `storage\.getFileData\(\)`[\s\S]*?### Overloads[\s\S]*?static getFileData\(\s*storageEntryId: string[\s\S]*?static getFileData\(\s*namespace: string,/);
   assert.match(reference, /## `storage\.walkFileData\(\)`[\s\S]*?### Overloads[\s\S]*?static walkFileData<T = any>\(\s*storageEntryId: string[\s\S]*?static walkFileData<T = any>\(\s*namespace: string,/);
   const methods = [...reference.matchAll(/^## `storage\.([A-Za-z]+)\(\)`$/gm)].map((match) => match[1]);
@@ -59,11 +65,11 @@ test('content gate groups overloads and removes obsolete bound decoding', () => 
     static mixed(value: number): string;
   }`;
   assert.deepEqual(deprecatedLowCodeMethods(declarations), ['api.retired']);
-  const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
+  const reference = namespaceText('api');
   assert.doesNotMatch(reference, /## `api.decodeBase64\(\)`/);
-  const utils = readFileSync(join(root, 'low-code/reference/util.mdx'), 'utf8');
+  const utils = namespaceText('util');
   assert.match(utils, /static decodeBase64\(base64String: string\): string/);
-  const manager = readFileSync(join(root, 'low-code/reference/vault.mdx'), 'utf8');
+  const manager = namespaceText('vault');
   assert.match(manager, /static getAccessToken\(/);
   assert.doesNotMatch(manager, /static ref\(/);
 });
@@ -79,7 +85,7 @@ test('every generated reference linked from the index belongs to the platform co
 
 
 test('bulk automation reference documents mutations, preview and progress reads', () => {
-  const reference = readFileSync(join(root, 'low-code/reference/api.mdx'), 'utf8');
+  const reference = namespaceText('api');
   for (const method of [
     'cancelJobs', 'retryJobs', 'deleteJobs',
     'cancelWebhooks', 'retryWebhooks', 'deleteWebhooks',

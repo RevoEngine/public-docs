@@ -89,4 +89,4 @@ revo metadata plan --env default --json
 revo env diff --from develop --to default --strict --json
 ```
 
-Keep profile keys and default credentials in the CI secret store. Current environment synchronization is component-focused; do not assume other Platform API families are mirrored unless a future CLI version explicitly adds them.
+Keep profile keys and default credentials in the CI secret store. `revo env diff/apply` is Component-focused. For a repository containing other supported definition families, use the explicitly scoped [repository plan/deploy workflow](/developers/cli#preserve-destination-configuration-during-synchronization). A Component-only environment plan does not establish that other families are synchronized.

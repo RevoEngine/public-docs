@@ -1,0 +1,53 @@
+---
+title: "Account security and devices"
+description: "Set up MFA, inspect trusted browsers and manage API keys without mixing their lifecycles."
+icon: "shield-halved"
+---
+
+Your identity, trusted browser, instance session and API keys have separate lifecycles. A saved website login in a [browser profile](/ai/browser-profiles) is also separate from the browser you trust to access RevoEngine.
+
+## Register an authenticator
+
+Organization workspaces require MFA and a registered browser before issuing an instance session.
+
+1. Start authenticator registration when prompted or from the account security controls.
+2. Scan the displayed QR code with your authenticator application. Keep the QR code private.
+3. Select **Verify** and enter the generated six-digit code.
+4. Continue only after registration is confirmed. Displaying or scanning the QR code alone does not complete registration.
+
+**Start over** restarts an incomplete registration. Revoking an enabled authenticator requires the current six-digit code. Resetting MFA invalidates prior device trust; users must satisfy the required verification again. Use your organization’s account-recovery process if the authenticator is lost.
+
+## Inspect trusted browsers
+
+Open **Settings → Devices**. Review the listed devices and the current-browser marker. **Revoke** removes trust for that registration and prevents future eligible refresh under it.
+
+Revoking the current browser can require verification again after its active instance session expires. Do not confuse device revocation with instant account disablement: an administrator disabling the account or platform access invalidates instance sessions and disconnects active Realtime sockets as that change propagates.
+
+A trusted browser does not grant access to every instance. Roles, account eligibility and resource permissions are still checked.
+
+## Manage API keys
+
+Open **Settings → API keys → Keys** for personal keys, or [Service Accounts](/operate/service-accounts) for unattended workloads.
+
+| Decision | Expected effect |
+| --- | --- |
+| Create a key | A credential attributed to its owning user or service account; protect the value immediately |
+| Set expiration | Admission stops accepting the key after expiry |
+| Restrict source networks | Admission also checks the configured network restriction |
+| Revoke a key | Future requests cannot use that credential |
+| Disable the owner | Existing key records remain, but an inactive owner cannot use them |
+| Delete the owner | Permanent account and key cleanup follows the account lifecycle |
+
+Keys use the owner’s current permissions. Changing roles changes what an existing key can do; a key is not a frozen permission snapshot. Never paste a key into a conversation, saved browser profile name or Component source.
+
+## Choose the recovery boundary
+
+| Situation | Action |
+| --- | --- |
+| Unrecognized trusted browser | Revoke that device and review recent account activity |
+| Exposed workload credential | Revoke/rotate that key and update its authorized consumers |
+| Departed or compromised user | Administrator disables account or platform access and reviews all workload ownership |
+| Remote website account compromised | Clear/restrict its Vault profile and revoke sessions at the website as appropriate |
+| External OAuth grant no longer needed | Disconnect the Vault integration and review revocation at the external service |
+
+Continue with [SSO and OIDC](/operate/sso-and-oidc), [identity and access](/operate/identity-and-access) and [Vault](/operate/vault).

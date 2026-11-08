@@ -4,6 +4,8 @@ description: Emit live events from Endpoint Components, return final results and
 icon: tower-broadcast
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 <Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
 
 Server-Sent Events (SSE) lets a Component send events while it works. Use it for
@@ -13,6 +15,14 @@ one HTTP response with `Content-Type: text/event-stream`.
 SSE is a response mode of the same Endpoint. **POST**, request body, query, path
 parameters, authorization, execution policy and guards continue to work.
 Choose [HTTP](/operate/endpoint-http) when the caller only needs the final response.
+
+<Frame caption="A quote stream configured with result, error and done events, disconnect cancellation and a validation error response.">
+  <img src="/images/asterion/endpoint-sse-options.jpg" alt="SSE Endpoint settings showing event names, cancellation, validation status 422 and Main result selection" />
+</Frame>
+
+## Explore the behavior
+
+<FlowDemo topic="streaming" />
 
 ## Configure the Endpoint
 

@@ -1,0 +1,46 @@
+---
+title: agent.createThread()
+sidebarTitle: createThread()
+description: Public low-code contract, signatures and examples for agent.createThread.
+icon: code
+---
+
+<span id="agent-createThread" aria-hidden="true"></span>
+
+## `agent.createThread()`
+
+Creates a new assistant thread and first message.
+Instructions, contextMode and responseFormat are immutable thread settings; follow-ups and Resume reuse them.
+Minimal retains instance-global/account standing instructions and security while omitting automatic context.
+Minimal admits only explicit toolNames or selected plugin routes. JSON schemas are strict and locally validated.
+message is the user input; assistantMessage.message is the final text, and output.json is validated JSON when requested.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static createThread(
+      data: AssistantMessageInput,
+    ): Promise<AssistantThreadResponse>;
+
+static createThread(
+      data: AssistantMessageInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.createThread({
+  content: 'Siemka jestem testerem.',
+  instructions: 'Translate Polish to English. Return only the translation.',
+  contextMode: 'minimal',
+  responseFormat: { type: 'text' },
+  toolNames: [],
+});
+return response.assistantMessage?.message;
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

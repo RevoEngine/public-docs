@@ -4,7 +4,13 @@ description: Understand RevoEngine MCP JSON-RPC, Streamable HTTP sessions, notif
 icon: arrows-rotate
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 RevoEngine MCP uses JSON-RPC 2.0 over Streamable HTTP. Initialization establishes a session bound to the authenticated instance and credential; later requests may be handled by any healthy service replica without changing that authority boundary.
+
+## Explore the behavior
+
+<FlowDemo topic="mcp" />
 
 ## HTTP surface
 

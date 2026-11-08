@@ -1,0 +1,127 @@
+---
+title: storage.createUploadSession()
+sidebarTitle: createUploadSession()
+description: Public low-code contract, signatures and examples for storage.createUploadSession.
+icon: code
+---
+
+<span id="storage-createUploadSession" aria-hidden="true"></span>
+
+## `storage.createUploadSession()`
+
+Opens an upload session for a file in the default `explorer` namespace.
+
+Notes:
+- For caller Private: `storage.createUploadSession('private', input)`.
+  Keep rows in execution; use complete `getFileData` headers.
+  Return only finalized entry and readback verification.
+- Unavailable with `readOnly: true` (throws an error).
+- A durable session reserves name/destination and records upload policy,
+  ACL, retention, schema, and progress. Its readable Storage entry exists
+  only at `FINALIZED`.
+- `uploadMode` controls how bytes arrive. `direct` returns a temporary
+  upload target for the complete file. `chunked` accepts caller-numbered
+  parts. `incremental` assigns part numbers by default and also accepts an
+  explicit number for repair. `writeMode` is independent: it controls only
+  CSV/XLSX row materialization (`staged` or declared-schema `direct`).
+- Use incremental sessions for append-style writes. Managed direct uploads are
+  finalized automatically after Storage confirms the transfer; observe the
+  session until `FINALIZED` and do not call `finalizeUploadSession` for that
+  path. Explicitly finalize chunked and incremental sessions.
+- Structured CSV/TSV and XLSX sessions default to `computeStats: 'sync'` so
+  byte maps, row indexes, and file stats are ready after finalize. Text
+  `text/*` upload sessions also default to `sync`; other binary sessions
+  default to `none`. An explicit compute mode always overrides the
+  default. The `staged` XLSX path may still persist its reusable index when
+  `none` is explicit; structured `direct` with `none` skips it.
+  Both default to `writeMode: 'staged'`.
+- XLSX, CSV, and TSV share `schemaPolicy: &#123; profile?, additionalProperties? &#125;`
+  plus `sheets[].table.columns[]`. CSV/TSV has one logical sheet. Column types
+  are string, number, boolean, date, and object; object parses only a JSON
+  object or array. The default fallback policy leaves an incompatible whole
+  column as strings and records diagnostics without replacing cells with
+  null. `profile: 'strict'` fails indexing on missing columns, invalid values,
+  or sheet mismatches. `additionalProperties` independently controls extra
+  source columns: `allow` retains, `strip` omits from structured rows, and
+  `reject` fails indexing. The default is fallback + allow; strict defaults
+  to reject. Use strict + strip when extra columns may appear but the
+  declared layout and value types must match. The raw file remains available.
+- Set `restricted: true` with explicit `users` and/or `groups` to define
+  the finalized entry ACL. These relations may be changed later with
+  `storage.updateEntry(...)`; `restricted: false` clears them.
+  Use `writeMode: 'direct'` for configured CSV/XLSX row exports with a
+  declared schema. For XLSX, declare every worksheet
+  with a non-empty `table.columns` before appending; direct XLSX parts are
+  row-only and cannot contain `cells`. Use the default `staged` mode when
+  append requests can be retried, replaced, reordered, or need inferred
+  columns, sparse cells, formulas, or dynamic worksheets.
+  A single `sheets` part can append rows to multiple declared worksheets.
+  Staged mode is the durable default for independent requests that may be
+  retried, replaced, reordered, or use inferred columns, sparse cells,
+  formulas, or dynamic worksheets.
+
+### Overloads
+
+```ts
+static createUploadSession(
+      data: StorageUploadSessionInput,
+    ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
+
+static createUploadSession(
+      namespace: string,
+      data: StorageUploadSessionInput,
+    ): Promise<{ session: StorageUploadSession; upload: StorageUploadTarget }>;
+```
+### Examples
+
+#### direct upload
+
+```ts
+const { session, upload } = await storage.createUploadSession({
+  name: 'notes.txt', contentTypeHint: 'text/plain', uploadMode: 'direct',
+});
+return { sessionId: session.storageUploadSessionId, upload };
+// The client uploads with upload.method/headers/uploadUrl, then polls the
+// session. Managed direct uploads finalize automatically.
+```
+
+#### declared-schema XLSX
+
+```ts
+const declared = await storage.createUploadSession({
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental', writeMode: 'direct',
+  sheets: [{ name: 'Report', table: { columns: [
+    { key: 'productId', header: 'Product ID' },
+    { key: 'price', header: 'Price', type: 'number' },
+  ] } }],
+});
+await storage.uploadPart(declared.session.storageUploadSessionId, {
+  rows: [{ productId: 'P-1', price: 12.5 }],
+});
+// Append row-only parts according to the declared schema, then finalize.
+const result = await storage.finalizeUploadSession(
+  declared.session.storageUploadSessionId,
+);
+```
+
+#### server-mediated row parts
+
+```ts
+const upload = await storage.createUploadSession({
+  name: 'report.xlsx',
+  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental',
+  sheets: [{ name: 'Report', table: { autoFilter: true } }],
+});
+await storage.uploadPart(upload.session.storageUploadSessionId, {
+  rows: [{ productId: 'P-1', price: 12.5 }],
+});
+const result = await storage.finalizeUploadSession(
+  upload.session.storageUploadSessionId,
+);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

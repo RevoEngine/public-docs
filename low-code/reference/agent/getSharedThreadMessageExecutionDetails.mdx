@@ -1,0 +1,29 @@
+---
+title: agent.getSharedThreadMessageExecutionDetails()
+sidebarTitle: getSharedThreadMessageExecutionDetails()
+description: Public low-code contract, signatures and examples for agent.getSharedThreadMessageExecutionDetails.
+icon: code
+---
+
+<span id="agent-getSharedThreadMessageExecutionDetails" aria-hidden="true"></span>
+
+## `agent.getSharedThreadMessageExecutionDetails()`
+
+Returns sanitized execution details for a visible shared-thread message.
+
+### Signature
+
+```ts
+static getSharedThreadMessageExecutionDetails(
+      shareId: string,
+      assistantMessageId: string,
+    ): Promise<Record<string, any>>;
+```
+### Example
+
+```ts
+const details = await agent.getSharedThreadMessageExecutionDetails(shareId, assistantMessageId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

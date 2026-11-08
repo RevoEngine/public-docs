@@ -1,0 +1,166 @@
+---
+title: api.httpCall()
+sidebarTitle: httpCall()
+description: Public low-code contract, signatures and examples for api.httpCall.
+icon: code
+---
+
+<span id="api-httpCall" aria-hidden="true"></span>
+
+## `api.httpCall()`
+
+Performs an outbound HTTP request.
+
+Notes:
+- External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
+- Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
+- Supports proxy mode, form-data, Storage streaming, and optional current credentials.
+- Proxy mode supports JSON/text requests, Storage sources/targets, and json/text/buffer/base64buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
+- Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
+- Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
+- `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
+- For multipart requests, put `formData` on the first config argument. Use one empty part with `source`, or put `storageEntryId` directly on each binary `formData` part.
+- With proxy: true, the proxy calls the provider through the dedicated egress network and uploads successful response bytes directly to an authorized Storage upload URL. Runtime verifies upload metadata and finalizes; file bytes do not pass through runtime.
+- HTTP Storage targets use one managed direct upload and are finalized automatically. Use `storage.createUploadSession` plus `storage.uploadPart` for resumable/chunked session workflows.
+- Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
+- `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
+- Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
+- Revo responses expose `revo.sameInstance`. The `x-revo-oid` header is returned only when `revo.sameInstance` is true. Cross-instance or
+  unconfirmed Revo headers are removed from the public response.
+- `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
+- For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
+- JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and, without proxy, may be combined with any supported response type because it does not declare a request body.
+
+### Overloads
+
+```ts
+static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat: 'sse'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<HttpSseEvent>>;
+
+static httpCall(config: HttpRequestInterface, options: Omit<HttpRequestOptionsInterface, 'responseType' | 'target'> & {
+      responseType: 'stream'; streamFormat?: 'bytes'; timeout?: number; proxy?: false;
+    }): Promise<HttpStreamResponse<Uint8Array>>;
+
+static httpCall(config: HttpRequestInterface, options: HttpRequestOptionsInterface & { responseType: 'storage'; target: HttpStorageTargetRef; timeout?: number; proxy?: boolean }): Promise<{
+      status: number; statusText: string; time: number; headers: LooseObject<string | string[]>;
+      revo?: HttpRevoResponseScope;
+      request: { config: HttpRequestInterface; options: HttpRequestOptionsInterface };
+    } & ({ data: undefined; storage: { session: StorageUploadSession; entry: StorageEntryView } } | { data: string; storage?: undefined })>;
+
+static httpCall(
+      config: HttpRequestInterface,
+      options?: HttpRequestOptionsInterface & {
+        timeout?: number;
+        proxy?: boolean;
+      },
+    ): Promise<{
+      status: number;
+      statusText: string;
+      time: number;
+      headers: LooseObject<string | string[]>;
+      revo?: HttpRevoResponseScope;
+      data: any;
+      storage?: { session: StorageUploadSession; entry: StorageEntryView };
+      request: {
+        config: HttpRequestInterface & { timeout?: number };
+        options: HttpRequestOptionsInterface & {
+          timeout?: number;
+          proxy?: boolean;
+        };
+      };
+    }>;
+```
+### Examples
+
+```ts
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/customers',
+    method: 'POST',
+    data: { customerId: 'customer-1' },
+  },
+  {
+    requestType: 'json',
+    responseType: 'json',
+    timeout: 15000,
+  },
+);
+```
+
+#### Multipart request with one Storage file
+
+```ts
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/upload',
+    method: 'POST',
+    formData: [
+      { key: 'description', value: 'Contract' },
+      { key: 'file' },
+    ],
+  },
+  {
+    requestType: 'form-data',
+    source: { storageEntryId },
+  },
+);
+```
+
+#### Multipart request with multiple Storage files
+
+```ts
+const response = await api.httpCall(
+  {
+    url: 'https://example.com/merge',
+    method: 'POST',
+    formData: [
+      { key: 'contract', storageEntryId: contractEntryId },
+      { key: 'attachments', storageEntryId: attachmentsEntryId },
+    ],
+  },
+  { requestType: 'form-data' },
+);
+```
+
+#### Storage response stream
+
+```ts
+const response = await api.httpCall(
+  { url: 'https://example.com/report.csv', method: 'GET' },
+  {
+    responseType: 'storage',
+    target: {
+      name: 'report.csv',
+      contentTypeHint: 'text/csv',
+      computeStats: 'sync',
+    },
+  },
+);
+```
+
+#### Storage request stream
+
+```ts
+await api.httpCall(
+  { url: 'https://example.com/import', method: 'POST' },
+  { requestType: 'storage', source: { storageEntryId } },
+);
+```
+
+#### Storage conversion
+
+```ts
+await api.httpCall(
+  { url: 'https://example.com/convert', method: 'POST' },
+  {
+    requestType: 'storage',
+    source: { storageEntryId: sourceEntryId },
+    responseType: 'storage',
+    target: { name: 'converted.pdf', contentTypeHint: 'application/pdf' },
+  },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

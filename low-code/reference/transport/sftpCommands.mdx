@@ -1,0 +1,27 @@
+---
+title: transport.sftpCommands()
+sidebarTitle: sftpCommands()
+description: Public low-code contract, signatures and examples for transport.sftpCommands.
+icon: code
+---
+
+<span id="transport-sftpCommands" aria-hidden="true"></span>
+
+## `transport.sftpCommands()`
+
+Runs allowed file commands in one leased SFTP session, without a remote shell.
+With `readOnly: true`, permits only pwd, ls, stat, lstat, cat, readlink, readat, and glob.
+The full batch is validated before dispatch; any mutating command requires `readOnly: false`.
+Automatic execution.log identifies the call in details.source.
+Inspect command errors even when batch HTTP succeeds.
+
+### Signature
+
+```ts
+static sftpCommands(
+      commands: any[],
+      secretNameOrId: string,
+    ): Promise<any>;
+```
+
+See [all transport methods](/low-code/reference/transport) or [runtime basics](/low-code/overview).

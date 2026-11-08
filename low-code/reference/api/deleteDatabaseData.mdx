@@ -1,0 +1,39 @@
+---
+title: api.deleteDatabaseData()
+sidebarTitle: deleteDatabaseData()
+description: Public low-code contract, signatures and examples for api.deleteDatabaseData.
+icon: code
+---
+
+<span id="api-deleteDatabaseData" aria-hidden="true"></span>
+
+## `api.deleteDatabaseData()`
+
+Deletes an explicit list of rows identified by primary key.
+
+Notes:
+- Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+- REST/public SDK requests retain the 100,000-row limit per request.
+- Prefer deleteDatabaseDataRequest() when the rows can be described by a filter;
+  it avoids loading and transferring every matching primary key to the runtime.
+- Managed database structured reads and mutations accept up to 65,535 bound parameters per
+  compiled statement, with no separate filter-node or array-value count limit.
+  Application guards still enforce
+  8 MiB of serialized query input and 16 nested filter levels.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static deleteDatabaseData(name: string, data: LooseObject<any>[]): Promise<any>;
+```
+### Example
+
+```ts
+await api.deleteDatabaseData('customers', [
+  { customerId: 'c-1' },
+]);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

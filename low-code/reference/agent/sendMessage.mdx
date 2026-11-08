@@ -1,0 +1,39 @@
+---
+title: agent.sendMessage()
+sidebarTitle: sendMessage()
+description: Public low-code contract, signatures and examples for agent.sendMessage.
+icon: code
+---
+
+<span id="agent-sendMessage" aria-hidden="true"></span>
+
+## `agent.sendMessage()`
+
+Sends a new message into an existing thread.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static sendMessage(
+      assistantThreadId: string,
+      data: AssistantMessageInput,
+    ): Promise<AssistantThreadResponse>;
+
+static sendMessage(
+      assistantThreadId: string,
+      data: AssistantMessageInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.sendMessage(assistantThreadId, {
+  content: 'Continue with the rollout checklist.',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

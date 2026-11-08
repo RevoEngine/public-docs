@@ -1,0 +1,29 @@
+---
+title: agent.resumeRun()
+sidebarTitle: resumeRun()
+description: Public low-code contract, signatures and examples for agent.resumeRun.
+icon: code
+---
+
+<span id="agent-resumeRun" aria-hidden="true"></span>
+
+## `agent.resumeRun()`
+
+Resumes a paused run.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static resumeRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.resumeRun(agentRunId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

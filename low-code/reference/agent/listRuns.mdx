@@ -1,0 +1,26 @@
+---
+title: agent.listRuns()
+sidebarTitle: listRuns()
+description: Public low-code contract, signatures and examples for agent.listRuns.
+icon: code
+---
+
+<span id="agent-listRuns" aria-hidden="true"></span>
+
+## `agent.listRuns()`
+
+Lists runs for an agent.
+
+### Signature
+
+```ts
+static listRuns(agentId: string): Promise<AgentRun[]>;
+```
+### Example
+
+```ts
+const runs = await agent.listRuns(agentId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

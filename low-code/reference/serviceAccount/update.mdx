@@ -1,0 +1,27 @@
+---
+title: serviceAccount.update()
+sidebarTitle: update()
+description: Public low-code contract, signatures and examples for serviceAccount.update.
+icon: code
+---
+
+<span id="serviceAccount-update" aria-hidden="true"></span>
+
+## `serviceAccount.update()`
+
+Omitted fields preserve values; [] clears memberships/ACL entries. Requires version.
+
+### Signature
+
+```ts
+static update(ref: ServiceAccountRef, input: ServiceAccountUpdateInput): Promise<ServiceAccountRecord>;
+```
+### Example
+
+```ts
+const account = await serviceAccount.get('erp-sync');
+await serviceAccount.update('erp-sync', { version: account.version, memberships: { roleGroups: [] } });
+```
+
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

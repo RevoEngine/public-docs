@@ -1,0 +1,51 @@
+---
+title: api.triggerEvent()
+sidebarTitle: triggerEvent()
+description: Public low-code contract, signatures and examples for api.triggerEvent.
+icon: code
+---
+
+<span id="api-triggerEvent" aria-hidden="true"></span>
+
+## `api.triggerEvent()`
+
+Schedules a custom event.
+Matches active definitions by `custom: true` and the uppercase event type.
+No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
+The message can use up to 10 MiB of serialized UTF-8 JSON.
+For data over 1 MiB, prefer a finalized file in a restricted Explorer folder.
+Pass its `storageEntryId` and filter fields in `message`. Give the Job execution
+account read access and retain the file through the scheduled run and retries.
+Returns an event ID after the event and its delivery intent are committed.
+Queue delivery and target execution continue asynchronously.
+
+Notes:
+- Use the options object's `scheduleFor`; legacy delay properties are ignored.
+- New code should use `scheduleFor` with a Date, ISO 8601 date-time, or Unix timestamp in milliseconds.
+- The absolute time cannot be in the past or more than 30 days ahead.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static triggerEvent(
+      name: string,
+      message: any,
+      options?: TriggerEventOptions,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const eventId = await api.triggerEvent(
+  'customer_sync',
+  { customerId: 'c-1' },
+  {
+    scheduleFor: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    metadata: { correlationId: 'sync-123' },
+  },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

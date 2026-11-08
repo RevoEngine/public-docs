@@ -1,0 +1,31 @@
+---
+title: util.compareHash()
+sidebarTitle: compareHash()
+description: Public low-code contract, signatures and examples for util.compareHash.
+icon: code
+---
+
+<span id="util-compareHash" aria-hidden="true"></span>
+
+## `util.compareHash()`
+
+Compares a value against a password hash.
+
+Password: at most 4096 UTF-16 code units; unsupported scrypt work factors return false.
+
+### Signature
+
+```ts
+static compareHash(
+      password: string | undefined,
+      hash: string | undefined,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const valid = await util.compareHash(password, hash);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

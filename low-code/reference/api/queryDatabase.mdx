@@ -1,0 +1,35 @@
+---
+title: api.queryDatabase()
+sidebarTitle: queryDatabase()
+description: Public low-code contract, signatures and examples for api.queryDatabase.
+icon: code
+---
+
+<span id="api-queryDatabase" aria-hidden="true"></span>
+
+## `api.queryDatabase()`
+
+Executes raw SELECT/WITH SQL when the structured helpers are not enough.
+Do not use this for writes; use insert/upsert/update/delete helpers or
+transactionDatabase for write flows.
+Requires current INSTANCE_ADMIN membership on the effective execution account.
+Saved endpoint/Job policies select that account; direct Sandbox/MCP execution
+uses the authenticated caller. api.currentUser() follows the configured identity mode
+and does not grant execution permissions.
+Always runs exactly one SELECT/WITH
+in a READ ONLY database transaction. Mutating CTEs and multiple statements are rejected.
+Use parameters for values. Typed data and ORM helpers retain their own resource permissions.
+
+### Signature
+
+```ts
+static queryDatabase(query: string, params?: any[]): Promise<any>;
+```
+### Example
+
+```ts
+const rows = await api.queryDatabase('SELECT NOW() AS now');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

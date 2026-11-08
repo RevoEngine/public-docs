@@ -1,0 +1,61 @@
+---
+title: "SSO and OIDC"
+description: "Understand enterprise sign-in, provider policy, provisioning and instance-session authorization."
+icon: "key"
+---
+
+Single sign-on establishes a person’s identity through an approved organization identity provider. RevoEngine then checks whether that identity may enter the selected instance and what it may do there.
+
+**OIDC** (OpenID Connect) and **SAML** are identity federation protocols. An approved provider integration must already be configured for the organization and instance. Entering an arbitrary issuer URL or possessing a JWT does not create a trusted integration.
+
+## Follow a sign-in
+
+1. Choose **Company SSO** and enter your work email. The current application entry flow routes that email to the configured company sign-in.
+2. Complete the organization’s identity-provider flow.
+3. Select an eligible RevoEngine instance, or return to the authorized deep link you opened.
+4. Complete required MFA and trusted-browser verification.
+5. RevoEngine establishes the instance session. Each later operation still checks roles and resource access.
+
+Successful company sign-in can therefore be followed by denied instance access. Check the selected instance, accepted provider, account state and provisioning policy before changing resource permissions.
+
+## Know which credential you are using
+
+| Mechanism | What it authorizes | Where to configure it |
+| --- | --- | --- |
+| Company SSO with approved federation | Establishes the human identity | Organization identity integration and instance authentication policy |
+| RevoEngine instance session | Human access to one eligible instance | Sign-in, MFA and trusted-device workflow |
+| API key | Workload or user-attributed API requests under the key owner’s roles | Personal API keys or Service Accounts |
+| Vault OAuth connection | A named consumer uses an external account’s authorized scopes | Settings → Vault → Integrations |
+| Browser profile | Reuses saved website login state | Settings → Vault → Browser profiles |
+
+OIDC discovery used while connecting a Vault integration is not the same as configuring company login. A successful Vault consent does not create a RevoEngine user, grant platform roles or authorize every Agent action.
+
+## Review instance authentication policy
+
+Open **Settings → General → Authentication** to inspect accepted identity integrations. **SSO** and **HYBRID** instances require a non-empty accepted-provider policy. Hybrid availability does not make every alternate sign-in method valid for every user.
+
+Configure the external identity integration with your organization administrator and RevoEngine operator. The ordinary Settings screen exposes the effective instance policy; it is not a general-purpose OIDC provider-registration wizard. Use the current [Config API contract](/api-reference/introduction) for supported administration fields.
+
+| Configuration field | Effect |
+| --- | --- |
+| `providers` | Accepted configured provider identifiers; does not create those integrations |
+| `usersAutoEnabled` | Enables eligible automatic user provisioning |
+| `usersAutoProviders` | Providers eligible for automatic provisioning; must be included in `providers` |
+| `usersAutoGroups` | Existing resource-access Groups assigned by provisioning policy |
+| `usersAutoRoleGroups` | Existing Permission groups assigned by provisioning policy |
+| `usersAutoData` | Governed initial account data |
+| `usersAllowPasswordLoginIds` | Explicit account exceptions where password login is supported by policy |
+
+Review automatic provisioning as an access decision. Assigning a Permission group may grant capabilities; adding a Group may admit the new user to restricted data. Keep both sets minimal and verify the first created account.
+
+## Expected failures
+
+| Observation | What to check |
+| --- | --- |
+| Company sign-in cannot start | Correct work email, configured organization integration and browser popup/redirect handling |
+| Sign-in succeeds but instance is unavailable | Instance membership, accepted provider and automatic-provisioning eligibility |
+| MFA/device verification repeats | Registration state, revoked trust and current instance-session eligibility |
+| User can enter but a resource is denied | Current role and resource ACL; sign-in does not bypass either |
+| A token works with one product surface only | Use that surface’s documented authentication contract; tokens are not interchangeable |
+
+For programmatic calls use [API authentication](/developers/authentication). For revocation use [account security](/platform/account-security).

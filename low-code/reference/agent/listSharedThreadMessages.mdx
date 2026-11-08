@@ -1,0 +1,29 @@
+---
+title: agent.listSharedThreadMessages()
+sidebarTitle: listSharedThreadMessages()
+description: Public low-code contract, signatures and examples for agent.listSharedThreadMessages.
+icon: code
+---
+
+<span id="agent-listSharedThreadMessages" aria-hidden="true"></span>
+
+## `agent.listSharedThreadMessages()`
+
+Lists visible messages for a shared thread.
+
+### Signature
+
+```ts
+static listSharedThreadMessages(
+      shareId: string,
+      query?: Record<string, any>,
+    ): Promise<CollectionResult<AssistantMessage>>;
+```
+### Example
+
+```ts
+const messages = await agent.listSharedThreadMessages(shareId, { take: 50 });
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

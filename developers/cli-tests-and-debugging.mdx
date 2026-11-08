@@ -1,0 +1,89 @@
+---
+title: CLI tests and debugging
+description: Run captured fixture tests, inspect Component execution, and preview HTTP routes without confusing these checks with deployment.
+icon: flask
+---
+
+Use native tests for repeatable assertions, Component debugging for a single execution, and Endpoint preview for an HTTP client. Each answers a different question.
+
+| Tool | Question it answers | What it does not prove |
+| --- | --- | --- |
+| `tests run` | Does this captured source pass its fixtures? | Deployment approval or a real external side effect |
+| `component debug` | What happens for this Component and input? | A published Endpoint's complete HTTP behavior |
+| `emulate endpoints --mode=local` | Does my client work with local definitions through Sandbox? | That the same source is active in the selected instance |
+| `emulate endpoints --mode=published` | What does the selected instance's saved Endpoint do? | That unsaved local changes work |
+
+## Run a pricing regression
+
+The [native pricing example](/build/native-tests) uses a shared library and named fixtures. In the Asterion sample, four filters cost **4625 EUR minor units**, while ten cost **11563** after rounding. Neither operation reserves stock.
+
+```bash
+revo tests list --remote --search PricingContractTests --json
+revo tests run PricingContractTests --remote --json
+```
+
+Expect a completed passing run with two named cases and two assertions. A returned run ID or `QUEUED` state alone is not a passing result.
+
+For local source, run from the configured project or name the workspace:
+
+```bash
+revo tests run PricingContractTests --workspace ./app --json
+```
+
+This captures local source without publishing Component changes. Stored suites use `--remote`; do not combine it with a local workspace selection.
+
+## Control test execution
+
+| Option | Purpose |
+| --- | --- |
+| Suite names, repeated `--suite`, or `--all` | Select the suites to capture |
+| `--workspace <path>` | Locate local authored Components |
+| `--remote` | Select stored suites |
+| `--search <text>` | Narrow suite discovery/selection |
+| `--timeout <seconds>` | Per-suite execution limit, 1–60 seconds |
+| `--operation-id <uuid>` | Retry the identical capture without creating another run |
+| `--no-wait` | Return the captured run before completion |
+| `--wait-timeout <seconds>` | Bound how long the CLI waits for durable results |
+| `--json` | Preserve structured output for CI |
+
+```bash
+revo tests run PricingContractTests --remote --no-wait --json
+revo tests resume "$RUN_ID" --json
+revo tests cancel "$RUN_ID" --json
+```
+
+Cancellation stops remaining work according to its current state. Retain the result and inspect incomplete or aborted cases. Independent native runs accept fixture suites; approved integration tests belong to the [Studio review workflow](/build/studio-session-review).
+
+## Debug one Component
+
+```bash
+revo component debug "$COMPONENT_ID" \
+  '{"lines":[{"sku":"AST-FILTER-100","quantity":4,"unitPriceMinor":1250,"discountBps":750}]}' \
+  --read-only=true --call-strategy=caller --stream
+```
+
+The CLI runs the local Component through Sandbox. `--stream` displays live diagnostic output. Keep **read-only** enabled while inspecting pricing or queries. A deliberate writable run uses `--read-only=false` and may change real data on the selected instance.
+
+`--call-strategy=caller|endpoints|jobs` selects the execution-policy context. It does not grant missing account access, roles, or source approval. Caller is the default. See [execution authority and identity](/operate/endpoint-configuration#execution-policy).
+
+## Preview an HTTP client
+
+```bash
+revo emulate endpoints --mode=local --read-only=true --port 4310
+```
+
+Use the listener URL printed by the CLI in your frontend's development proxy. Local preview uses workspace Endpoint definitions and Component source through Sandbox, watches changes by default, and keeps request validation. The terminal reports request method, route outcome, HTTP status and duration; it is useful for distinguishing a client routing error from a Component failure.
+
+| Option | Meaning |
+| --- | --- |
+| `--mode=local` | Preview local definitions; default mode |
+| `--mode=published` | Invoke the selected instance's saved Endpoint |
+| `--read-only=true` | Default for local preview |
+| `--read-only=false` | Explicitly allow writes; required for published mode |
+| `--host <address>` | Choose listener binding; loopback is the default |
+| `--port <number>` | Select the listener port |
+| `--no-watch` | Disable workspace watching |
+| `--skip-validate` | Skip local source analysis; request guards and runtime checks still apply |
+| `--json --watch` | Structured listener events for an editor integration |
+
+Published preview requires a loopback listener and uses the saved execution policy. Its SSE preview is unsupported: call a streaming business Endpoint directly with an SSE-capable client. See [HTTP versus SSE](/operate/endpoint-sse) for the response lifecycle and disconnect behavior.

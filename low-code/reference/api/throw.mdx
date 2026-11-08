@@ -1,0 +1,29 @@
+---
+title: api.throw()
+sidebarTitle: throw()
+description: Public low-code contract, signatures and examples for api.throw.
+icon: code
+---
+
+<span id="api-throw" aria-hidden="true"></span>
+
+## `api.throw()`
+
+Stores an HTTP-style response and aborts execution.
+
+Notes:
+- Reserved 502 and 503 codes are not allowed from Endpoint user code.
+
+### Signature
+
+```ts
+static throw(code: number, body?: any): void;
+```
+### Example
+
+```ts
+api.throw(400, { message: 'customerId is required' });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

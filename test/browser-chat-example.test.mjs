@@ -58,7 +58,7 @@ test('local proxy keeps auth on server, forwards cursor/body and propagates brow
 
 
 test('the full HTML/client/parser/proxy files match their displayed source and contain no embedded private configuration', () => {
- const page = read('operate/sse-browser-client.mdx');
+ const page = read('examples/sse/browser-source.mdx');
  assert.deepEqual(exampleSyntaxIssues(page), []);
  assert.deepEqual(publicTextPrivacyIssues(page), []);
  const files = ['index.html','chat.mjs','sse-parser.mjs','server.mjs'];

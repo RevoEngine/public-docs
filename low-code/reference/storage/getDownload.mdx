@@ -1,0 +1,40 @@
+---
+title: storage.getDownload()
+sidebarTitle: getDownload()
+description: Public low-code contract, signatures and examples for storage.getDownload.
+icon: code
+---
+
+<span id="storage-getDownload" aria-hidden="true"></span>
+
+## `storage.getDownload()`
+
+Generates a signed download URL for a storage file. Without an explicit
+namespace the entry is resolved by its globally unique id, matching REST.
+Optional ttlSeconds accepts integer seconds from 1 to 604800 (seven days).
+Omit it to retain the configured default; file retention can shorten the TTL.
+
+### Overloads
+
+```ts
+static getDownload(
+      storageEntryId: string,
+      preview?: boolean,
+      ttlSeconds?: number,
+    ): Promise<StorageDownload>;
+
+static getDownload(
+      namespace: string,
+      storageEntryId: string,
+      preview?: boolean,
+      ttlSeconds?: number,
+    ): Promise<StorageDownload>;
+```
+### Example
+
+```ts
+const download = await storage.getDownload(storageEntryId, false, 604800);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

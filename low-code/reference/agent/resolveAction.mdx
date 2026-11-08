@@ -1,0 +1,41 @@
+---
+title: agent.resolveAction()
+sidebarTitle: resolveAction()
+description: Public low-code contract, signatures and examples for agent.resolveAction.
+icon: code
+---
+
+<span id="agent-resolveAction" aria-hidden="true"></span>
+
+## `agent.resolveAction()`
+
+Resolves an action-required checkpoint with an explicit payload.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static resolveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      data: AssistantActionResolutionInput,
+    ): Promise<AssistantThreadResponse>;
+
+static resolveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      data: AssistantActionResolutionInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.resolveAction(assistantThreadId, actionId, {
+  decision: 'approve',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

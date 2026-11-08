@@ -1,0 +1,24 @@
+---
+title: api.getDatabaseAudit()
+sidebarTitle: getDatabaseAudit()
+description: Public low-code contract, signatures and examples for api.getDatabaseAudit.
+icon: code
+---
+
+<span id="api-getDatabaseAudit" aria-hidden="true"></span>
+
+## `api.getDatabaseAudit()`
+
+Reads newest-first audit events. Prefer narrow fields and changed/filter over a
+full snapshot.* or changes.* payload. Missing requested paths return null.
+
+### Signature
+
+```ts
+static getDatabaseAudit(
+      name: string,
+      query?: DatabaseAuditQuery,
+    ): Promise<DatabaseAuditResponse>;
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

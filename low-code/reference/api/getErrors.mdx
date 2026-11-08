@@ -1,0 +1,27 @@
+---
+title: api.getErrors()
+sidebarTitle: getErrors()
+description: Public low-code contract, signatures and examples for api.getErrors.
+icon: code
+---
+
+<span id="api-getErrors" aria-hidden="true"></span>
+
+## `api.getErrors()`
+
+Returns a snapshot of error logs collected so far in this execution.
+Each call reads the current host collection; modifying the returned array does not clear host errors.
+
+### Signature
+
+```ts
+static getErrors(): ProcessLog[];
+```
+### Example
+
+```ts
+const errors = api.getErrors();
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

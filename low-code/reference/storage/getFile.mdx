@@ -1,0 +1,36 @@
+---
+title: storage.getFile()
+sidebarTitle: getFile()
+description: Public low-code contract, signatures and examples for storage.getFile.
+icon: code
+---
+
+<span id="storage-getFile" aria-hidden="true"></span>
+
+## `storage.getFile()`
+
+Returns metadata for a file entry. Without an explicit namespace the entry
+is resolved by its globally unique id, matching the REST Storage API.
+
+### Overloads
+
+```ts
+static getFile(
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+
+static getFile(
+      namespace: string,
+      storageEntryId: string,
+      includeDeleted?: boolean,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const file = await storage.getFile(storageEntryId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

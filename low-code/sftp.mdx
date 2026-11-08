@@ -82,7 +82,7 @@ return {
 
 The Storage identity, namespace policy, restricted ancestors, and entry ACL are enforced exactly as they are for `storage.*`. A namespace or folder ID is a target selector, not a permission grant.
 
-For a known CSV feed, pass `csv` dialect settings such as `delimiter`, `recordDelimiter`, `encoding`, `quote` and `escape` in the import options. With `computeStats: 'sync'`, malformed CSV fails finalization with `STORAGE_CSV_INVALID` before a file is published for downstream processing. The remote source remains in place; archive or rename it only after successful validation. Do not switch to `quote: false` as an automatic fallback for invalid standard CSV. See [CSV dialect and validation](/operate/storage-structured-files#csv-and-tsv-dialect).
+For a known CSV feed, pass `csv` dialect settings such as `delimiter`, `recordDelimiter`, `encoding`, `quote` and `escape` in the import options. With `computeStats: 'sync'`, malformed CSV fails finalization with `STORAGE_CSV_INVALID` before a file is published for downstream processing. The remote source remains in place; archive or rename it only after successful validation. Do not switch to `quote: false` as an automatic fallback for invalid standard CSV. See [CSV dialect and validation](/operate/storage-csv#csv-and-tsv-dialect).
 
 To replace an existing entry, make replacement explicit:
 
@@ -143,17 +143,18 @@ Remote rename behavior still depends on the SFTP server and filesystem. If repla
 
 ```js
 const batch = await transport.sftpCommands(
-  [
-    'pwd',
-    ['stat', '/incoming/inventory.csv'],
-    ['ls', '/incoming'],
-  ],
+  ['pwd', ['stat', '/incoming/inventory.csv'], ['ls', '/incoming']],
   'SFTP_WAREHOUSE',
 );
 
-const failed = (batch.results ?? []).filter((result) => result.status !== 'ok');
+const failed = (batch.results ?? []).filter(
+  (result) => result.status !== 'ok',
+);
 if (failed.length) {
-  api.throw(502, { message: 'One or more SFTP commands failed', failed });
+  api.throw(502, {
+    message: 'One or more SFTP commands failed',
+    failed,
+  });
 }
 
 return batch.results;

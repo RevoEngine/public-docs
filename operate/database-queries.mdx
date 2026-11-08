@@ -1,0 +1,66 @@
+---
+title: "Query records"
+description: "Read bounded results and inspect the query plan."
+icon: book-open
+---
+
+## Query rows
+
+Use the structured query model for most requests. It supports:
+
+- bounded pagination;
+- field projection;
+- nested `and`, `or`, and `not` filters;
+- sorting, grouping, and distinct selection;
+- type-aware casts;
+- supported joins and common table expressions on surfaces that explicitly allow them.
+
+```js
+const result = await api.getDatabaseData('orders', {
+  fields: ['orderId', 'customerId', 'total', 'status'],
+  filter: {
+    and: [
+      { field: 'status', op: 'eq', value: 'READY' },
+      { field: 'total', op: 'gte', value: 100, filterType: 'number' },
+    ],
+  },
+  sort: { createdAt: 'DESC' },
+  take: 100,
+});
+```
+
+Prefer a narrow projection and a bounded page. Follow the returned paging contract instead of loading an entire Table into memory.
+
+### Platform API read paths
+
+The generated Platform API exposes two complementary read operations:
+
+| Operation | Use it for |
+| --- | --- |
+| [Get Database data](/api-reference/databases/get-database-data) | Query-string filtering, projection, sorting, joins, casts, pagination, and count. An explicit `take` is validated up to 10,000; larger values are rejected rather than silently treated as 10,000. |
+| [Query Database data with a request body](/api-reference/databases/query-database-data-with-a-request-body) | A structured JSON query when nested filters, joins, expressions, or casts are awkward to encode in a URL. Joined Tables are authorization-checked independently. |
+
+Both return `data`, `results`, and `next`, plus `total` only when count is requested. The body-based query does not publish a larger guaranteed page ceiling. Keep pages bounded and prefer keyset-like business filters for large data sets instead of increasing `skip` indefinitely.
+
+### Preview a read plan
+
+Use `debug: true` on `api.getDatabaseData` to inspect the complete estimated read
+plan before fetching records. `count: true` also previews the count plan. The
+result contains `debug.explain` and optional `debug.countExplain`; it contains no
+records or pagination result. Omit `debug` to fetch records normally.
+
+```javascript
+const diagnostic = await api.getDatabaseData('orders', {
+  fields: ['orderId'],
+  filter: { field: 'status', op: 'eq', value: 'OPEN' },
+  take: 100,
+  debug: true,
+});
+console.log(diagnostic.debug.explain.join('\n'));
+```
+
+This option retains normal data access checks and query validation. Use it on
+`getDatabaseData`, rather than row, count or walk helpers. An unsupported data
+source rejects the diagnostic request without running the read.
+
+Continue with [databases](/operate/databases).

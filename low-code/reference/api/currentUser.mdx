@@ -1,0 +1,31 @@
+---
+title: api.currentUser()
+sidebarTitle: currentUser()
+description: Public low-code contract, signatures and examples for api.currentUser.
+icon: code
+---
+
+<span id="api-currentUser" aria-hidden="true"></span>
+
+## `api.currentUser()`
+
+Returns the business current user synchronously. Saved Endpoints default to
+the invoking user, including end users without platform access. The instance
+or Endpoint currentUser policy can select EXECUTION_ACCOUNT instead.
+Jobs return their captured execution account. Permission checks follow the
+saved execution policy independently of this presentation setting.
+`avatar` is the Storage entry ID, not a signed download URL.
+
+### Signature
+
+```ts
+static currentUser(): LoggedUser;
+```
+### Example
+
+```ts
+const user = api.currentUser();
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

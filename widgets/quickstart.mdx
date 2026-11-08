@@ -1,0 +1,75 @@
+---
+title: "Build your first widget"
+description: "Create an input and refresh one result without any database or write action."
+sidebarTitle: First widget
+icon: play
+---
+
+Build a name input and a greeting. This example uses no external resources and performs no writes.
+
+## Before you start
+
+You need permission to edit a dashboard and execute its Custom Widget source. [Create a named dashboard](/operate/dashboards#create-a-dashboard-in-the-app), unlock it and add **Custom Widget**.
+
+<Steps>
+  <Step title="Configure the source">
+    Open **Configure**. Choose **Inline code**, **JavaScript**, and set **Inputs** to `{}`. Keep the view read-only.
+  </Step>
+  <Step title="Paste the view code">
+    Paste this complete body into the widget's code editor:
+
+```js
+const ui = api.input()?.$widget ?? {};
+const targetIds = ui.targetIds ?? ['*'];
+const wanted = (id) =>
+  targetIds.includes('*') || targetIds.includes(id);
+const name = ui.values?.name ?? 'Ada';
+const rows = [];
+
+if (wanted('name')) {
+  rows.push([
+    {
+      id: 'name',
+      type: 'INPUT',
+      control: 'text',
+      label: 'Your name',
+      value: 'Ada',
+      maxLength: 80,
+      debounceMs: 250,
+      on: {
+        change: { type: 'REFRESH', target: 'greeting' },
+      },
+    },
+  ]);
+}
+
+if (wanted('greeting')) {
+  rows.push([
+    {
+      id: 'greeting',
+      type: 'TEXT',
+      value: name === '' ? 'Enter your name.' : 'Hello, ' + name + '!',
+    },
+  ]);
+}
+
+return rows;
+```
+  </Step>
+  <Step title="Check the result">
+    The widget shows **Ada** and **Hello, Ada!**. Type **Grace**: after the input commits, only the greeting refreshes. Clear the input: the result becomes **Enter your name.** The empty string is an intentional value.
+  </Step>
+  <Step title="Save the dashboard">
+    Select dashboard **Save**, then **Lock**. Reloading the page starts again from the source default **Ada**; typing into an input does not change the saved configuration.
+  </Step>
+</Steps>
+
+## What the example uses
+
+- `rows` is an ordinary JavaScript variable containing the returned matrix.
+- `id: 'name'` identifies the input in `$widget.values`.
+- `on.change` requests the `REFRESH` action for `greeting`.
+- `targetIds` tells the source which cells to return on this execution.
+- `??` preserves valid empty strings and zero values, unlike a truthiness fallback.
+
+Continue with [rows, cells and matrix](/widgets/matrix), then [input configuration](/widgets/inputs).

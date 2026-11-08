@@ -1,0 +1,68 @@
+---
+title: "Agent delivery and delegation"
+description: "Configure inbox, triggers, delegation and run limits."
+icon: book-open
+---
+
+## Inbox and trigger delivery
+
+`config.automation.defaultDeliveryMode` decides how Events, Schedules, and Agent handoffs enter the Agent when the trigger does not override it:
+
+| Mode | Behavior | Best for |
+| --- | --- | --- |
+| `INBOX` | Persists queued work before a run claims it | Auditable workloads, prioritization, delays, and de-duplication |
+| `DIRECT_RUN` | Creates a run immediately | Bounded, latency-sensitive work with controlled concurrency |
+
+The create form defaults to `INBOX`.
+
+### Inbox item fields
+
+| Field | Required | Contract |
+| --- | --- | --- |
+| `instruction` | Yes | Non-empty task instruction passed to the run when claimed |
+| `type` | No | Logical type, up to 128 characters |
+| `payload` | No | JSON object copied into run state |
+| `priority` | No | Integer from 0 to 1,000; higher values are claimed first |
+| `scheduleFor` | No | ISO timestamp with timezone or Unix milliseconds, from request acceptance through 30 days ahead. The item is recorded immediately and becomes claimable at this time. |
+| `dedupeKey` | No | Up to 255 characters; unique per Agent among non-terminal items |
+
+Use a deterministic de-duplication key for retried webhooks and recurring producers, for example `invoice:2026-09:customer-42`.
+
+### Direct run fields
+
+A direct run requires `instruction` and can include:
+
+- `triggerType`, `triggerRefType`, and `triggerRefId` for correlation;
+- `scheduleFor` as an ISO timestamp with timezone or Unix milliseconds, up to 30 days ahead;
+- a JSON `state` object for run-scoped context;
+- up to 32 additional `pluginIds`.
+
+Do not use run state for secrets or durable files. Keep secrets in Secrets and persistent output in the Agent workspace.
+
+A delayed direct run is visible immediately as `CREATED`, with `scheduledFor` in its details. It does not occupy an execution slot while waiting for its initial time. Once due, it must pass the Agent's concurrency gate; waiting for capacity is `PENDING` with a capacity wait reason. Later continuation wake times are separate from the original accepted schedule.
+
+<Warning>
+  Use `scheduleFor` for both Inbox and direct runs. A past public timestamp or one more than 30 days ahead is rejected. An already accepted request that reaches dispatch after its time becomes immediately eligible; eligibility is not a promise of an exact start time.
+</Warning>
+
+## Delegation and limits
+
+| Setting | Accepted range | Effective behavior |
+| --- | --- | --- |
+| `maxActiveRootRuns` | 1–32 | Concurrent admitted root runs; excess work waits for capacity |
+| `maxChildRuns` | 1–128 | Total delegated child runs available to one parent plan |
+| `maxConcurrentChildRuns` | 1–32 | Children started in parallel, never greater than the effective child-run total |
+| `maxTicks` | 1–1,000 | Explicit execution-tick ceiling; omit it when the Agent should not have a fixed tick budget |
+| `childFailureMode` | `fail_parent`, `merge_partial` | Stop the parent on child failure or merge verified partial results |
+
+Limits can be present in both `config` and `policy`. For concurrency and child limits, the lower configured or policy value wins. `policy.maxTicks` overrides `config.maxTicks`. `merge_partial` is effective when selected in either layer; otherwise failure mode is `fail_parent`.
+
+Start with one root run and two concurrent children. Increase concurrency only after the service account, downstream rate limits, idempotency, and output-merge behavior have been tested.
+
+## Managed automation settings
+
+Automation policy can define how approval-required work is escalated and how managed notifications are delivered. These settings record operator intent; they do not bypass runtime approval policy, identity, or target access.
+
+Treat advanced automation fields as managed configuration and validate the current OpenAPI schema before generating them programmatically.
+
+Continue with [agent configuration](/ai/agent-configuration).

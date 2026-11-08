@@ -1,0 +1,29 @@
+---
+title: agent.retryRun()
+sidebarTitle: retryRun()
+description: Public low-code contract, signatures and examples for agent.retryRun.
+icon: code
+---
+
+<span id="agent-retryRun" aria-hidden="true"></span>
+
+## `agent.retryRun()`
+
+Retries a failed or completed run from its retry policy.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static retryRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.retryRun(agentRunId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

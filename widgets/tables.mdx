@@ -1,0 +1,70 @@
+---
+title: "Tables, columns and selection"
+description: "Define record fields, stable keys, selectable rows and toolbar actions."
+sidebarTitle: Tables and selection
+icon: table
+---
+
+A TABLE has two separate arrays: `data` contains records, and `definition` describes their visible columns. A column's `field` selects a property from each record.
+
+```js
+return [
+  [
+    {
+      id: 'orders',
+      type: 'TABLE',
+      rowKey: 'orderId',
+      selection: { mode: 'multiple' },
+      data: [
+        { orderId: 'order-1', customer: 'North', total: 125 },
+        { orderId: 'order-2', customer: 'South', total: 80 },
+      ],
+      definition: [
+        { field: 'orderId', headerName: 'Order', type: 'TEXT' },
+        { field: 'customer', headerName: 'Customer', type: 'TEXT' },
+        { field: 'total', headerName: 'Total', type: 'NUMBER' },
+      ],
+    },
+  ],
+];
+```
+
+This source displays two selectable records. The TABLE ID is `orders`; each row is identified by its own `orderId`. These are independent identities.
+
+## Configuration
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `data` | Record array | Required | Rows available to the browser. |
+| `definition` | Column array | Required | Each column declares `field`, `headerName` and a supported type. |
+| `rowKey` | string | Absent | Record property used as stable identity; required for selection. |
+| `selection.mode` | `single`, `multiple` | No selection | Enables selectable rows. |
+| `buttons` | Toolbar-button array | None | Up to 16 named buttons. |
+| `on.rowClick` | Action | None | Runs for the clicked record. |
+| `on.selectionChange` | Action | None | Runs after selected keys change. |
+
+`rowKey` values must be unique strings or finite numbers. A refresh keeps only keys still present in the returned dataset. Selection state is available at `$widget.selection.orders.keys` or through a selection binding.
+
+## Column types
+
+| `definition[].type` | Data | Display and filtering |
+| --- | --- | --- |
+| `TEXT` | Text or a value convertible to text | Text display and filtering. |
+| `NUMBER` | Numeric value | Locale-formatted number and numeric filtering. |
+| `DATE` | A parseable date value | UTC `YYYY-MM-DD` display and date filtering. |
+| `BOOLEAN` | Boolean | Boolean display and filtering; supply actual booleans. |
+| `JSON` | Structured value | JSON viewer; sorting and filtering are disabled. |
+
+`field`, `headerName` and `type` are required strings. Keep `field` equal to a property in the returned records. A null or invalid date is displayed as missing, not as a valid date.
+
+Assistant cards accept `TEXT`, `NUMBER`, `DATE` and `BOOLEAN` columns over flat scalar records. `JSON` is a dashboard TABLE capability; it is not accepted by the Assistant artifact contract.
+
+## Toolbar buttons
+
+Each toolbar button needs `id` and `label`. It can declare `disabled`, `requiresSelection` and `on.click`. With `requiresSelection: true`, it stays disabled until at least one record is selected.
+
+See [selection and drill-down example](/widgets/examples/table-actions) for bindings and required targets.
+
+## Data size and filters
+
+Filtering and sorting a Custom Widget TABLE operates on returned browser data. It does not fetch the next server page, and its live filter state is not saved as a built-in dashboard grid preference. Bound the source query and label a partial dataset. Use a built-in Database Table or View panel when you need its full workspace grid behavior.

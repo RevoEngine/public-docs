@@ -1,0 +1,29 @@
+---
+title: agent.getThread()
+sidebarTitle: getThread()
+description: Public low-code contract, signatures and examples for agent.getThread.
+icon: code
+---
+
+<span id="agent-getThread" aria-hidden="true"></span>
+
+## `agent.getThread()`
+
+Returns one assistant thread.
+
+### Signature
+
+```ts
+static getThread(
+      assistantThreadId: string,
+      options?: { hideDeleted?: boolean },
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.getThread(assistantThreadId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

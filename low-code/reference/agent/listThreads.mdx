@@ -1,0 +1,29 @@
+---
+title: agent.listThreads()
+sidebarTitle: listThreads()
+description: Public low-code contract, signatures and examples for agent.listThreads.
+icon: code
+---
+
+<span id="agent-listThreads" aria-hidden="true"></span>
+
+## `agent.listThreads()`
+
+Lists owned conversations. Set includeResponses:true to include retained technical responses.
+includeDeleted:true independently includes deleted owned threads; neither option grants additional access.
+
+### Signature
+
+```ts
+static listThreads(
+      query?: AssistantThreadQuery,
+    ): Promise<CollectionResult<AssistantThread>>;
+```
+### Example
+
+```ts
+const threads = await agent.listThreads({ take: 20 });
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -209,7 +209,8 @@ function main() {
     issues.push('Events guide contains a technical Storage implementation dump or stale ingestion link.');
   }
 
-  const httpGuide = readFileSync(join(root, 'low-code/http.mdx'), 'utf8');
+  const httpGuide = ['http', 'http-json', 'http-multipart', 'http-streams', 'http-storage', 'http-callbacks']
+    .map(name => readFileSync(join(root, `low-code/${name}.mdx`), 'utf8')).join('\n');
   for (const requiredPattern of [
     /responseType:\s*['"]stream['"]/,
     /streamFormat:\s*['"]sse['"]/,

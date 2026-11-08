@@ -1,0 +1,21 @@
+---
+title: serviceAccount.list()
+sidebarTitle: list()
+description: Public low-code contract, signatures and examples for serviceAccount.list.
+icon: code
+---
+
+<span id="serviceAccount-list" aria-hidden="true"></span>
+
+## `serviceAccount.list()`
+
+Lists visible service accounts; authorization is applied before pagination.
+Example: const accounts = await serviceAccount.list(&#123; take: 20, count: true &#125;);
+
+### Signature
+
+```ts
+static list(query?: ServiceAccountQuery): Promise<CollectionResult<ServiceAccountRecord>>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

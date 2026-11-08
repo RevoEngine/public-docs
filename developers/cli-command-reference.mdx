@@ -1,0 +1,87 @@
+---
+title: CLI command reference
+description: Find the right command family, select a target, and understand options before a write.
+icon: list
+---
+
+Use this reference when you know the operation you need. Start with [CLI setup](/developers/cli) for installation and sign-in, or [CLI projects](/developers/cli-projects) for a first pull → edit → plan → deploy workflow.
+
+## Choose a command family
+
+| Task | Commands | Expected effect |
+| --- | --- | --- |
+| Inspect authentication | `auth status`, `-i` | Read the selected target and local configuration |
+| Save target profiles | `projects add`, `list`, `set`, `remove` | Manage local named connections |
+| Initialize authoring | `project init`, `project update` | Configure local workspace and editor types |
+| Synchronize Components | `component pull`, `plan`, `push` | Compare definitions with a saved baseline |
+| Synchronize data definitions | `database-tables`, `database-views` with `pull`, `plan`, `push` | Manage schema and Views; data rows are separate |
+| Synchronize access definitions | `service-accounts`, `groups`, `role-groups` with `pull`, `plan`, `push` | Resolve portable identities and access definitions |
+| Synchronize automation | `job-templates`, `endpoints`, `schedules`, `events` with `pull`, `plan`, `push` | Manage definitions; execution history stays on its instance |
+| Synchronize AI definitions | `agents`, `agent-plugins` with `pull`, `plan`, `push` | Manage configuration; conversations, memory and runs remain instance-local |
+| Work across resource families | `pull`, `diff`, `plan`, `deploy` | Follow the workspace's tracked resources and dependencies |
+| Promote between targets | `migrate plan`, `run`, `verify`; `env diff`, `apply` | Use [environment promotion](/developers/cli-environments) |
+| Test or debug | `tests list`, `run`, `resume`, `cancel`; `component debug`; `emulate endpoints` | See [tests and debugging](/developers/cli-tests-and-debugging) |
+| Collaborate and review | `studio` | See [Studio commands](/developers/cli-studio) |
+| Connect a workstation | `terminal` | See [terminal commands](/developers/cli-terminal) |
+| Repair portable identity | `metadata plan`, `metadata apply` | Preview and populate missing stable keys |
+| Find or inspect content | `search`, `request`, `endpoints` | Search or make an authenticated Platform API request |
+
+Run `revo --help` for the installed command catalogue. Help is available without authentication; unsupported options fail before an operation starts.
+
+## Target and output options
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--project` | Saved project name | Select one named connection for this command |
+| `--url` | API base URL | Override the default client's API origin |
+| `--instance` | Instance UUID | Select the tenant for tenant-scoped requests |
+| `--token` | API key | Override credentials; prefer environment variables or interactive login to avoid shell-history exposure |
+| `--json` | Boolean | Machine-readable output on commands that support it |
+| `--strict` | Boolean | Treat reported plan/verification problems as a failing check where supported |
+| `--hints` | Boolean | Add human-readable resource hints to supported plans |
+| `--no-update-notifier` | Flag | Disable the package update check for this invocation |
+
+Options are command-specific. For example, raw `request` does not accept the synchronization flags, and background terminal service installation does not accept credential override flags. Named `--from` and `--to` profiles resolve independently; see [configuration precedence](/developers/cli#configuration-precedence).
+
+## Synchronization options
+
+| Option | Use | Consequence |
+| --- | --- | --- |
+| `--all` | Select the managed family | Does not mean every untracked object in an instance |
+| `--yes` | Confirm a supported write | Does not bypass server permissions or validation |
+| `--force` | Explicitly bypass supported local baseline conflicts | Does not repair missing/duplicate stable keys or bypass source approval |
+| `--activate` | Supported automation/repository operations | Also align enabled state; otherwise preserve the documented activation policy |
+| `--prune` | Supported plan/deploy operations | Include removals; inspect the plan first |
+| `--prune-partitions` | Database Table push | Explicit partition removal; inspect data impact |
+| `--changed --base <ref>` | Component selection | Restrict selection using a Git comparison |
+| `--omit` | Destination property preservation | Preserve selected target values on push, or local values on pull |
+| `--out <file>` | Repository plan | Save a reviewable plan |
+| `--reviewed-plan <file>` | Repository deploy | Apply the reviewed plan with current-state checks |
+| `--async --idempotency-key <uuid>` | Supported Database Table push | Accept durable schema work; wait for the Database Operation before dependent writes |
+
+`--dry-run` belongs to migration and environment apply. For ordinary push/deploy, use the corresponding **plan** command. A plan is a preview of observed state, not a lock against another user's later edits.
+
+## Inspect an integration without changing it
+
+In the Asterion sample, a developer searches for the quote code and inspects Endpoint configuration before proposing a change:
+
+```bash
+revo auth status
+revo search CODE QuotePreview
+revo endpoints
+revo request GET /api/v1/me
+```
+
+For a query parameter, pass repeated `--query` values as `key=value`:
+
+```bash
+revo request GET /api/v1/endpoints --query take=10 --query skip=0
+```
+
+The path belongs to the **Platform API**. A business call to `/asterion/quotes/contract` belongs to the separate [Endpoint runtime](/developers/endpoint-runtime).
+
+## Boolean values and failures
+
+Use a bare flag, `--flag=true`, `--flag=false`, or `--no-flag`. Values such as `0`, `no`, or uppercase `FALSE` are rejected. Conflicting repeated flags, unknown options and missing values are errors.
+
+A remote write can finish after a client loses its response. Inspect the returned operation, current resource or saved run before retrying. Reuse an operation identity only for the same request; changing the desired input requires a new identity.

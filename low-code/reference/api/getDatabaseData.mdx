@@ -1,0 +1,52 @@
+---
+title: api.getDatabaseData()
+sidebarTitle: getDatabaseData()
+description: Public low-code contract, signatures and examples for api.getDatabaseData.
+icon: code
+---
+
+<span id="api-getDatabaseData" aria-hidden="true"></span>
+
+## `api.getDatabaseData()`
+
+Reads rows from a database, view, or materialized view using the structured query shape.
+
+Notes:
+- This is the canonical read API.
+- debug:true previews the complete estimated read/count plans without fetching records.
+  The result contains only debug.explain and optional debug.countExplain.
+  Unsupported data sources and writable caller transactions reject diagnostics.
+- Pass take: null for a bounded 2,000-row page without a warning.
+- Omitting take also uses 2,000 rows and logs one warning per execution.
+
+### Overloads
+
+```ts
+static getDatabaseData<T = any>(
+      name: string,
+      request: DatabaseBoundedReadQuery & { debug: true },
+    ): Promise<DatabaseExplainResult>;
+
+static getDatabaseData<T = any>(
+      name: string,
+      request?: DatabaseBoundedReadQuery & { debug?: false },
+    ): Promise<GetDatabaseDataResponse<T>>;
+
+static getDatabaseData<T = any>(
+      name: string,
+      request: DatabaseBoundedReadQuery,
+    ): Promise<GetDatabaseDataResponse<T> | DatabaseExplainResult>;
+```
+### Example
+
+```ts
+const rows = await api.getDatabaseData('customers', {
+  fields: ['customerId', 'name'],
+  filter: { field: 'status', op: 'eq', value: 'ACTIVE' },
+  sort: { name: 'ASC' },
+  take: 100,
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

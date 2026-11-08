@@ -1,0 +1,21 @@
+---
+title: serviceAccount.activate()
+sidebarTitle: activate()
+description: Public low-code contract, signatures and examples for serviceAccount.activate.
+icon: code
+---
+
+<span id="serviceAccount-activate" aria-hidden="true"></span>
+
+## `serviceAccount.activate()`
+
+Activates the account within the caller's current delegation ceiling.
+Example: await serviceAccount.activate('erp-sync');
+
+### Signature
+
+```ts
+static activate(ref: ServiceAccountRef): Promise<ServiceAccountRecord>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

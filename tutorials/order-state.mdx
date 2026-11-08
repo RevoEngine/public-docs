@@ -1,0 +1,91 @@
+---
+title: "1. Model order state"
+description: "Create the records and validate the reservation command."
+icon: book-open
+---
+
+Create the three Tables before writing the reservation Component.
+
+<span id="1-model-the-durable-state" aria-hidden="true"></span>
+
+## Model the durable state
+
+Open **Databases** and create three restricted Tables. Enable **Audit** before live writes begin; enabling it later does not reconstruct earlier row history.
+
+### `orders`
+
+| Field | Type | Settings | Purpose |
+| --- | --- | --- | --- |
+| `orderId` | `UUID` | Primary, unique, not nullable | Stable order identity. |
+| `accountId` | `UUID` | Indexed, not nullable | Selects the governed balance. |
+| `amountMinor` | `BIGINT` | Not nullable | Amount in minor currency units. |
+| `currency` | `TEXT` | Indexed, not nullable | Prevents cross-currency reservations. |
+| `status` | `TEXT` | Indexed, not nullable | For example `PENDING`, `RESERVED`, `SETTLED`, or `FAILED`. |
+| `reservationTransactionId` | `UUID` | Nullable | Links the order to its ledger entry. |
+| `lastOperationId` | `TEXT` | Nullable | Links the business state to RevoEngine Trace. |
+
+### `balances`
+
+| Field | Type | Settings | Purpose |
+| --- | --- | --- | --- |
+| `balanceId` | `UUID` | Primary, unique, not nullable | Stable balance identity. |
+| `accountId` | `UUID` | Indexed, not nullable | Business account owner. |
+| `currency` | `TEXT` | Indexed, not nullable | Balance currency. |
+| `availableMinor` | `BIGINT` | Not nullable | Funds still available to reserve. |
+| `reservedMinor` | `BIGINT` | Not nullable | Funds reserved by open orders. |
+| `lastOperationId` | `TEXT` | Nullable | Latest operation touching the balance. |
+
+Create a unique business constraint for the account and currency combination if each account owns only one balance per currency.
+
+### `transactions`
+
+| Field | Type | Settings | Purpose |
+| --- | --- | --- | --- |
+| `transactionId` | `UUID` | Primary, unique, not nullable | Ledger entry identity. |
+| `requestKey` | `TEXT` | Unique, not nullable | Durable idempotency boundary. |
+| `orderId` | `UUID` | Indexed, not nullable | Related order. |
+| `accountId` | `UUID` | Indexed, not nullable | Related account. |
+| `type` | `TEXT` | Indexed, not nullable | `RESERVATION` in this guide. |
+| `amountMinor` | `BIGINT` | Not nullable | Immutable ledger amount. |
+| `currency` | `TEXT` | Not nullable | Immutable ledger currency. |
+| `status` | `TEXT` | Indexed, not nullable | Starts as `PENDING_SETTLEMENT`. |
+| `operationId` | `TEXT` | Indexed, not nullable | Platform correlation identifier. |
+| `settlementOperationId` | `TEXT` | Nullable | Correlates the later Job execution. |
+| `requestedBy` | `UUID` | Nullable | User or service-account identity. |
+| `providerReference` | `TEXT` | Nullable | Safe external correlation identifier. |
+| `receiptStorageEntryId` | `UUID` | Nullable | Restricted Storage evidence. |
+| `settledAt` | `TIMESTAMPTZ` | Nullable | Confirmed provider completion time. |
+
+Treat the `transactions` Table as an append-oriented ledger. Settlement should append or transition an explicit transaction state according to your accounting model; it should not silently rewrite the original amount.
+
+<span id="2-validate-the-public-command" aria-hidden="true"></span>
+
+## Validate the public command
+
+Create a `JSON_VALIDATOR` Component and add an element such as `reserveOrderRequest`. The command accepts only the order ID and a caller-generated idempotency key:
+
+```json
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["orderId", "requestKey"],
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requestKey": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    }
+  }
+}
+```
+
+The amount, currency, destination account, and desired order status are intentionally absent. They come from trusted rows selected under the runtime principal.
+
+Continue with [first production workflow](/platform/first-production-workflow).
+
+Next: [step 2](/tutorials/order-reservation).

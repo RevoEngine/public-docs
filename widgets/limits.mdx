@@ -1,0 +1,47 @@
+---
+title: "Limits and troubleshooting"
+description: "Check matrix bounds, source limits and common widget failures."
+icon: triangle-exclamation
+---
+
+Dashboard widgets and Assistant artifacts share interaction semantics but have different result-size limits.
+
+| Limit | Dashboard interaction contract | Assistant card |
+| --- | --- | --- |
+| Rows | 64 | 8 |
+| Cells per row | 64 | 4 |
+| Elements, including FORM fields | 256 | Also subject to artifact row and cell limits |
+| Fields per FORM | 64 | 64 within total limits |
+| Toolbar buttons per TABLE | 16 | 16 |
+| Records per chart or table | Bound source reads to a usable dataset | 5000 |
+| Columns per TABLE | Keep the visible grid usable | 12; TEXT, NUMBER, DATE or BOOLEAN |
+| Cell width and height | Follow the row layout | Width greater than 0 up to 100; height 80–800 px |
+| Artifact rows plus sources | Not the Assistant artifact envelope | 2 MB |
+
+## Source and action bounds
+
+- Each target registry accepts up to 32 entries, at most four nested target levels.
+- An Inline registered source accepts up to 120000 code characters.
+- Registered `inputs` must be JSON object text without the reserved `$widget` key.
+- Source timeout: 5–600 seconds; memory: 32–1024 MiB.
+- Whole-widget refresh: 1–600 seconds when configured; cell timers: 1–86400 seconds.
+- Replacement navigation retains up to 12 frames. Pending ordered refresh commands are limited to 64.
+
+Configured values remain subject to execution permissions and instance policy.
+
+## Diagnose the exact boundary
+
+| Symptom | Check |
+| --- | --- |
+| First render fails when reading `$widget` | Use `api.input()?.$widget ?? {}`. |
+| Partial refresh rejected | Return exactly the requested IDs and no additional cells. |
+| Missing binding value | Confirm the INPUT or selectable TABLE exists and the path is present. |
+| Value returns to a default | Check `valueMode`, stable IDs and whether the page remounted. |
+| Form never executes | Check validation and the FORM's `on.submit`. |
+| Job submitted but result is unknown | Query the exact receipt ID; acceptance is not completion. |
+| Chart data rejected | Check series keys, axis types and finite numeric values. |
+| Table selection lost | Confirm stable, unique row keys still exist in the returned dataset. |
+| Shared card cannot run actions | Shared/report surfaces are inactive snapshots. |
+| Permission denied | Check the viewer and executor's permissions; dashboard visibility grants no resource access. |
+
+Validate initial and partial branches separately, including empty values and zero. A parsed result does not prove browser rendering, navigation or successful writes. Test write actions only in an authorized test environment.

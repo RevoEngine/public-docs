@@ -1,0 +1,218 @@
+---
+title: "3. Settle the order"
+description: "Run external settlement as durable background work."
+icon: book-open
+---
+
+Requires the reservation Component and Endpoint from step 2, plus an authorized test integration.
+
+<span id="5-configure-durable-settlement" aria-hidden="true"></span>
+
+## Configure durable settlement
+
+Create a Job template for the provider call. The Job reads the transaction by `transactionId`, verifies that its state is still eligible, calls the provider with a provider-side idempotency key, and records only the safe provider reference.
+
+| Job setting | Initial policy | Why |
+| --- | --- | --- |
+| Trigger user | `payments-runtime` service account | Prevents execution under a developer identity. |
+| Runtime input | Provider name and non-secret policy only | Per-order data arrives in the invocation input. |
+| Concurrency key | `settle-order` | Bounds simultaneous provider work. |
+| Concurrency limit | Provider- and tenant-appropriate | Protects provider and platform capacity. |
+| Retry | Transient failures only | Authentication or validation failures require intervention. |
+| Max attempts | Small and explicit | Includes the original attempt. |
+| Timeout | Below the provider and platform deadline | Leaves time to record a controlled failure. |
+
+Jobs can run much longer than Endpoints, but they are still bounded. Instance policy can grant up to **59 minutes** of execution time and **4 GiB** of memory. Design larger work as checkpoints or multiple Jobs rather than assuming an unbounded process, and reserve only the memory the workload actually needs.
+
+<Tip>
+  A remote timeout is ambiguous: the provider might have completed the operation before the connection failed. Query by the provider idempotency/correlation key before retrying the side effect.
+</Tip>
+
+### Settlement worker: Secret, HTTP egress, and Storage evidence
+
+Before activating the template, create `PAYMENTS_API_KEY` under **Secrets**, grant the Job service account access to it, configure the provider URL as non-secret Component configuration, and pre-create `payments/settlement-receipts` as a restricted Storage path for finance/audit groups. The Component still verifies effective restriction at runtime because `storage.ensureFolderPath()` does not mutate ACLs on folders that already exist.
+
+The settlement Component binds the credential at the HTTP boundary, sends a JSON request to the provider, updates the ledger, and writes a restricted receipt artifact. It never returns or logs the resolved API key. The originating Endpoint operation and the Job operation remain separate but linked.
+
+```ts
+type SettlementInput = {
+  transactionId: string;
+  parentOperationId: string;
+};
+
+const { transactionId, parentOperationId } = api.input()
+  ?.message as SettlementInput;
+const operationId = api.getOperationId();
+const transactions = await api.getDatabaseData('transactions', {
+  filter: { field: 'transactionId', op: 'eq', value: transactionId },
+  take: 1,
+});
+
+if (transactions.results !== 1) {
+  api.throw(404, { message: 'Transaction not found', operationId });
+}
+
+const transaction = transactions.data[0];
+
+const provider = await api.httpCall(
+  {
+    url: 'https://payments.example.com/v1/settlements',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${
+        (await vault.get('PAYMENTS_API_KEY')).revision.value
+      }`,
+      'Idempotency-Key': transaction.transactionId,
+      'X-Correlation-ID': operationId,
+    },
+    data: {
+      transactionId: transaction.transactionId,
+      amountMinor: transaction.amountMinor,
+      currency: transaction.currency,
+    },
+  },
+  {
+    requestType: 'json',
+    responseType: 'json',
+    timeout: 15_000,
+  },
+);
+
+if (provider.status < 200 || provider.status >= 300) {
+  api.log(
+    {
+      message: 'Payment provider rejected settlement',
+      args: {
+        operationId,
+        transactionId,
+        providerStatus: provider.status,
+        durationMs: provider.time,
+      },
+    },
+    'WARN',
+  );
+
+  api.throw(424, {
+    message: 'Settlement provider did not accept the operation',
+    operationId,
+    transactionId,
+  });
+}
+
+if (typeof provider.data?.reference !== 'string') {
+  api.throw(424, {
+    message: 'Settlement provider returned an invalid response',
+    operationId,
+    transactionId,
+  });
+}
+
+const providerReference = provider.data.reference;
+const settledAt = new Date().toISOString();
+
+await api.updateDatabaseData(
+  'transactions',
+  { transactionId, status: 'PENDING_SETTLEMENT' },
+  {
+    status: 'SETTLED',
+    providerReference,
+    settledAt,
+    settlementOperationId: operationId,
+  },
+);
+
+const receiptFolder = await storage.ensureFolderPath(
+  'payments/settlement-receipts',
+  {
+    restricted: true,
+  },
+);
+
+if (!receiptFolder.effectiveRestricted) {
+  api.throw(500, {
+    message: 'Settlement receipt folder is not restricted',
+    operationId,
+    parentOperationId,
+    transactionId,
+  });
+}
+
+const receiptName = `settlement-${transactionId}.json`;
+const priorReceipts = await storage.explore({
+  parentStorageEntryId: receiptFolder.storageEntryId,
+  term: receiptName,
+  take: 10,
+});
+const priorReceipt = priorReceipts.data.find(
+  (entry) => entry.name === receiptName,
+);
+
+const receipt =
+  priorReceipt ??
+  (await storage.putObject({
+    parentStorageEntryId: receiptFolder.storageEntryId,
+    name: receiptName,
+    data: JSON.stringify(
+      {
+        operationId,
+        parentOperationId,
+        transactionId,
+        orderId: transaction.orderId,
+        amountMinor: transaction.amountMinor,
+        currency: transaction.currency,
+        providerReference,
+        settledAt,
+      },
+      null,
+      2,
+    ),
+    mimeType: 'application/json',
+    computeStats: 'sync',
+    metadata: {
+      operationId,
+      parentOperationId,
+      transactionId,
+      documentType: 'settlement-receipt',
+    },
+  }));
+
+await api.updateDatabaseData(
+  'transactions',
+  { transactionId },
+  { receiptStorageEntryId: receipt.storageEntryId },
+);
+
+api.log(
+  {
+    message: 'Order settlement completed',
+    args: {
+      operationId,
+      parentOperationId,
+      transactionId,
+      providerReference,
+      receiptStorageEntryId: receipt.storageEntryId,
+      providerDurationMs: provider.time,
+    },
+  },
+  'INFO',
+);
+
+return {
+  operationId,
+  parentOperationId,
+  transactionId,
+  providerReference,
+  receiptStorageEntryId: receipt.storageEntryId,
+  status: 'SETTLED',
+};
+```
+
+<Warning>
+  Never log `provider.request`, request headers, the Secret value, or an unrestricted provider response. `api.httpCall()` returns diagnostic request data for runtime use; application logs should contain only allowlisted identifiers, status, and timing.
+</Warning>
+
+If the HTTP connection times out, query the provider with the same `transactionId` idempotency key before sending another settlement. If Storage writing fails after provider success, a retry can reconstruct the deterministic receipt from the settled ledger record without repeating the provider effect.
+
+Continue with [first production workflow](/platform/first-production-workflow).
+
+Previous: [step 2](/tutorials/order-reservation). Next: [step 4](/tutorials/order-verification).

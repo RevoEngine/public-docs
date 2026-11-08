@@ -1,0 +1,49 @@
+---
+title: api.getInstanceData()
+sidebarTitle: getInstanceData()
+description: Public low-code contract, signatures and examples for api.getInstanceData.
+icon: code
+---
+
+<span id="api-getInstanceData" aria-hidden="true"></span>
+
+## `api.getInstanceData()`
+
+Reads data from platform-managed sources.
+
+### Signature
+
+```ts
+static getInstanceData(
+      dataSource:
+        | 'Users'
+        | 'Groups'
+        | 'RoleGroups'
+        | 'Keys'
+        | 'Secrets'
+        | 'SecretsData'
+        | 'Templates'
+        | 'Events'
+        | 'Schedule'
+        | 'Jobs'
+        | 'Webhooks'
+        | 'Components'
+        | 'Logs'
+        | 'EventsHistory'
+        | 'Endpoints'
+        | 'Databases'
+        | 'DatabaseData',
+      request?: InstanceData,
+    ): Promise<any>;
+```
+### Example
+
+```ts
+const jobs = await api.getInstanceData('Jobs', {
+  take: 20,
+  sort: ['-createdAt'],
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

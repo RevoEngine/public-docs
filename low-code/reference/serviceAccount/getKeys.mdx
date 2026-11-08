@@ -1,0 +1,21 @@
+---
+title: serviceAccount.getKeys()
+sidebarTitle: getKeys()
+description: Public low-code contract, signatures and examples for serviceAccount.getKeys.
+icon: code
+---
+
+<span id="serviceAccount-getKeys" aria-hidden="true"></span>
+
+## `serviceAccount.getKeys()`
+
+Lists safe key metadata without usable credentials.
+Example: const keys = await serviceAccount.getKeys('erp-sync', &#123; take: 20 &#125;);
+
+### Signature
+
+```ts
+static getKeys(ref: ServiceAccountRef, query?: ServiceAccountQuery): Promise<CollectionResult<ServiceAccountKey>>;
+```
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

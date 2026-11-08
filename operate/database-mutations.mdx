@@ -1,0 +1,89 @@
+---
+title: "Write and import records"
+description: "Use upserts, ordered updates, exports and Storage imports."
+icon: book-open
+---
+
+## Mutate data safely
+
+Dedicated insert, update, upsert, and delete operations apply schema validation and resource authorization. For a check-then-write flow, use a database transaction and keep remote network calls outside it.
+
+Bulk update and delete accept filters. Preview the affected selection in your application flow, then apply the mutation with a deliberately bounded scope.
+
+<Warning>
+  A filter-free bulk mutation or truncate operation can affect every row. Restrict these operations to administrative workflows and require explicit confirmation in your own UI.
+</Warning>
+
+Schema validation, primary-key requirements, foreign references, and uniqueness can reject a write. Large filtered update/delete operations are executed in bounded batches; a later batch failure does not make a previously committed batch disappear unless the caller used an explicit transaction-capable runtime flow. Design idempotency and retry behavior around the operation you selected.
+
+### Conditional upserts
+
+Use conditional upserts when an integration sends repeated snapshots. They reduce redundant writes and row-audit updates while preserving the normal schema, permission and transaction checks. The options are available in low-code and the Platform API in the 3 November update to 1.7.1.
+
+For a Database with `productId`, `cost`, `currency`, `active` and `updatedAt` columns:
+
+```js
+const result = await api.upsertDatabaseData(
+  'products',
+  [
+    {
+      productId: '1001',
+      cost: '125.00',
+      currency: 'PLN',
+      active: true,
+      updatedAt: '2026-11-03T10:00:00Z',
+    },
+  ],
+  {
+    return: false,
+    skipUnchanged: { exclude: ['updatedAt'] },
+    filter: { field: 'active', op: 'eq', value: true },
+  },
+);
+```
+
+The `filter` checks the current Database row and controls updates only. A missing row is inserted independently of that filter. The example can update an existing active product; it does not reactivate an inactive product merely because the incoming value is true.
+
+Use `skipUnchanged: true` to compare all supplied fields other than primary keys. An `exclude` list omits technical fields from that decision; an `include` list compares only the selected business fields. Choose one list, with known non-primary-key column names. When a compared field changes, all supplied PATCH fields are written together. Changes only to excluded fields are intentionally not saved.
+
+Omitted fields remain unchanged, explicit nullable null clears a value, and non-nullable null retains the documented default-reset behavior. JSON compares stored text; JSONB compares structure. Existing calls keep their defaults, including returned row data and PATCH behavior.
+
+In conditional mode, `success` counts handled input records, including intentional skips; `affected` counts actual writes. Returned data contains written rows only. Set `return: false` when row data is unnecessary to reduce response overhead. Skipped updates do not create row-audit changes. The conditional options apply only to upsert, not ordinary insert.
+
+The filter uses the existing structured `field`/`op`/`value` syntax with `and`, `or` and `not`. It supports current target fields without joins, raw expressions or incoming-field references. See the [low-code API reference](/low-code/reference/api/upsertDatabaseData) for the complete option types.
+
+### Ordered mass updates
+
+The **Mass Update** workspace accepts an ordered list of transformations. A column can appear more than once: for example, trim a text value and then append a suffix. Supported operations include assignment, arithmetic, boolean toggling, date changes, text editing, array membership changes and JSON transformations.
+
+Text editing covers insertion, literal replacement, trimming and case conversion. Arrays support adding or removing items; JSON supports merging, setting a path and removing a path. Transformations preserve NULL unless an explicit empty-value policy is selected. The API accepts at most 100 operations and validates the operands for each one.
+
+Preview the filtered selection before submitting. Ordered operations do not replace the normal authorization or transaction boundaries. See the current [low-code API reference](/low-code/reference/api) for exact operation shapes.
+
+### Database exports
+
+The export dialog offers **CSV**, **TSV**, **NDJSON**, and **Excel (XLSX)** for Tables and Views. Choose the destination, filename and access settings, then follow the asynchronous export through its job and resulting file.
+
+CSV remains the default when existing API or low-code callers omit the format. Excel preserves supported column types; values that exceed Excel's numeric precision are written as text. The server checks the worksheet ceiling of 1,048,575 data rows plus a header and 16,384 columns during export execution. A REST request may already have been accepted when that check fails; low-code waits for the result by default.
+
+Exports are managed files in [Storage](/operate/storage). [Export data to Storage](/operate/database-exports) explains all four formats, notification defaults, asynchronous receipts and finalized-file examples. See [1.5.0](/changelog/1.5.0) for the related data and spreadsheet changes.
+
+### Import from Storage
+
+The import dialog accepts CSV, TSV, NDJSON, and XLSX. Choose insert or upsert mode and the row-error policy before selecting the file. The dialog reserves a Private Storage upload and registers the import operation before transferring bytes. Validation starts automatically after upload finalization; preview does not write rows. Hiding the dialog leaves the upload running in the application. Use Uploads to continue the import or **View operation** to inspect its progress. Closing or reloading the browser cannot resume an unfinished transfer; once the complete file has transferred, server-side validation continues independently.
+
+Review the validation report and proposed column mapping. Correct ambiguous mappings, wait for revalidation, and choose **Commit** to write. Commit checks that the source file and target definitions still match the preview. The Database operation routes also expose status, result, cancellation, and eligible failed-operation retry. Resource Write or Admin is required to start or change an import; Resource Read can inspect status.
+
+For files already in Storage, the Platform API preview accepts the existing `storageEntryId`. The optional `storageUploadSessionId` registers validation while an upload is still in progress: the session must belong to the caller's Private Storage and target that file. Repeating admission with the same upload and options reuses the operation. HTTP 202 confirms admission, not a completed import.
+
+Import validation and commit phases produce in-app System messages. Review-required, success, and error messages can also send email according to notification preferences. Set `skipNotification: true` to suppress both channels; low-code imports suppress these messages by default.
+
+### Preserve exported values
+
+CSV and TSV imports default to the escaped NULL convention used by Database exports: `\N` represents NULL, an empty string remains an empty string, and literal backslashes are escaped. This also applies after downloading and re-uploading an export without its original Storage metadata. For files from another system, select an explicit `mapping.nullMode` when their NULL convention differs.
+
+An explicit nullable NULL remains NULL even when the column has a default. An omitted NDJSON property remains omitted, allowing insert defaults or a partial upsert. Large integers and precise decimals retain their supported text representation; XLSX DATE values must represent valid calendar dates.
+
+Low-code uses `api.importDatabase()`, `api.updateDatabaseImportMapping()`, and `api.commitDatabaseImport()`; see [Database API](/low-code/database) for the workflow and the generated [API reference](/low-code/reference/api) for signatures.
+
+Continue with [databases](/operate/databases).

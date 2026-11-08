@@ -1,0 +1,28 @@
+---
+title: util.getUUID()
+sidebarTitle: getUUID()
+description: Public low-code contract, signatures and examples for util.getUUID.
+icon: code
+---
+
+<span id="util-getUUID" aria-hidden="true"></span>
+
+## `util.getUUID()`
+
+Returns a random UUIDv7 with no arguments, or a deterministic UUIDv5 only when
+both value and namespace are supplied. Do not generate IDs for server-created
+platform resources; use this only for caller-owned data values.
+
+### Signature
+
+```ts
+static getUUID(...args: [] | [value: string, namespace: string]): string;
+```
+### Example
+
+```ts
+const id = util.getUUID('customer-1', 'customers');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

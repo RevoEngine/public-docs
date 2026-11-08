@@ -1,0 +1,108 @@
+---
+title: "Write and read typed rows"
+description: "Generate structured files and read their typed result."
+icon: book-open
+---
+
+## Generate typed rows
+
+For generated CSV/XLSX, parts may contain row objects or positional arrays instead of serialized bytes.
+
+```js
+const { session } = await storage.createUploadSession({
+  name: 'report.xlsx',
+  contentTypeHint:
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'incremental',
+  writeMode: 'direct',
+  computeStats: 'sync',
+  sheets: [
+    {
+      name: 'Report',
+      table: {
+        header: true,
+        autoFilter: true,
+        columns: [
+          { key: 'productId', header: 'Product ID', type: 'string' },
+          { key: 'price', header: 'Price', type: 'number' },
+          { key: 'metadata', header: 'Metadata', type: 'object' },
+        ],
+      },
+    },
+  ],
+});
+
+const sessionId = session.storageUploadSessionId;
+
+await storage.uploadPart(sessionId, {
+  rows: [
+    { productId: 'P-1', price: 12.5, metadata: { segment: 'A' } },
+    { productId: 'P-2', price: 9.99, metadata: ['sale'] },
+  ],
+});
+
+const result = await storage.finalizeUploadSession(sessionId);
+return { storageEntryId: result.entry.storageEntryId };
+```
+
+Choose the structured `writeMode` independently from `uploadMode`:
+
+| `writeMode` | Use when |
+| --- | --- |
+| `staged` | Independent requests may be retried, replaced, or reordered; sheets or columns can be inferred; XLSX needs sparse cells, formulas, or dynamic worksheets |
+| `direct` | Every CSV/XLSX column and worksheet is declared before the first row; XLSX parts contain rows only |
+
+`staged` is the safer default for ordinary multi-request writers. Structured `direct` is for a fixed layout and rejects undeclared worksheets or cell-oriented XLSX parts.
+
+## Compute timing
+
+The declared schema is honored in every compute mode:
+
+| `computeStats` | Structured index availability |
+| --- | --- |
+| `sync` | Ready when finalization completes |
+| `async` | Queued after the file entry is published |
+| `none` | Built lazily by `getFileStats()` or `getFileData()` |
+
+CSV, TSV, and XLSX sessions default to `sync`. Set the mode explicitly when the next workflow has a strict latency or readiness requirement.
+
+## Read the typed result
+
+```js
+const page = await storage.getFileData(storageEntryId, {
+  sheet: 'Products',
+  limit: 2_000,
+});
+
+return {
+  rows: page.rows,
+  columns: page.columns,
+  hasMore: page.next,
+  nextCursor: page.nextCursor,
+};
+```
+
+Omit `sheet` to use the first visible XLSX worksheet. Omit `columns` to read every source column. The read-time `columns` option projects, renames, or casts a result; it does not replace the schema declared on the upload session.
+
+Use `storage.walkFileData()` for a complete structured scan without accumulating every row in memory. Record mode accepts CSV/TSV, XLSX, NDJSON/JSONL, a top-level JSON array, and record-oriented XML. It does not walk arbitrary plain text, a top-level JSON object, or binary files as rows; explicit `mode: 'lines'` handles text windows separately. For XML, pass `recordPath`; for XLSX, select a worksheet with `sheet` or use the first visible one. The callback is awaited for each batch; omitting `take` scans all records.
+
+```js
+let total = 0;
+
+await storage.walkFileData(
+  storageEntryId,
+  { sheet: 'Products' },
+  async (rows) => {
+    total += rows.length;
+  },
+  { fullScan: true, batchSize: 100_000, readBatchSize: 100_000 },
+);
+
+return { total };
+```
+
+## Other structured formats
+
+`getFileData()` and `walkFileData()` also support NDJSON/JSONL, JSON arrays, and record-oriented XML. These formats use their native record structure rather than the CSV/TSV/XLSX `sheets[].table.columns[]` upload schema. XML reads and walks require `recordPath`.
+
+Continue with [storage structured files](/operate/storage-structured-files).

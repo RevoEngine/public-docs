@@ -1,0 +1,35 @@
+---
+title: api.releaseConcurrencyLimit()
+sidebarTitle: releaseConcurrencyLimit()
+description: Public low-code contract, signatures and examples for api.releaseConcurrencyLimit.
+icon: code
+---
+
+<span id="api-releaseConcurrencyLimit" aria-hidden="true"></span>
+
+## `api.releaseConcurrencyLimit()`
+
+Atomically releases one acquired concurrency slot, preserving slots held by other workers.
+
+Notes:
+- Releases only a slot acquired by this runtime invocation; a missing local ownership token is a no-op.
+- For a slot acquired with leaseOwnerId, pass that same owner to release it from another SDK request.
+- Call exactly once after a successful admission; do not release after admission returned false.
+- Owner fencing prevents late cleanup from releasing a slot acquired by another invocation.
+- Each invocation may acquire several slots; each release consumes one of its own tokens.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static releaseConcurrencyLimit(key: string, leaseOwnerId?: string): Promise<void>;
+```
+### Example
+
+```ts
+// In the same runtime invocation, once for each successful admission.
+await api.releaseConcurrencyLimit('sync:customers');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

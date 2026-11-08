@@ -1,0 +1,34 @@
+---
+title: agent.renameThread()
+sidebarTitle: renameThread()
+description: Public low-code contract, signatures and examples for agent.renameThread.
+icon: code
+---
+
+<span id="agent-renameThread" aria-hidden="true"></span>
+
+## `agent.renameThread()`
+
+Renames a thread.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static renameThread(
+      assistantThreadId: string,
+      data: AssistantThreadTitleInput,
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.renameThread(assistantThreadId, {
+  title: 'Postmortem draft',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

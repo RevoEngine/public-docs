@@ -1,0 +1,52 @@
+---
+title: "Open a detail view"
+description: "Pass a selected record into a registered destination and return with Back."
+icon: book-open
+---
+
+## Open a detail view and return
+
+Add this destination in **Widget destinations (JSON)**. Its Inline body is complete and reads the selected order ID from its input:
+
+```json
+{
+  "orderDetail": {
+    "sourceType": "INLINE",
+    "codeType": "CODE_JS",
+    "code": "return [[{ id: 'detail', type: 'TEXT', value: 'Order: ' + api.input().orderId }], [{ id: 'back', type: 'BUTTON', label: 'Back', on: { click: { type: 'BACK' } } }]];",
+    "inputs": "{}",
+    "readOnly": true,
+    "timeout": 30,
+    "memory": 128
+  }
+}
+```
+
+Use this source in the parent widget. Clicking a row replaces the current view while retaining its frame; Back restores the parent and its selected keys.
+
+```js
+return [
+  [
+    {
+      id: 'orders',
+      type: 'TABLE',
+      rowKey: 'id',
+      selection: { mode: 'multiple' },
+      data: [{ id: 'order-1' }, { id: 'order-2' }],
+      definition: [{ field: 'id', headerName: 'Order', type: 'TEXT' }],
+      on: {
+        rowClick: {
+          type: 'OPEN_WIDGET',
+          target: 'orderDetail',
+          mode: 'replace',
+          input: { orderId: { from: 'event', path: 'row.id' } },
+        },
+      },
+    },
+  ],
+];
+```
+
+Use `mode: 'panel'` to open the destination beside its parent, or `mode: 'inline'` with an existing parent cell ID in `hostId` to mount it inside that cell. These modes start independent state: BACK navigates a retained replacement frame, not a parent in a different surface. Dismiss a panel with Escape or an outside click. For deeper drill-down, register another named destination and pass the next record ID explicitly.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

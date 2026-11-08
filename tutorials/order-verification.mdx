@@ -1,0 +1,68 @@
+---
+title: "4. Verify and investigate"
+description: "Exercise failure paths and follow one order through its evidence."
+icon: book-open
+---
+
+Requires the complete reservation and settlement workflow from steps 1–3. Test with synthetic data in a test environment.
+
+<span id="6-test-the-failure-paths" aria-hidden="true"></span>
+
+## Test the failure paths
+
+<Steps>
+  <Step title="Validate the happy path">
+    Seed one `PENDING` order and a matching balance. Confirm that available funds decrease, reserved funds increase, one ledger row appears, and the response exposes all three identifiers.
+  </Step>
+  <Step title="Replay the same request">
+    Send the same `requestKey`. Confirm that no second reservation or ledger entry is created and the prior transaction can be identified.
+  </Step>
+  <Step title="Race two requests">
+    Submit two different requests against the same balance. Confirm that row locking and serializable isolation prevent overspending.
+  </Step>
+  <Step title="Reject insufficient funds">
+    Confirm a `409` response, no partial balance update, no reserved order state, and no ledger insert.
+  </Step>
+  <Step title="Interrupt settlement">
+    Simulate a provider timeout. Confirm that the Job retry preserves `transactionId`, `operationId`, retry lineage, and provider idempotency metadata.
+  </Step>
+  <Step title="Verify least privilege">
+    Run with the real service account, then remove one required Table or Secret permission and confirm the workflow fails closed.
+  </Step>
+</Steps>
+
+<span id="7-investigate-one-operation" aria-hidden="true"></span>
+
+## Investigate one operation
+
+Start with the identifier closest to the report:
+
+| Identifier | Open first | Question answered |
+| --- | --- | --- |
+| `operationId` or `x-revo-oid` | Trace | Which distributed path did the request take? |
+| `transactionId` | `transactions` Table | Which durable business state was recorded? |
+| `jobId` | Jobs History | Did settlement run, retry, fail, or finish? |
+| `orderId` | `orders` and Audit | What state does the customer-facing order have? |
+| `accountId` | `balances` and Audit | Which balance change was committed and by whom? |
+
+In **Jobs History**, inspect status, duration, attempt, selected template and Component version, timestamps, metadata, and actor. In **Databases → Audit**, verify the balance and order transition. In **Trace**, follow the `operationId` across Endpoint execution and Job dispatch.
+
+<Note>
+  A successful Endpoint response proves that reservation committed and settlement was scheduled. It does not prove that the provider settled the order. Customer notification should follow a terminal Job state plus a confirmed transaction/provider state.
+</Note>
+
+## Production extensions
+
+This guide keeps the architecture visible rather than pretending to be a complete payment system. A production implementation commonly adds:
+
+- a reconciliation Job for transactions stuck in `PENDING_SETTLEMENT`;
+- an append-only settlement/reversal ledger policy;
+- provider webhook verification and replay protection;
+- currency- and tenant-specific limits;
+- dual-control approval for high-value or manual operations;
+- dashboards and alerts for age, retries, failure classes, and balance invariants;
+- retention and redaction rules aligned with financial and privacy obligations.
+
+Continue with [first production workflow](/platform/first-production-workflow).
+
+Previous: [step 3](/tutorials/order-settlement). Return to [the workflow overview](/platform/first-production-workflow).

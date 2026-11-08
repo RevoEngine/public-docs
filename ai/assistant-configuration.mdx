@@ -10,6 +10,20 @@ RevoEngine separates AI configuration into layers so administrators can govern t
   Configuration is additive, not a permission shortcut. A global plugin, personal preference, memory entry, or workspace file never grants access that the current user or Agent service account does not already have.
 </Note>
 
+<span id="administrator-configure-ai-for-the-instance" aria-hidden="true"></span>
+<span id="global-instructions" aria-hidden="true"></span>
+<span id="default-plugins" aria-hidden="true"></span>
+<span id="runtime-output-limits" aria-hidden="true"></span>
+<span id="revoengine-docs-preview" aria-hidden="true"></span>
+<span id="memory-policy" aria-hidden="true"></span>
+<span id="storage-retention" aria-hidden="true"></span>
+<span id="ai-security-rules" aria-hidden="true"></span>
+
+<CardGroup cols={2}>
+  <Card title="Configure instance AI" href="/ai/instance-ai-settings" icon="book-open">Set administrator defaults and policies for Interactive Agents.</Card>
+</CardGroup>
+
+
 ## Configuration model
 
 | Layer | Configured by | Applies to | Examples |
@@ -37,90 +51,9 @@ flowchart TB
 
 The current instruction and verified tool results remain authoritative for the task. Imported preferences and memory provide context; they do not override safety, approval, identity, or exact runtime evidence.
 
-## Administrator: configure AI for the instance
-
-Open **Settings → AI Agents** as an Instance Administrator. The workspace is split into four tabs so policy, runtime limits, governance, and usage are not mixed together.
-
-| Tab | Configure here |
-| --- | --- |
-| **Instructions** | Global instructions and default plugins |
-| **Runtime** | Output ceiling, artifact retention, eager skill loading, and RevoEngine Docs preview |
-| **Memory & security** | Memory recall and writeback, memory context budget, and tenant security rules |
-| **Usage** | AI usage for the selected timeframe, comparison with the preceding equal period, and on-demand tool, skill, and plugin activity |
-
-### Global instructions
-
-Configure global instructions under **Settings → AI Agents → Instructions**.
-
-Global instructions express stable organization-wide expectations, for example:
-
-- use the tenant's approved Components and plugins before ad-hoc alternatives;
-- preserve backward compatibility for published Endpoints;
-- redact customer identifiers from user-visible reports;
-- validate changes in Sandbox before activation;
-- return an operation identifier for production mutations.
-
-The editor and runtime accept up to **12,000 characters** per global instruction entry, preserving paragraphs and lists. Keep the text concise and policy-oriented. Product safety, authorization, approval rules, the current user's explicit request, and exact execution results still take precedence.
-
-<Warning>
-  Do not put credentials, private keys, bearer tokens, or Secret values in global instructions. Store them in [Secrets](/operate/secrets) and expose only the permitted runtime binding.
-</Warning>
-
-### Default plugins
-
-Configure default plugins under **Settings → AI Agents → Instructions**.
-
-Select active registry plugins that should be available by default for AI work in the instance. Instance defaults and explicitly selected plugins remain subject to plugin status, capability policy, operation safety, permissions, and approval requirements. A disabled, deleted, unavailable, or policy-blocked plugin cannot become executable merely because it is configured as a default.
-
-Default plugin configuration accepts plugin IDs only. Put capability-specific guidance in an approved skill or package plugin. Use global instructions for organization-wide preferences, and keep tool schemas and authentication in the plugin definition.
-
-See [Plugins](/ai/plugins) for lifecycle, MCP synchronization, safety metadata, and attachment rules.
-
-### Runtime output limits
-
-Configure the output ceiling under **Settings → AI Agents → Runtime**.
-
-The administrator can set the maximum output-token ceiling for AI execution from **10,240** to **128,000**. This is an upper bound, not a target: individual models, tasks, and runtime policies can use less.
-
-Increasing the ceiling can help large code reviews or long structured deliverables, but it also increases latency and cost exposure. Prefer better task scope, references, and artifact workflows before raising it globally.
-
-### RevoEngine Docs preview
-
-**RevoEngine Docs** is an opt-in preview under **Settings → AI Agents → Runtime**. It lets the Assistant search and read the current public product documentation. Keep it disabled for ordinary RevoEngine implementation work, where the compact product model, Revo skills, current declarations, and authorized instance resources provide a faster path.
-
-Enable the preview when users need current official product guidance, design rationale, documented workflows, or citations. Documentation lookup can add several network calls and increase response latency. When the preview is disabled, the Docs tools are absent from discovery, preload, and execution admission.
-
-The preview does not prove that a feature is deployed or permitted in the current instance. Exact contracts, permissions, and resource state still come from current platform tools. Public documentation queries must not contain private source code, records, identifiers, or credentials.
-
-### Memory policy
-
-Configure memory under **Settings → AI Agents → Memory & security**. The tenant policy controls whether runtime recall is enabled, whether Agents can persist governed updates, and how much combined digest context can be supplied.
-
-| Setting | Meaning | Guidance |
-| --- | --- | --- |
-| Memory enabled | Allows governed memory search and recall | Disable when the tenant must not reuse learned context across sessions |
-| Memory writeback | Allows supported runtimes to persist stable learned context | Enable only when operators accept durable Agent learning and review its results |
-| Context budget | Maximum combined `USER`, `AGENT`, and `WORKSPACE` digest context, from 1,000 to 10,000 tokens | Keep it bounded; use search for deeper recall instead of loading all history |
-
-Memory is selective. RevoEngine does not convert every answer, tool output, or conversation into durable memory. See [Memory and workspaces](/ai/memory-and-workspaces).
-
-### Storage retention
-
-Instance AI settings also define default retention for private database exports and Agent-created artifacts. Both accept **1–3,650 days**. Expiration archives the file first; permanent removal remains governed by the instance garbage-collection policy.
-
-Use shorter retention for reproducible temporary exports and longer retention only when the artifact is required as durable operational evidence. An Agent can still select a more appropriate explicit lifecycle when policy and the Storage contract allow it.
-
-### AI security rules
-
-Configure security guidance under **Settings → AI Agents → Memory & security**.
-
-Administrators can provide up to **8,000 characters** of security guidance, selection terms, and blocked runtime tool names. Use this layer for tenant-wide restrictions such as credentials, customer data, regulated records, or forbidden external mutations.
-
-Security guidance complements—not replaces—roles, ACLs, service-account permissions, plugin safety metadata, and approval classification. Test both an allowed and a denied example after changing this configuration.
-
 ## User: configure personal Interactive Agent defaults
 
-Open **Settings → Assistant**. This is the current UI label for personal Interactive Agent preferences. These settings belong to the signed-in human account and shape new messages; they do not redefine an Autonomous Agent.
+Open **Settings → Personalization**. This is the current UI label for personal Interactive Agent preferences. These settings belong to the signed-in human account and shape new messages; they do not redefine an Autonomous Agent.
 
 The workspace has **Defaults**, **Instructions** and **Memory** tabs with one **Save** action. Defaults control the response preferences below; Instructions holds personal guidance; Memory lets you inspect, replace or clear your own durable memory text. Memory is context, not an access grant or a replacement for the current request. See [1.5.0](/changelog/1.5.0) for the expanded personal AI workspace.
 
@@ -144,9 +77,9 @@ Do not use personal preferences for project facts, passwords, one-off task requi
 
 ### Per-turn overrides
 
-The composer can override model, reasoning, planner behavior, permission level, or plugin selection for the current work. A per-turn choice changes that execution context without rewriting the saved account default. Permission choices are **Restricted**, **Auto Review**, and **Full Access**. Work mode, persona, and custom instructions remain account-level response preferences until changed in **Settings → Assistant**.
+The composer can override model, reasoning, planner behavior, permission level, or plugin selection for the current work. A per-turn choice changes that execution context without rewriting the saved account default. Permission choices are **Restricted**, **Auto Review**, and **Full Access**. Work mode, persona, and custom instructions remain account-level response preferences until changed in **Settings → Personalization**.
 
-For example, keep **Medium + Standard + Auto Review + Balanced** as a daily default, then select **High + Review required + Restricted + Coding** for a risky cross-Component migration.
+For example, keep **Medium + Standard + Auto Review + Balanced** as a daily default, then select **High + Review required + Restricted** for a risky cross-Component migration. Change Work mode to **Coding** in Settings if you also want to change that saved preference.
 
 ## Agent: define durable behavior
 

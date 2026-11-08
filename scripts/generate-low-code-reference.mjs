@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -287,26 +287,97 @@ function renderMethod(global, methodGroup) {
 
 function renderSurface([global, title, description], source) {
   const list = methodGroups(publicMethods(source, global));
-  const index = list.map(({ name }) => `- [\`${global}.${name}()\`](#${methodAnchor(global, name)})`).join('\n');
+  const rows = list.map(({ name }) =>
+    `| [\`${global}.${name}()\`](/low-code/reference/${global}/${name}) |`
+  ).join('\n');
   return `---
 title: ${title}
 description: ${description}
 icon: brackets-curly
 ---
 
-<Note>
-  Generated from the same public contract that feeds the Monaco editor. Declaration-marked deprecated compatibility methods are intentionally excluded. Do not edit this page manually.
-</Note>
+${list.map(({ name }) => `<span id="${methodAnchor(global, name)}" aria-hidden="true"></span>`).join("\n")}
 
-This page contains **${list.length} methods**. Search the docs for an exact method name, or use this index:
+Choose a method below. Each method page contains its complete signatures, overloads, behavior notes and declaration-provided examples.
 
-${index}
+| ${global}: ${list.length} methods |
+| --- |
+${rows}
 
-${list.map((method) => renderMethod(global, method)).join('\n')}`;
+Return to [all runtime globals](/low-code/reference/index).`;
+}
+
+function renderMethodPage(global, method) {
+  return `---
+title: ${global}.${method.name}()
+sidebarTitle: ${method.name}()
+description: Public low-code contract, signatures and examples for ${global}.${method.name}.
+icon: code
+---
+
+${renderMethod(global, method)}
+
+See [all ${global} methods](/low-code/reference/${global}) or [runtime basics](/low-code/overview).
+`;
+}
+
+function methodCategory(global, name) {
+  if (global === 'api') {
+    if (/Database/.test(name)) return 'Database';
+    if (/Cache/.test(name)) return 'Cache';
+    if (/Idempotency|concurrency|Concurrency|rateLimit|RateLimit/.test(name)) return 'Coordination';
+    if (/Jobs?|Webhooks?|Automation|^trigger/.test(name)) return 'Automation';
+    if (name === 'httpCall') return 'HTTP';
+    if (/Instance|publishMessage/.test(name)) return 'Platform';
+    return 'Execution context';
+  }
+  if (global === 'agent') {
+    if (/Inbox/.test(name)) return 'Inbox';
+    if (/Run/.test(name)) return 'Runs';
+    if (/Plugin/.test(name)) return 'Plugins';
+    if (/Thread|Message|Response|Action/.test(name)) return 'Assistant conversations';
+    return 'Agent definitions';
+  }
+  if (global === 'util') {
+    if (/^(aes|rsa|jwt|hmac|verifyHmac|otp|timingSafe)/.test(name)) return 'Cryptography';
+    if (/hash|Hash|^sha|^md5/.test(name)) return 'Hashing';
+    if (/Base64|base64/.test(name)) return 'Encoding';
+    return 'Validation and utilities';
+  }
+  if (global === 'storage') {
+    if (/Upload|uploadPart/.test(name)) return 'Upload sessions';
+    if (/Folder|Entry|explore/.test(name)) return 'Files and folders';
+    return 'Read and write content';
+  }
+  return null;
+}
+
+export function referenceNavigation(source) {
+  return {
+    group: 'Low-code method reference',
+    pages: [
+      'low-code/reference/index',
+      ...surfaces.map(([global]) => {
+        const categories = new Map();
+        for (const { name } of methodGroups(publicMethods(source, global))) {
+          const category = methodCategory(global, name);
+          if (!categories.has(category)) categories.set(category, []);
+          categories.get(category).push(`low-code/reference/${global}/${name}`);
+        }
+        return { group: global, pages: [`low-code/reference/${global}`,
+          ...[...categories].flatMap(([category, pages]) => category ? [{ group: category, pages }] : pages)],
+        };
+      }),
+    ],
+  };
+}
+
+export function referenceFiles(source) {
+  return [...expected(source).keys()];
 }
 
 function renderIndex(source) {
-  const rows = surfaces.map((surface) => `| [\`${surface[0]}\`](/low-code/reference/${surface[0]}) | ${publicMethods(source, surface[0]).length} | ${surface[2]} |`).join('\n');
+  const rows = surfaces.map((surface) => `| [\`${surface[0]}\`](/low-code/reference/${surface[0]}) | ${methodGroups(publicMethods(source, surface[0])).length} | ${surface[2]} |`).join('\n');
   return `---
 title: Low-code runtime reference
 description: Generated, searchable reference for every public global and method available in the Monaco editor.
@@ -332,13 +403,18 @@ ${rows}
 - \`util\` owns validation and security helpers, including hashing, cryptography, encoding, and identifiers.
 - Active library declarations are resolved through \`lib.LibraryName.ElementKey.X\`, or \`lib.LibraryName.X\` for exports from the permanent @default element (initially documentation only), where \`X\` is an explicitly exported function, class, constant, or other public symbol. \`inject()\` reads an earlier element in the same ordered component.
 
-Refresh after a declaration change with \`npm run sync:low-code-reference\`.`;
+Each method is published on its own page; overloads stay together.`;
 }
 
 function expected(source) {
   return new Map([
     [join(referenceRoot, 'index.mdx'), renderIndex(source)],
-    ...surfaces.map((surface) => [join(referenceRoot, `${surface[0]}.mdx`), renderSurface(surface, source)]),
+    ...surfaces.flatMap((surface) => [
+      [join(referenceRoot, `${surface[0]}.mdx`), renderSurface(surface, source)],
+      ...methodGroups(publicMethods(source, surface[0])).map(method => [
+        join(referenceRoot, surface[0], `${method.name}.mdx`), renderMethodPage(surface[0], method),
+      ]),
+    ]),
   ]);
 }
 
@@ -362,7 +438,34 @@ export function run(argv = process.argv.slice(2)) {
       stale = true;
     }
   }
-  for (const [file, content] of expected(readFileSync(snapshot, 'utf8'))) {
+  const declaration = readFileSync(snapshot, 'utf8');
+  const outputs = expected(declaration);
+  // Only these namespace folders are generator-owned. Never remove authored guides.
+  for (const [global] of surfaces) {
+    const directory = join(referenceRoot, global);
+    if (!existsSync(directory)) continue;
+    for (const name of readdirSync(directory).filter(name => name.endsWith('.mdx'))) {
+      const file = join(directory, name);
+      if (outputs.has(file)) continue;
+      if (args.has('--check')) { console.error(`Obsolete generated method page: ${file}`); stale = true; }
+      else unlinkSync(file);
+    }
+  }
+  const navigationPath = join(root, 'docs.json');
+  const config = JSON.parse(readFileSync(navigationPath, 'utf8'));
+  const expectedNavigation = referenceNavigation(declaration);
+  const matches = config.navigation.tabs.flatMap(tab => tab.groups ?? [])
+    .filter(group => group.group === expectedNavigation.group);
+  if (matches.length !== 1) throw new Error('Expected one Low-code method reference navigation group.');
+  if (JSON.stringify(matches[0]) !== JSON.stringify(expectedNavigation)) {
+    if (args.has('--check')) { console.error('Stale generated low-code navigation.'); stale = true; }
+    else {
+      Object.keys(matches[0]).forEach(key => delete matches[0][key]);
+      Object.assign(matches[0], expectedNavigation);
+      writeFileSync(navigationPath, JSON.stringify(config, null, 2) + '\n');
+    }
+  }
+  for (const [file, content] of outputs) {
     if (args.has('--check')) {
       if (!existsSync(file) || readFileSync(file, 'utf8') !== content) { console.error(`Stale generated reference: ${file}`); stale = true; }
     } else {

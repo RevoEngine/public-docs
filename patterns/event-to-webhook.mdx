@@ -1,0 +1,124 @@
+---
+title: Event to Job to Webhook
+description: Follow an order-ready signal from publication through routing, execution and outbound delivery.
+icon: diagram-project
+---
+
+Notify a warehouse when an order becomes ready. The Event routes a small business signal, a Job prepares the request, and a Webhook delivers it. Each stage has its own record and completion boundary.
+
+## Before you start
+
+Use a non-production instance, an execution account allowed to run the Component and create Webhooks, and a test receiver you control. The receiver must support the `Idempotency-Key` header used here and retain one result per business operation. Replace the example destination; `example.com` is not a working integration.
+
+Create a JavaScript Component with a `Data` element containing the body below. Create an active Job template that executes that Component. This example sends a notification only; it does not change order state or demonstrate receiver implementation.
+
+## Prepare the outbound request
+
+Paste this body into the Job's Component. Event delivery supplies `message` and occurrence `metadata` at the input root; these are separate from `templateInputs`.
+
+```js
+const input = api.input() ?? {};
+const message = input.message ?? {};
+const metadata = input.metadata ?? {};
+if (input.type !== 'ORDER_READY'
+    || typeof message.orderId !== 'string' || !message.orderId
+    || message.status !== 'READY'
+    || typeof metadata.operationKey !== 'string' || !metadata.operationKey
+    || typeof metadata.correlationId !== 'string' || !metadata.correlationId) {
+  throw new Error('An ORDER_READY message and business correlation are required');
+}
+
+const webhook = await api.triggerWebhook({
+  maxRetries: 1,
+  saveDetails: true,
+  metadata: {
+    operationKey: metadata.operationKey,
+    correlationId: metadata.correlationId,
+    orderId: message.orderId,
+  },
+  request: {
+    url: 'https://warehouse.example.com/order-ready',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotency-Key': metadata.operationKey,
+    },
+    body: {
+      orderId: message.orderId,
+      status: message.status,
+      operationKey: metadata.operationKey,
+    },
+  },
+});
+return { accepted: true, webhookId: webhook.webhookId };
+```
+
+The explicit header and body carry the operation key to the partner. Webhook metadata supplies the separate RevoEngine search context. Add the receiver's required authentication through its supported integration contract; keep credentials out of the retained example and history. See [credential handling](/operate/webhooks#credentials-and-sensitive-details).
+
+A production target should reload authoritative order state under its own permissions before deciding what to send. Passing an Event filter does not establish that the message is still current or authorized for a business mutation.
+
+## Configure the subscription
+
+Create an active custom Event definition:
+
+| Setting | Value |
+| --- | --- |
+| Type | `ORDER_READY` |
+| Internal | Disabled |
+| Target | The Job template created above |
+| Filter | All: `status eq READY` and `region eq eu` |
+| Runtime input | `{}`; Override preserves the template defaults |
+
+In the visual filter editor, enter `status` and `region`, without `message.`. The stored Platform API filter is:
+
+```json
+{
+  "and": [
+    { "field": "message.status", "op": "eq", "value": "READY" },
+    { "field": "message.region", "op": "eq", "value": "eu" }
+  ]
+}
+```
+
+This is one subscription, not a global exclusive route. Another active definition matching the same type and message can also run its target.
+
+## Publish one occurrence
+
+Run this fragment from another low-code Component after the order has become ready:
+
+```js
+const eventId = await api.triggerEvent(
+  'ORDER_READY',
+  { orderId: 'order-1', status: 'READY', region: 'eu' },
+  {
+    metadata: {
+      operationKey: 'order-1:ready:v1',
+      correlationId: 'checkout-1',
+      source: 'checkout',
+    },
+  },
+);
+return { accepted: true, eventId };
+```
+
+## Verify each outcome
+
+| Evidence | Expected result | Still unconfirmed |
+| --- | --- | --- |
+| Publisher result | Event ID returned | Target dispatch and completion |
+| Event History | Matching definition and its child Job | Webhook delivery |
+| Job result | `Data` contains `accepted: true` and `webhookId` | Partner receipt or completion |
+| Webhook details | Attempt evidence; `FINISHED` after successful HTTP delivery | Any partner work performed after its HTTP acknowledgement |
+| Test receiver | Stored result under `order-1:ready:v1` | Nothing beyond the receiver contract you tested |
+
+Follow the IDs and search correlation fields; do not assume those screens update in exactly this order or at a fixed interval.
+
+## Exercise the failure paths
+
+- Change the message region to `us`: this subscription does not dispatch. Other matching subscriptions remain independent.
+- Return an HTTP error from the test receiver: inspect Webhook attempts and the configured retry cap. A completed Job does not become failed merely because its later Webhook fails.
+- Commit at the receiver and lose the HTTP response: a retry must return the stored result for the same business key, without another effect.
+- Replay the Event: new Jobs and Webhook records can be created. Keep the business operation key unchanged when it is still the same notification.
+- Change the intended business operation: deliberately choose a new key and reconcile the previous operation first if its outcome is unknown.
+
+The sample does not prevent creation of multiple Webhook records across Job retries or Event Replays. Receiver-side idempotency protects the business effect; [delivery guarantees](/patterns/delivery-guarantees) explains the distinction. Use [the Webhook simulation](/operate/webhooks#explore-the-behavior) to compare attempts and effects without calling an instance.

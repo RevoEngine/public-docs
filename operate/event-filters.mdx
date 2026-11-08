@@ -1,0 +1,78 @@
+---
+title: "Filter Event messages"
+description: "Configure message paths, operators and compound conditions."
+icon: book-open
+---
+
+import { FilterDemo, PlaygroundStyle, routeExample } from "/snippets/revo-playground.jsx";
+
+## Example: admit one supplier feed
+
+The Asterion subscription listens for `ASTERION_SUPPLIER_FEED_READY` and targets **Supplier stock intake**. Its filter compares the message's `supplierId` with `VEGA`. An occurrence for another supplier does not reach this target. Definition metadata `demo: asterion` helps operators find the subscription; it is not the message's supplier identity.
+
+<Frame caption="The Event definition separates searchable metadata, a message predicate and the target Job.">
+  <img src="/images/asterion/event-filter-and-metadata.jpg" alt="Supplier feed Event targeting a Job, with demo metadata and supplierId equal VEGA filter" />
+</Frame>
+
+## Explore the behavior
+
+<FilterDemo />
+
+## Filter event messages
+
+The visual filter builder supports **all**, **any**, and **none** matching. Enter message paths without the `message.` prefix; use dot notation for nested properties.
+
+```text
+customer.region      eq       eu
+order.total          gte      10000
+order.currency       in       EUR,PLN
+```
+
+Supported comparisons include equality, numeric ordering, list membership, null checks, contains, starts/ends with, and case-sensitive or case-insensitive pattern matching.
+
+The UI accepts only the property inside the event `message`. For example, enter `name`, `mimeType`, or `metadata.kind`; the editor persists the safe query path as `message.name`, `message.mimeType`, or `message.metadata.kind`. Do not type the `message.` prefix into the visual field.
+
+For a CSV ingestion subscription, configure all conditions:
+
+```text
+mimeType              eq       text/csv
+metadata.pipeline     eq       settlements
+name                  ilike    settlement-*.csv
+```
+
+Wildcard text entered as `*` is normalized to the query wildcard used by the stored filter. Property paths are limited to safe dot notation; prototype-related segments and prefixed paths are rejected.
+
+### Filter operators
+
+| Operator | Behavior |
+| --- | --- |
+| `eq`, `ne` | Exact JSON-value equality or inequality. |
+| `gt`, `gte`, `lt`, `lte` | Numeric comparison; non-numeric values do not match. |
+| `in`, `notIn` | Exact comparison against a required array of candidates. |
+| `isNull`, `isNotNull` | Tests missing/`null` versus a present non-null value; no comparison value is required. |
+| `contains` | Substring, array-member, or partial object containment according to the actual value type. |
+| `startsWith`, `endsWith` | Case-sensitive string boundary match. |
+| `like`, `notLike` | SQL-style `%` and `_` pattern match. The UI converts `*` to `%`. |
+| `ilike`, `notILike` | Case-insensitive pattern match. |
+
+The visual builder supports up to six safe message-path segments and deliberately writes only `message.*` filters. The Platform API accepts a validated filter tree over `message.*`, searchable `metadata.*`, or the event `type`, with nested `and`, `or`, and `not` groups and at most twelve field-path segments. Unsafe keys such as `__proto__`, `prototype`, and `constructor` are rejected on both surfaces.
+
+```json
+{
+  "or": [
+    { "field": "metadata.source", "op": "eq", "value": "checkout" },
+    {
+      "and": [
+        { "field": "type", "op": "eq", "value": "ORDER_APPROVED" },
+        { "field": "message.order.region", "op": "in", "value": ["eu", "uk"] }
+      ]
+    }
+  ]
+}
+```
+
+<Warning>
+  A filter is an admission rule, not a data validator. Validate the complete business payload in the target Component before creating side effects.
+</Warning>
+
+Continue with [events](/operate/events).

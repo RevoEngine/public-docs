@@ -1,0 +1,29 @@
+---
+title: api.expireInstanceCache()
+sidebarTitle: expireInstanceCache()
+description: Public low-code contract, signatures and examples for api.expireInstanceCache.
+icon: code
+---
+
+<span id="api-expireInstanceCache" aria-hidden="true"></span>
+
+## `api.expireInstanceCache()`
+
+Sets cache TTL in seconds.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static expireInstanceCache(key: string, ttl: number): Promise<void>;
+```
+### Example
+
+```ts
+await api.expireInstanceCache('sync:state', 600);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

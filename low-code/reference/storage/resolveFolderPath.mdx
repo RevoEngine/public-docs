@@ -1,0 +1,33 @@
+---
+title: storage.resolveFolderPath()
+sidebarTitle: resolveFolderPath()
+description: Public low-code contract, signatures and examples for storage.resolveFolderPath.
+icon: code
+---
+
+<span id="storage-resolveFolderPath" aria-hidden="true"></span>
+
+## `storage.resolveFolderPath()`
+
+Resolves an exact active folder path relative to the default `explorer` root.
+
+Notes:
+- Matching is case-insensitive and follows each parent/name segment; this is not a broad term search.
+- Leading and trailing slashes are optional.
+- Missing, archived, deleted, or inaccessible paths fail without creating folders.
+
+### Overloads
+
+```ts
+static resolveFolderPath(path: string): Promise<StorageEntryView>;
+
+static resolveFolderPath(path: string, namespace: string): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.resolveFolderPath('exports/daily');
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

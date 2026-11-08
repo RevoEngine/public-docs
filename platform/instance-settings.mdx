@@ -35,9 +35,35 @@ The product separates personal preferences, Assistant preferences, API keys, and
 | **Agents** | Global instructions, default plugins, model output budget, memory, artifact retention, and security rules | What defaults and guardrails apply before an Agent starts? |
 | **Components** | Instance-wide Component and shared-library controls | Which reusable-code controls apply across builders and deployments? |
 | **Endpoints** | Endpoint permission identity and inherited Job execution defaults | Which account's permissions govern this execution? |
-| **Retention & Audit** | Version history and retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
+| **Retention & Audit** | Retention windows for audit data, logs, Jobs, Events, and Webhooks | How long will operational evidence remain available? |
 
 Identity, data, and automation capacity controls are grouped under the separate **Limits** section. Legacy links to those limits sections open Limits. **Usage** retains the measured consumption views and time selector. Its information action shows retention, the exact UTC range and metering timestamps. Configure execution defaults separately under **Endpoints**; see [Endpoint configuration](/operate/endpoint-configuration).
+
+## Identity, workspace address and authentication
+
+**General → Identity** shows organization, instance name, plan, expiry, SLA and instance UUID. Confirm them before making a change. **General → Endpoints** shows the effective service addresses. **General → Authentication** shows accepted identity providers; use [SSO and OIDC](/operate/sso-and-oidc) for provisioning and trust boundaries.
+
+A workspace slug is the readable address identifier. It accepts 6–30 lowercase letters, digits and hyphens, starts with a letter and ends with a letter or digit. Changing it requires an explicit URL-change acknowledgment and the current configuration version. A successful change starts a 30-day cooldown.
+
+Old slug links stop working; they are reserved rather than kept as aliases. UUID-based links remain valid. Share the new active address and update bookmarks/integrations after the change. If the version changed while you were editing, reload the current configuration before submitting again.
+
+## Settings tab reference
+
+| Section | Tabs | Detailed guide |
+| --- | --- | --- |
+| General | Identity, Endpoints, Authentication | Identity/address above; [SSO](/operate/sso-and-oidc) |
+| Usage | AI, Transfer, Storage, Database, Jobs, Endpoints, Webhooks | [Usage and soft thresholds](/platform/limits-and-quotas#usage-and-soft-thresholds) |
+| Limits | IAM & Groups, Jobs, Resources, Endpoints | [Per-product enforcement](/platform/limits-and-quotas) |
+| Agents | Instructions, Runtime, Memory policy | [Instance AI settings](/ai/instance-ai-settings) |
+| Endpoints | Execution | [Execution identity and defaults](/operate/endpoint-configuration) |
+| Components | Libraries | [Shared library policy](/build/libraries) |
+| Retention & Audit | Retention | [Evidence and retention](/operate/observability), [Storage lifecycle](/operate/storage) |
+
+“Resources” is the current Limits tab label for data capacity. The product’s data model is [Databases, Tables and Views](/operate/databases). Personal account, preferences, Vault, keys and devices are documented separately in [Personal settings](/platform/personal-settings).
+
+<Frame caption="Retention values shown for the synthetic demo instance. Read the effective values on your own instance.">
+  <img src="/images/asterion/instance-retention.jpg" alt="Retention and Audit settings for version history, database audit, logs, Jobs, Events and Webhooks" />
+</Frame>
 
 ## Read limits correctly
 
@@ -46,7 +72,7 @@ Identity, data, and automation capacity controls are grouped under the separate 
     A count or byte allowance such as Databases, Storage, Secrets, users, groups, or Endpoint definitions. The UI can pair the allowance with current usage.
   </Accordion>
   <Accordion title="Runtime boundary">
-    A per-execution constraint such as a Job or Endpoint timeout. For currently documented execution products, configure up to **3,540 seconds** and **4 GB** where the instance exposes those controls.
+    A per-execution constraint such as a Job or Endpoint timeout. Job, Endpoint, Sandbox and custom-runtime bounds differ. Use the per-product values in [Limits and quotas](/platform/limits-and-quotas) and the effective instance configuration.
   </Accordion>
   <Accordion title="Throughput">
     A rate or accumulated execution allowance, for example Endpoint requests or Job execution time. Confirm the period shown by the current instance instead of assuming a calendar window.
@@ -55,7 +81,7 @@ Identity, data, and automation capacity controls are grouped under the separate 
     A duration after which history, logs, artifacts, or other evidence can be removed. Retention is not an execution timeout and does not make a business record durable.
   </Accordion>
   <Accordion title="Feature policy">
-    A boolean or configured behavior such as version history, scheduled webhook delivery, Agent memory, or a security rule.
+    A boolean or configured behavior such as scheduled webhook delivery, Agent memory, or a security rule. Component version history is always retained.
   </Accordion>
 </AccordionGroup>
 
@@ -87,11 +113,11 @@ Review request rate, execution-time consumption, timeout, total requests, and su
 
 ### Jobs and automation
 
-Job timeout, accumulated execution time, active Event and Schedule limits, Realtime capacity, and Webhook behavior describe different failure boundaries. Size long-running work as a Job, make side effects idempotent, and plan retries before increasing the timeout. See [Jobs](/operate/jobs) and [Automation](/operate/automation).
+Job timeout, accumulated execution time, active Event and Schedule limits, and Webhook behavior describe different failure boundaries. Size long-running work as a Job, make side effects idempotent, and plan retries before increasing the timeout. See [Jobs](/operate/jobs) and [Automation](/operate/automation).
 
 ### Data and Storage
 
-Database size, database audit capacity, Storage capacity, network transfer, and maximum single-file size are distinct controls. A file that fits the single-object limit can still exceed remaining storage or transfer allowance. Retention and file TTL are lifecycle policies described in [Storage](/operate/storage), not substitutes for capacity monitoring.
+Database size, database audit capacity, Storage capacity, network transfer, and maximum single-file size are distinct controls. Storage and transfer allowances are soft usage thresholds; exceeding them does not by itself reject a valid upload. The single-file bound, authorization and upload-session lifecycle remain enforced. Retention and file TTL are lifecycle policies described in [Storage](/operate/storage), not substitutes for capacity monitoring.
 
 ### Identity
 
@@ -121,7 +147,7 @@ curl --request GET \
 | --- | --- | --- |
 | A new definition cannot be created | Object-capacity limit | Current count, deleted/restorable objects, and the relevant allowance |
 | Execution ends at a repeatable duration | Runtime timeout | Effective Job or Endpoint timeout and downstream timeout behavior |
-| Large file upload is rejected | File or Storage capacity | Single-file limit, remaining Storage, transfer allowance, and upload-session state |
+| Large file upload is rejected | File validation or upload session | Single-file bound, permissions, session state and upload error; soft Storage or transfer usage alone does not reject the upload |
 | History is unavailable | Retention or visibility policy | Audit/log retention, principal permissions, and selected time range |
 | Agent tool is unavailable | Agent security or plugin policy | Default plugins, per-Agent grants, blocked tools, and approvals |
 | Usage appears delayed | Aggregated usage calculation | Time range, metric definition, and whether the view is an aggregate rather than a live counter |

@@ -1,0 +1,40 @@
+---
+title: "Events: the on map"
+description: "Find which interaction each cell emits and what its action can read."
+sidebarTitle: on events
+icon: bolt
+---
+
+`on` maps a supported event name to **one action object**. Event names are case-sensitive. A cell does not emit every event listed in the shared contract.
+
+| Event | Emitted by | Data available to the action |
+| --- | --- | --- |
+| `click` | BUTTON, clickable TEXT, TABLE toolbar button | `sourceId`, `type`; a toolbar action uses the TABLE as its source. |
+| `change` | Standalone INPUT when its value commits | `value`, `sourceId`, `type`; the new value is also in committed input state. |
+| `submit` | FORM | Its fields have been committed together; read them with input bindings. |
+| `rowClick` | TABLE row | `row`; read `row.<field>`. |
+| `pointClick` | CHART point | `datum`; read `datum.<field>`. |
+| `selectionChange` | Selectable TABLE | Read current keys with a selection binding. |
+
+## Minimal event mapping
+
+This fragment belongs to a BUTTON in a view that contains a `summary` cell:
+
+```js
+const button = {
+  id: 'reload',
+  type: 'BUTTON',
+  label: 'Reload',
+  on: {
+    click: { type: 'REFRESH', target: 'summary' },
+  },
+};
+```
+
+Choose one of [REFRESH, OPEN_WIDGET, EXECUTE or BACK](/widgets/actions). Do not supply functions, event-handler strings or an array of actions.
+
+## Selection is separate from opening
+
+A TABLE checkbox updates selection. Clicking its row may open a detail view. Use `selectionChange` for work driven by selected keys and `rowClick` for a single-record action. Read selected keys from `selection`, not from an assumed `event.keys` property.
+
+For ordered command buttons, see [queued refresh](/widgets/refresh#ordered-commands). For form writes, see [execute and confirmation](/widgets/execute).

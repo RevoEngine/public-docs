@@ -63,7 +63,7 @@ function fixture(options = {}) {
 }
 
 test('published and downloadable Component sources are identical, parse and use only declared APIs',()=>{
- const page=read('operate/sse-openai-example.mdx');
+ const page=read('operate/sse-openai-example.mdx')+'\n'+read('examples/sse/component-source.mdx');
  assert.match(page,/\/examples\/sse\/openai-component\.txt/);
  assert.equal(existsSync(new URL('../examples/sse/openai-component.js',import.meta.url)),false,'Component bodies must not be injected as Mintlify custom JavaScript');
  const block=codeExamples(page).find(example=>example.code.includes('function createEventJournal'));

@@ -1,0 +1,30 @@
+---
+title: api.setCache()
+sidebarTitle: setCache()
+description: Public low-code contract, signatures and examples for api.setCache.
+icon: code
+---
+
+<span id="api-setCache" aria-hidden="true"></span>
+
+## `api.setCache()`
+
+Writes execution-scoped in-memory cache. Copies the value by default.
+`&#123; reference: true &#125;` retains the same object: later mutations of the input
+or returned value change the cached value. Use only for intentional reuse
+within this execution; refresh or overwrite after a write to the source.
+
+### Signature
+
+```ts
+static setCache(key: string, value: any, options?: { reference?: boolean }): void;
+```
+### Example
+
+```ts
+api.setCache('token', 'abc');
+api.setCache('rows', rows, { reference: true });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

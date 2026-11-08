@@ -1,0 +1,26 @@
+---
+title: api.retryJobs()
+sidebarTitle: retryJobs()
+description: Public low-code contract, signatures and examples for api.retryJobs.
+icon: code
+---
+
+<span id="api-retryJobs" aria-hidden="true"></span>
+
+## `api.retryJobs()`
+
+Retry ERROR/CANCELLED jobs by jobIds OR a non-empty platform filter. Creates new attempts from saved inputs. Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static retryJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.retryJobs({ filter: { field: 'status', op: 'eq', value: 'ERROR' } });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

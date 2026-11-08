@@ -1,0 +1,27 @@
+---
+title: vault.delete()
+sidebarTitle: delete()
+description: Public low-code contract, signatures and examples for vault.delete.
+icon: code
+---
+
+<span id="vault-delete" aria-hidden="true"></span>
+
+## `vault.delete()`
+
+Deletes the whole parent and its values; a non-null version/validFrom deletes only that exact revision.
+Historical values remain accessible until their revision or parent is deleted.
+
+### Signature
+
+```ts
+static delete(name: string, options?: SecretDeleteOptions): Promise<void | null>;
+```
+### Example
+
+```ts
+await vault.delete('TOKEN', { scope: 'user', validFrom: input.version });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

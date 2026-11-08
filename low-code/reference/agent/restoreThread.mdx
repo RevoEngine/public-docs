@@ -1,0 +1,29 @@
+---
+title: agent.restoreThread()
+sidebarTitle: restoreThread()
+description: Public low-code contract, signatures and examples for agent.restoreThread.
+icon: code
+---
+
+<span id="agent-restoreThread" aria-hidden="true"></span>
+
+## `agent.restoreThread()`
+
+Restores a deleted thread.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static restoreThread(assistantThreadId: string): Promise<void>;
+```
+### Example
+
+```ts
+await agent.restoreThread(assistantThreadId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

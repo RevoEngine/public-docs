@@ -1,0 +1,26 @@
+---
+title: agent.listInbox()
+sidebarTitle: listInbox()
+description: Public low-code contract, signatures and examples for agent.listInbox.
+icon: code
+---
+
+<span id="agent-listInbox" aria-hidden="true"></span>
+
+## `agent.listInbox()`
+
+Lists queued and historical inbox items for an agent.
+
+### Signature
+
+```ts
+static listInbox(agentId: string): Promise<AgentInboxItem[]>;
+```
+### Example
+
+```ts
+const inbox = await agent.listInbox(agentId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

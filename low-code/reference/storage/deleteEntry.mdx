@@ -1,0 +1,39 @@
+---
+title: storage.deleteEntry()
+sidebarTitle: deleteEntry()
+description: Public low-code contract, signatures and examples for storage.deleteEntry.
+icon: code
+---
+
+<span id="storage-deleteEntry" aria-hidden="true"></span>
+
+## `storage.deleteEntry()`
+
+Permanently deletes an archived storage entry and its backing objects.
+Use archiveEntry for reversible removal and restoreEntry to undo an archive.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static deleteEntry(
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+
+static deleteEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageVersionInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.deleteEntry(storageEntryId, { version: currentVersion });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

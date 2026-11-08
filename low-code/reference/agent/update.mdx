@@ -1,0 +1,31 @@
+---
+title: agent.update()
+sidebarTitle: update()
+description: Public low-code contract, signatures and examples for agent.update.
+icon: code
+---
+
+<span id="agent-update" aria-hidden="true"></span>
+
+## `agent.update()`
+
+Updates mutable agent fields such as config, policy, or profile.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static update(agentId: string, data: AgentUpdateInput): Promise<Agent>;
+```
+### Example
+
+```ts
+const updated = await agent.update(agentId, {
+  desc: 'Handles operational runbooks.',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -1,0 +1,38 @@
+---
+title: api.updateDatabaseDataRequest()
+sidebarTitle: updateDatabaseDataRequest()
+description: Public low-code contract, signatures and examples for api.updateDatabaseDataRequest.
+icon: code
+---
+
+<span id="api-updateDatabaseDataRequest" aria-hidden="true"></span>
+
+## `api.updateDatabaseDataRequest()`
+
+Bulk-updates rows matched by an advanced structured filter.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static updateDatabaseDataRequest(
+      name: string,
+      request: DatabaseMutationRequest,
+      payload: DatabaseUpdateData,
+      options?: { return?: boolean; onlyKeys?: boolean },
+    ): Promise<{ success: number; elapsed: number; data?: any }>;
+```
+### Example
+
+```ts
+await api.updateDatabaseDataRequest(
+  'customers',
+  { filter: { field: 'status', op: 'eq', value: 'NEW' } },
+  { status: 'PROCESSED' },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

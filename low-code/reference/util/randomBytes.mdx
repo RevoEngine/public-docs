@@ -1,0 +1,28 @@
+---
+title: util.randomBytes()
+sidebarTitle: randomBytes()
+description: Public low-code contract, signatures and examples for util.randomBytes.
+icon: code
+---
+
+<span id="util-randomBytes" aria-hidden="true"></span>
+
+## `util.randomBytes()`
+
+Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
+```
+### Example
+
+```ts
+const bytes = util.randomBytes(16, 'hex');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

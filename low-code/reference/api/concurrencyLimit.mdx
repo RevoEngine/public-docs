@@ -1,0 +1,41 @@
+---
+title: api.concurrencyLimit()
+sidebarTitle: concurrencyLimit()
+description: Public low-code contract, signatures and examples for api.concurrencyLimit.
+icon: code
+---
+
+<span id="api-concurrencyLimit" aria-hidden="true"></span>
+
+## `api.concurrencyLimit()`
+
+Acquires an instance-scoped concurrency token.
+
+Notes:
+- Returns whether admission succeeded; ttl is in seconds.
+- Each successful admission acquires one slot. Release it exactly once with releaseConcurrencyLimit.
+- Stored durably per instance with a separate owner and expiry for each admitted slot.
+- Without leaseOwnerId, release through the same runtime invocation that acquired the slot.
+- For separate SDK requests, pass a unique leaseOwnerId for this execution to acquisition and release.
+  Reusing that owner renews neither its TTL nor business idempotency. Finish before TTL.
+- Durable storage unavailability throws before admission; an optional cache is not required.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static concurrencyLimit(
+      key: string,
+      limit: number,
+      ttl: number,
+      leaseOwnerId?: string,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const locked = await api.concurrencyLimit('sync:customers', 1, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

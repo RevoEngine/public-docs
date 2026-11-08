@@ -1,0 +1,51 @@
+---
+title: api.transactionDatabase()
+sidebarTitle: transactionDatabase()
+description: Public low-code contract, signatures and examples for api.transactionDatabase.
+icon: code
+---
+
+<span id="api-transactionDatabase" aria-hidden="true"></span>
+
+## `api.transactionDatabase()`
+
+Runs database-data operations inside a short-lived transaction.
+
+Notes:
+- Commits automatically when the callback resolves.
+- Rolls back automatically when the callback throws.
+- The default timeout is 15,000 ms.
+- Use `&#123; flexTimeout: true &#125;` when the transaction intentionally needs
+  the enclosing execution's remaining timeout budget.
+- Long transactions reserve a database connection and may retain locks;
+  keep waits and remote side effects outside the callback when possible.
+- SERIALIZABLE is the default isolation level.
+- Parallel tx.* operations are rejected; await each tx.* call sequentially.
+
+### Signature
+
+```ts
+static transactionDatabase<T>(
+      callback: (tx: DatabaseTransactionApi) => Promise<T> | T,
+      options?: DatabaseTransactionStartOptions,
+    ): Promise<T>;
+```
+### Example
+
+```ts
+await api.transactionDatabase(async (tx) => {
+  const existing = await tx.getDatabaseData(
+    'contracts',
+    { filter: { field: 'contractId', op: 'eq', value: api.input('contractId') }, take: 1 },
+    { lock: 'update' },
+  );
+  if (existing.results === 0) {
+    await tx.insertDatabaseData('contracts', [
+      { contractId: api.input('contractId') },
+    ]);
+  }
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

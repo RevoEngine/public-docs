@@ -4,6 +4,8 @@ description: Transfer or assemble a file through direct, incremental, or chunked
 icon: cloud-arrow-up
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 Use an upload session when the bytes arrive outside the current call, the file is too large for one request, parts must be retried, or a CSV/XLSX file is assembled incrementally.
 
 An upload session is a temporary, durable **control record**. It reserves the intended target and stores progress, lease, access, retention, metadata, schema, and compute policy. It is not a Storage file. A readable `storageEntryId` exists only after the session reaches `FINALIZED`.
@@ -14,6 +16,10 @@ RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
                   +-> ABORTED    +-> FAILED
                   +-> EXPIRED
 ```
+
+## Explore the behavior
+
+<FlowDemo topic="storage" />
 
 ## Choose an upload mode
 
@@ -33,7 +39,8 @@ Create the session in trusted backend or low-code logic, return only the tempora
 const { session, upload } = await storage.createUploadSession({
   parentStorageEntryId: api.input('folderId'),
   name: 'products.xlsx',
-  contentTypeHint: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  contentTypeHint:
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   sizeHint: api.input('size'),
   uploadMode: 'direct',
   computeStats: 'sync',
@@ -81,7 +88,7 @@ The upload response and the session state prove different things:
 - `FINALIZED` means Storage published the governed file entry;
 - only the finalized entry should trigger later reads, Events, or Jobs.
 
-For raw CSV with `computeStats: 'sync'`, finalization also validates CSV syntax and source field counts. `STORAGE_CSV_INVALID` prevents publication; successful byte transfer alone does not prove that the CSV is valid. Set `csv.onError: 'skipRow'` explicitly to skip source field-count mismatches with diagnostics. Syntax and record-size errors still abort, and readers need the same explicit policy. A failed session can retain temporary bytes, so inspect its state and explicitly abort it when abandoning the upload. Native generated row parts retain row and physical-line counts during encoding, so finalization can reuse those counts. See [CSV validation](/operate/storage-structured-files#csv-errors-stop-record-processing).
+For raw CSV with `computeStats: 'sync'`, finalization also validates CSV syntax and source field counts. `STORAGE_CSV_INVALID` prevents publication; successful byte transfer alone does not prove that the CSV is valid. Set `csv.onError: 'skipRow'` explicitly to skip source field-count mismatches with diagnostics. Syntax and record-size errors still abort, and readers need the same explicit policy. A failed session can retain temporary bytes, so inspect its state and explicitly abort it when abandoning the upload. Native generated row parts retain row and physical-line counts during encoding, so finalization can reuse those counts. See [CSV validation](/operate/storage-csv#csv-errors-stop-record-processing).
 
 ## Investigate an upload
 
@@ -140,8 +147,14 @@ const { session } = await storage.createUploadSession({
 const sessionId = session.storageUploadSessionId;
 
 await Promise.all([
-  storage.uploadPart(sessionId, 1, { data: chunk1, dataEncoding: 'base64' }),
-  storage.uploadPart(sessionId, 2, { data: chunk2, dataEncoding: 'base64' }),
+  storage.uploadPart(sessionId, 1, {
+    data: chunk1,
+    dataEncoding: 'base64',
+  }),
+  storage.uploadPart(sessionId, 2, {
+    data: chunk2,
+    dataEncoding: 'base64',
+  }),
 ]);
 
 const result = await storage.finalizeUploadSession(sessionId, {

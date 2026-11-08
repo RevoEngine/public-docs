@@ -1,0 +1,46 @@
+---
+title: api.cloneDatabase()
+sidebarTitle: cloneDatabase()
+description: Public low-code contract, signatures and examples for api.cloneDatabase.
+icon: code
+---
+
+<span id="api-cloneDatabase" aria-hidden="true"></span>
+
+## `api.cloneDatabase()`
+
+Clones a logical database by name.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- By default waits for the clone and returns cloned database metadata.
+- Set `&#123; async: true &#125;` to start a backend clone task and return immediately with an accepted response.
+- Omit `name` to use the backend default source-name plus `_Clone`.
+
+### Signature
+
+```ts
+static cloneDatabase<TAsync extends boolean = false>(
+      name: string,
+      options?: DatabaseCloneInput & { async?: TAsync },
+    ): Promise<
+      TAsync extends true
+        ? CloneDatabaseAcceptedResponse
+        : TAsync extends false
+          ? CloneDatabaseCompletedResponse
+          : CloneDatabaseResponse
+    >;
+```
+### Example
+
+```ts
+const result = await api.cloneDatabase('customers', {
+  includeItems: false,
+  includePartitions: true,
+});
+
+return result.databases;
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

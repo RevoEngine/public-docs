@@ -1,0 +1,64 @@
+---
+title: "Browser profiles"
+description: "Save and share website login state while keeping workspace grants and live sessions separate."
+icon: "id-card"
+---
+
+A Vault browser profile retains encrypted website state so an authorized browser can reuse a login. It can contain cookies, local storage and IndexedDB. Granting access to a profile can grant use of the website account represented by that state.
+
+## Choose the right kind of state
+
+| State | What survives | What it does not do |
+| --- | --- | --- |
+| Live conversation browser | Tabs and current website state while its live context remains available | Does not promise recovery of unsaved forms after restart |
+| Saved Vault profile | Last confirmed saved website state | Does not replay clicks or guarantee the website still accepts the login |
+| Trusted RevoEngine device | Eligibility for RevoEngine session refresh | Does not store the tested website’s browser profile |
+| Vault OAuth integration | External account connection for a granted Component or plugin | Does not create interactive browser tabs |
+
+## Choose a practical workflow
+
+| Workflow | Profile choice | Verify before acting |
+| --- | --- | --- |
+| Recheck the supplier portal each morning | Private saved supplier profile on the approved workspace | Account, tenant and current login state |
+| Investigate the same portal in two conversations | The same assigned profile and compatible lasting network grants | Separate tabs; login/logout may affect both conversations |
+| Let an operations team use a shared service account | Explicitly shared profile with the intended users or Group | Website permissions and ownership; profile access is a credential grant |
+| Test the public customer journey | A clean context without a privileged saved profile | The page works with the intended visitor access |
+
+## Configure and use a profile
+
+1. Connect a compatible [terminal and workspace](/ai/terminals).
+2. Open **Settings → Vault → Browser profiles** with your personal RevoEngine browser session. API keys, service accounts and Support sessions cannot manage these profiles.
+3. Create or select the profile, review its owner and access, and assign the intended terminal/workspace. Profile access does not replace workspace access.
+4. Select the assigned profile in Live Preview, or ask the Assistant to use that authorized profile.
+5. Grant the required network mode in the conversation. Complete login through secure input or private takeover when needed.
+6. After a confirmed save, a fresh compatible browser can restore that website state. Verify the page before performing a consequential action.
+
+## Sharing and simultaneous conversations
+
+A private profile is restricted by default. The owner can grant explicit users or Groups. Share a profile only when those people should be able to act as its website account.
+
+Compatible conversations by the same user can share a live profile context on the same instance, device and workspace. Both need their own lasting approval for the same Local or Full Network mode; one-time or timed grants do not join a shared context.
+
+Conversations keep separate tabs and human-control boundaries. Login or logout can change the shared website state. Closing one conversation closes its tabs while other conversations continue. Sharing a profile with another user does not merge different users’ live contexts.
+
+## Manage the lifecycle
+
+| Owner action | Effect |
+| --- | --- |
+| Edit metadata/access/assignments | Changes who can use the profile and where, subject to workspace authorization |
+| Inspect sessions | Shows authorized active-session metadata; does not reveal cookies or data keys |
+| Stop a session | Stops that live context; retains the last saved login state |
+| Clear saved state | Removes the saved website state; does not promise logout on other website devices |
+| Remove profile | Removes the profile; review website-side revocation separately |
+
+A revision conflict means another change happened after your read. Reload and review current access before saving again. Do not overwrite a changed sharing policy blindly.
+
+## Recovery and migration
+
+If a page asks for login again, the external service may have expired or revoked its session. Use the human login flow; a saved profile is not a credential-refresh guarantee.
+
+Changing network mode can recreate the context. Expect new tabs restored from the last saved profile state, not preservation of unsaved forms. Stopping the runner also ends live contexts.
+
+Current runners use Vault profiles. The retired local profile flag is not a configuration option. Legacy snapshots require explicit owner import on a compatible foreground macOS runner; the original is retained by default. That migration restriction does not limit ordinary Vault profile use on supported desktop or service runners.
+
+Continue with [browser and Live Preview](/ai/browser) for private takeover, recording, limits and expected outcomes.

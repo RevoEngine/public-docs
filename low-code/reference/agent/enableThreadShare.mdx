@@ -1,0 +1,31 @@
+---
+title: agent.enableThreadShare()
+sidebarTitle: enableThreadShare()
+description: Public low-code contract, signatures and examples for agent.enableThreadShare.
+icon: code
+---
+
+<span id="agent-enableThreadShare" aria-hidden="true"></span>
+
+## `agent.enableThreadShare()`
+
+Creates or re-enables a stable share link for a thread owned by the current user.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static enableThreadShare(
+      assistantThreadId: string,
+    ): Promise<AssistantThreadShare>;
+```
+### Example
+
+```ts
+const share = await agent.enableThreadShare(assistantThreadId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -4,11 +4,17 @@ description: Persist expensive Database View output, refresh it concurrently, sc
 icon: layer-group
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 A Materialized View stores the result of a Database View query. Reads use the stored rows until the next completed refresh, making this surface suitable for expensive aggregations, reporting joins, and read-heavy dashboards that do not require source-row freshness on every request.
 
 <Warning>
   A Materialized View is a read model, not a durable replacement for its source Tables. Design an explicit freshness objective and keep business writes on the source data path.
 </Warning>
+
+## Explore the behavior
+
+<FlowDemo topic="view" />
 
 ## Choose materialization deliberately
 

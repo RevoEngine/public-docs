@@ -1,0 +1,55 @@
+---
+title: "Idempotency and duplicate effects"
+description: "Reuse a business-operation key and retain evidence across retries."
+sidebarTitle: Idempotency
+icon: shield-check
+---
+
+import { IdempotencyDemo, PlaygroundStyle, attemptKey } from "/snippets/revo-playground.jsx";
+
+Use idempotency when repeated delivery must not repeat a payment, invoice issue, notification or other business effect. A concurrency limit only bounds simultaneous work; the same operation may still run again later.
+
+## Explore the behavior
+
+<IdempotencyDemo />
+
+## Define the operation identity
+
+Choose a key stable across retries of one intended operation. Validate its business identifier before using it. This admission-only example records no payment or other external effect:
+
+```js
+const invoiceId = api.input()?.invoiceId;
+if (
+  typeof invoiceId !== 'string' ||
+  !/^[A-Za-z0-9_-]{1,80}$/.test(invoiceId)
+) {
+  throw new Error('A valid invoiceId is required.');
+}
+const key = 'invoice:' + invoiceId + ':issue:v1';
+const acquired = await api.acquireIdempotencyKey(key, 3600, {
+  operation: 'issue-invoice',
+  invoiceId,
+});
+return { key, admitted: acquired };
+```
+
+The first call returns `admitted: true`; a repeated call while the key exists returns `false`. The admission key is stored durably per instance. Acquiring it requires write-capable execution.
+
+## Complete the business design
+
+1. Record the intended operation and its correlation ID durably.
+2. Send the same idempotency key through the destination's supported contract when available.
+3. Record the destination receipt and confirmed outcome.
+4. On repeated delivery, return or reconcile the existing operation rather than assuming the effect failed.
+
+The admission key is not atomic with a separate database mutation or HTTP request. A crash between admission and the effect can leave work incomplete; a crash after the effect can leave success unconfirmed. Keep an explicit operation state that can be reconciled.
+
+## Expiry and release
+
+Protection lasts until TTL expiry or explicit release. Choose TTL from the possible redelivery window, and retain business evidence independently.
+
+Do not release the key from a generic `catch` or `finally`: an exception may follow a committed effect. Release only when no effect occurred or rollback is confirmed and the key still belongs to this attempt. Late cleanup after expiry can otherwise remove another attempt's key.
+
+Read [retry and uncertainty](/patterns/retry-and-uncertainty), then the exact [`acquireIdempotencyKey()`](/low-code/reference/api/acquireIdempotencyKey) and [`releaseIdempotencyKey()`](/low-code/reference/api/releaseIdempotencyKey) contracts.
+
+An Event occurrence ID changes on operator Replay. Use [a business operation identity](/patterns/delivery-guarantees#choose-the-business-identity) when protection must survive new occurrences and attempts.

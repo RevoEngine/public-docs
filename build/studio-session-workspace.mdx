@@ -1,0 +1,43 @@
+---
+title: "Save and resume a Studio workspace"
+description: "Preserve source, Scratch and observed base versions in a durable coding session."
+icon: "code-branch"
+---
+
+A saved session keeps a draft across visits. Saving does not commit its sources or activate a runtime. [Enablement and lifecycle](/build/studio-sessions) apply.
+
+## Preserve working changes
+
+Opening Studio keeps local working changes in the default workspace. Choose **Sessions** in the primary navigation to select or create a saved workspace. Only that view displays the split session control: its name opens the picker and its right cog manages the selected session. An empty Sessions address opens a local draft workspace with immediate editing and **Add components**. **Save** sits beside **Deploy** in the main header; a session link restores that session.
+
+The Sessions tab can return to the last session you successfully opened. **Components**, **Usage** and **Scratch** return to the default workspace, while the session's buffers, tabs, Working diff and layout remain available when you return.
+
+Switching Components, Usage and Scratch within the same local workspace keeps the mounted editor and tools in place. Opening a different workspace shows a loading state while access is checked and its files are restored. An empty workspace retains the Studio welcome view. Repeated clicks on the same session share that opening operation. Cancelled or failed navigation keeps the previous editor and its buffers available.
+
+The local editor in **Components**, **Usage** and an empty **Sessions** workspace becomes available while the saved-session list, Scratch catalogue and layout preferences load independently. Saved Scratch source loads when a document is opened. A direct link to a saved workspace or file still waits for its required access checks and content. A layout preference that arrives after you have chosen tabs or changed the workspace does not replace those choices; it remains available for explicit selection.
+
+Start editing in the local draft immediately and choose **Save** when it should become durable. The first save creates and selects a session with an automatic name; later saves update that same session without reopening a creation dialog. An empty local draft cannot be saved. Local work remains on this device until that save succeeds. Choose **New local session** or **New session** in the saved-session picker, or **Save working diff as session** to preserve the default workspace's changes and observed base versions. Opening a session shows its captured files and touched Components in normal Studio tabs and **Working diff**, rather than repeating the global Component catalogue. You can resume a saved draft without deploying it.
+
+Use **Ctrl+S** on Windows/Linux or **Command+S** on macOS for the same Save action in Studio and its source editor. **Ctrl+Shift+Enter** or **Command+Shift+Enter** opens deployment review. Saving does not deploy or activate a runtime. **Ctrl+D** or **Command+D** selects the next matching occurrence in the editor. Open run input from the toolbar or the editor command palette.
+
+The session picker uses the same compact list and form controls as the rest of the application. Search saved sessions by name, intent or session ID, or switch to archived sessions. **Load** opens the editor workspace; **Manage** switches the same dialog to participant and sharing controls without replacing the current workspace. Use **Back** to return to the preserved list, search, scroll position and keyboard focus. The transition respects reduced-motion preferences. Collapsed current-session details show unsaved or conflicting edits, Working diff count, test results and the current stage. Saving a draft and activating a runtime are separate states. When deployment has no runtime baseline, the panel states that prerequisite explicitly.
+
+Inside **Sessions**, use **Add components** to search a categorized tree, expand a category and select several Components. The selection captures complete observed source and base versions. The Component navigation menu also offers **Add to current session** so the same workflow is available while browsing Components or Usage. Scratch promotion retains its explicit session flow. Edit code and the typed `component.json` configuration in normal tabs. During this controlled rollout, legacy structural actions that would write directly to a live Component are unavailable inside a session.
+
+**Studio Chat**, **Tests** and **AI threads** open ordinary Studio windows from the right tools. Members and sharing are managed through the session cog or the **Members** action in the Studio Chat composer. Studio Chat, session membership and saved session AI threads require an active session; independent fixture tests also work in Default workspace. **Deploy** opens the existing changes comparer with a Component selector and **Review** / **Tests** tabs, initially on Review. Code and Test files open lazily in the upper code window; the default lower Input/Code and Terminal/Output/Performance tools remain separate. Saved layouts keep their arrangement.
+
+Session websocket updates refresh this workspace while preserving unsaved text. Updates arriving together share a snapshot refresh; a change received during loading is followed by another refresh so the latest state is retained. Participant presence and access checks remain active. Ordinary Component updates are applied through the existing merge flow when you return to the default workspace.
+
+When a Scratch document is selected in Studio, open **Studio sessions** and choose **Save scratch as session**, or open a saved editable session and choose **Add scratch to selected session**. JavaScript and TypeScript documents become complete working Component resources; notes and other file formats remain non-executable `scratch` files. The platform stores the exact submitted text, including line endings, without deleting the original Scratch or discarding newer local edits. Existing Scratch **Promote** remains available as a separate explicit action.
+
+Use the Assistant icon to save pending changes and open an Assistant draft linked to that exact session. Review the instruction and use the existing Assistant model, permissions and plugin controls before sending. Opening the draft does not send a message. A newly created conversation is associated with the session automatically and appears in **AI threads**. Use **Open existing** in that pane to select an existing authorized conversation; opening it in the workspace does not publish earlier private history. Session members can read its visible conversation; its owner can reopen it in the ordinary Assistant view. Associating an existing private conversation does not publish its earlier history. Automatic session conversations are excluded from public session links.
+
+Edits use file revisions and digests. Participants can change different files independently. If someone changes the same file, Studio preserves your text and requires an explicit resolution. If the file is removed, the recovery panel keeps your local draft available to copy or save as a separate scratch session. Before source commit, the platform also checks the Component versions on which the session was based. Compare the latest base and resolve conflicts before continuing.
+
+## Ask the Assistant to edit
+
+On an instance with Studio Preview enabled and the Studio authoring tool available, the Assistant is instructed to create or join a session before changing Component source or configuration. Ask for the change normally; a special “create a session” phrase is not required. An Assistant started from an existing session uses that bound workspace. Analysis-only requests and responses without tools do not create coding sessions.
+
+A Studio session reference in an answer opens its authorized Sessions workspace. Access checks still apply, and opening it does not commit source or activate a runtime. Draft changes, test evidence, review and deployment remain separate steps.
+
+Continue with [collaboration](/build/studio-session-collaboration) and [testing and review](/build/studio-session-review).

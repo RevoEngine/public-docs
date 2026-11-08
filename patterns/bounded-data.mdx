@@ -1,0 +1,34 @@
+---
+title: "Bound reads and show partial results"
+description: "Choose pagination, streaming or materialization before a dataset outgrows a view."
+sidebarTitle: Bounded data
+icon: filter
+---
+
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
+An operator view needs a bounded, understandable answer. Choose a limit before loading data and tell the reader when that limit can omit records.
+
+| Need | Use |
+| --- | --- |
+| A small operational list | Filter, select required fields and set `take`. |
+| Every record in a large dataset | Cursor or paged iteration, or a database export. |
+| A large file transfer | Storage-backed streaming. |
+| Repeated expensive aggregation | A Materialized View with an explicit refresh policy. |
+| One changed dashboard result | Partial refresh with source-side branching. |
+
+## Explore the behavior
+
+<FlowDemo topic="pagination" />
+
+## Make the dataset boundary visible
+
+“Latest 100 runs” is different from “All runs today.” If a query cap can omit records, avoid displaying the count as a complete business total. Include the filter, time window, timezone and completeness in the UI.
+
+Server pagination and browser filtering have different purposes. A Custom Widget TABLE filters the returned data; it does not automatically fetch missing pages. A full export should use the export contract and wait for its completion.
+
+## Keep memory bounded
+
+Select only necessary fields. Process file or database pages incrementally and retain only the state needed for the result. A loop over a single giant in-memory array does not reduce the cost of loading that array.
+
+Use [Database iteration](/low-code/database#process-large-results), [exports](/operate/database-exports), [HTTP-to-Storage streaming](/low-code/http-storage) and [partial widget refresh](/widgets/refresh).

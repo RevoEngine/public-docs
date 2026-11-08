@@ -1,0 +1,28 @@
+---
+title: agent.getSharedThread()
+sidebarTitle: getSharedThread()
+description: Public low-code contract, signatures and examples for agent.getSharedThread.
+icon: code
+---
+
+<span id="agent-getSharedThread" aria-hidden="true"></span>
+
+## `agent.getSharedThread()`
+
+Returns a read-only shared thread by share ID.
+
+### Signature
+
+```ts
+static getSharedThread(
+      shareId: string,
+    ): Promise<AssistantSharedThreadResponse>;
+```
+### Example
+
+```ts
+const shared = await agent.getSharedThread(shareId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -1,0 +1,36 @@
+---
+title: storage.abortUploadSession()
+sidebarTitle: abortUploadSession()
+description: Public low-code contract, signatures and examples for storage.abortUploadSession.
+icon: code
+---
+
+<span id="storage-abortUploadSession" aria-hidden="true"></span>
+
+## `storage.abortUploadSession()`
+
+Cancels an active upload session.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static abortUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
+static abortUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+```
+### Example
+
+```ts
+await storage.abortUploadSession(storageUploadSessionId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

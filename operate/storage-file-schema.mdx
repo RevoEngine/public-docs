@@ -1,0 +1,128 @@
+---
+title: "Structured file schema"
+description: "Configure columns, validation, unknown fields and strict validation."
+icon: book-open
+---
+
+## Shared schema contract
+
+```ts
+const schema = {
+  schemaPolicy: {
+    profile: 'fallback',
+    additionalProperties: 'allow',
+  },
+  sheets: [
+    {
+      name: 'Products',
+      table: {
+        columns: [
+          { key: 'sku', header: 'SKU', type: 'string' },
+          { key: 'price', header: 'Price', type: 'number' },
+          { key: 'createdAt', header: 'Created', type: 'date' },
+          { key: 'metadata', header: 'Metadata', type: 'object' },
+          { key: 'active', header: 'Active', type: 'boolean' },
+        ],
+      },
+    },
+  ],
+};
+```
+
+- XLSX may declare multiple worksheets.
+- CSV and TSV accept exactly one logical sheet. Its name identifies the tabular schema; the physical file still has no worksheet tabs.
+- `key` is the property returned in each row.
+- `header` matches the visible source header and defaults to `key` when omitted.
+- column order is stable and shared by row generation and indexed reads.
+
+## Column types
+
+| Type | Result |
+| --- | --- |
+| `string` | Text is preserved as text |
+| `number` | Compatible numeric values become numbers |
+| `boolean` | Compatible boolean values become booleans |
+| `date` | Compatible date values become typed dates |
+| `object` | JSON object or array text is parsed into an object or array |
+
+`object` deliberately excludes JSON scalar values. A value such as `{"segment":"A"}` or `[1,2]` is valid; `"A"`, `12`, and malformed JSON are not object-column values.
+
+Without a declared type, imported tabular values remain strings. XLSX cell styles, number formats, colors, and formatting never declare the logical type.
+
+## Choose validation and extra-column handling
+
+The optional `schemaPolicy` object separates validation from handling extra source columns. It uses the same `profile` and `additionalProperties` property names as the JSON validator, while applying them to tabular imports. If omitted, Storage uses `{ profile: 'fallback', additionalProperties: 'allow' }`. With only `profile: 'strict'`, extra columns default to `reject`.
+
+Storage rejects unknown `schemaPolicy` property names, so a misspelled option cannot silently select a default.
+
+| Option | Behavior |
+| --- | --- |
+| `profile: 'fallback'` | Keep imperfect declared data and report missing sheets or columns and invalid typed values |
+| `profile: 'strict'` | Fail structured indexing for missing declared sheets or columns, invalid typed values, or sheet mismatches |
+| `additionalProperties: 'allow'` | Keep extra source columns in structured rows |
+| `additionalProperties: 'strip'` | Omit extra source columns from structured rows while preserving the raw file |
+| `additionalProperties: 'reject'` | Fail structured indexing when an extra source column appears |
+
+Use the default `fallback` profile for user-provided files and integrations where preserving imperfect structured data matters.
+
+Fallback behavior is deterministic:
+
+- the raw file remains available;
+- matching declared columns use their declared types;
+- missing and extra sheets or columns are reported in `fileStats.schema.issues`;
+- extra columns are retained as strings with the default `additionalProperties: 'allow'`;
+- if any non-null value is incompatible with a declared type, the **whole column** falls back to strings;
+- incompatible values are never silently replaced with `null`.
+
+This avoids a mixed column such as `[12.5, "invalid"]` and keeps the source evidence intact.
+
+```js
+const { session, upload } = await storage.createUploadSession({
+  name: 'products.xlsx',
+  contentTypeHint:
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  uploadMode: 'direct',
+  computeStats: 'sync',
+  schemaPolicy: { profile: 'fallback', additionalProperties: 'allow' },
+  sheets: [
+    {
+      name: 'Products',
+      table: {
+        columns: [
+          { key: 'sku', header: 'SKU', type: 'string' },
+          { key: 'price', header: 'Price', type: 'number' },
+          { key: 'createdAt', header: 'Created', type: 'date' },
+          { key: 'metadata', header: 'Metadata', type: 'object' },
+        ],
+      },
+    },
+  ],
+});
+
+return {
+  storageUploadSessionId: session.storageUploadSessionId,
+  upload: {
+    url: upload.uploadUrl,
+    method: upload.method,
+    headers: upload.headers,
+  },
+};
+```
+
+The client uploads the existing workbook with the returned contract. Storage then applies the declared schema while building the XLSX index. The client does not need to re-create or flatten the workbook.
+
+## Strict validation
+
+Use `schemaPolicy: { profile: 'strict' }` when a mismatch must stop structured processing, for example a controlled financial import or a versioned partner feed.
+
+Strict validation requires `table.columns` when the session is created. A missing or additional sheet, missing declared column, or incompatible typed value makes structured indexing fail with `STORAGE_TABULAR_SCHEMA_MISMATCH`. Extra columns fail by default because strict uses `additionalProperties: 'reject'`; choose `strip` to omit them or `allow` to retain them while keeping the other strict checks. Duplicate declarations are rejected when the session is created.
+
+For example, `{ profile: 'strict', additionalProperties: 'strip' }` accepts a file with extra source columns, omits those columns from structured rows, and still rejects missing declared columns, invalid typed values, and sheet mismatches. `strip` and `reject` require declared `table.columns` even with the fallback profile.
+
+An already finalized file is preserved for download and diagnosis when later indexing fails. With synchronous CSV validation, malformed raw input fails before publication. A failed upload session can retain temporary bytes; failure does not always mean they were removed. Downstream processing must require successful structured indexing before it consumes rows.
+
+<Warning>
+  Strict validates the declared tabular contract, not business rules such as “price must be positive” or “SKU must exist.” Apply those rules after reading typed rows.
+</Warning>
+
+Continue with [storage structured files](/operate/storage-structured-files).

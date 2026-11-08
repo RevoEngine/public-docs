@@ -1,0 +1,29 @@
+---
+title: "Cell types"
+description: "Choose the content and required fields of each Custom Widget cell."
+icon: list
+---
+
+Every cell has a `type`. Add the fields for that type; unrelated fields do not create capabilities.
+
+| Type | Purpose | Main fields | Reference |
+| --- | --- | --- | --- |
+| `TEXT` | Markdown text or a clickable label | `value`; optional `label`, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
+| `EMPTY` | Intentional spacing or an inline destination host | Optional `id`, `width`, `height` | [Text and buttons](/widgets/text-and-buttons) |
+| `CHART` | A chart over returned records | `data`, `options` | [Charts](/widgets/charts) |
+| `TABLE` | Columns and returned records | `data`, `definition` | [Tables](/widgets/tables) |
+| `INPUT` | One editable value | `id`, `control`, `value` | [Inputs](/widgets/inputs) |
+| `FORM` | Inputs submitted together | `id`, `fields`, `on.submit` | [Forms](/widgets/forms) |
+| `BUTTON` | An explicit user action | `id`, `label`, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
+
+## Shared interaction fields
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `on` | Event-to-action object | No actions | Maps a supported interaction to one declared action. |
+| `refresh` | Object | No cell timer | Uses `intervalSeconds` and optional `targets`. |
+| `disabled` | boolean | `false` | Disables an input or button. It is not an authorization check. |
+| `label` | string | Depends on type | Visible control label; INPUT falls back to its ID. |
+| `description` | string | Absent | Supporting text shown below an INPUT. |
+
+Learn the [matrix layout](/widgets/matrix) before composing different types. Use [events](/widgets/events) to determine which `on` entries each type emits.

@@ -1,0 +1,41 @@
+---
+title: agent.rejectAction()
+sidebarTitle: rejectAction()
+description: Public low-code contract, signatures and examples for agent.rejectAction.
+icon: code
+---
+
+<span id="agent-rejectAction" aria-hidden="true"></span>
+
+## `agent.rejectAction()`
+
+Rejects an action-required checkpoint.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static rejectAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+
+static rejectAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.rejectAction(assistantThreadId, actionId, {
+  responseText: 'Need a narrower scope.',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

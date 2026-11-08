@@ -1,0 +1,35 @@
+---
+title: agent.updateInboxItem()
+sidebarTitle: updateInboxItem()
+description: Public low-code contract, signatures and examples for agent.updateInboxItem.
+icon: code
+---
+
+<span id="agent-updateInboxItem" aria-hidden="true"></span>
+
+## `agent.updateInboxItem()`
+
+Updates an existing inbox item.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static updateInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+      data: AgentInboxItemUpdateInput,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.updateInboxItem(agentId, agentInboxItemId, {
+  instruction: 'Review the updated deployment evidence.',
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

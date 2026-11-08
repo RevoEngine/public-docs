@@ -1,0 +1,32 @@
+---
+title: agent.cancelRun()
+sidebarTitle: cancelRun()
+description: Public low-code contract, signatures and examples for agent.cancelRun.
+icon: code
+---
+
+<span id="agent-cancelRun" aria-hidden="true"></span>
+
+## `agent.cancelRun()`
+
+Cancels a run, optionally recording a reason.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static cancelRun(
+      agentRunId: string,
+      data?: AgentRunCancelInput,
+    ): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.cancelRun(agentRunId, { reason: 'Operator stop' });
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

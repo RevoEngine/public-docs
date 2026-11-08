@@ -197,7 +197,7 @@ Use either `guard` or `componentSchemaId` as the source of a contract. A reusabl
 
 ## `util.validate()` in low-code
 
-For validation inside a Component, use [`util.validate()`](/low-code/reference/util#util-validate). It uses the same schema model but does not replace Endpoint boundary validation: the target Component has already started when it runs.
+For validation inside a Component, use [`util.validate()`](/low-code/reference/util/validate). It uses the same schema model but does not replace Endpoint boundary validation: the target Component has already started when it runs.
 
 Call it with `await`. The result contains `valid`, compatible string `errors`, structured `issues` (`code`, `path`, `message`, optional `params`) and the validated `value`. After success, use `value` so configured field removal is respected. Execution or capacity failures can reject the Promise; handle these separately from a normal invalid-data result.
 

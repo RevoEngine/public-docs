@@ -1,0 +1,36 @@
+---
+title: api.releaseIdempotencyKey()
+sidebarTitle: releaseIdempotencyKey()
+description: Public low-code contract, signatures and examples for api.releaseIdempotencyKey.
+icon: code
+---
+
+<span id="api-releaseIdempotencyKey" aria-hidden="true"></span>
+
+## `api.releaseIdempotencyKey()`
+
+Deletes an idempotency key unconditionally, allowing another attempt to acquire it.
+
+Notes:
+- This does not roll back business effects and does not check an ownership token.
+- Release for retry only when no business effect occurred (or rollback is confirmed),
+  and the key still belongs to this attempt. Retain it when the outcome is uncertain.
+- Never release in a generic catch/finally merely because processing threw or timed out:
+  a partial effect or committed operation could then be executed twice.
+- A late cleanup after TTL expiry may delete a key acquired by another worker.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static releaseIdempotencyKey(key: string): Promise<void>;
+```
+### Example
+
+```ts
+// This attempt acquired the key, no business operation started, and the key has not expired.
+await api.releaseIdempotencyKey('orders:123');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

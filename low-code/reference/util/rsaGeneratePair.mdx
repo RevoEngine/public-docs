@@ -1,0 +1,31 @@
+---
+title: util.rsaGeneratePair()
+sidebarTitle: rsaGeneratePair()
+description: Public low-code contract, signatures and examples for util.rsaGeneratePair.
+icon: code
+---
+
+<span id="util-rsaGeneratePair" aria-hidden="true"></span>
+
+## `util.rsaGeneratePair()`
+
+Generates an RSA key pair.
+
+Asynchronous; modulusLength: multiple of 256 in 1024..4096; passphrase: at most 4096 code units.
+
+### Signature
+
+```ts
+static rsaGeneratePair(config?: {
+      modulusLength?: number;
+      passphrase?: string;
+    }): Promise<{ publicKey: string; privateKey: string }>;
+```
+### Example
+
+```ts
+const pair = await util.rsaGeneratePair({ modulusLength: 2048 });
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

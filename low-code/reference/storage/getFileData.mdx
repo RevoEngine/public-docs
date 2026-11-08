@@ -1,0 +1,45 @@
+---
+title: storage.getFileData()
+sidebarTitle: getFileData()
+description: Public low-code contract, signatures and examples for storage.getFileData.
+icon: code
+---
+
+<span id="storage-getFileData" aria-hidden="true"></span>
+
+## `storage.getFileData()`
+
+Reads storage file content.
+
+Notes:
+- CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
+- mode: "lines" returns physical string lines, including headers and the final empty line; encoding and separator are detected or overridden.
+- CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false keeps quotes/backslashes literal and ignores escape.
+- maxRecordBytes defaults to 64 MiB per logical CSV record, independently of page/callback sizes. Oversized or malformed records reject indexing with STORAGE_CSV_INVALID before rows are returned. Wrong-width records also reject by default; onError: "skipRow" skips them with csvReport diagnostics.
+- CSV errors include errorCount, at most 100 safe location diagnostics and diagnosticsTruncated; no raw row/cell values. Physical counters are distinct from logical rowCount.
+- Other text file batch reads reuse cached line stats and auto-build them if missing.
+- Binary reads return a base64 string.
+- Direct binary reads are limited to 10 MiB unless you request a ranged buffer.
+
+### Overloads
+
+```ts
+static getFileData(
+      storageEntryId: string,
+      options?: StorageFileReadOptions,
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
+
+static getFileData(
+      namespace: string,
+      storageEntryId: string,
+      options?: StorageFileReadOptions,
+    ): Promise<StorageStructuredFileDataPage | string[] | string>;
+```
+### Example
+
+```ts
+const page = await storage.getFileData(storageEntryId, { sheet: 'Cennik' });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

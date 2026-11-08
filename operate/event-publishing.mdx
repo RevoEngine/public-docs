@@ -1,0 +1,152 @@
+---
+title: "Publish a custom Event"
+description: "Create a business signal and test immediate, large or delayed delivery."
+icon: book-open
+---
+
+## Create a custom business event
+
+Disable **Internal** when the signal belongs to your application rather than a RevoEngine resource lifecycle, then enter `ORDER_APPROVED` in **Type**. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added. Event names are normalized to uppercase.
+
+With **Internal** enabled, Type is a selector populated from the supported platform catalogue. Switching back to Internal clears a custom name that is not in that catalogue. The usage hint shows `api.input('message')` for internal messages and `api.triggerEvent()` for a custom event.
+
+Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `SEND_EMAIL_NOW`.
+
+### Example: approved high-value order
+
+Create a Job template first, then register one filtered Event definition:
+
+```bash
+curl --request POST "$REVO_API_URL/api/v1/automation/event" \
+  --header "Authorization: Bearer $REVO_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "name": "High-value approved orders",
+    "category": "Order assurance",
+    "desc": "Checks balance, persists a transaction, and notifies the risk provider.",
+    "type": "ORDER_APPROVED",
+    "custom": true,
+    "targetType": "JOB_TEMPLATE",
+    "targetId": "'"$JOB_TEMPLATE_ID"'",
+    "active": true,
+    "filter": {
+      "and": [
+        { "field": "message.order.total", "op": "gte", "value": 10000 },
+        { "field": "message.order.currency", "op": "in", "value": ["EUR", "PLN"] },
+        { "field": "message.account.status", "op": "eq", "value": "ACTIVE" }
+      ]
+    },
+    "metadata": { "owner": "risk-platform", "environment": "production" }
+  }'
+```
+
+Trigger the definition with a small envelope. The Job should reload the authoritative order and account by ID, verify the balance in a database transaction, create an idempotent transaction record, call the risk provider with a Secret-backed API key, write any durable receipt to Storage, and return its `operationId` and evidence IDs.
+
+```bash
+curl --request POST "$REVO_API_URL/api/v1/automation/event/$EVENT_ID/run" \
+  --header "Authorization: Bearer $REVO_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "message": {
+      "order": { "orderId": "ord_8d31", "total": 12500, "currency": "EUR" },
+      "account": { "accountId": "acc_201", "status": "ACTIVE" }
+    },
+    "metadata": {
+      "correlationId": "checkout_99f1",
+      "producer": "checkout-endpoint"
+    }
+  }'
+```
+
+<Note>
+  The Event message is routing context, not financial truth. The target must reload balance, order status, and prior transaction state under its own principal before it commits a side effect.
+</Note>
+
+## Trigger a controlled test
+
+Saved active custom Events expose **Run** to `AUTOMATION_RUNNER` and `AUTOMATION_ADMIN`.
+
+1. Open the Event and select **Run**.
+2. Enter a JSON `message` representative of production traffic.
+3. Optionally set `scheduleFor` to an ISO 8601 date-time with timezone or Unix timestamp in milliseconds, from acceptance through 30 days ahead.
+4. Submit and retain the returned `eventId` and `triggerId` acceptance receipt.
+5. Open **Event History** and confirm which targets were scheduled or skipped.
+
+```json
+{
+  "message": {
+    "orderId": "ord_8d31",
+    "status": "APPROVED",
+    "region": "eu"
+  },
+  "metadata": {
+    "correlationId": "checkout_99f1",
+    "source": "acceptance-test"
+  }
+}
+```
+
+Use `scheduleFor` when the caller already owns an absolute business deadline:
+
+```js
+const scheduleFor = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+await fetch(`/api/v1/automation/event/${eventId}/run`, {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    scheduleFor,
+    message: { orderId: 'ord_8d31', status: 'APPROVED', region: 'eu' },
+    metadata: {
+      correlationId: 'checkout_99f1',
+      source: 'acceptance-test',
+    },
+  }),
+});
+```
+
+<Warning>
+  Use `scheduleFor` for delayed delivery. A past absolute time or a value more than 30 days ahead is rejected before acceptance.
+</Warning>
+
+### Send large inputs through Storage
+
+For data over 1 MiB, upload a file to a restricted Explorer folder for the
+automation, such as `Automations/Product import/Inputs`. The event message
+supports up to 10 MiB of serialized UTF-8 JSON.
+
+1. Grant the Job execution account read access to the file and each restricted
+   ancestor folder. Private works for personal workflows where the same account
+   uploads and reads the file.
+2. Create a separate file for each publication and finalize the upload before
+   triggering the event. Keep the file available through the scheduled run
+   and the retry window for the workflow.
+3. Send the finalized file's `storageEntryId` in `message`, alongside any fields
+   the event filters need. The Job receives the ID in `api.input().message`.
+   Read record-oriented files in batches with `storage.walkFileData`.
+
+```json
+{
+  "message": {
+    "storageEntryId": "17b13f9b-7e52-4599-9ab9-8c8e119bdd73",
+    "importType": "products"
+  }
+}
+```
+
+See [Storage uploads](/operate/storage-uploads) for upload and finalization steps.
+
+### What exists before a delayed Event is due?
+
+Event acceptance saves the message and delivery obligation. Event History and Jobs for matching Job templates become visible after RevoEngine evaluates the filters and saves the targets. The Event History row exposes its immutable `scheduledFor`, audit version, and last-update evidence. For an Event scheduled two hours ahead, you can inspect those Jobs now: they wait as `SCHEDULED`, with the same accepted deadline. The Event message remains the input snapshot; later edits to Event filters do not change this accepted occurrence.
+
+When the time arrives, Jobs become eligible for dispatch and still respect concurrency. Delivery retry resumes the accepted work without intentionally creating another Job for the same matched target. Make downstream business effects idempotent as well.
+
+<Note>
+  A request timeout is not cancellation. Accepted work can finish materializing through recovery. Check Event History before submitting the same business event again.
+</Note>
+
+Continue with [events](/operate/events).

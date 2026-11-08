@@ -1,0 +1,42 @@
+---
+title: api.triggerWebhook()
+sidebarTitle: triggerWebhook()
+description: Public low-code contract, signatures and examples for api.triggerWebhook.
+icon: code
+---
+
+<span id="api-triggerWebhook" aria-hidden="true"></span>
+
+## `api.triggerWebhook()`
+
+Schedules a webhook delivery.
+
+Notes:
+- Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
+- Retired positional date and relative-delay arguments are ignored.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static triggerWebhook(
+      webhook: WebhookInput,
+      options?: AutomationScheduleOptions,
+    ): Promise<Webhook>;
+```
+### Example
+
+```ts
+const webhook = await api.triggerWebhook({
+  request: {
+    url: 'https://example.com/hook',
+    method: 'POST',
+    body: { ok: true },
+  },
+}, {
+  scheduleFor: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+});
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

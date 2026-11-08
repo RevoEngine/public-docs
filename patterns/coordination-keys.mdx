@@ -1,0 +1,42 @@
+---
+title: "Design coordination keys"
+description: "Choose keys for shared capacity, duplicate business operations and cached data."
+sidebarTitle: Coordination keys
+icon: key
+---
+
+import { ConcurrencyDemo, PlaygroundStyle, useDemoPlayback, makeQueue, advanceQueue } from "/snippets/revo-playground.jsx";
+
+A key defines which operations belong together. Start from the protected business boundary, then choose the mechanism that enforces it.
+
+| Mechanism | Key identifies | Reuse rule |
+| --- | --- | --- |
+| Job concurrency | A shared capacity bucket | All Jobs competing for that resource use the same configured key. |
+| `api.concurrencyLimit()` | A capacity bucket for explicit low-code admission | Independent executions may share it while holding separate slots. |
+| Idempotency | One intended business effect | Retries of that same effect reuse the same key. |
+| Cache | A reusable answer | Include every input that can change the answer. |
+| Widget cell ID | One UI element | Keep stable across renders; it is not a distributed coordination key. |
+
+## Explore the behavior
+
+<ConcurrencyDemo keys={true} />
+
+## Capacity keys
+
+A shared external warehouse account may require `warehouse_sync` on every related Job template. If each template chooses its own name, their limits add together at the external service.
+
+Job-template keys accept letters, numbers, underscores and hyphens. They are literal configured strings. Do not copy an expression such as `event.data.customerId` from a different workflow product into this field.
+
+For dynamic per-customer admission inside a bounded Component, derive a validated key in code and use [explicit low-code concurrency](/patterns/low-code-concurrency). This controls the admitted section; it does not change the Job template's dispatch bucket.
+
+## Idempotency keys
+
+An invoice-issue operation needs a key tied to the invoice and operation version, such as `invoice:invoice-1:issue:v1`. A fresh random key for every retry defeats duplicate protection. A key shared by all invoices prevents unrelated work.
+
+Define how long a retry may arrive before choosing expiry. Keep durable business evidence after the admission key expires. See [idempotency](/patterns/idempotency).
+
+## Cache keys
+
+Include the customer scope, filters, relevant revision and time window when they affect the result. Avoid secret values and personal payloads in keys. Expiry means a cached answer may be absent; it does not mean a business effect has been reversed.
+
+See [Database Cache](/operate/database-cache) for cache operations and [retry recovery](/patterns/retry-and-uncertainty) for uncertain outcomes.

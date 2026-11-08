@@ -1,0 +1,28 @@
+---
+title: util.randomString()
+sidebarTitle: randomString()
+description: Public low-code contract, signatures and examples for util.randomString.
+icon: code
+---
+
+<span id="util-randomString" aria-hidden="true"></span>
+
+## `util.randomString()`
+
+Generates a random string.
+
+Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
+
+### Signature
+
+```ts
+static randomString(length?: number, alphabet?: string): string;
+```
+### Example
+
+```ts
+const token = util.randomString(24);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

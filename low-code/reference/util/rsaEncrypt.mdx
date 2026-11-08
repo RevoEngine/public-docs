@@ -1,0 +1,26 @@
+---
+title: util.rsaEncrypt()
+sidebarTitle: rsaEncrypt()
+description: Public low-code contract, signatures and examples for util.rsaEncrypt.
+icon: code
+---
+
+<span id="util-rsaEncrypt" aria-hidden="true"></span>
+
+## `util.rsaEncrypt()`
+
+Encrypts with RSA-OAEP and SHA-256 asynchronously. PEM import and data encoding still execute synchronously.
+
+### Signature
+
+```ts
+static rsaEncrypt(publicKey: string, payload: string): Promise<string>;
+```
+### Example
+
+```ts
+const encrypted = await util.rsaEncrypt(publicKey, 'hello');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

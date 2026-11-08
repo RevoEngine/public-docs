@@ -1,0 +1,33 @@
+---
+title: agent.compactThread()
+sidebarTitle: compactThread()
+description: Public low-code contract, signatures and examples for agent.compactThread.
+icon: code
+---
+
+<span id="agent-compactThread" aria-hidden="true"></span>
+
+## `agent.compactThread()`
+
+Compatibility maintenance only; normal compaction is harness-owned.
+
+Requires `readOnly: false`.
+
+### Signature
+
+```ts
+static compactThread(
+      assistantThreadId: string,
+      options?: AssistantThreadCompactionRequest,
+    ): Promise<AssistantThread>;
+```
+### Example
+
+```ts
+const thread = await agent.compactThread(assistantThreadId, {
+  force: true,
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

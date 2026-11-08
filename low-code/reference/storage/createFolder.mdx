@@ -1,0 +1,31 @@
+---
+title: storage.createFolder()
+sidebarTitle: createFolder()
+description: Public low-code contract, signatures and examples for storage.createFolder.
+icon: code
+---
+
+<span id="storage-createFolder" aria-hidden="true"></span>
+
+## `storage.createFolder()`
+
+Creates a folder in the default `explorer` namespace.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static createFolder(data: StorageFolderInput): Promise<StorageEntryView>;
+
+static createFolder(namespace: string, data: StorageFolderInput): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const folder = await storage.createFolder({ name: 'Exports' });
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

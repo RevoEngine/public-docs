@@ -1,0 +1,26 @@
+---
+title: sse.comment()
+sidebarTitle: comment()
+description: Public low-code contract, signatures and examples for sse.comment.
+icon: code
+---
+
+<span id="sse-comment" aria-hidden="true"></span>
+
+## `sse.comment()`
+
+Send a multiline-safe comment. The host also emits automatic heartbeats.
+
+### Signature
+
+```ts
+static comment(text: string): Promise<void>;
+```
+### Example
+
+```ts
+await sse.comment('Working');
+```
+
+
+See [all sse methods](/low-code/reference/sse) or [runtime basics](/low-code/overview).

@@ -16,7 +16,7 @@ The example connects these departments through one business flow. Names, product
 
 The local reference instance contains **10,000,000 synthetic products**. A smaller working set connects customer contracts, warehouse balances, supplier feeds, orders, invoices, deliveries and exceptions.
 
-The database, cache, identity metadata, file storage emulator, supplier endpoint, invoice renderer, mailbox and webhook receiver run locally. AI model inference uses an external provider; “local demo” does not mean offline inference. The setup uses dedicated demo identities and does not depend on customer credentials or a cloud Secret Manager.
+The sample uses an isolated development instance, synthetic business records and dedicated demo identities. Supplier, invoice, mailbox and webhook examples use controlled demo services. AI inference still requires the configured model connection; this is not an offline demonstration.
 
 | Check performed | Observed result |
 | --- | --- |
@@ -58,7 +58,7 @@ flowchart LR
 | Finance | An issued invoice with consistent line totals | Job, versioned Components, Storage, retained execution evidence |
 | Integration team | Confirmed delivery to a supplier or customer system | HTTP, webhooks, retry, delivery idempotency |
 | Management | Sales and margin by day, customer and product family | Views, Materialized Views, refresh Schedules, dashboards |
-| Operations | Actionable exception with a known owner | Events, Jobs, Assistant investigation, preview Agent workflows |
+| Operations | Actionable exception with a known owner | Events, Jobs, Assistant investigation, Autonomous Agent workflows |
 
 ## Separate rules from orchestration
 
@@ -92,7 +92,7 @@ Finance can [export invoice lines](/operate/database-exports) as XLSX for a boun
 
 Ask the Interactive Assistant to investigate an import failure, compare a price revision or trace a delayed invoice. Give it business identifiers and a clear desired outcome. Let it inspect existing evidence before proposing a write.
 
-For an instance with Autonomous Agent preview enabled, a reconciliation Agent can own a narrower responsibility: inspect unresolved delivery exceptions, retry an eligible delivery once, and route missing business decisions to an operator. Give it a dedicated service account, bounded tools, explicit success conditions and an escalation policy. Do not give an Agent discretionary authority to invent invoice amounts, change payment details or ignore an unresolved provider outcome.
+With an enabled Autonomous Agent, a reconciliation Agent can own a narrower responsibility: inspect unresolved delivery exceptions, retry an eligible delivery once, and route missing business decisions to an operator. Give it a dedicated service account, bounded tools, explicit success conditions and an escalation policy. Do not give an Agent discretionary authority to invent invoice amounts, change payment details or ignore an unresolved provider outcome.
 
 [Approvals and plans](/ai/approvals-and-plans), [Agent configuration](/ai/agent-configuration) and [browser collaboration](/ai/browser) explain those controls. A feature's presence in a scenario does not establish that autonomous execution is enabled in every production instance.
 
@@ -106,7 +106,7 @@ The dashboard answers four business questions: how much data is present, what ha
 
 A completed run can still report an unresolved evidence boundary. In this demo an Agent created its JSON receipt, while its own readback through the file emulator failed. A separate authenticated download verified the file. Preserve that distinction in an operational handoff.
 
-Use [custom dashboards](/operate/dashboards) for the shared operational view. Keep a named, pinned Assistant conversation for an investigation or repeatable operator workflow; pinning a chat does not create a dashboard widget. [Business plugins](/ai/business-plugins) show how the same reviewed sales actions can serve the portal Assistant and an Autonomous Agent with preview enabled.
+Use [custom dashboards](/operate/dashboards) for the shared operational view. Keep a named, pinned Assistant conversation for an investigation or repeatable operator workflow; pinning a chat does not create a dashboard widget. [Business plugins](/ai/business-plugins) show how the same reviewed sales actions can serve the portal Assistant and an enabled Autonomous Agent.
 
 ## Connect the customer channel
 

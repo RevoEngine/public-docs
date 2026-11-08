@@ -1,0 +1,30 @@
+---
+title: vault.get()
+sidebarTitle: get()
+description: Public low-code contract, signatures and examples for vault.get.
+icon: code
+---
+
+<span id="vault-get" aria-hidden="true"></span>
+
+## `vault.get()`
+
+Gets the parent and selected revision with revision.value as the stored text string.
+With no selector, reads the latest enabled revision whose validFrom is at most now.
+A version/validFrom selector reads that exact retained revision, including disabled history.
+Saved personal Component/Tool reads require the exact grant and map its requested name.
+
+### Signature
+
+```ts
+static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
+```
+### Example
+
+```ts
+const secret = await vault.get('TOKEN', { scope: 'user' });
+const token = secret.revision.value;
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

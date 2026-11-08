@@ -1,0 +1,27 @@
+---
+title: vault.update()
+sidebarTitle: update()
+description: Public low-code contract, signatures and examples for vault.update.
+icon: code
+---
+
+<span id="vault-update" aria-hidden="true"></span>
+
+## `vault.update()`
+
+Updates parent category, description and metadata at its metadata counter. Never changes revision values.
+
+### Signature
+
+```ts
+static update(name: string, data: SecretUpdateInput, options?: SecretScopeOptions): Promise<Secret | null>;
+```
+### Example
+
+```ts
+const current = await vault.get('TOKEN');
+await vault.update('TOKEN', { version: current.version, description: 'CRM credential' });
+```
+
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

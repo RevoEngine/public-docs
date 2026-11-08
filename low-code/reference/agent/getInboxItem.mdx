@@ -1,0 +1,29 @@
+---
+title: agent.getInboxItem()
+sidebarTitle: getInboxItem()
+description: Public low-code contract, signatures and examples for agent.getInboxItem.
+icon: code
+---
+
+<span id="agent-getInboxItem" aria-hidden="true"></span>
+
+## `agent.getInboxItem()`
+
+Returns one inbox item for an agent.
+
+### Signature
+
+```ts
+static getInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+const item = await agent.getInboxItem(agentId, agentInboxItemId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

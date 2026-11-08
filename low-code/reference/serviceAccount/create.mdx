@@ -1,0 +1,26 @@
+---
+title: serviceAccount.create()
+sidebarTitle: create()
+description: Public low-code contract, signatures and examples for serviceAccount.create.
+icon: code
+---
+
+<span id="serviceAccount-create" aria-hidden="true"></span>
+
+## `serviceAccount.create()`
+
+Atomic account + ACL + memberships creation; default ACL contains creator and self.
+
+### Signature
+
+```ts
+static create(input: ServiceAccountCreateInput): Promise<ServiceAccountRecord>;
+```
+### Example
+
+```ts
+const account = await serviceAccount.create({ name: 'erp-sync', memberships: { roleGroups: ['Integration runtime'] } });
+```
+
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

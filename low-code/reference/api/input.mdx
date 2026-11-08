@@ -1,0 +1,31 @@
+---
+title: api.input()
+sidebarTitle: input()
+description: Public low-code contract, signatures and examples for api.input.
+icon: code
+---
+
+<span id="api-input" aria-hidden="true"></span>
+
+## `api.input()`
+
+Returns the current execution payload.
+
+Notes:
+- In endpoint context this usually includes body, query, headers, params, path, and method.
+- In event or job context it commonly includes type and message.
+- Passing a name returns a single top-level property.
+
+### Signature
+
+```ts
+static input(name?: string): Input;
+```
+### Example
+
+```ts
+const customerId = api.input()?.body?.customerId;
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

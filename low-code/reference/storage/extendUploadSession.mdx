@@ -1,0 +1,37 @@
+---
+title: storage.extendUploadSession()
+sidebarTitle: extendUploadSession()
+description: Public low-code contract, signatures and examples for storage.extendUploadSession.
+icon: code
+---
+
+<span id="storage-extendUploadSession" aria-hidden="true"></span>
+
+## `storage.extendUploadSession()`
+
+Extends the TTL for an active upload session.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- uploadPart renews the durable session lease automatically; call this only across idle gaps.
+
+### Overloads
+
+```ts
+static extendUploadSession(
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+
+static extendUploadSession(
+      namespace: string,
+      storageUploadSessionId: string,
+    ): Promise<StorageUploadSession>;
+```
+### Example
+
+```ts
+const session = await storage.extendUploadSession(storageUploadSessionId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

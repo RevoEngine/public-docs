@@ -1,0 +1,29 @@
+---
+title: agent.listThreadMessages()
+sidebarTitle: listThreadMessages()
+description: Public low-code contract, signatures and examples for agent.listThreadMessages.
+icon: code
+---
+
+<span id="agent-listThreadMessages" aria-hidden="true"></span>
+
+## `agent.listThreadMessages()`
+
+Lists visible messages for a thread.
+
+### Signature
+
+```ts
+static listThreadMessages(
+      assistantThreadId: string,
+      query?: Record<string, any>,
+    ): Promise<CollectionResult<AssistantMessage>>;
+```
+### Example
+
+```ts
+const messages = await agent.listThreadMessages(assistantThreadId, { take: 50 });
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

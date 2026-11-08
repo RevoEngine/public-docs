@@ -1,0 +1,26 @@
+---
+title: api.deleteWebhooks()
+sidebarTitle: deleteWebhooks()
+description: Public low-code contract, signatures and examples for api.deleteWebhooks.
+icon: code
+---
+
+<span id="api-deleteWebhooks" aria-hidden="true"></span>
+
+## `api.deleteWebhooks()`
+
+Delete by webhookIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
+
+### Signature
+
+```ts
+static deleteWebhooks(input: WebhooksBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.deleteWebhooks({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

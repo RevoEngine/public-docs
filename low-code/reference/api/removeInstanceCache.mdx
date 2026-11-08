@@ -1,0 +1,29 @@
+---
+title: api.removeInstanceCache()
+sidebarTitle: removeInstanceCache()
+description: Public low-code contract, signatures and examples for api.removeInstanceCache.
+icon: code
+---
+
+<span id="api-removeInstanceCache" aria-hidden="true"></span>
+
+## `api.removeInstanceCache()`
+
+Removes cache keys.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static removeInstanceCache(key: string, wildcard?: boolean): Promise<void>;
+```
+### Example
+
+```ts
+await api.removeInstanceCache('sync:*', true);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

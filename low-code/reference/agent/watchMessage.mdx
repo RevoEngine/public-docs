@@ -1,0 +1,23 @@
+---
+title: agent.watchMessage()
+sidebarTitle: watchMessage()
+description: Public low-code contract, signatures and examples for agent.watchMessage.
+icon: code
+---
+
+<span id="agent-watchMessage" aria-hidden="true"></span>
+
+## `agent.watchMessage()`
+
+Read-only message replay/tail in managed V8. Positive after requires its stream.policy generation.
+stream.replay.miss means refetch canonical state; never repeat a command to reconnect.
+Result is observation metadata, not AssistantThreadResponse. @localOnly
+
+### Signature
+
+```ts
+static watchMessage(assistantThreadId: string, assistantMessageId: string,
+      options: AssistantWatchOptions): Promise<ExecutionStream<AssistantMessageStreamCompletion>>;
+```
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

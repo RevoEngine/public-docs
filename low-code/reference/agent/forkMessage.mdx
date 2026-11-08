@@ -1,0 +1,33 @@
+---
+title: agent.forkMessage()
+sidebarTitle: forkMessage()
+description: Public low-code contract, signatures and examples for agent.forkMessage.
+icon: code
+---
+
+<span id="agent-forkMessage" aria-hidden="true"></span>
+
+## `agent.forkMessage()`
+
+Forks a thread from a selected message.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static forkMessage(
+      assistantThreadId: string,
+      assistantMessageId: string,
+      data?: AssistantForkMessageInput,
+    ): Promise<AssistantThreadResponse>;
+```
+### Example
+
+```ts
+const fork = await agent.forkMessage(assistantThreadId, assistantMessageId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

@@ -1,0 +1,41 @@
+---
+title: storage.moveEntry()
+sidebarTitle: moveEntry()
+description: Public low-code contract, signatures and examples for storage.moveEntry.
+icon: code
+---
+
+<span id="storage-moveEntry" aria-hidden="true"></span>
+
+## `storage.moveEntry()`
+
+Moves an entry to another folder or registered Storage root.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Overloads
+
+```ts
+static moveEntry(
+      storageEntryId: string,
+      data: StorageEntryMoveInput,
+    ): Promise<StorageEntryView>;
+
+static moveEntry(
+      namespace: string,
+      storageEntryId: string,
+      data: StorageEntryMoveInput,
+    ): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const entry = await storage.moveEntry(storageEntryId, {
+  parentStorageEntryId: destinationFolderId,
+  version: currentVersion,
+});
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

@@ -4,7 +4,13 @@ description: Govern access to restricted Tables, Views, Storage folders, and oth
 icon: users
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 Groups collect users and Service Accounts for resource-level ACLs. They answer **which principals may access this restricted resource**. They do not grant platform capabilities by themselves; use [Permissions](/operate/permissions) for reusable role sets.
+
+## Explore the behavior
+
+<FlowDemo topic="permissions" />
 
 ## Create a Group
 

@@ -1,0 +1,39 @@
+---
+title: agent.approveAction()
+sidebarTitle: approveAction()
+description: Public low-code contract, signatures and examples for agent.approveAction.
+icon: code
+---
+
+<span id="agent-approveAction" aria-hidden="true"></span>
+
+## `agent.approveAction()`
+
+Approves an action-required checkpoint.
+
+Requires `readOnly: false`.
+
+### Overloads
+
+```ts
+static approveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options?: Omit<AssistantActionResolutionInput, 'decision'>,
+    ): Promise<AssistantThreadResponse>;
+
+static approveAction(
+      assistantThreadId: string,
+      assistantActionRequiredId: string,
+      options: Omit<AssistantActionResolutionInput, 'decision'> | undefined,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Example
+
+```ts
+const response = await agent.approveAction(assistantThreadId, actionId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

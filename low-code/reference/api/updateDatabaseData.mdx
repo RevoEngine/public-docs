@@ -1,0 +1,40 @@
+---
+title: api.updateDatabaseData()
+sidebarTitle: updateDatabaseData()
+description: Public low-code contract, signatures and examples for api.updateDatabaseData.
+icon: code
+---
+
+<span id="api-updateDatabaseData" aria-hidden="true"></span>
+
+## `api.updateDatabaseData()`
+
+PATCHes the row identified by its primary-key oldObject. newObject contains only
+properties to change; omitted or undefined properties are unchanged, while null
+explicitly clears a nullable property. Use updateDatabaseDataRequest for a
+structured-filter bulk PATCH.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static updateDatabaseData(
+      name: string,
+      oldObject: LooseObject<any>,
+      newObject: LooseObject<any>,
+    ): Promise<ResourceItem>;
+```
+### Example
+
+```ts
+await api.updateDatabaseData(
+  'customers',
+  { customerId: 'c-1' },
+  { status: 'ACTIVE' },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

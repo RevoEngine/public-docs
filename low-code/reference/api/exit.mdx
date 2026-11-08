@@ -1,0 +1,28 @@
+---
+title: api.exit()
+sidebarTitle: exit()
+description: Public low-code contract, signatures and examples for api.exit.
+icon: code
+---
+
+<span id="api-exit" aria-hidden="true"></span>
+
+## `api.exit()`
+
+Stops execution early without marking it as a sandbox failure.
+
+### Signature
+
+```ts
+static exit(): void;
+```
+### Example
+
+```ts
+if (!enabled) {
+  api.exit();
+}
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,29 @@
+---
+title: api.rateLimit()
+sidebarTitle: rateLimit()
+description: Public low-code contract, signatures and examples for api.rateLimit.
+icon: code
+---
+
+<span id="api-rateLimit" aria-hidden="true"></span>
+
+## `api.rateLimit()`
+
+Acquires an instance-scoped rate-limit token.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static rateLimit(key: string, limit: number, ttl: number): Promise<boolean>;
+```
+### Example
+
+```ts
+const allowed = await api.rateLimit('outbound:crm', 10, 60);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,30 @@
+---
+title: api.getOrSetInstanceCache()
+sidebarTitle: getOrSetInstanceCache()
+description: Public low-code contract, signatures and examples for api.getOrSetInstanceCache.
+icon: code
+---
+
+<span id="api-getOrSetInstanceCache" aria-hidden="true"></span>
+
+## `api.getOrSetInstanceCache()`
+
+Reads a cache key or stores the fallback value atomically if it is missing.
+
+### Signature
+
+```ts
+static getOrSetInstanceCache(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<any>;
+```
+### Example
+
+```ts
+const state = await api.getOrSetInstanceCache('sync:state', { step: 'queued' }, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

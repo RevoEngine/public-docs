@@ -1,0 +1,90 @@
+---
+title: Studio from the CLI
+description: Inspect saved sessions, stage source, run tests, and carry an exact candidate through review and activation.
+icon: code-branch
+---
+
+`revo studio` works with the same saved sessions as the [Studio UI](/build/studio-sessions). Use it for scripted authoring and review. A saved file, passing test, approved proposal, committed source and active runtime are separate states.
+
+## Inspect a saved workspace
+
+```bash
+revo studio list --status OPEN --json
+revo studio get "$SESSION_ID" --json
+revo studio files "$SESSION_ID" --json
+revo studio diff "$SESSION_ID" --json
+```
+
+Use `file <sessionId> <fileId>` for exact saved content, `search <sessionId> --q <text>` for a workspace search, and `events`, `chat`, or `claims` to inspect collaboration. Supported list reads accept `--take` and `--afterCursor`; use the cursor returned by the preceding page.
+
+## Create or promote a draft
+
+Put the JSON request in a file and supply it with `--body-file`. This avoids multiline shell quoting and gives reviewers a readable artifact.
+
+```json session.json
+{
+  "title": "Contract quote diagnostics",
+  "intent": "Log a safe pricing summary and preserve the existing rounding rules.",
+  "files": [
+    {
+      "path": "acceptance.md",
+      "kind": "scratch",
+      "content": "Four units: 4625 minor units. Ten units: 11563. No stock reservation.\n"
+    }
+  ]
+}
+```
+
+```bash
+revo studio create --body-file session.json --json
+```
+
+`promote` requires a complete `resources` array. Existing Components need their observed `componentId` and `baseVersion`; promotion creates a reviewable session and does not commit or activate it. See the generated [Studio API](/api-reference/introduction) for exact nested request fields.
+
+## Edit, test and freeze
+
+| Action | Input | Result |
+| --- | --- | --- |
+| `attach` | Complete Component resource and observed base | Add it to the session |
+| `patch` | Revision/digest guarded changes or a supported patch | Change saved workspace files |
+| `test` | Test Component ID and mode | Retain results for the exact tested source |
+| `freeze` | Expected session revision | Create an immutable candidate |
+| `preview-rebase` | Session ID | Inspect drift without changing the draft |
+| `rebase` | Current revision and explicit resolutions | Reconcile changes, then retest |
+
+```bash
+revo studio patch "$SESSION_ID" --body-file patch.json --json
+revo studio test "$SESSION_ID" --body-file test.json --json
+revo studio freeze "$SESSION_ID" --body-file freeze.json --json
+```
+
+For a text patch file, use `--patch-file` with `patch`. A body cannot also contain a competing `patch` value. Inspect current revision and digest before building a write; never reuse old values after another editor saves.
+
+## Review and activate deliberately
+
+```bash
+revo studio review "$SESSION_ID" "$PROPOSAL_ID" --body-file review.json --json
+revo studio commit "$SESSION_ID" --body-file commit.json --json
+revo studio prepare "$SESSION_ID" --body-file prepare.json --json
+revo studio activate "$SESSION_ID" --body-file activate.json --json
+```
+
+Review binds the exact proposal digest and decision. Required test gaps need the supported explicit waiver with a reason; passing unrelated tests is insufficient. Integration-test approval authorizes only those tests, not source commit. Commit uses the reviewed proposal ID and digest. Prepare targets the returned release ID. Activate requires readiness and the observed active generation.
+
+Read each response before constructing the next request. An accepted commit is not proof that runtime changed. [Release activation](/build/studio-session-release) explains baseline, readiness, generation conflicts and rollback.
+
+## Collaboration and operation options
+
+| Actions/options | Use |
+| --- | --- |
+| `update`, `fork` | Change session metadata or continue in another workspace |
+| `participant`, `share` | Set explicit collaboration access |
+| `presence`, `claim`, `release-claim` | Coordinate current work; a claim is not an edit lock |
+| `message` | Add an authorized session conversation message |
+| `cancel-test` | Cancel a selected saved test run |
+| `baseline`, `rollback` | Explicit runtime lifecycle operations |
+| `--body-file <path>` or `--body <json>` | Choose one JSON-object input; maximum 8 MiB file/body |
+| `--operation-id <uuid>` | Retry the same exact mutation; generated when absent |
+| `--json` | Structured output for automation |
+
+A body `operationId` and command option must agree. Keep the identity with the original request when recovering a lost response. Review source and access changes with the same care whether they came from the UI, CLI, or an Assistant.

@@ -1,0 +1,29 @@
+---
+title: util.jwtDecode()
+sidebarTitle: jwtDecode()
+description: Public low-code contract, signatures and examples for util.jwtDecode.
+icon: code
+---
+
+<span id="util-jwtDecode" aria-hidden="true"></span>
+
+## `util.jwtDecode()`
+
+Decodes a JWT without verifying it.
+
+### Signature
+
+```ts
+static jwtDecode(
+      token: string,
+      options?: { complete?: boolean; json?: boolean },
+    ): any;
+```
+### Example
+
+```ts
+const payload = util.jwtDecode(token);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

@@ -1,0 +1,47 @@
+---
+title: api.triggerTarget()
+sidebarTitle: triggerTarget()
+description: Public low-code contract, signatures and examples for api.triggerTarget.
+icon: code
+---
+
+<span id="api-triggerTarget" aria-hidden="true"></span>
+
+## `api.triggerTarget()`
+
+Schedules generic execution against a normalized target.
+
+Notes:
+- Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
+- Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
+- Retired positional date and relative-delay arguments are ignored.
+- Unavailable with `readOnly: true` (throws an error).
+- For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
+  The third argument is copied directly into the
+  target job's flat `api.input().templateInputs`. It is shallow-spread over
+  template defaults, retaining non-colliding defaults and overwriting only
+  matching keys; it is never nested below another input property.
+
+### Signature
+
+```ts
+static triggerTarget(
+      targetType: ExecutionTargetType,
+      targetId: string,
+      input?: Record<string, JsonValue>,
+      options?: AutomationScheduleOptions,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const jobId = await api.triggerTarget(
+  'JOB_TEMPLATE',
+  templateId,
+  { customerId: 'c-1' },
+  { scheduleFor: Date.now() + 5 * 60 * 1000 },
+);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

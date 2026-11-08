@@ -1,0 +1,68 @@
+---
+title: Interactive examples
+description: Explore RevoEngine execution boundaries with local, controllable simulations.
+icon: hand-pointer
+---
+
+Change a key, step through a guard rejection or replay an admission decision. These demonstrations use synthetic data entirely in your browser; they do not call an instance or perform business actions. They explain observable contracts, not deployment architecture or measured timings.
+
+## Capacity and duplicate protection
+
+<CardGroup cols={2}>
+  <Card title="Job concurrency" icon="layer-group" href="/patterns/job-concurrency#explore-the-behavior">Change a per-key limit and watch waiting Jobs enter available slots.</Card>
+  <Card title="Coordination keys" icon="key" href="/patterns/coordination-keys#explore-the-behavior">Compare shared capacity with two independent template keys.</Card>
+  <Card title="Idempotency" icon="shield-check" href="/patterns/idempotency#explore-the-behavior">Compare a stable business key, a new key per retry and an overly broad key.</Card>
+  <Card title="Low-code admission" icon="code" href="/patterns/low-code-concurrency#explore-the-behavior">See admission, BUSY and exact release ownership.</Card>
+</CardGroup>
+
+## Request and execution flows
+
+| Explore | Change the scenario | Observe |
+| --- | --- | --- |
+| [Endpoint guard](/operate/endpoints#explore-the-behavior) | Valid input, invalid input, missing route, denied access, static response | Which boundary stops the request before business execution |
+| [SSE](/operate/endpoint-sse#explore-the-behavior) | Success, admission failure, failure after opening | HTTP acceptance versus terminal stream outcome |
+| [Background work](/patterns/acceptance-and-completion#explore-the-behavior) | Accepted work or lost response | Receipt, durable identifier and confirmed completion |
+| [Job retry](/operate/jobs#explore-the-behavior) | Error, capacity wait, uncertain effect | New attempt versus the same waiting attempt |
+| [Storage](/operate/storage-uploads#explore-the-behavior) | Asynchronous indexing or invalid synchronous CSV | Byte transfer, finalization and structured readiness |
+| [Events](/operate/events#explore-the-behavior) | Matching filter, non-match, replay | Subscription dispatch and separate target outcome |
+| [Schedules](/operate/schedules#explore-the-behavior) | Active or paused | Due time, input resolution and later admission |
+
+## Authoring, state and governance
+
+| Explore | What to expect |
+| --- | --- |
+| [Widget refresh](/widgets/refresh#explore-the-behavior) | Exact requested IDs merge while existing input state remains |
+| [Transactions](/patterns/transactions#explore-the-behavior) | Local commit or rollback, with external effects outside the boundary |
+| [Bounded reads](/patterns/bounded-data#explore-the-behavior) | A preview differs from a complete cursor scan |
+| [Hosted revisions](/build/custom-nodejs#explore-the-behavior) | Saved source becomes eligible only after readiness and activation |
+| [Action approval](/ai/approvals-and-plans#explore-the-behavior) | Approve, reject or re-review a stale proposal |
+| [Authentication](/developers/authentication#explore-the-behavior) | Identity, target permission and request validation are separate checks |
+
+## Routing and delivery
+
+| Explore | What to change | What to observe |
+| --- | --- | --- |
+| [Event filtering](/operate/event-filters#explore-the-behavior) | Message values, numeric type, occurrence metadata, all/any | Exact conditions that admit this subscription |
+| [Dispatch and Replay](/patterns/delivery-guarantees#explore-the-behavior) | Redeliver an occurrence or create a Replay | Reused versus new initial child Jobs |
+| [Outbound Webhooks](/operate/webhooks#explore-the-behavior) | Receiver deduplication, lost response, retry cap, stop on 401 | HTTP attempts versus receiver business effects |
+
+[Metadata and correlation](/patterns/metadata-and-correlation) explains which values belong in definitions, published Events, messages and outbound requests.
+
+## Data, access and client behavior
+
+| Explore | What to expect |
+| --- | --- |
+| [Permission and ACL](/operate/permissions#explore-the-behavior) | A platform role alone does not admit a restricted resource |
+| [Vault grants](/operate/vault#explore-the-behavior) | Connecting an account and granting a consumer are separate steps |
+| [Realtime reconnect](/operate/realtime#explore-the-behavior) | Refetch authoritative state after gaps; reject older local projections |
+| [Application cache](/operate/database-cache#explore-the-behavior) | Rebuild a miss; atomic insertion does not deduplicate preceding work |
+| [View source actions](/operate/database-views#explore-the-behavior) | Review a workset; re-preview after the View or materialization changes |
+| [SDK batches](/developers/sdk-storage-and-batching#explore-the-behavior) | Independent results versus stop-on-error, without rollback |
+| [CLI synchronization](/developers/cli-projects#explore-the-behavior) | Fast-forward a clean copy or resolve divergent changes |
+| [Native tests](/build/native-tests#explore-the-behavior) | Test evidence belongs to captured source and does not activate it |
+| [Execution evidence](/operate/traces#explore-the-behavior) | Receipt, terminal execution and durable result; disclose coverage gaps |
+| [MCP sessions](/developers/mcp-sessions#explore-the-behavior) | Initialize under the current credential and inspect the tool outcome |
+
+Use **Next step** to inspect a boundary, **Play** for paced progression and **Reset** to start again. Playback starts only when requested. Reduced-motion settings disable animation and automatic playback; the step controls remain available.
+
+Exact fields, defaults, limits and failure semantics remain in the guide beside each demonstration and in [Reference](/low-code/reference/index). Historical release notes and legal terms are not simulations.

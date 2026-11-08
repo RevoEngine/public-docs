@@ -1,0 +1,33 @@
+---
+title: util.hmac()
+sidebarTitle: hmac()
+description: Public low-code contract, signatures and examples for util.hmac.
+icon: code
+---
+
+<span id="util-hmac" aria-hidden="true"></span>
+
+## `util.hmac()`
+
+Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static hmac(
+      payload: Uint8Array | string,
+      secret: string,
+      algorithm?: 'sha1' | 'sha256' | 'sha512',
+      encoding?: 'hex' | 'base64',
+    ): string;
+```
+### Example
+
+```ts
+const signature = util.hmac('payload', secret, 'sha256', 'hex');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

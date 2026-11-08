@@ -1,0 +1,48 @@
+---
+title: api.upsertDatabaseData()
+sidebarTitle: upsertDatabaseData()
+description: Public low-code contract, signatures and examples for api.upsertDatabaseData.
+icon: code
+---
+
+<span id="api-upsertDatabaseData" aria-hidden="true"></span>
+
+## `api.upsertDatabaseData()`
+
+Creates missing rows and PATCHes only properties present in each conflicting row.
+This is the default: omit unrelated properties rather than reading a full row first.
+A present null clears a nullable property; an omitted or undefined property is unchanged.
+For a non-nullable property, null uses its declared database default; without a default it fails.
+Pass &#123; patch: false &#125; only for the legacy full-replacement conflict behavior.
+Pass &#123; return: false &#125; to skip returned rows, or &#123; onlyKeys: true &#125; for keys only.
+skipUnchanged: true skips identical supplied fields; include or exclude selects compared columns.
+filter checks current target values and restricts updates only; new rows are inserted independently.
+With either conditional option enabled, success counts handled inputs, affected counts actual writes,
+and data contains only written rows. Excluded-only changes do not update any column.
+
+Notes:
+- Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+- REST/public SDK requests retain the 100,000-row limit per request.
+- return defaults to true and includes full rows. return: false omits data; onlyKeys
+  returns primary keys only. Returning full rows has a higher response-memory cost.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static upsertDatabaseData(
+      name: string,
+      data: LooseObject<any>[],
+      options?: DatabaseUpsertOptions,
+    ): Promise<DatabaseDataActionResponse>;
+```
+### Example
+
+```ts
+await api.upsertDatabaseData('customers', [
+  { customerId: 'c-1', status: 'ACTIVE' },
+]);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,27 @@
+---
+title: serviceAccount.createKey()
+sidebarTitle: createKey()
+description: Public low-code contract, signatures and examples for serviceAccount.createKey.
+icon: code
+---
+
+<span id="serviceAccount-createKey" aria-hidden="true"></span>
+
+## `serviceAccount.createKey()`
+
+Return secret once; store it immediately and never log it.
+
+### Signature
+
+```ts
+static createKey(ref: ServiceAccountRef, input: ServiceAccountKeyCreateInput): Promise<ServiceAccountKeyCreated>;
+```
+### Example
+
+```ts
+const key = await serviceAccount.createKey('erp-sync', { name: 'primary', restricted: false });
+await vault.create('ERP_API_KEY', { value: key.secret });
+```
+
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

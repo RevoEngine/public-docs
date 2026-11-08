@@ -1,0 +1,30 @@
+---
+title: util.rsaSign()
+sidebarTitle: rsaSign()
+description: Public low-code contract, signatures and examples for util.rsaSign.
+icon: code
+---
+
+<span id="util-rsaSign" aria-hidden="true"></span>
+
+## `util.rsaSign()`
+
+Signs data with RSA-PSS and SHA-256 asynchronously. PEM import and input conversion can still occupy the event loop.
+
+### Signature
+
+```ts
+static rsaSign(
+      privateKey: string,
+      payload: string,
+      passphrase?: string,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const signature = await util.rsaSign(privateKey, 'hello', passphrase);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

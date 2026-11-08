@@ -1,0 +1,194 @@
+---
+title: "Submit a form and follow a Job"
+description: "Configure a write action, poll its exact Job and refresh one result tile."
+sidebarTitle: Form to Job
+icon: book-open
+---
+
+## Form → Job → one refreshed tile
+
+This example has two cells: a form and a recent-jobs tile. Submit commits the form, starts a Job, polls that exact Job and refreshes only `jobResult`. The form remains mounted with its values.
+
+Prepare an active Job template that accepts a `batch` input. Its worker reads that value from `api.input().templateInputs.batch`. Prepare two Components with a visible element named `Data`: one starts the Job, the other reads its status. The examples below supply their bodies.
+
+### 1. Configure the widget
+
+Choose **Inline code**, JavaScript, and set **Inputs** to:
+
+```json
+{ "templateId": "YOUR_JOB_TEMPLATE_ID" }
+```
+
+In **Action components (JSON)**, register the two Components. Replace the identifiers with your verified resources; keep the same template ID in both settings:
+
+```json
+{
+  "startBatch": {
+    "sourceType": "COMPONENT",
+    "componentId": "YOUR_START_COMPONENT_ID",
+    "element": "Data",
+    "inputs": "{\"templateId\":\"YOUR_JOB_TEMPLATE_ID\"}",
+    "readOnly": false,
+    "timeout": 30,
+    "memory": 128
+  },
+  "batchStatus": {
+    "sourceType": "COMPONENT",
+    "componentId": "YOUR_STATUS_COMPONENT_ID",
+    "element": "Data",
+    "inputs": "{}",
+    "readOnly": true,
+    "timeout": 30,
+    "memory": 128
+  }
+}
+```
+
+View sources may return the cell matrix directly, or wrap it in `{ matrix }` or `{ rows }`. This applies to root views, drill targets and partial refreshes in both chat and dashboards. Action receipts are separate objects and are not view output.
+
+These JSON maps are properties of the widget configuration, not cells in its returned matrix. Configured `inputs` is JSON text in both source modes. The widget parses it once, so `api.input()` receives the object. Action bindings override target defaults; a completion probe receives its own configured inputs and `waitFor.input` mappings. You can pin a target's Component digest when a reviewed revision must remain fixed.
+
+### 2. Return the form and result tile
+
+Paste this into the widget's Inline code:
+
+```js
+const input = api.input() ?? {};
+const ui = input.$widget ?? {};
+const wanted = (id) =>
+  (ui.targetIds ?? ['*']).some(
+    (target) => target === '*' || target === id,
+  );
+const rows = [];
+
+if (wanted('jobForm'))
+  rows.push([
+    {
+      id: 'jobForm',
+      type: 'FORM',
+      label: 'Process a batch',
+      submitLabel: 'Start job',
+      fields: [
+        {
+          id: 'batch',
+          type: 'INPUT',
+          control: 'text',
+          label: 'Batch',
+          value: 'BATCH-001',
+          required: true,
+          maxLength: 100,
+        },
+      ],
+      on: {
+        submit: {
+          type: 'EXECUTE',
+          target: 'startBatch',
+          input: { batch: { from: 'input', id: 'batch' } },
+          waitFor: {
+            target: 'batchStatus',
+            input: { jobId: { from: 'result', path: 'jobId' } },
+            path: 'status',
+            equals: 'FINISHED',
+            failed: ['ERROR', 'CANCELLED', 'EXPIRED'],
+            intervalSeconds: 2,
+            timeoutSeconds: 120,
+          },
+          refresh: 'jobResult',
+          cooldownSeconds: 3,
+        },
+      },
+    },
+  ]);
+
+if (wanted('jobResult')) {
+  const page = await api.getInstanceData('Jobs', {
+    filter: { jobTemplateId: { equals: input.templateId } },
+    fields: ['jobId', 'status', 'scheduledFor'],
+    sort: ['-scheduledFor'],
+    take: 5,
+  });
+  const lines = (page?.data ?? []).map(
+    (job) => '- ' + job.jobId + ': **' + job.status + '**',
+  );
+  rows.push([
+    {
+      id: 'jobResult',
+      type: 'TEXT',
+      value: '### Recent jobs\n' + (lines.join('\n') || 'No runs yet.'),
+    },
+  ]);
+}
+return rows;
+```
+
+The tile shows the latest five runs of this template, including runs from other operators. Completion polling is separately tied to the exact `jobId` returned by this submission.
+
+On a partial refresh, return exactly the requested IDs. Check `targetIds` before expensive queries: refreshing one rendered cell still executes the source body, so the source decides which work to skip.
+
+### 3. Start the Job in the write Component
+
+Use this body in the starting Component's `Data` element. It validates the input and records a bounded duplicate-dispatch guard before enqueueing:
+
+```js
+const input = api.input() ?? {};
+const requestId = input.$widget?.requestId;
+if (
+  typeof input.templateId !== 'string' ||
+  !input.templateId ||
+  typeof input.batch !== 'string' ||
+  !input.batch.trim() ||
+  input.batch.length > 100 ||
+  typeof requestId !== 'string' ||
+  !requestId
+) {
+  throw new Error(
+    'A template, batch and widget request ID are required.',
+  );
+}
+
+const key = 'widget-batch:' + input.templateId + ':' + requestId;
+const claimed = await api.acquireIdempotencyKey(
+  key,
+  3600,
+  { status: 'STARTING' },
+);
+if (!claimed) {
+  const receipt = await api.getInstanceCache(key);
+  if (receipt?.jobId) return receipt;
+  throw new Error(
+    'The earlier dispatch is unconfirmed. Reconcile it before retrying.',
+  );
+}
+
+const jobId = await api.triggerJob(input.templateId, {
+  batch: input.batch.trim(),
+  requestId,
+});
+const receipt = { jobId };
+await api.setInstanceCache(key, receipt, 3600);
+return receipt;
+```
+
+The one-hour durable admission key protects repeated delivery of the same dispatch ID until expiry or explicit release. The cache stores only a convenient receipt; losing that cache entry does not release admission and must lead to reconciliation, not another enqueue. It is not a transaction with Job creation or business-level exactly-once execution. If enqueueing succeeds but saving its receipt fails, reconcile the Job using the supplied `requestId`; do not automatically enqueue another one. A deliberate new submit has a new dispatch ID. Enforce business idempotency in the worker for operations that must occur only once.
+
+### 4. Read the exact Job in the status Component
+
+```js
+const jobId = api.input()?.jobId;
+if (typeof jobId !== 'string' || !jobId)
+  throw new Error('A jobId is required.');
+const page = await api.getInstanceData('Jobs', {
+  filter: { jobId: { equals: jobId } },
+  fields: ['jobId', 'status'],
+  take: 1,
+});
+return { status: page?.data?.[0]?.status ?? 'UNKNOWN' };
+```
+
+`Jobs` list reads use a restricted projection. Query the confirmed `jobId` with `fields: ['jobId', 'status']`; `output` and `inputs` are not supported list fields. Show the confirmed status or fetch results from a separately verified business resource. Test the result branch with an existing authorized job before publishing.
+
+The submit control and its form inputs stay locked while the action runs, while confirmation is pending, and through the configured cooldown. A successful enqueue is not completion. A terminal failure releases the lock with an error; a timeout or network failure leaves the outcome uncertain and never replays the write automatically. When a receipt is available, the button can check status again. A cooldown is a client-side throttle, not a durable server lock or lease.
+
+Reads in this example and all status probes are read-only. Keep reusable view Components in restricted mode: an initial Component render without configured target maps retains its existing restricted-mode setting, even if its result later introduces interactive controls. Configured target maps and subsequent interactive refreshes force read-only execution. Writes through an action require explicit `readOnly: false` on the registered action target and the caller's normal execution permissions. The UI does not grant access; validate business inputs and authorization in the write path.
+
+Continue with [reactive widgets](/operate/reactive-widgets).

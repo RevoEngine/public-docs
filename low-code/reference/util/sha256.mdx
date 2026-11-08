@@ -1,0 +1,28 @@
+---
+title: util.sha256()
+sidebarTitle: sha256()
+description: Public low-code contract, signatures and examples for util.sha256.
+icon: code
+---
+
+<span id="util-sha256" aria-hidden="true"></span>
+
+## `util.sha256()`
+
+Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+
+Invalid types/options throw TypeError; size/range throws RangeError.
+
+### Signature
+
+```ts
+static sha256(payload: string): string;
+```
+### Example
+
+```ts
+const digest = util.sha256('payload');
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

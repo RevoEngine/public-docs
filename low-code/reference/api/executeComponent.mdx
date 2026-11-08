@@ -1,0 +1,42 @@
+---
+title: api.executeComponent()
+sidebarTitle: executeComponent()
+description: Public low-code contract, signatures and examples for api.executeComponent.
+icon: code
+---
+
+<span id="api-executeComponent" aria-hidden="true"></span>
+
+## `api.executeComponent()`
+
+Executes another active component in the managed RevoEngine runtime and returns its execution result.
+
+Notes:
+- Supports CODE_JS, CODE_TS, and CUSTOM_NODEJS components.
+- CODE_JS and CODE_TS run in a fresh isolated execution on the current host by default.
+- Set options.executionHost to "remote" to use the separate Sandbox host.
+- CUSTOM_NODEJS runs in its governed RevoEngine component environment.
+- If timeoutMs is omitted, the child receives the parent execution's remaining timeout budget.
+- A larger timeoutMs is clamped to that remaining budget.
+- Nesting is limited to five levels across local, remote and custom component calls.
+- At least 1 second of parent budget is required for remote Sandbox calls.
+- Promise.all() starts independent child component executions.
+
+### Signature
+
+```ts
+static executeComponent<T = LooseObject<any>>(
+      request: ComponentExecuteRequest,
+    ): Promise<ComponentExecuteResult<T>>;
+```
+### Example
+
+```ts
+const [pricing, taxes] = await Promise.all([
+  api.executeComponent({ componentId: pricingComponentId, inputs: { customerId }, timeoutMs: 9000 }),
+  api.executeComponent({ componentId: taxComponentId, inputs: { customerId }, timeoutMs: 9000 }),
+]);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

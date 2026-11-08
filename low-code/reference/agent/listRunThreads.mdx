@@ -1,0 +1,26 @@
+---
+title: agent.listRunThreads()
+sidebarTitle: listRunThreads()
+description: Public low-code contract, signatures and examples for agent.listRunThreads.
+icon: code
+---
+
+<span id="agent-listRunThreads" aria-hidden="true"></span>
+
+## `agent.listRunThreads()`
+
+Lists assistant threads associated with a run.
+
+### Signature
+
+```ts
+static listRunThreads(agentRunId: string): Promise<AgentRunThread[]>;
+```
+### Example
+
+```ts
+const threads = await agent.listRunThreads(agentRunId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

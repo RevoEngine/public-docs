@@ -1,0 +1,58 @@
+---
+title: "Rows, cells and matrix"
+description: "Understand the low-code return shape and the two independent layout grids."
+sidebarTitle: Rows and matrix
+icon: table-cells
+---
+
+A **matrix** is an array of rows. Each **row** is an array of cells displayed next to each other. Each **cell** is an object with a `type` and the fields required by that type.
+
+```js
+return [
+  [{ id: 'title', type: 'TEXT', value: 'Order overview' }],
+  [
+    { id: 'open', type: 'TEXT', value: 'Open: 12', width: 60 },
+    { id: 'late', type: 'TEXT', value: 'Late: 3', width: 40 },
+  ],
+];
+```
+
+The first row contains one full-width heading. The second contains two cells. These are **rows of UI cells**, not database rows; a TABLE cell has its own `data` records.
+
+## Return formats
+
+| Return value | Meaning |
+| --- | --- |
+| `return [[cell]]` | Direct matrix; simplest form for a dashboard source. |
+| `return { matrix: [[cell]] }` | Envelope accepted for initial views, drill-down and refresh. |
+| `return { rows: [[cell]] }` | Alternative view envelope. |
+
+`rows` and `matrix` are ordinary variable names when used inside your code. They are only contract fields when returned in an envelope. Prefer one format consistently. A write action returns a receipt such as `{ jobId }`, separately from a view result.
+
+## Cell layout
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `width` | number | Share remaining space | Width within the current row. |
+| `height` | number | Automatic | Cell height in pixels. |
+| `type` | string | Required | One of the seven [cell types](/widgets/elements). |
+| `id` | string | Optional for static cells | Required for controls, events, timers and selection. |
+
+With two unspecified widths, each cell receives half the row. If one cell uses `width: 60`, unspecified cells share the remaining 40. If every cell has a width, their proportions are normalized across the row. Use positive widths totaling 100 for predictable authoring, and a positive pixel height when you need a fixed chart area.
+
+The dashboard itself has a **20-column outer grid**. Its panel `x`, `y`, `cols` and `rows` determine where the widget sits. The returned matrix controls only the content inside that panel.
+
+## IDs and data fields
+
+| Name | Identifies | Example |
+| --- | --- | --- |
+| Cell `id` | A UI cell or form field | `ordersTable` |
+| TABLE `definition[].field` | A property in a data record | `customerName` |
+| TABLE `rowKey` | The property containing a stable record key | `orderId` |
+| Target registry key | A saved view or executor | `orderDetail` |
+
+These names have different roles. A cell ID does not select a Component or identify a database record.
+
+IDs start with a letter and contain only letters, digits, underscores, dots or hyphens, up to 100 characters. Keep them unique across a frame, including FORM fields. `constructor` and `prototype` are reserved. Keep IDs stable between reads so state and partial refresh can match the same elements.
+
+For a partial refresh, return exactly the requested IDs; see [partial refresh](/widgets/refresh). See [limits](/widgets/limits) for dashboard and Assistant-card bounds.

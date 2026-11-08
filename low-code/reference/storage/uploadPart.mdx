@@ -1,0 +1,63 @@
+---
+title: storage.uploadPart()
+sidebarTitle: uploadPart()
+description: Public low-code contract, signatures and examples for storage.uploadPart.
+icon: code
+---
+
+<span id="storage-uploadPart" aria-hidden="true"></span>
+
+## `storage.uploadPart()`
+
+Uploads one part into an active multipart upload session.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- Renews the durable session lease before processing and after committing the part.
+- Accepted part manifests remain durable across worker restarts.
+
+### Overloads
+
+```ts
+static uploadPart(
+      storageUploadSessionId: string,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
+    ): Promise<StorageUploadPartResult>;
+
+static uploadPart(
+      namespace: string,
+      storageUploadSessionId: string,
+      partNumber: number | StorageBinaryUploadPartInput,
+      data?: StorageBinaryUploadPartInput,
+    ): Promise<StorageUploadPartResult>;
+```
+### Examples
+
+```ts
+await storage.uploadPart(storageUploadSessionId, 2, {
+  data: nextChunk,
+  dataEncoding: 'utf8',
+});
+```
+
+#### incremental numbering
+
+```ts
+await storage.uploadPart(storageUploadSessionId, {
+  data: nextChunk,
+  dataEncoding: 'utf8',
+});
+```
+
+#### repair a specific multipart chunk
+
+```ts
+await storage.uploadPart(storageUploadSessionId, 7, {
+  data: repairedChunk,
+  dataEncoding: 'utf8',
+});
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

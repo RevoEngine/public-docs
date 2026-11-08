@@ -1,0 +1,26 @@
+---
+title: api.deleteJobs()
+sidebarTitle: deleteJobs()
+description: Public low-code contract, signatures and examples for api.deleteJobs.
+icon: code
+---
+
+<span id="api-deleteJobs" aria-hidden="true"></span>
+
+## `api.deleteJobs()`
+
+Delete by jobIds OR a non-empty platform filter. Unavailable with `readOnly: true` (throws an error). Returns a durable operation with progress and per-item outcomes.
+
+### Signature
+
+```ts
+static deleteJobs(input: JobsBulkInput): Promise<AutomationOperation>;
+```
+### Example
+
+```ts
+const operation = await api.deleteJobs({ filter: { field: 'status', op: 'eq', value: 'FINISHED' } });
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -4,7 +4,13 @@ description: Build a production file-ingestion flow from upload session through 
 icon: file-circle-check
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 This guide connects a finalized Storage upload to durable background processing. Use it when a browser, partner, or external service uploads CSV, TSV, XLSX, or another file that must be validated and transformed after transfer.
+
+## Explore the behavior
+
+<FlowDemo topic="storage" />
 
 ## Architecture
 

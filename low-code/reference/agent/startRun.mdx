@@ -1,0 +1,31 @@
+---
+title: agent.startRun()
+sidebarTitle: startRun()
+description: Public low-code contract, signatures and examples for agent.startRun.
+icon: code
+---
+
+<span id="agent-startRun" aria-hidden="true"></span>
+
+## `agent.startRun()`
+
+Starts a new agent run.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static startRun(agentId: string, data: AgentRunInput): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.startRun(agentId, {
+  instruction: "Summarize today's alerts.",
+});
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

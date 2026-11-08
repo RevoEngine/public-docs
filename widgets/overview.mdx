@@ -1,0 +1,38 @@
+---
+title: "Custom widgets"
+description: "Build a UI from low-code rows, controls, events and registered actions."
+icon: table-cells
+---
+
+A Custom Widget is a low-code function whose result describes a small user interface. It can display data, collect input, refresh a result, open a detail view or launch a registered action. The same interaction model is used in dashboards and private Assistant cards.
+
+Start with a static result. Add one input and one refresh action before introducing background Jobs or nested views.
+
+<CardGroup cols={2}>
+  <Card title="Build your first widget" icon="play" href="/widgets/quickstart">Paste a complete, read-only example and verify what changes.</Card>
+  <Card title="Rows and matrix" icon="table-cells" href="/widgets/matrix">Understand the returned structure, layout and IDs.</Card>
+  <Card title="Types and fields" icon="list" href="/widgets/elements">Choose text, charts, tables, inputs, forms and buttons.</Card>
+  <Card title="Events and actions" icon="bolt" href="/widgets/events">Connect a user interaction to a declared action.</Card>
+</CardGroup>
+
+## The four parts
+
+| Part | Written by | Responsibility |
+| --- | --- | --- |
+| Source configuration | Widget author | Selects Inline code or a Component, configured inputs and runtime limits. |
+| Returned matrix | View code | Describes rows of cells and their content. |
+| Interaction state | Widget runtime | Retains committed inputs, drafts, selected keys and navigation frames. |
+| Target registries | Widget author | Select reviewed view sources and action executors by name. |
+
+The source runs on the server; the browser renders the result. An `on` entry describes an action as data. It does not contain a browser callback.
+
+## Learning path
+
+1. [First widget](/widgets/quickstart) — a working input and greeting.
+2. [Matrix and IDs](/widgets/matrix) — rows, cells and stable identity.
+3. [Inputs and forms](/widgets/inputs) — defaults, drafts and validation.
+4. [Context and bindings](/widgets/context) — `$widget` and passing values.
+5. [Partial refresh](/widgets/refresh) — update one cell and retain the rest.
+6. [Job submission](/widgets/examples/form-job) — a separate write executor and completion probe.
+
+For the surrounding saved workspace, see [Dashboards](/operate/dashboards).

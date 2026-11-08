@@ -1,0 +1,31 @@
+---
+title: transport.sftpExport()
+sidebarTitle: sftpExport()
+description: Public low-code contract, signatures and examples for transport.sftpExport.
+icon: code
+---
+
+<span id="transport-sftpExport" aria-hidden="true"></span>
+
+## `transport.sftpExport()`
+
+Streams Storage to a remote path using storage.* namespace/ACL rules.
+Automatic execution.log includes details.source, details.error and telemetry.transfer.
+
+### Signature
+
+```ts
+static sftpExport(
+      path: string,
+      storage: SFTPExportStorage,
+      secretNameOrId: string,
+    ): Promise<void>;
+```
+### Example
+
+```ts
+await transport.sftpExport('/outgoing/daily.csv', { storageEntryId }, 'SFTP_PRODUCTION');
+```
+
+
+See [all transport methods](/low-code/reference/transport) or [runtime basics](/low-code/overview).

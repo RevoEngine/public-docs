@@ -1,0 +1,29 @@
+---
+title: agent.tickRun()
+sidebarTitle: tickRun()
+description: Public low-code contract, signatures and examples for agent.tickRun.
+icon: code
+---
+
+<span id="agent-tickRun" aria-hidden="true"></span>
+
+## `agent.tickRun()`
+
+Forces one autonomous tick for a run.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static tickRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.tickRun(agentRunId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

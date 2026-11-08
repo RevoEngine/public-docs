@@ -1,0 +1,93 @@
+---
+title: "Read HTTP streams"
+description: "Consume bytes or Server-Sent Events within the execution budget."
+icon: book-open
+---
+
+## Consume a byte stream
+
+Live response iterators are available inside the local low-code V8 runtime. The initial `await` resolves after response headers; each iterator step then waits for data, EOF, or an error with backpressure.
+
+```js
+const response = await api.httpCall(
+  { url: 'https://telemetry.example.com/v1/export', method: 'GET' },
+  { responseType: 'stream', streamFormat: 'bytes', timeout: 120000 },
+);
+
+let bytes = 0;
+try {
+  if (response.status < 200 || response.status >= 300) {
+    return { status: response.status, bytes: 0 };
+  }
+
+  for await (const chunk of response.data) {
+    bytes += chunk.byteLength;
+    // Process bounded chunks. Do not collect an unbounded stream in an array.
+  }
+} finally {
+  await response.close();
+}
+
+return { status: response.status, bytes };
+```
+
+Chunks are transport fragments, not application records or multipart boundaries. The runtime limits concurrent streams, chunk size, buffered data, and total execution time. Closing, breaking iteration, cancellation, failure, or Component completion releases the upstream request.
+
+Use a Storage target instead when the goal is to retain the complete response. It avoids exposing transport chunks to application code.
+
+## Consume Server-Sent Events
+
+Set `streamFormat: 'sse'` for an upstream `text/event-stream` response.
+
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://ai.example.com/v1/runs',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${
+        (await vault.get('AI_PROVIDER_TOKEN')).revision.value
+      }`,
+    },
+    data: { task: api.input('task'), stream: true },
+  },
+  {
+    requestType: 'json',
+    responseType: 'stream',
+    streamFormat: 'sse',
+    timeout: 180000,
+  },
+);
+
+const messages = [];
+const maxMessages = 100;
+let truncated = false;
+try {
+  if (response.status < 200 || response.status >= 300) {
+    return { status: response.status, messages };
+  }
+
+  for await (const event of response.data) {
+    if (event.event === 'message') {
+      if (messages.length >= maxMessages) {
+        truncated = true;
+        break;
+      }
+      messages.push(JSON.parse(event.data));
+    }
+    if (event.event === 'completed') break;
+  }
+} finally {
+  await response.close();
+}
+
+return { status: response.status, messages, truncated };
+```
+
+Each item has `{ event, data, id? }`. `data` remains a string; JSON and provider markers such as `[DONE]` are application data and must be interpreted explicitly. Reconnect and `Last-Event-ID` replay are not automatic. Incomplete frames at EOF are discarded.
+
+<Warning>
+  Live byte and SSE iterators are local-runtime capabilities. They cannot be returned through remote JSON SDK calls or Custom Node.js, and they are unavailable with proxy mode. This does not add inbound SSE to RevoEngine Endpoints.
+</Warning>
+
+Continue with [http](/low-code/http).

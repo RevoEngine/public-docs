@@ -1,0 +1,33 @@
+---
+title: api.setInstanceCacheIfNotExists()
+sidebarTitle: setInstanceCacheIfNotExists()
+description: Public low-code contract, signatures and examples for api.setInstanceCacheIfNotExists.
+icon: code
+---
+
+<span id="api-setInstanceCacheIfNotExists" aria-hidden="true"></span>
+
+## `api.setInstanceCacheIfNotExists()`
+
+Writes instance-scoped cache only when the key does not exist.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static setInstanceCacheIfNotExists(
+      key: string,
+      value: any,
+      seconds?: number,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const created = await api.setInstanceCacheIfNotExists('sync:state', { step: 'queued' }, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

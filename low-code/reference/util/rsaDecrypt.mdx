@@ -1,0 +1,30 @@
+---
+title: util.rsaDecrypt()
+sidebarTitle: rsaDecrypt()
+description: Public low-code contract, signatures and examples for util.rsaDecrypt.
+icon: code
+---
+
+<span id="util-rsaDecrypt" aria-hidden="true"></span>
+
+## `util.rsaDecrypt()`
+
+Decrypts with RSA-OAEP and SHA-256 asynchronously. PEM import (including passphrase processing) still executes synchronously.
+
+### Signature
+
+```ts
+static rsaDecrypt(
+      privateKey: string,
+      payload: string,
+      passphrase?: string,
+    ): Promise<string>;
+```
+### Example
+
+```ts
+const plain = await util.rsaDecrypt(privateKey, encrypted, passphrase);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

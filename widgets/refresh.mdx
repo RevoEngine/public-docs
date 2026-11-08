@@ -1,0 +1,79 @@
+---
+title: "Partial refresh and ordered commands"
+description: "Return exactly the requested cells and preserve inputs in the mounted view."
+sidebarTitle: Partial refresh
+icon: arrows-rotate
+---
+
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
+A partial refresh reruns the source function. It replaces only the requested cells after the response arrives. The source must avoid unnecessary reads itself.
+
+## Explore the behavior
+
+<FlowDemo topic="widget" />
+
+## Branch before fetching
+
+```js
+const ui = api.input()?.$widget ?? {};
+const targetIds = ui.targetIds ?? ['*'];
+const wanted = (id) =>
+  targetIds.includes('*') || targetIds.includes(id);
+const rows = [];
+
+if (wanted('status')) {
+  rows.push([
+    {
+      id: 'status',
+      type: 'TEXT',
+      value: 'Read completed at ' + new Date().toISOString(),
+      refresh: { intervalSeconds: 30 },
+    },
+  ]);
+}
+
+if (wanted('help')) {
+  rows.push([
+    {
+      id: 'help',
+      type: 'TEXT',
+      value: 'The status cell refreshes every 30 seconds.',
+    },
+  ]);
+}
+
+return rows;
+```
+
+The first read returns both cells. The timer requests only `status`; the next result must contain exactly that ID. Put an expensive data query **inside** the matching branch.
+
+## Merge rules
+
+- `target: '*'` requests the full matrix.
+- A partial response must contain exactly the requested IDs, with no extra or missing cells.
+- Retained INPUT values and drafts are not reset by an ordinary refresh.
+- An invalid partial response is rejected; it is not treated as an empty dataset.
+- A default overlapping read uses latest-result behavior, protecting against stale responses.
+
+## Ordered commands
+
+Use `concurrency: 'queue'` on a REFRESH action when each command depends on the result of the previous one, such as calculator keys. This is a per-frame UI command queue, distinct from [Job concurrency](/patterns/job-concurrency).
+
+This action fragment assumes a `display` cell exists:
+
+```js
+const action = {
+  type: 'REFRESH',
+  target: 'display',
+  concurrency: 'queue',
+};
+```
+
+Each queued read sees state after the preceding result merged. Inspect `$widget.event.sourceId` to identify the command. A synchronized INPUT can hold the resulting value.
+
+At most 64 commands may wait. Overflow clears pending commands and shows an error. Errors, manual refresh, nonqueued refresh, remount and Back cancellation also discard pending commands. This option does not queue writes or persist state across a page reload.
+
+## Timers
+
+Cell `refresh.intervalSeconds` accepts 1–86400 seconds. Optional `targets` names the cells to refresh instead of the timer cell. Hidden frames pause reads, and overlapping interval reads are skipped. See [header controls and timers](/widgets/header-and-timers) for whole-widget refresh and its fallback behavior.

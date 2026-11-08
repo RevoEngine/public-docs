@@ -1,0 +1,28 @@
+---
+title: util.otp()
+sidebarTitle: otp()
+description: Public low-code contract, signatures and examples for util.otp.
+icon: code
+---
+
+<span id="util-otp" aria-hidden="true"></span>
+
+## `util.otp()`
+
+Generates a numeric one-time code.
+
+Length: integer 0..65536.
+
+### Signature
+
+```ts
+static otp(length?: number): string;
+```
+### Example
+
+```ts
+const code = util.otp(6);
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

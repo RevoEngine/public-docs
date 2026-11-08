@@ -1,0 +1,34 @@
+---
+title: api.compareAndSetInstanceCache()
+sidebarTitle: compareAndSetInstanceCache()
+description: Public low-code contract, signatures and examples for api.compareAndSetInstanceCache.
+icon: code
+---
+
+<span id="api-compareAndSetInstanceCache" aria-hidden="true"></span>
+
+## `api.compareAndSetInstanceCache()`
+
+Atomically updates a cache key only when the current value matches 'expected'.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static compareAndSetInstanceCache(
+      key: string,
+      expected: any,
+      value: any,
+      seconds?: number,
+    ): Promise<boolean>;
+```
+### Example
+
+```ts
+const swapped = await api.compareAndSetInstanceCache('sync:state', { step: 'queued' }, { step: 'running' }, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

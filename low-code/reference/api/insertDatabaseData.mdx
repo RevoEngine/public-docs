@@ -1,0 +1,41 @@
+---
+title: api.insertDatabaseData()
+sidebarTitle: insertDatabaseData()
+description: Public low-code contract, signatures and examples for api.insertDatabaseData.
+icon: code
+---
+
+<span id="api-insertDatabaseData" aria-hidden="true"></span>
+
+## `api.insertDatabaseData()`
+
+Inserts rows. Pass options to control the response: return defaults to true and
+onlyKeys returns only primary-key fields. Insert always validates the complete
+row required for creation; patch is not an insert option.
+
+Notes:
+- Low-code mutations execute atomically in one transaction within the remaining execution memory/time budget. An explicit caller transaction retains its configured timeout.
+- REST/public SDK requests retain the 100,000-row limit per request.
+- return defaults to true and includes full rows. return: false omits data; onlyKeys
+  returns primary keys only. Returning full rows has a higher response-memory cost.
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static insertDatabaseData(
+      name: string,
+      data: LooseObject<any>[],
+      options?: DatabaseDataWriteOptions,
+    ): Promise<DatabaseDataActionResponse>;
+```
+### Example
+
+```ts
+await api.insertDatabaseData('customers', [
+  { customerId: 'c-1', name: 'Acme' },
+]);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

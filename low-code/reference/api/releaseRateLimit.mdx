@@ -1,0 +1,29 @@
+---
+title: api.releaseRateLimit()
+sidebarTitle: releaseRateLimit()
+description: Public low-code contract, signatures and examples for api.releaseRateLimit.
+icon: code
+---
+
+<span id="api-releaseRateLimit" aria-hidden="true"></span>
+
+## `api.releaseRateLimit()`
+
+Resets the entire rate-limit key, including all consumed tokens.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static releaseRateLimit(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.releaseRateLimit('outbound:crm');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

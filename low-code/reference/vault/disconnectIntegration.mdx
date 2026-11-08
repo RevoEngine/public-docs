@@ -1,0 +1,21 @@
+---
+title: vault.disconnectIntegration()
+sidebarTitle: disconnectIntegration()
+description: Public low-code contract, signatures and examples for vault.disconnectIntegration.
+icon: code
+---
+
+<span id="vault-disconnectIntegration" aria-hidden="true"></span>
+
+## `vault.disconnectIntegration()`
+
+Disables the stored connection and invalidates credentials, retaining definition/history/grants.
+Does not promise revocation at the external provider. Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static disconnectIntegration(name: string, options?: SecretScopeOptions): Promise<{ name: string; disabled: boolean } | null>;
+```
+
+See [all vault methods](/low-code/reference/vault) or [runtime basics](/low-code/overview).

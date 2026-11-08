@@ -1,0 +1,80 @@
+---
+title: "Schedule configuration"
+description: "Configure cron, timezone, target and public definition fields."
+icon: book-open
+---
+
+## Configure in the UI
+
+Open **Jobs → Schedule**, select **Add**, then provide:
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| Name | Yes | Operator-facing schedule name. |
+| Category | No | Presentation grouping. |
+| Description | No | Cadence intent, owner, and expected outcome. |
+| Cron | Yes | Standard five-field expression: minute, hour, day of month, month, day of week. |
+| Timezone | Yes | Canonical IANA name such as `UTC` or `Europe/Warsaw`. |
+| Target type | Yes | Job, Agent, or Materialized view. |
+| Target | Yes | Existing target selected from the relevant catalogue. |
+| Activate upon creation | New definitions | Whether scheduling begins immediately. |
+| Metadata | No | Searchable ownership, environment, or cost labels. |
+| Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
+| Input mode | Job only | **Override** overlays Job defaults; **Deep Override** merges nested objects; **Replace** replaces the input entirely. Defaults to **Override**. |
+
+The editor displays a human-readable cron description after validation.
+
+```text
+30 9 * * MON-FRI
+Europe/Warsaw
+```
+
+This fires at 09:30 on weekdays in Warsaw time and follows daylight-saving changes. Abbreviations such as `CET` and `EST` are rejected because they do not provide stable DST rules.
+
+### Cron field reference
+
+```text
+┌──────────── minute (0–59)
+│ ┌────────── hour (0–23)
+│ │ ┌──────── day of month (1–31)
+│ │ │ ┌────── month (1–12 or names)
+│ │ │ │ ┌──── day of week (0–7 or names; Sunday is 0 or 7)
+│ │ │ │ │
+* * * * *
+```
+
+| Intent | Cron | Timezone |
+| --- | --- | --- |
+| Every 15 minutes | `*/15 * * * *` | `UTC` |
+| Every hour at minute 5 | `5 * * * *` | `UTC` |
+| Weekdays at 09:30 local time | `30 9 * * MON-FRI` | `Europe/Warsaw` |
+| First day of each month at 02:00 | `0 2 1 * *` | `Europe/Warsaw` |
+
+The expression describes cadence; the timezone decides how wall-clock times map to real instants. For DST-sensitive business jobs, test the spring and autumn transitions and decide whether a skipped or repeated local hour is acceptable.
+
+## Public configuration shape
+
+The Platform API stores the same effective model shown in the UI:
+
+```json
+{
+  "name": "Business-day settlement",
+  "category": "Finance operations",
+  "desc": "Settles authorized transactions after the business cutoff.",
+  "active": true,
+  "cron": "15 18 * * MON-FRI",
+  "timezone": "Europe/Warsaw",
+  "targetType": "JOB_TEMPLATE",
+  "targetId": "e8250fe1-f0e1-4d2b-b8c4-10494cb23f15",
+  "input": { "region": "eu" },
+  "inputMode": "override",
+  "metadata": {
+    "owner": "payments-platform",
+    "runbook": "settlement-v3"
+  }
+}
+```
+
+Updates include the current `version`. If another operator saved first, the stale update is rejected and the editor must reload before retrying. Instance settings govern total and active customer Schedule quotas. RevoEngine-managed system schedules are excluded from those customer counters.
+
+Continue with [schedules](/operate/schedules).

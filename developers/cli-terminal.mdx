@@ -1,0 +1,81 @@
+---
+title: Terminal command reference
+description: Pair a workstation, select an approved workspace, inspect its status and run the connector as a background service.
+icon: terminal
+---
+
+The terminal connector makes an approved directory on your computer available to the Assistant. The CLI process must remain online. The connection, workspace approval, command policy, network permission and browser authentication are separate controls; start with [Connect a terminal](/ai/terminals).
+
+## Connect and inspect
+
+```bash
+revo auth login
+revo terminal connect --workspace "$HOME/projects/asterion-demo" \
+  --name "Asterion Demo Workstation"
+```
+
+The first connection is pending until the owner approves it in **Settings → Vault → Terminals**. Reconnecting the same terminal preserves its registration; a different directory needs its own approved workspace.
+
+```bash
+revo terminal status
+revo terminal status --project asterion-test
+```
+
+An existing registration does not prove that its runner is online or its workspace is approved. Inspect all three before asking the Assistant to execute a command.
+
+| Option | Applies to | Meaning |
+| --- | --- | --- |
+| `--workspace <path>` | Connect, disconnect, background service | Root directory for the approved workspace |
+| `--name <name>` | Connect or select a registration | Human-readable terminal name |
+| `--terminal-id <uuid>` | Select an existing registration | Use instead of `--name`, never both |
+| `--project <name>` | Terminal commands | Use a saved CLI connection |
+| `--realtime-url <url>` | Connect | Override the connection address only when required by the instance setup |
+| `--url`, `--token`, `--instance` | Ordinary terminal commands | Explicit API overrides; not supported by service install/uninstall |
+
+Terminal commands do not accept a child shell command after `--`. Connect the runner, then execute through an authorized Revo conversation.
+
+## Run in the background
+
+After approving the connection and verifying it interactively:
+
+```bash
+revo terminal service install --workspace "$HOME/projects/asterion-demo" \
+  --name "Asterion Demo Workstation"
+revo terminal status
+```
+
+Background services are supported on macOS and Linux. They use saved connection configuration; do not place credentials in service command arguments. Installing a service does not approve its workspace or grant additional access.
+
+To remove the background service:
+
+```bash
+revo terminal service uninstall --workspace "$HOME/projects/asterion-demo"
+```
+
+To revoke the selected local terminal grant:
+
+```bash
+revo terminal disconnect --workspace "$HOME/projects/asterion-demo" \
+  --name "Asterion Demo Workstation"
+```
+
+Stopping a process and revoking access are different actions. Inspect Vault after revocation and confirm the expected connection state before reusing a workspace.
+
+## Browser authentication
+
+Manage website sessions in **Settings → Vault → Browser Profiles**, then assign the appropriate profile to an approved terminal workspace. A CLI API key authenticates to Revo; it does not sign the browser into a supplier website.
+
+The legacy cleanup command removes a selected local browser profile:
+
+```bash
+revo terminal browser-profile forget --browser-profile supplier-portal \
+  --terminal-id "$TERMINAL_ID" --workspace "$HOME/projects/asterion-demo"
+```
+
+The old browser-profile connection flow is retired. Use the [Browser Profiles guide](/ai/browser-profiles) for current assignment, clearing website state and access boundaries.
+
+## Practical uses and evidence
+
+Use a terminal to run a repository test suite, inspect a generated CSV, validate a contract price, or operate a browser on an approved site. Keep each task inside the intended workspace and grant only the command/network access it needs.
+
+[Terminal execution and logs](/ai/terminal-execution-and-logs) shows what appears in the conversation, how truncation differs from process failure, what the local operational log records, and how to distinguish a completed command from a confirmed business result.

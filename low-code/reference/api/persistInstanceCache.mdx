@@ -1,0 +1,29 @@
+---
+title: api.persistInstanceCache()
+sidebarTitle: persistInstanceCache()
+description: Public low-code contract, signatures and examples for api.persistInstanceCache.
+icon: code
+---
+
+<span id="api-persistInstanceCache" aria-hidden="true"></span>
+
+## `api.persistInstanceCache()`
+
+Makes a cache key persistent.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static persistInstanceCache(key: string): Promise<void>;
+```
+### Example
+
+```ts
+await api.persistInstanceCache('sync:state');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

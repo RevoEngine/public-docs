@@ -1,0 +1,26 @@
+---
+title: api.existsInstanceCache()
+sidebarTitle: existsInstanceCache()
+description: Public low-code contract, signatures and examples for api.existsInstanceCache.
+icon: code
+---
+
+<span id="api-existsInstanceCache" aria-hidden="true"></span>
+
+## `api.existsInstanceCache()`
+
+Checks whether an instance cache key exists.
+
+### Signature
+
+```ts
+static existsInstanceCache(key: string): Promise<boolean>;
+```
+### Example
+
+```ts
+const exists = await api.existsInstanceCache('sync:state');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

@@ -1,0 +1,29 @@
+---
+title: agent.getRun()
+sidebarTitle: getRun()
+description: Public low-code contract, signatures and examples for agent.getRun.
+icon: code
+---
+
+<span id="agent-getRun" aria-hidden="true"></span>
+
+## `agent.getRun()`
+
+Returns one agent run. Read the complete validated terminal answer from result.output;
+result.summary is a bounded human-readable summary and must not be parsed as the JSON answer.
+
+### Signature
+
+```ts
+static getRun(agentRunId: string): Promise<AgentRun>;
+```
+### Example
+
+```ts
+const run = await agent.getRun(agentRunId);
+const json = run.status === 'FINISHED' && run.result?.output?.type === 'json'
+  ? run.result.output.json : undefined;
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

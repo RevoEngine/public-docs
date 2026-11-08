@@ -4,6 +4,8 @@ description: Control how the Assistant and Agents plan, pause, and execute side 
 icon: shield-check
 ---
 
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
 The [Agent Harness](/ai/agent-harness) separates three controls that are easy to confuse: **execution mode**, **planning policy**, and **permission policy**. They work together, but each answers a different question.
 
 | Control | Question it answers | Typical choice |
@@ -11,6 +13,10 @@ The [Agent Harness](/ai/agent-harness) separates three controls that are easy to
 | Execution mode | How interactive or autonomous should this turn be? | `interactive` for supervised work; `background` or `automation` for durable work |
 | Planning policy | Must implementation wait for plan review? | `standard` for normal work; `review_required` for a mandatory review gate |
 | Permission policy | How should an approval-sensitive action be routed? | **Restricted**, **Auto Review**, or **Full Access**, depending on the required supervision |
+
+## Explore the behavior
+
+<FlowDemo topic="approval" />
 
 ## Execution modes
 

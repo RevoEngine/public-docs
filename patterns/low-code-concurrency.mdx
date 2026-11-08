@@ -1,0 +1,55 @@
+---
+title: "Limit a low-code operation"
+description: "Acquire and release a slot around one bounded operation."
+sidebarTitle: Low-code concurrency
+icon: layer-group
+---
+
+import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
+
+Use explicit low-code admission when one section of a Component needs a dynamic concurrency key. `api.concurrencyLimit()` returns whether it acquired a slot; it does not automatically enqueue work that cannot enter.
+
+## Explore the behavior
+
+<FlowDemo topic="lowcode" />
+
+## Bounded read example
+
+This Component requires write-capable execution because acquiring a coordination slot changes coordination state. The business query itself is read-only. Replace the database name with an accessible Table and keep execution time below the 60-second permit lifetime.
+
+```js
+const customerId = api.input()?.customerId;
+if (
+  typeof customerId !== 'string' ||
+  !/^[A-Za-z0-9_-]{1,80}$/.test(customerId)
+) {
+  throw new Error('A valid customerId is required.');
+}
+
+const key = 'customer-summary:' + customerId;
+const admitted = await api.concurrencyLimit(key, 2, 60);
+if (!admitted) {
+  return { status: 'BUSY' };
+}
+
+try {
+  const page = await api.getDatabaseData('orders', {
+    fields: ['orderId', 'status'],
+    filter: { field: 'customerId', op: 'eq', value: customerId },
+    take: 20,
+  });
+  return { status: 'FINISHED', rows: page.data };
+} finally {
+  await api.releaseConcurrencyLimit(key);
+}
+```
+
+The same customer can have two admitted operations; a third returns `BUSY`. Other customer keys have independent capacity. The caller decides whether to retry, report busy, or schedule durable work.
+
+## Ownership and lifetime
+
+Release exactly once after successful admission, through the same runtime invocation. Do not release when admission returned `false`. For separate SDK requests, use the same explicit `leaseOwnerId` for acquisition and release; choose a unique owner for each execution.
+
+The TTL is in seconds. Reusing an owner does not renew the lifetime; finish before expiry. This bounds concurrency while the permit is valid. It does not make business effects idempotent.
+
+For a whole background Job, prefer its [managed concurrency policy](/patterns/job-concurrency). For exact arguments, see [`api.concurrencyLimit()`](/low-code/reference/api/concurrencyLimit) and [`api.releaseConcurrencyLimit()`](/low-code/reference/api/releaseConcurrencyLimit).

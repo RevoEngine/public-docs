@@ -1,0 +1,99 @@
+---
+title: "Call a JSON API"
+description: "Send JSON and handle a bounded external response."
+icon: book-open
+---
+
+## Call a JSON API
+
+Keep credentials in Vault and send query parameters through `params`. Read the value explicitly with `await vault.get` or `await vault.getAccessToken`, then build the outgoing header. Protect execution capture and never log credentials. Provider bodies can echo credentials; return only the fields your caller needs.
+```js
+const response = await api.httpCall(
+  {
+    url: 'https://crm.example.com/v2/customers',
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${
+        (await vault.get('CRM_API_TOKEN')).revision.value
+      }`,
+      Accept: 'application/json',
+    },
+    params: [
+      { key: 'externalId', value: api.input('externalCustomerId') },
+      { key: 'include', value: 'contacts' },
+    ],
+  },
+  {
+    requestType: 'json',
+    responseType: 'json',
+    timeout: 15000,
+  },
+);
+
+if (response.status === 404) return null;
+if (response.status < 200 || response.status >= 300) {
+  api.throw(502, {
+    message: 'CRM request failed',
+    upstreamStatus: response.status,
+  });
+}
+
+return response.data;
+```
+
+Do not return the upstream error body blindly. It can contain credentials, personal data, or implementation details. Map expected failures to your own bounded response and keep safe correlation identifiers for investigation.
+
+`vault.get` defaults to instance scope. Personal reads in saved Components require the exact grant and a verified executing owner; direct owner reads use the current account. Integration consumption follows the same saved Component or Tool grant mapping:
+
+```js
+const token = await vault.getAccessToken('WORKSPACE', {
+  scope: 'user',
+});
+const response = await api.httpCall({
+  url: 'https://api.example.com/items',
+  headers: { Authorization: `Bearer ${token.accessToken}` },
+});
+```
+
+The grant follows the consumer's stable identity across updates; review changed code before running it with credentials. Values are ordinary strings or Buffers in code. Reuse a read for a stable execution snapshot; read again when the latest value is required. Queue credential names rather than tokens.
+
+## Make external mutations retry-safe
+
+A timeout is ambiguous: the provider may have committed the operation before the connection failed. Generate or load a stable business idempotency key before the first attempt and reuse it for every retry.
+
+```js
+const operationId = api.getOperationId();
+const paymentKey = `invoice:${api.input('invoiceId')}:collect:v1`;
+
+const response = await api.httpCall(
+  {
+    url: 'https://payments.example.com/v1/collections',
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${
+        (await vault.get('PAYMENTS_TOKEN')).revision.value
+      }`,
+      'Idempotency-Key': paymentKey,
+    },
+    data: {
+      invoiceId: api.input('invoiceId'),
+      amount: api.input('amount'),
+      correlationId: operationId,
+    },
+  },
+  { requestType: 'json', responseType: 'json', timeout: 20000 },
+);
+
+if (response.status < 200 || response.status >= 300) {
+  api.throw(502, {
+    message: 'Collection was not confirmed',
+    operationId,
+  });
+}
+
+return { operationId, providerOperationId: response.data.id };
+```
+
+Use a Job when the operation needs durable retry, reconciliation, or a longer execution budget. HTTP transport retry and business retry are different decisions.
+
+Continue with [http](/low-code/http).

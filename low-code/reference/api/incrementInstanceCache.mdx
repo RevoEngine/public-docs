@@ -1,0 +1,34 @@
+---
+title: api.incrementInstanceCache()
+sidebarTitle: incrementInstanceCache()
+description: Public low-code contract, signatures and examples for api.incrementInstanceCache.
+icon: code
+---
+
+<span id="api-incrementInstanceCache" aria-hidden="true"></span>
+
+## `api.incrementInstanceCache()`
+
+Atomically increments an integer cache key.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+- 'by' must be an integer.
+
+### Signature
+
+```ts
+static incrementInstanceCache(
+      key: string,
+      by?: number,
+      seconds?: number,
+    ): Promise<number>;
+```
+### Example
+
+```ts
+const count = await api.incrementInstanceCache('sync:counter', 1, 300);
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

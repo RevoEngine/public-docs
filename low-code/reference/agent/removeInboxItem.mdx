@@ -1,0 +1,32 @@
+---
+title: agent.removeInboxItem()
+sidebarTitle: removeInboxItem()
+description: Public low-code contract, signatures and examples for agent.removeInboxItem.
+icon: code
+---
+
+<span id="agent-removeInboxItem" aria-hidden="true"></span>
+
+## `agent.removeInboxItem()`
+
+Removes an inbox item.
+
+Notes:
+- Unavailable with `readOnly: true` (throws an error).
+
+### Signature
+
+```ts
+static removeInboxItem(
+      agentId: string,
+      agentInboxItemId: string,
+    ): Promise<AgentInboxItem>;
+```
+### Example
+
+```ts
+await agent.removeInboxItem(agentId, agentInboxItemId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

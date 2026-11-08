@@ -1,0 +1,26 @@
+---
+title: api.getInstanceCache()
+sidebarTitle: getInstanceCache()
+description: Public low-code contract, signatures and examples for api.getInstanceCache.
+icon: code
+---
+
+<span id="api-getInstanceCache" aria-hidden="true"></span>
+
+## `api.getInstanceCache()`
+
+Reads instance-scoped cache.
+
+### Signature
+
+```ts
+static getInstanceCache(key: string): Promise<any>;
+```
+### Example
+
+```ts
+const state = await api.getInstanceCache('sync:state');
+```
+
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

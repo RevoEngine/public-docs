@@ -1,0 +1,27 @@
+---
+title: serviceAccount.updateKey()
+sidebarTitle: updateKey()
+description: Public low-code contract, signatures and examples for serviceAccount.updateKey.
+icon: code
+---
+
+<span id="serviceAccount-updateKey" aria-hidden="true"></span>
+
+## `serviceAccount.updateKey()`
+
+expireAt is immutable here; use rotateKey to change the successor expiry.
+
+### Signature
+
+```ts
+static updateKey(ref: ServiceAccountRef, userKeyId: string, input: ServiceAccountKeyUpdateInput): Promise<ServiceAccountKey>;
+```
+### Example
+
+```ts
+const key = await serviceAccount.getKey('erp-sync', input.userKeyId);
+await serviceAccount.updateKey('erp-sync', key.userKeyId, { version: key.version, name: 'primary' });
+```
+
+
+See [all serviceAccount methods](/low-code/reference/serviceAccount) or [runtime basics](/low-code/overview).

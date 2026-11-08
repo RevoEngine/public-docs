@@ -1,0 +1,43 @@
+---
+title: agent.createResponse()
+sidebarTitle: createResponse()
+description: Public low-code contract, signatures and examples for agent.createResponse.
+icon: code
+---
+
+<span id="agent-createResponse" aria-hidden="true"></span>
+
+## `agent.createResponse()`
+
+Lightweight response; waits for a final answer or action-required pause.
+Defaults: minimal context, no tools/plugins. Explicit plugin selections require their callable router tools in toolNames.
+Reuses createThread model/identity selection and saved instructions/strict responseFormat.
+Backing kind=response is excluded from default list/search; persistThread=true makes an ordinary visible conversation.
+Both modes retain evidence. output.text/json contain the answer; message is the original input.
+Without stream options returns its original Promise. Unavailable with readOnly:true.
+
+### Overloads
+
+```ts
+static createResponse(data: AssistantResponseInput): Promise<AssistantThreadResponse>;
+
+static createResponse(
+      data: AssistantResponseInput,
+      stream: AssistantStreamOptions,
+    ): Promise<ExecutionStream<AssistantThreadResponse>>;
+```
+### Examples
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.' });
+return response.output?.text;
+```
+
+```ts
+const response = await agent.createResponse({ content: 'Cześć, Aniu!', instructions: 'Translate Polish to English.',
+  responseFormat: { type: 'json', strict: true, schema: { type: 'object', properties: { translation: { type: 'string' } }, required: ['translation'], additionalProperties: false } } });
+return response.output?.json;
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).

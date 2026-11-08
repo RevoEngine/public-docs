@@ -1,0 +1,29 @@
+---
+title: agent.getPlugin()
+sidebarTitle: getPlugin()
+description: Public low-code contract, signatures and examples for agent.getPlugin.
+icon: code
+---
+
+<span id="agent-getPlugin" aria-hidden="true"></span>
+
+## `agent.getPlugin()`
+
+Returns one agent plugin definition for an agent.
+
+### Signature
+
+```ts
+static getPlugin(
+      agentId: string,
+      toolId: string,
+    ): Promise<AgentPlugin>;
+```
+### Example
+
+```ts
+const tool = await agent.getPlugin(agentId, toolId);
+```
+
+
+See [all agent methods](/low-code/reference/agent) or [runtime basics](/low-code/overview).
