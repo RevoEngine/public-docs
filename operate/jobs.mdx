@@ -17,7 +17,7 @@ A Job is a durable execution record for a Component. Use one when a task must ou
 | Work | Good starting point | Confirm completion with |
 | --- | --- | --- |
 | Look up one order while the caller waits | [HTTP Endpoint](/operate/endpoint-http) | Its response |
-| Export a report for later download | Job started from an Endpoint returning `202` | Job result and finalized Storage entry |
+| Export a report for later download | [Job started from an Endpoint returning `202`](/examples/endpoint-job) | Job result and finalized Storage entry |
 | Process an uploaded file | [Event](/operate/events) targeting a Job template | Event History and Job result |
 | Synchronize with an ERP overnight | [Schedule](/operate/schedules) targeting a Job template | Schedule History and Job result |
 

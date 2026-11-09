@@ -60,9 +60,8 @@ if (!order) api.throw(404, { code: 'ORDER_NOT_FOUND', message: 'Order not found.
 return { orderId: order.orderId, status: order.status };
 ```
 
-For long work, trigger a [Job](/operate/jobs), return `202` with a durable operation
-identifier and let the client observe that operation. An HTTP connection is not a
-durable execution queue.
+For long work, [start a Job from the Endpoint](/examples/endpoint-job), return
+`202` with its Job ID and let the client check that run through the Platform API.
 
 ## Validate before execution
 

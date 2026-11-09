@@ -33,4 +33,14 @@ Return stable execution, operation or resource IDs so the next caller can follow
 <span id="separate-acceptance-from-completion" aria-hidden="true"></span>
 <span id="protect-secrets" aria-hidden="true"></span>
 <span id="return-evidence-not-internal-noise" aria-hidden="true"></span>
-<span id="production-review-checklist" aria-hidden="true"></span>
+
+## Production review checklist
+
+- Validate input at the public boundary and enforce business rules again in the executing Component.
+- Bound reads, page sizes, file batches, execution time and [concurrency](/patterns/low-code-concurrency).
+- Make [retries and replays](/patterns/idempotency) safe for each business effect, including payments, messages and database transitions.
+- Keep [database transactions](/patterns/transactions) short. Run external calls and file transfers outside them.
+- Give the execution account only the roles and resource access the Component requires.
+- Resolve [Secrets](/operate/secrets) at runtime and keep their values out of logs and results.
+- Return stable execution, operation or resource IDs so the caller can follow the result in [Observability](/operate/observability).
+- Document how operators distinguish acceptance from completion, verify [uncertain outcomes](/patterns/retry-and-uncertainty) and recover safely.

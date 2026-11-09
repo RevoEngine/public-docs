@@ -1,0 +1,171 @@
+---
+title: Start a Job from an Endpoint
+description: Validate an HTTP command, return 202 with the Job ID, and retrieve the result of that exact run.
+icon: briefcase
+---
+
+Build a quote request for a synthetic order. The Endpoint accepts an order ID and quantity, then starts a Job. The Job uses a price configured in its template and returns the total in minor currency units. The caller receives a Job ID immediately after acceptance and reads the result separately.
+
+Use a non-production instance where you can create and activate Components, Job templates and Endpoints. The invoking credential needs `ENDPOINT_INVOKE`. The Endpoint's execution account needs permission to start Jobs. Reading Job details through the Platform API requires `AUTOMATION_READ` or `AUTOMATION_ADMIN`. The Job template selects its own execution account.
+
+## 1. Create the worker and Job template
+
+Create a JavaScript Component named **Calculate demo quote** with a visible element named **Quote**. Paste the complete element body and activate the Component.
+
+```js title="Worker Component · Quote"
+const { orderId, quantity, unitPriceMinor } = api.input('templateInputs') ?? {};
+if (typeof orderId !== 'string' || orderId.length < 1 || orderId.length > 64) {
+  throw new Error('A bounded order ID is required.');
+}
+if (!Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
+  throw new Error('Quantity must be an integer from 1 to 1000.');
+}
+if (!Number.isInteger(unitPriceMinor) || unitPriceMinor < 1 || unitPriceMinor > 1000000) {
+  throw new Error('Configure a unit price in minor currency units.');
+}
+
+return { orderId, quantity, unitPriceMinor, totalMinor: quantity * unitPriceMinor };
+```
+
+In **Jobs**, create a template named **Calculate demo quote** using that Component. Set **Runtime input** to the following JSON.
+
+```json title="Job template · Runtime input"
+{ "unitPriceMinor": 1250 }
+```
+
+Keep automatic retry disabled for this example and leave **Hide response** off so the synthetic result remains visible. Save the active template and copy its ID. The values passed when starting a Job overlay the template defaults, so the Endpoint can supply the order ID and quantity while the template supplies the price.
+
+## 2. Create the Endpoint Component
+
+Create a second JavaScript Component named **Request demo quote** with a visible element named **Response**. Paste this body and activate it.
+
+```js title="Endpoint Component · Response"
+const { body, parameters, templateInputs } = api.input();
+const orderId = parameters.orderId;
+const quantity = body.quantity;
+const quoteJobTemplateId = templateInputs?.quoteJobTemplateId;
+if (typeof quoteJobTemplateId !== 'string' || quoteJobTemplateId.length === 0) {
+  api.throw(500, { code: 'QUOTE_JOB_NOT_CONFIGURED' });
+}
+
+const jobId = await api.triggerJob(quoteJobTemplateId, { orderId, quantity });
+return { accepted: true, jobId };
+```
+
+The route guard supplies the request validation. The Component forwards only the two fields the worker needs. It awaits Job acceptance before returning the receipt.
+
+## 3. Configure and activate the route
+
+Create an inactive Endpoint in **Endpoints**, select **Request demo quote**, and set these options.
+
+| Setting | Value |
+| --- | --- |
+| Method and path | `POST /examples/orders/:orderId/quote` |
+| Response mode | **HTTP** |
+| Success status | `202` |
+| Result element | **Response** (`popResult`) |
+| Timeout | `10` seconds for validation and submission. The worker uses the Job template's own timeout. |
+| Validation status | `422` |
+| Request history | Enable **Hide request** if you adapt this example for sensitive inputs. |
+| Inputs | `{"quoteJobTemplateId":"<quote-job-template-id>"}`, with the ID copied from the template. |
+
+Paste the following schema into the inline request guard. It bounds the order ID, accepts a whole-number quantity and rejects extra body fields.
+
+```json title="Endpoint · Inline guard"
+{
+  "profile": "strict",
+  "schema": {
+    "type": "object",
+    "additionalProperties": "allow",
+    "objectSchema": [
+      {
+        "property": "parameters",
+        "schema": {
+          "type": "object",
+          "required": true,
+          "objectSchema": [
+            {
+              "property": "orderId",
+              "schema": { "type": "string", "required": true, "min": 1, "max": 64 }
+            }
+          ]
+        }
+      },
+      {
+        "property": "body",
+        "schema": {
+          "type": "object",
+          "required": true,
+          "additionalProperties": "reject",
+          "objectSchema": [
+            {
+              "property": "quantity",
+              "schema": { "type": "integer", "required": true, "min": 1, "max": 1000 }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Check the [execution policy](/operate/endpoint-configuration#execution-policy) and selected Component version, then activate the route.
+
+## 4. Submit the request
+
+Set `REVO_ENDPOINT_URL` to the [Endpoint runtime base URL](/developers/endpoint-runtime) and `REVO_ENDPOINT_KEY` to your invoking credential.
+
+```bash title="Request a quote"
+curl --include --request POST "$REVO_ENDPOINT_URL/examples/orders/order-123/quote" \
+  --header "Authorization: Bearer $REVO_ENDPOINT_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{"quantity":3}'
+```
+
+Expect HTTP **202** and a receipt like this. Save the returned `jobId`.
+
+```json title="Accepted receipt"
+{ "accepted": true, "jobId": "<job-id>" }
+```
+
+Send the same request with `--data '{"quantity":0}'` to check the rejection path. It returns **422** before the Endpoint Component runs, so it creates no Job.
+
+## 5. Read the result
+
+Set `JOB_ID` to the ID from the receipt, `REVO_API_URL` to the [Platform API base URL](/developers/platform-api), and `REVO_JOB_READ_KEY` to a credential with Job read access.
+
+```bash title="Read the exact Job"
+curl --fail-with-body "$REVO_API_URL/api/v1/automation/job/$JOB_ID" \
+  --header "Authorization: Bearer $REVO_JOB_READ_KEY"
+```
+
+While the Job is pending or processing, repeat this **GET** after a short delay. Stop after a bounded observation window and keep the Job ID so you can check later. In the app, find the same ID in [Job History](/operate/jobs#operate-a-job).
+
+When `status` is `FINISHED`, read `output.results.Quote`. These are the relevant fields from the Job detail response.
+
+```json title="Completed Job detail · selected fields"
+{
+  "jobId": "<job-id>",
+  "status": "FINISHED",
+  "output": {
+    "results": {
+      "Quote": {
+        "orderId": "order-123",
+        "quantity": 3,
+        "unitPriceMinor": 1250,
+        "totalMinor": 3750
+      }
+    }
+  }
+}
+```
+
+| What you see | How to proceed |
+| --- | --- |
+| `ERROR`, `CANCELLED` or `EXPIRED` | Open the exact run's details and logs. If you enable automatic retry in another template, also check the [retry history](/operate/jobs#read-attempt-status-and-job-result) before treating an attempt error as final. |
+| `ACTION_REQUIRED` | Inspect Job History and resolve the reported condition before proceeding. |
+| `FINISHED` without the quote | Check whether the template hides the response and whether **Quote** is a visible element. |
+| Submission times out before the receipt arrives | The Job may already exist. Check Job History before submitting again. For production writes, [deduplicate by business operation](/patterns/idempotency) and retain the Job receipt so the client can safely recover it. |
+
+The Job detail route is for authorized operators and integrations. For an application that serves end users, expose a status or result scoped to the caller's own operation. Keep the Platform API credential server-side.

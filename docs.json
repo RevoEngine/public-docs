@@ -505,6 +505,7 @@
           {
             "group": "HTTP and streaming",
             "pages": [
+              "examples/endpoint-job",
               "operate/sse-openai-example",
               "operate/sse-browser-client",
               {

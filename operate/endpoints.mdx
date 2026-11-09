@@ -38,7 +38,6 @@ The guard receives `body`, `query`, `parameters` and sanitized `headers`. A vali
 <span id="choose-the-execution-target" aria-hidden="true"></span>
 <span id="component-backed-endpoint" aria-hidden="true"></span>
 <span id="static-endpoint" aria-hidden="true"></span>
-<span id="configure-an-order-command-step-by-step" aria-hidden="true"></span>
 
 ## Publish a route
 
@@ -47,6 +46,10 @@ The guard receives `body`, `query`, `parameters` and sanitized `headers`. A vali
 3. Activate and call the route using the [Endpoint runtime URL](/developers/endpoint-runtime). Test a valid request and one that fails the guard.
 
 The [configuration reference](/operate/endpoint-configuration) covers route rules, access identity, version binding, validation errors, and a complete order command definition. For a first working route, use the [quickstart](/quickstart).
+
+<span id="configure-an-order-command-step-by-step" aria-hidden="true"></span>
+
+For background work, follow [Start a Job from an Endpoint](/examples/endpoint-job). Configure the guard, return `202` with the Job ID and read the result of that exact run.
 
 <span id="shape-the-response" aria-hidden="true"></span>
 <span id="stream-responses-with-sse" aria-hidden="true"></span>
