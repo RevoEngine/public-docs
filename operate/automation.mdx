@@ -23,6 +23,8 @@ For an alert when a Job fails, configure [Job failure notifications](/operate/jo
 
 <span id="create-a-job-template" aria-hidden="true"></span>
 
+Use [Configure a template](/operate/jobs#configure-a-template) to set the execution account and runtime policy. Follow [Run a Job from a custom Event](/examples/event-job) to publish a trigger and verify the result in Event History and Job History.
+
 <span id="inputs-and-history" aria-hidden="true"></span>
 
 <span id="concurrency" aria-hidden="true"></span>
@@ -69,6 +71,8 @@ Operator actions have deliberately different meaning:
 />
 
 Each record answers a different question. Event History can show that a target was selected while Job History still shows it waiting. A successful Job may have created a Webhook whose delivery is still pending. Follow [one Event through a Job to a Webhook](/patterns/event-to-webhook) to see what to inspect at each handoff.
+
+<span id="production-checklist" aria-hidden="true"></span>
 
 ## Before enabling automation
 

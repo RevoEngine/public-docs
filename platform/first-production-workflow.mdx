@@ -72,7 +72,7 @@ flowchart LR
     J --> H["Job History / logs / trace"]
 ```
 
-The synchronous boundary reserves funds and produces a durable ledger fact. The Job performs slower or retryable provider work **after** the database transaction commits. Never keep a database lock open while waiting for an external API.
+The synchronous boundary reserves funds and records the pending settlement. Job submission follows the database commit. If the handoff loses its receipt, a repeat of the same command can resume it using the ledger. The Job uses the transaction ID as the provider idempotency key, then records settlement and saves a restricted receipt.
 
 ## What this one workflow demonstrates
 

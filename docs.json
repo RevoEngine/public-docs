@@ -499,7 +499,8 @@
                   "tutorials/order-verification"
                 ]
               },
-              "platform/asterion-supply"
+              "platform/asterion-supply",
+              "examples/event-job"
             ]
           },
           {

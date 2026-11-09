@@ -22,13 +22,13 @@ RevoEngine 1.7.1 adds conditional Database upserts for repeatable imports, compl
 
 The 3 November update to 1.7.1 adds `skipUnchanged` to avoid rewriting identical imported data and `filter` to control updates using current Database values. New rows are inserted independently of the filter. Compare all supplied fields or select an `include` or `exclude` list; changes only outside the compared set are intentionally skipped. Use `affected` to count actual writes in conditional mode and `return: false` when row data is unnecessary. Skipped writes do not create row-audit updates.
 
-Read [Database mutations](/operate/databases#conditional-upserts) and the [low-code API reference](/low-code/reference/api#api-upsertDatabaseData).
+Read [Database mutations](/operate/database-mutations#conditional-upserts) and the [low-code API reference](/low-code/reference/api/upsertDatabaseData).
 
 ## Preview Database read plans
 
 Use `debug: true` on a structured Database read to inspect the complete estimated plan before fetching records. It now returns a diagnostic result only, including an optional count plan. Remove `debug` when the application needs records.
 
-Read [Database read diagnostics](/operate/databases#preview-a-read-plan).
+Read [Database read diagnostics](/operate/database-queries#preview-a-read-plan).
 
 ## Legacy Files retired
 
