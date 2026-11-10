@@ -16,9 +16,14 @@ test('reads links directly from a flat Mintlify index', async () => {
   assert.deepEqual([...pages], ['/introduction', '/quickstart']);
 });
 
-test('follows nested indexes once and collects pages from each level', async () => {
+test('finds highlighted root links and follows nested indexes once', async () => {
   const sources = new Map([
     ['/llms.txt', `
+> ## Agent Instructions
+>
+> - [Introduction](${origin}/introduction.md)
+> - [Quickstart](/quickstart.md)
+
 - [Guides](${origin}/_llms/guides.txt)
 - [Reference](/_llms/reference.txt)
 - [Example](/examples/job.md)
@@ -35,12 +40,13 @@ test('follows nested indexes once and collects pages from each level', async () 
 `],
   ]);
   const reads = [];
-  const { pages } = await readDocsIndex(origin, '/llms.txt', async (path) => {
+  const { pages, rootPages } = await readDocsIndex(origin, '/llms.txt', async (path) => {
     reads.push(path);
     return sources.get(path);
   });
   assert.deepEqual(reads, [...sources.keys()]);
-  assert.deepEqual([...pages], ['/examples/job', '/introduction', '/api-reference/jobs/start']);
+  assert.deepEqual([...rootPages], ['/introduction', '/quickstart', '/examples/job']);
+  assert.deepEqual([...pages], ['/introduction', '/quickstart', '/examples/job', '/api-reference/jobs/start']);
 });
 
 test('reports a broken linked index', async () => {

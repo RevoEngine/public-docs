@@ -34,13 +34,16 @@ try {
     const tool = manifest.tools?.find((entry) => entry.name === name);
     if (tool?.inputSchema?.properties?.[field]?.type !== 'string' || !tool?.inputSchema?.required?.includes(field)) throw new Error(`Docs tool contract changed: ${name}`);
   }
-  const { indexPaths, pages } = await readDocsIndex(origin, product.documentation.index, async (path) =>
+  const { indexPaths, pages, rootPages } = await readDocsIndex(origin, product.documentation.index, async (path) =>
     (await request(path)).text());
+  const startPages = ['/introduction', '/quickstart', '/platform/product-model', '/developers/overview'];
+  const missingStartPages = startPages.filter((page) => !rootPages.has(page));
+  if (missingStartPages.length) throw new Error(`Root ${product.documentation.index} omits ${missingStartPages.join(', ')}`);
   const requiredPages = new Set([
+    ...startPages,
     ...product.documentation.entrypoints,
     ...product.domains.map(({ docs }) => docs),
     ...product.decisions.map(({ docs }) => docs),
-    '/quickstart',
     '/developers/authentication',
     '/api-reference/introduction',
     '/low-code/reference/index',

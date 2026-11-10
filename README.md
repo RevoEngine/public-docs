@@ -123,8 +123,10 @@ After Mintlify reports a successful publication, run `npm run check:docs-live`, 
 trigger the Published documentation freshness workflow (manual dispatch or the
 `docs-published` repository event). It compares the released product snapshot with
 live Markdown, the documentation index, MCP retrieval, search, and tool schemas.
-The check follows Mintlify's linked `/_llms/` indexes and verifies that product
-entry points, domain guides, and developer references are discoverable.
+The check verifies the starting links in the root `llms.txt` and follows Mintlify's
+linked `/_llms/` indexes to verify product entry points, domain guides, and developer
+references. The short `markdown.instructions` block in `docs.json` supplies the
+starting links to the generated index and Markdown exports.
 It deliberately fails before the matching documentation is published. It does not
 submit feedback, change content, or notify external search engines. Repository dispatch
 must be connected to the publication completion event by the release operator.
