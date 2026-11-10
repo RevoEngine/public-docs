@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
+import { readDocsIndex } from './read-docs-index.mjs';
 const product = JSON.parse(readFileSync(new URL('../platform/product-contract.json', import.meta.url), 'utf8'));
 const origin = product.documentation.origin;
 const headers = { 'content-type': 'application/json', accept: 'application/json, text/event-stream' };
@@ -33,9 +34,21 @@ try {
     const tool = manifest.tools?.find((entry) => entry.name === name);
     if (tool?.inputSchema?.properties?.[field]?.type !== 'string' || !tool?.inputSchema?.required?.includes(field)) throw new Error(`Docs tool contract changed: ${name}`);
   }
-  const index = await (await request(product.documentation.index)).text();
+  const { indexPaths, pages } = await readDocsIndex(origin, product.documentation.index, async (path) =>
+    (await request(path)).text());
+  const requiredPages = new Set([
+    ...product.documentation.entrypoints,
+    ...product.domains.map(({ docs }) => docs),
+    ...product.decisions.map(({ docs }) => docs),
+    '/quickstart',
+    '/developers/authentication',
+    '/api-reference/introduction',
+    '/low-code/reference/index',
+  ]);
+  const missingPages = [...requiredPages].filter((page) => !pages.has(page));
+  if (missingPages.length) throw new Error(`Published index omits ${missingPages.join(', ')}`);
+  console.log(`Published index verified: ${pages.size} pages across ${indexPaths.size} indexes, including all ${requiredPages.size} required pages.`);
   for (const page of ['/introduction', '/platform/product-model']) {
-    if (!index.includes(`${origin}${page}.md`)) throw new Error(`Published index omits ${page}`);
     const markdown = await (await request(`${page}.md`)).text();
     const retrieved = text(await rpc('tools/call', { name: 'query_docs_filesystem_revo_engine', arguments: { command: `head -35 ${page}.mdx` } }));
     for (const [label, content] of [['Markdown', markdown], ['MCP', retrieved]]) {
