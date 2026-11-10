@@ -16,6 +16,7 @@ const plain = value => JSON.parse(JSON.stringify(value));
 
 test('Event delivery compares immediate, size, quiet period, maximum wait and missing-key releases', () => {
   const { events, modes } = exported.eventDeliveryExample();
+  assert.deepEqual(plain(modes.map(mode => mode.name)), ['Single', 'Batch', 'Debounce']);
   const results = mode => plain(mode.jobs.map(job => [job.at, job.events.map(event => event.id), job.reason]));
   assert.deepEqual(results(modes[0]), plain(events.map(event => [event.at, [event.id], 'Event admitted'])));
   assert.deepEqual(results(modes[1]), [

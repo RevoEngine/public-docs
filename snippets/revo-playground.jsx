@@ -481,7 +481,7 @@ export const PlaygroundStyle = () => <style>{`
   .revo-demo .rd-row[data-state="future"] { color: var(--rd-muted); }
   .revo-demo .rd-row > :last-child { text-align: right; font-weight: 650; }
   .revo-demo .rd-result { display: block; margin: 0; padding: 8px 10px; white-space: pre-wrap; border-radius: 8px; background: var(--rd-panel); }
-  .revo-demo [aria-label="Job delivery mode"] [aria-pressed="true"] { background: var(--rd-active); border-color: var(--rd-accent); }
+  .revo-demo [aria-label="Delivery mode"] [aria-pressed="true"] { background: var(--rd-active); border-color: var(--rd-accent); }
   .revo-demo .rd-event-detail { padding: 10px; border: 1px solid var(--rd-border); border-radius: 9px; }
   .revo-demo .rd-event-input { max-height: 330px; overflow: auto; }
   .revo-demo .rd-event-input:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
@@ -580,9 +580,9 @@ export const eventDeliveryExample = () => {
     [8, 'U1', null], [9, 'B2', 'B'], [14, 'C1', 'C'], [18, 'C2', 'C'], [22, 'C3', 'C'],
   ].map(([at, id, key]) => ({ at, id, key }));
   const modes = [
-    ['SINGLE', 'One Job per event'],
+    ['SINGLE', 'Single'],
     ['BATCH', 'Batch'],
-    ['DEBOUNCE', 'Debounce & merge'],
+    ['DEBOUNCE', 'Debounce'],
   ].map(([mode, name]) => {
     const jobs = [];
     const open = new Map();
@@ -635,7 +635,7 @@ export const eventDeliveryExample = () => {
 
 export const EventDeliveryDemo = () => {
   const [{ events, limits, modes, times }] = useState(eventDeliveryExample);
-  const [mode, setMode] = useState(1);
+  const [mode, setMode] = useState(0);
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState(null);
   const [playing, setPlaying] = useState(false);
@@ -657,7 +657,7 @@ export const EventDeliveryDemo = () => {
     <h3>Follow the same events in three modes</h3>
     <p className="rd-intro">Grouped modes use a maximum of {limits.size} events and {limits.wait}s of collection.
       Debounce also releases a group after {limits.quiet}s of silence for that key.</p>
-    <div className="rd-controls" role="group" aria-label="Job delivery mode">
+    <div className="rd-controls" role="group" aria-label="Delivery mode">
       {modes.map(({ name }, index) => <button key={name} type="button" aria-pressed={mode === index}
         onClick={() => { stop(); setMode(index); setSelected(null); }}>{name}</button>)}
     </div>

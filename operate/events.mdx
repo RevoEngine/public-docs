@@ -89,19 +89,19 @@ For a Job target, the selected template carries the Component, execution princip
   Job delivery modes and the trigger array are part of **RevoEngine 1.8.1**. The example below runs locally in your browser.
 </Note>
 
-In **Jobs → Events**, select a **Job Template** target and open **Event grouping**. Choose **Job delivery**. **One Job per event** is the default when the subscription has no grouping configured. You can configure grouping on a custom or native Event with a Job Template target. Schedules and Agent targets use their own delivery settings.
+In **Jobs → Events**, select a **Job Template** target and open **Delivery** and choose a **Mode**. **Single** is the default when the subscription has no grouping configured. You can configure grouping on a custom or native Event with a Job Template target. Schedules and Agent targets use their own delivery settings.
 
-| Job delivery | When the Job becomes eligible | Job input |
+| Delivery | When the Job becomes eligible | Job input |
 | --- | --- | --- |
-| **One Job per event** | After each matching event is admitted, or when a future-dated event becomes due. | One entry in `triggers` plus top-level `type`, `message`, and `metadata`. |
+| **Single** | After each matching event is admitted, or when a future-dated event becomes due. | One entry in `triggers` plus top-level `type`, `message`, and `metadata`. |
 | **Batch** | When the group reaches **Maximum events** or **Maximum wait** from its first event, whichever comes first. | One entry in `triggers` per collected event. |
-| **Debounce & merge** | When the group reaches **Maximum events**, **Maximum wait** from the first event, or the **Quiet period** after the most recent event for that key, whichever comes first. | One entry in `triggers` per collected event, with every message retained. |
+| **Debounce** | When the group reaches **Maximum events**, **Maximum wait** from the first event, or the **Quiet period** after the most recent event for that key, whichever comes first. | One entry in `triggers` per collected event, with every message retained. |
 
-**Debounce & merge** means collecting complete Event entries into one Job. Batch also preserves all its entries. Each Event keeps its own message, metadata and input, even when multiple Events have the same grouping key.
+Batch and Debounce both keep every collected Event as a separate entry in the same `triggers[]` array, in admission order. Each entry keeps its own message, metadata, and input. A quiet period lets Debounce release a short burst before the maximum wait. For example, with a 120-second maximum wait and a 10-second quiet period, if the last change arrives at +6s and the size limit is still open, Debounce releases at +16s and Batch at +120s.
 
 To process price lists independently, set **Grouping key path** to `/message/priceListId`. RevoEngine groups matching events by that JSON Pointer value within this subscription and its saved revision. Omitting the path groups matching events across the subscription. Strings, finite numbers, and booleans are valid keys. An event with a missing or non-scalar key is released on its own without waiting for a group. Set **Maximum events** to 2–100 and **Maximum wait** to 1–3,600 seconds. The quiet period can be at most the maximum wait.
 
-The Platform API accepts the same settings under `delivery`. Set `delivery` to `null` to return to one Job per event.
+The Platform API accepts the same settings under `delivery`. New definitions without `delivery` use Single. Set `delivery` to `null` to select Single on an existing definition.
 
 ```json
 {
@@ -131,7 +131,7 @@ The same price changes arrive in every mode. The subscription groups by `/messag
 
 Each bracketed list below is the ordered `triggers[]` of one Job. Times are measured from the first arrival and show eligibility. Event **U1** has no price list ID.
 
-| Arrivals | One Job per event | Batch | Debounce & merge |
+| Arrivals | Single | Batch | Debounce |
 | --- | --- | --- | --- |
 | A1 at +0s, A2 at +1s, A3 at +3s, A4 at +4s | Four one-entry Jobs at arrival | +4s `[A1, A2, A3, A4]` by size | +4s `[A1, A2, A3, A4]` by size |
 | B1 at +2s, B2 at +9s | +2s `[B1]` and +9s `[B2]` | +12s `[B1, B2]` by maximum wait | +7s `[B1]` and +14s `[B2]` after separate quiet periods |

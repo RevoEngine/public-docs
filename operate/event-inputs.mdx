@@ -26,7 +26,7 @@ for (const trigger of api.input().triggers ?? []) {
 }
 ```
 
-An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **One Job per event** mode also expose `type`, `message`, and `metadata` at the top level. Use `triggers` to handle all three delivery modes with the same code.
+An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **Single** mode also expose `type`, `message`, and `metadata` at the top level. Use `triggers` to handle all three delivery modes with the same code.
 
 If an existing Component read a subscription value through `templateInputs`, read it through the trigger instead. This applies to newly prepared Jobs. Queued Jobs and retries retain the original saved input.
 
