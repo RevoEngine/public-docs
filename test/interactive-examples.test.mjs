@@ -14,6 +14,41 @@ vm.runInNewContext(compiled.outputText, { exports: exported });
 const { makeQueue, advanceQueue, attemptKey, flowCatalog } = exported;
 const plain = value => JSON.parse(JSON.stringify(value));
 
+test('Event delivery compares immediate, size, quiet period, maximum wait and missing-key releases', () => {
+  const { events, modes } = exported.eventDeliveryExample();
+  const results = mode => plain(mode.jobs.map(job => [job.at, job.events.map(event => event.id), job.reason]));
+  assert.deepEqual(results(modes[0]), plain(events.map(event => [event.at, [event.id], 'Event admitted'])));
+  assert.deepEqual(results(modes[1]), [
+    [4, ['A1', 'A2', 'A3', 'A4'], 'Maximum events reached'],
+    [8, ['U1'], 'Grouping key missing'],
+    [12, ['B1', 'B2'], 'Maximum wait reached'],
+    [24, ['C1', 'C2', 'C3'], 'Maximum wait reached'],
+  ]);
+  assert.deepEqual(results(modes[2]), [
+    [4, ['A1', 'A2', 'A3', 'A4'], 'Maximum events reached'],
+    [7, ['B1'], 'Quiet period elapsed'],
+    [8, ['U1'], 'Grouping key missing'],
+    [14, ['B2'], 'Quiet period elapsed'],
+    [24, ['C1', 'C2', 'C3'], 'Maximum wait reached'],
+  ]);
+  for (const [index, mode] of modes.entries()) {
+    assert.deepEqual(plain(mode.jobs.flatMap(job => job.input.triggers.map(trigger => trigger.message.changeId)).sort()),
+      plain(events.map(event => event.id).sort()));
+    for (const { input } of mode.jobs) {
+      assert.deepEqual(plain(input.templateInputs), { region: 'EU' });
+      assert.equal(Object.hasOwn(input, 'message'), index === 0);
+      assert.equal(Object.hasOwn(input, 'type'), index === 0);
+      assert.equal(Object.hasOwn(input, 'metadata'), index === 0);
+      for (const trigger of input.triggers) {
+        assert.equal(trigger.triggerType, 'EVENT');
+        assert.equal(trigger.eventHistoryId, 'history-' + trigger.message.changeId);
+        assert.deepEqual(plain(trigger.input), { validate: true });
+        assert.deepEqual(plain(trigger.metadata), { source: 'catalog' });
+      }
+    }
+  }
+});
+
 test('Job admission never exceeds each key limit and every task completes', () => {
   for (const separate of [false, true]) for (const limit of [1, 2, 3]) {
     let jobs = makeQueue(separate);
@@ -114,6 +149,7 @@ test('all demo topics are embedded, all scenarios have readable outcomes, and im
     const imported = page.match(/import \{ ([^}]+) \} from "\/snippets\/revo-playground\.jsx"/)[1].split(',').map(value => value.trim());
     const required = {
       FlowDemo: ['PlaygroundStyle', 'useDemoPlayback', 'flowCatalog'],
+      EventDeliveryDemo: ['PlaygroundStyle', 'useDemoPlayback', 'eventDeliveryExample'],
       ConcurrencyDemo: ['PlaygroundStyle', 'useDemoPlayback', 'makeQueue', 'advanceQueue'],
       IdempotencyDemo: ['PlaygroundStyle', 'useDemoPlayback', 'attemptKey'],
       FilterDemo: ['PlaygroundStyle', 'routeExample'],

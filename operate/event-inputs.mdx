@@ -1,14 +1,40 @@
 ---
 title: "Configure Event input"
-description: "Map Event Runtime input onto a Job template."
+description: "Read Event messages and configured Runtime input in a Job."
 icon: book-open
 ---
 
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
+## Runtime input on each trigger
+
+In RevoEngine 1.8.1, select a Job Template target and enter a JSON object in **Options → Runtime input**. The object defaults to `{}` and is saved on each trigger entry as `input`. Job Template defaults remain in `api.input().templateInputs`. A filter controls which messages reach the subscription.
+
+```json
+{
+  "input": { "supplierId": "VEGA" }
+}
+```
+
+Read each Event’s input and message together. The same code works for one Event or an entire group.
+
+```js
+for (const trigger of api.input().triggers ?? []) {
+  if (trigger.triggerType === "EVENT") {
+    api.log({ message: 'Processing Event', args: { supplier: trigger.input.supplierId, eventType: trigger.type } });
+  }
+}
+```
+
+An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **One Job per event** mode also expose `type`, `message`, and `metadata` at the top level. Use `triggers` to handle all three delivery modes with the same code.
+
+If an existing Component read a subscription value through `templateInputs`, read it through the trigger instead. This applies to newly prepared Jobs. Queued Jobs and retries retain the original saved input.
+
+Try the [Job delivery simulation](/operate/events#compare-job-delivery-modes) to see the trigger array for each resulting Job.
+
 ## Example: configure the supplier input
 
-After the supplier predicate matches, this sample uses **Override** to supply `{ "supplierId": "VEGA" }` as runtime input to **Supplier stock intake**. The Job reads `api.input('templateInputs')`. The message filter decides whether dispatch is eligible; the input mode decides what the selected Job receives. Changing one does not automatically change the other.
+In RevoEngine 1.8.0, after the supplier predicate matches, this sample uses **Override** to supply `{ "supplierId": "VEGA" }` as runtime input to **Supplier stock intake**. The Job reads `api.input('templateInputs')`. The message filter decides whether dispatch is eligible; the input mode decides what the selected Job receives. Changing one does not automatically change the other.
 
 <Frame caption="Filter, input mode and JSON input are separate configuration controls.">
   <img src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" />
@@ -17,6 +43,8 @@ After the supplier predicate matches, this sample uses **Override** to supply `{
 <ScreenshotDetail src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" width={1114} height={982} />
 
 ## Configure Runtime input for a Job target
+
+These input modes apply to RevoEngine 1.8.0. In 1.8.1, use [trigger Runtime input](#runtime-input-on-each-trigger).
 
 | Given the Event matches | Available in the Component |
 | --- | --- |

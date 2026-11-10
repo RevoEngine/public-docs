@@ -95,6 +95,14 @@ A new Job Template follows the latest active Component revision when no digest i
 
 ## Runtime input from Events and Schedules
 
+### Trigger input in 1.8.1
+
+The Job Template’s **Runtime input** is stored as `options.input` and exposed as `api.input().templateInputs`. A [Job-targeting Event](/operate/event-inputs#runtime-input-on-each-trigger) or [Schedule](/operate/schedule-inputs#runtime-input-on-each-trigger) supplies its own Runtime input as `input` on each `api.input().triggers` entry. The same interface covers single Events, grouped Events and Schedules.
+
+Check `triggerType` to read Event messages or Schedule details. Direct Jobs use an empty trigger array. Jobs prepared before this contract may omit the array. Retries retain the original saved input.
+
+### Input modes in 1.8.0
+
 The template's **Runtime input** is stored as `options.input` and exposed to the Component through `api.input('templateInputs')`. A Job-targeting [Event](/operate/event-inputs#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedule-inputs#configure-runtime-input-for-a-job-target) can configure its own Runtime input in **Options**:
 
 - **Override** (default) overlays top-level values onto template defaults. Event or Schedule keys win.
@@ -104,6 +112,14 @@ The template's **Runtime input** is stored as `options.input` and exposed to the
 This lets several automations reuse one Job template while selecting different Component behavior. The template still owns the execution principal, limits, concurrency, and retry policy. Event messages remain separate from `templateInputs`.
 
 Existing automation definitions retain their effective input after migration; definitions using the former default keep Job defaults. The resolved input is retained with the Job; later Event or Schedule edits do not change queued or running Jobs, or their retry input.
+
+## Limit concurrent Jobs per key
+
+Dynamic keys are available in **RevoEngine 1.8.1**. Open **Concurrency** on the Job Template and set **Dynamic key path** to a JSON Pointer such as `/message/priceListId` for Event messages or `/templateInputs/priceListId` for template values. With a limit of 1, Jobs for the same value wait for a slot. Jobs for other values can run in parallel. The limit applies to whole Job executions.
+
+In the Platform API, use `options.concurrency.keyPath`. An optional `options.concurrency.key` shares the namespace with other templates that use the same key. Leaving it blank scopes dynamic slots to this template. A static key without a path works as before. Missing values, objects, arrays, and mixed values in a group use one fallback slot for the configured concurrency limit.
+
+For a grouped Event, an Event field such as `/message/priceListId` must resolve to the same scalar for every trigger to use that value's slot. Configure the Event's grouping path to select the same field. Single Events and homogeneous groups can then share a slot. Use `/input/priceListId` if both Event and Schedule Jobs set that value in their own Runtime input and should share a slot. A retry uses the same saved inputs.
 
 ## Choose and retain the executor
 

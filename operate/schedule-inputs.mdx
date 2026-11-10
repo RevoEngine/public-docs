@@ -4,7 +4,46 @@ description: "Run the same Job template with different input for each cadence."
 icon: book-open
 ---
 
+## Runtime input on each trigger
+
+In RevoEngine 1.8.1, set a JSON object in **Options → Runtime input**. Cron and manual occurrences pass the object as `input` on the Schedule entry in `api.input().triggers`. The entry also contains `triggerType: "SCHEDULE"`, `scheduleId`, `scheduleHistoryId`, `scheduleName`, and the Schedule’s saved user `metadata`.
+
+The Job Template supplies `templateInputs` separately. The Schedule’s `input` and metadata are captured with the occurrence. Jobs already queued or running and their retries retain the original saved input.
+
+### Example for a weekend Schedule
+
+Keep common values in the Job Template, such as `{ "region": "eu" }`, and set the execution-specific value on each Schedule.
+
+| Schedule | Cron | Runtime input |
+| --- | --- | --- |
+| Weekday partial export | `0 2 * * MON-FRI` | `{ "full": false }` |
+| Weekend full export | `0 2 * * SAT` | `{ "full": true }` |
+
+For the weekend run, the Component reads `region` from `templateInputs` and `full` from the Schedule trigger’s `input`. The example shows the relevant fields in `api.input()`.
+
+```json
+{
+  "templateInputs": { "region": "eu" },
+  "triggers": [
+    {
+      "triggerType": "SCHEDULE",
+      "scheduleId": "weekend-export-schedule",
+      "scheduleHistoryId": "weekend-export-occurrence",
+      "scheduleName": "Weekend full export",
+      "input": { "full": true },
+      "metadata": { "owner": "catalog-ops" }
+    }
+  ]
+}
+```
+
+Existing Components that read Schedule values through `templateInputs` should read them from the trigger entry for newly prepared Jobs. The Schedule produces its own Job even if the same template also receives [grouped Events](/operate/events#compare-job-delivery-modes).
+
+Continue with [schedules](/operate/schedules).
+
 ## Configure Runtime input for a Job target
+
+These input modes apply to RevoEngine 1.8.0. In 1.8.1, use [trigger Runtime input](#runtime-input-on-each-trigger).
 
 For a Job target, use the expanded **Options** section at the bottom of the Schedule editor. Enter a JSON object in **Runtime input**, using the same editor as Job templates, and select **Override**, **Deep Override** or **Replace** from the dropdown with icons and descriptions.
 
