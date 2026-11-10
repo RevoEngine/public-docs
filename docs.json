@@ -3,18 +3,6 @@
   "theme": "luma",
   "name": "RevoEngine",
   "description": "Build, automate, and operate production software with RevoEngine.",
-  "markdown": {
-    "instructions": [
-      "Choose the starting page that fits the task.",
-      "",
-      "- [Introduction](https://docs.revoengine.com/introduction.md) — Understand what RevoEngine does.",
-      "- [Quickstart](https://docs.revoengine.com/quickstart.md) — Build and run your first Endpoint.",
-      "- [Product model](https://docs.revoengine.com/platform/product-model.md) — Choose the right platform capability.",
-      "- [Developer overview](https://docs.revoengine.com/developers/overview.md) — Find the API, SDK, CLI, and editor workflows.",
-      "",
-      "Follow the linked section indexes for the rest of the documentation."
-    ]
-  },
   "colors": {
     "primary": "#202124",
     "light": "#F5F5F5",
@@ -41,15 +29,22 @@
   "navigation": {
     "tabs": [
       {
+        "tab": "Start here",
+        "icon": "compass",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "platform/product-model",
+          "developers/overview"
+        ]
+      },
+      {
         "tab": "Guides",
         "icon": "book-open",
         "groups": [
           {
-            "group": "Start here",
+            "group": "Platform essentials",
             "pages": [
-              "introduction",
-              "quickstart",
-              "platform/product-model",
               {
                 "group": "Workspace",
                 "pages": [
@@ -204,7 +199,6 @@
                   {
                     "group": "Integration basics",
                     "pages": [
-                      "developers/overview",
                       "developers/authentication",
                       "developers/errors"
                     ]

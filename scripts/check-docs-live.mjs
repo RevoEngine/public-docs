@@ -53,6 +53,10 @@ try {
   console.log(`Published index verified: ${pages.size} pages across ${indexPaths.size} indexes, including all ${requiredPages.size} required pages.`);
   for (const page of ['/introduction', '/platform/product-model']) {
     const markdown = await (await request(`${page}.md`)).text();
+    const instructions = markdown.match(/^> ## Agent Instructions\r?\n((?:>[^\r\n]*\r?\n)*)/m)?.[1] ?? '';
+    if (startPages.some((path) => instructions.includes(`](${origin}${path}.md)`) || instructions.includes(`](${path}.md)`))) {
+      throw new Error(`${page}: starting links are repeated in the Markdown instructions.`);
+    }
     const retrieved = text(await rpc('tools/call', { name: 'query_docs_filesystem_revo_engine', arguments: { command: `head -35 ${page}.mdx` } }));
     for (const [label, content] of [['Markdown', markdown], ['MCP', retrieved]]) {
       if (!normalize(content).includes(normalize(product.summary))) throw new Error(`${page}: ${label} does not contain the current released product summary.`);
