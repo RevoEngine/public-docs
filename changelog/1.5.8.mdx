@@ -25,9 +25,9 @@ Monaco presents the same problems directly in the editor and keeps saved-source 
 
 ## Keep large database changes inside one operation
 
-Large low-code insert, upsert and delete requests now transfer their input and result in bounded chunks while retaining one logical execution admission and the caller's outer transaction. This removes the earlier boundary where a request could be accepted by the low-code runtime but lose the complete host result once the payload crossed the direct bridge limit.
+A large insert, upsert or delete can run as one logical low-code operation inside the caller’s transaction. The operation returns the complete result using the response controls selected by the caller.
 
-The supported bulk path covers up to 100,000 rows, including partial final batches, and keeps existing response controls. Timeout reporting now identifies the low-code execution deadline and active source location when available, rather than surfacing an unrelated abandoned-promise message. Binary HTTP and Storage transfers also avoid unnecessary text conversion when the caller is already working with bytes.
+The supported bulk path covers up to 100,000 rows.
 
 ```js
 return api.insertDatabaseData('orders', [
@@ -51,7 +51,7 @@ return api.deleteDatabaseDataRequest('temporary_imports', {
 
 Operational investigation can start from an Event, Schedule, Component execution, operation or Job and retain that anchor while it follows the selected failure. New execution identities connect related work directly, with compatibility discovery available for older records. Compact results preserve exact references and continuation cursors so operators can open full evidence without repeating broad searches.
 
-Trace navigation now resolves linked resources consistently and keeps filters aligned with the selected execution. Custom Events have a distinct contract across configuration, history and queued messages, while native Events remain replayable without pretending to accept user-defined payloads. Job history reads also avoid loading large inputs and outputs until the details view requests them.
+Use Trace to follow linked resources from an execution. Custom Events accept the configured message contract, and native Events can be replayed from their recorded occurrence. Open a Job detail to inspect its inputs and outputs.
 
 ## Review the effect of Assistant changes
 
@@ -61,7 +61,6 @@ Supported Component activation, restore, disable, delete and revert operations u
 
 ## Also in this release
 
-- Jobs list queries fetch execution inputs, outputs and totals only when the caller explicitly needs them, with indexes aligned to active-row status and scheduling filters.
 - MCP Streamable HTTP uses a stateless request lifecycle and lets older clients retire cached sessions idempotently while preserving existing principal rate limits.
 - Endpoint summaries show request-weighted P50, P95 and average latency and distinguish unavailable measurements from a real zero value.
 - Node.js SDK 1.5.8, generated low-code declarations, Monaco contracts and the Platform API schema describe the same supported release surface.

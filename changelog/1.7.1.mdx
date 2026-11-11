@@ -14,7 +14,6 @@ RevoEngine 1.7.1 adds conditional Database upserts for repeatable imports, compl
 - Retired legacy Files; use Storage for uploads, downloads and generated files.
 - Removed deprecated low-code methods and the `libs` alias; SDK 3.0.0 uses the current runtime API.
 - Standardized account fields on `metadata` and `metadataAdvanced`.
-- Improved Assistant context continuity, Live Preview recovery and Sandbox debugging.
 
 ## In detail
 
@@ -47,54 +46,6 @@ Read the [low-code reference](/low-code/reference/index) and [Node.js SDK](/deve
 Account requests, responses and `api.currentUser()` use `metadata` and `metadataAdvanced`. Update integrations and account query selectors that use retired field names; those names are no longer accepted.
 
 Read [Users](/operate/users).
-
-## Safer identities, editor content and diagrams
-
-Account names, email addresses and identity-provider details render as literal text in labels and grids. Avatar addresses and labels remain contained within image attributes; unsafe addresses use the existing initials or missing-image fallback. Profile image uploads continue through Storage.
-
-Editor documentation and chat diagrams have stronger protection against injected markup and styles. Code editing, useful diagram labels and mathematical expressions retain their existing authoring workflow.
-
-Read [Users](/operate/users) and [Studio sessions](/build/studio-sessions).
-
-## Sleep follows the execution lifecycle
-
-`await util.sleep(ms)` pauses within the current execution's timeout budget. Cancellation or expiry still interrupts the wait, and finishing an execution clears pending waits. An interrupted wait continues to reject rather than completing successfully.
-
-Expected wait cancellation no longer produces a spurious error diagnostic. Real timer failures and errors from other platform calls retain their normal diagnostics. Await delays that the workflow needs before returning its result.
-
-Read [Low-code overview](/low-code/overview) and [Jobs](/operate/jobs).
-
-## Requests wait for instance readiness
-
-Concurrent requests now wait while an instance prepares its data connection, checks its schema and initializes required system schedules. Ordinary preparation no longer returns a schema-migration maintenance response solely because another request is preparing the instance.
-
-Maintenance protection remains in place when a schema migration is actually in progress. Connection and system-schedule initialization failures retain their normal failure handling; requests use the instance only after the required preparation succeeds.
-
-Read [Databases](/operate/databases#instance-readiness).
-
-## Reliable background handoff
-
-Temporary queue-transport failures retry within the platform deadline, including
-requests already in flight. Committed upload, indexing and Job-notification work
-is recovered every minute, while upload responses and completed Jobs use a short
-wait for auxiliary publication. Retry keeps its durable identity and repairs an
-unavailable task name without replaying customer Job logic.
-
-Email preparation can recover after an interruption before the delivery provider
-is called. An uncertain result after a send still requires review to avoid sending
-the same message again. Active Job heartbeats remain protected during recovery.
-
-Read [Jobs](/operate/jobs) and [Storage](/operate/storage).
-
-## Reliability update · 7 November
-
-The Assistant now keeps the context it needs when a long conversation is shortened, including references to earlier tool results. Large reads can be continued in smaller pages. Terminal executions that reconnect stay pending until their original outcome is confirmed.
-
-Live Preview can reconnect to an existing read-only browser session after a brief interruption. For a pending human interaction, use **Finish & resume** once the original tab and your access are confirmed. The compact preview keeps its position while you resize it.
-
-Direct Sandbox debug applies temporary library edits for the current request, including when execution uses a pinned Studio release. Upload policy rejections and webhook delivery failures retain their recorded outcomes and are distinguished from platform failures in operational diagnostics.
-
-Read [Live Preview](/ai/browser#follow-live-preview), [Studio sessions](/build/studio-sessions) and [Webhooks](/operate/webhooks).
 
 
 ## Related guides

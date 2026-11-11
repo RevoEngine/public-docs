@@ -13,7 +13,7 @@ RevoEngine 1.5.6 improves everyday Assistant work, file delivery and integration
 - Send accessible Storage files with Chat messages and receive email download links valid for a selected period of one to seven days.
 - Create new Assistant files in Private by default and update an explicitly selected file under its existing access rules.
 - Use typed SFTP imports, exports and commands through the transport namespace with governed Secret references.
-- Investigate Events and execution failures with reliable filters and structured error details.
+- Investigate Events and execution failures with structured filters and error details.
 - Use Node.js SDK 1.5.6 with the matching platform contract and generated types.
 
 ## In detail
@@ -63,9 +63,7 @@ return await transport.sftpCommands([
 
 ## Investigate operations with usable evidence
 
-Event investigation applies structured filters without invalid SQL aliases, including filters over event data. Integration failures preserve structured error metadata in execution evidence so the Assistant and operators can distinguish a failed operation from an empty result. Secret values remain outside normal diagnostics.
-
-Maintenance recovery also handles previously stored mail and Agent inbox schema variants. Notification retries preserve uncertain delivery outcomes instead of assuming that a missing delivery confirmation makes another send safe.
+Filter Events by their recorded data when investigating a workflow. Use structured error details in execution evidence to distinguish a failed operation from an empty result. Read [Event history](/operate/event-history) for the available inspection workflow.
 
 
 ## Related guides
