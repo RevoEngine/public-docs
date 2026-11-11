@@ -18681,14 +18681,14 @@
     },
     "/api/v1/automation/trigger": {
       "get": {
-        "description": "Searches current definitions by a literal name fragment with shared name/type/UID ordering and pagination. Does not read Jobs or occurrence history. ROLES: AUTOMATION_READ, AUTOMATION_ADMIN. USER: true. SERVICE ACCOUNT: true.",
+        "description": "Searches accessible Event/Schedule definitions, accounts by name/mail and Components with stable typed IDs and shared paging. Account and Component catalogs require their respective read permissions. Jobs support exact UUID lookup. ROLES: AUTOMATION_READ, AUTOMATION_ADMIN. USER: true. SERVICE ACCOUNT: true.",
         "operationId": "AutomationController_getTriggers",
         "parameters": [
           {
             "name": "term",
             "required": false,
             "in": "query",
-            "description": "Case-insensitive literal name fragment across Event and Schedule definitions.",
+            "description": "Literal name or account-mail fragment across accessible Event, Schedule, User and Component catalogs; exact Job UUID also supported.",
             "schema": {
               "maxLength": 200,
               "type": "string"
@@ -18743,7 +18743,7 @@
             "bearer": []
           }
         ],
-        "summary": "Look up Event and Schedule definitions.",
+        "summary": "Look up typed Job trigger sources.",
         "tags": [
           "Automation"
         ]
@@ -43497,7 +43497,7 @@
         "properties": {
           "triggerRef": {
             "type": "string",
-            "description": "Stable typed identity, EVENT:<UUID> or SCHEDULE:<UUID>."
+            "description": "Stable typed identity: EVENT, SCHEDULE, USER, COMPONENT or JOB followed by :<UUID>."
           },
           "triggerId": {
             "type": "string",
@@ -43510,8 +43510,15 @@
             "type": "string",
             "enum": [
               "EVENT",
-              "SCHEDULE"
+              "SCHEDULE",
+              "USER",
+              "COMPONENT",
+              "JOB"
             ]
+          },
+          "mail": {
+            "type": "string",
+            "description": "Account email, returned only with account catalog permission."
           }
         },
         "required": [

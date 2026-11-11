@@ -10,7 +10,7 @@ Collect related executions into one Job, inspect each Job trigger, read JSON dir
 ## Highlights
 
 - Collect Event, Schedule, manual and low-code triggers with Job Template Batch or Debounce and process them in order with `api.walkTriggers()`.
-- Inspect a Job's triggers and open a complete JSON cell without loading every payload into a list.
+- Inspect a Job's triggers and retry history, find initiating accounts, and open a complete JSON cell without loading every payload into a list.
 - Compress uploads and database exports, and read supported gzip files through native Storage tools.
 - Share restricted Secrets with selected workloads and embed an external frontend in a dashboard.
 
@@ -27,6 +27,10 @@ Use `api.triggerJobs` to admit up to 100 direct Jobs together, with a stable ide
 ## Inspect triggers and full JSON values
 
 Open **Triggers** in Job details to page through occurrences, inspect a selected payload and follow its source. Data grids show JSON and metadata values that fit the column. Click any value or the remaining-item count to open the entire cell. Lists use bounded previews; selecting a cell loads its full value. Explicit JSON columns in low-code queries and exports continue returning complete values. See [Databases](/operate/databases) and [Job operations](/operate/jobs).
+
+## Trace retries and initiating sources
+
+Job History shows each attempt's historical position, including manual retries, and opens the attempt list after retrying a Job with automatic retry disabled. Compact Status and Result columns share icons with their filters. Trigger replaces the separate Requested by column: manual Request/Retry show the initiating user, and low-code Execution links to the source Job. Search accounts by name or email under their existing access permissions. Audit fields remain separate in the API. See [Job History](/operate/jobs#find-jobs-by-trigger-and-requester).
 
 ## Compress uploads and database exports
 

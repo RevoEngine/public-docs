@@ -25,17 +25,16 @@ A template defines the Component, inputs and execution policy. Job History recor
 
 ## Find Jobs by trigger and requester
 
-Job History separates the source of a run from the account that initiated it:
-
 | Filter | What it selects |
 | --- | --- |
 | Trigger Type | Event, Schedule, Request, Execution, or Retry. |
-| Trigger | Specific Event or Schedule definitions, searched together by name. |
-| Requested by | The account that initiated the run, independently of its execution account. |
+| Trigger | Event, Schedule, initiating account, Component or source Job. |
 
-The Trigger picker opens with 20 definitions and loads more as you scroll. Search matches a name fragment. Each choice includes its source type; an Event and a Schedule with the same name remain independent selections. You can select both. Choices come from the definitions catalog, so they can appear even when they have no Jobs in the selected date range. Inactive definitions remain searchable; deleted definitions appear when deleted resources are included.
+The Trigger picker loads 20 choices at a time. Search definitions and Components by name, accounts by name or email, and source Jobs by their exact execution ID. Each choice includes its type, so equal names or IDs from different sources remain independent selections. Account and Component choices respect their resource permissions, including restricted Service Account access. Deleted choices appear only when deleted resources are included.
 
-Request, Execution, and Retry rows have an empty Trigger cell. Use Trigger Type to find those runs and Requested by to narrow them to an initiating account. Open the Job details to inspect its execution or retry provenance. For example, select Request and an operator account to find that operator's direct requests without confusing the operator with a Service Account that executed the work. A mixed Batch or Debounce Job has no single initiating user; inspect its Triggers section for each entry's initiator and origin.
+Request and manual Retry rows display the initiating user. A low-code Execution from a Job displays that source Job's name and opens its history details. Event and Schedule keep their names and definition links. Selecting an account finds its initiated Jobs across all source types, independently of the account that executed the work. The API retains separate initiator, executor and creator fields.
+
+A mixed Batch or Debounce Job has no single initiating user; inspect its Triggers section for each entry's initiator and origin.
 
 ## The limit model
 
@@ -256,21 +255,19 @@ Job History separates the status of one attempt from the result of its full retr
 
 | Column | Meaning |
 | --- | --- |
-| **Attempt status** | The selected attempt's own status. An earlier `ERROR` remains an error even when a later attempt succeeds. |
-| **Attempts** | That row's attempt number and automatic retry limit, such as **Attempt 2 of 3** or **Attempt 2 of ∞**. Without automatic retry, it starts at **Attempt 1 of 1**. |
-| **Job result** | The current result across the history, including manual retries. |
+| **Status** | The selected attempt's own status. An earlier `ERROR` remains an error even when a later attempt succeeds. |
+| **Attempts** | That row's position in its retry history. The range includes the configured automatic retry budget and all admitted manual attempts: a fourth manual attempt displays **Attempt 4 of 4**. Unlimited automatic retries retain **∞**. A Job without retry starts at **Attempt 1 of 1** and becomes **Attempt 1 of 2** after a manual retry. |
+| **Result** | The current result across the history, including manual retries. |
 
 Outcome summaries cover attempts created after the 1.6.6 cutover. Existing Job rows remain available, but the upgrade does not rebuild their history; their aggregate result can be empty. A new retry of an older Job summarizes the new attempts only. Work already running during the upgrade can finish normally.
 
-Filter **Job result** to distinguish **Failed** from **Succeeded after retry**.
+Filter **Result** to distinguish **Failed** from **Succeeded**. Recovery after retry has its own icon and tooltip; the filter uses the same icons as the rows.
 **Retry pending** includes an accepted retry waiting to start; it does not mean the
 history has reached a final failure. **In progress**, **Succeeded**, **Cancelled**
 and **Expired** describe the other outcomes. These filters apply to the complete
 query before pagination, rather than only the rows already loaded.
 
-For example, an earlier row can show **Attempt status: ERROR** and **Job result:
-Succeeded after retry**. Manual retry starts a new run at attempt 1 with a fresh
-automatic retry budget, while its outcome remains part of the same Job history.
+For example, an earlier row can show **Status: ERROR** and **Result: Succeeded** with the recovery icon. Manual retry starts a fresh automatic retry budget internally, while the displayed attempt number continues within the same Job history.
 The attempt number displayed on an older row does not become the latest attempt's
 number. Once no attempt is running or scheduled and no automatic retry is pending,
 **Retry** on an earlier failed or cancelled row starts another manual run. Repeated
