@@ -17,6 +17,12 @@ The terminal connector makes an approved directory on your computer available to
   ]}
 />
 
+## Native terminal installation
+
+CLI **2.1.1** prepares the native interactive terminal helper automatically during macOS installation. When installation scripts were disabled, the runner performs the same preparation before starting an interactive terminal, using the installed macOS native dependency. The installation must permit the current user to update that dependency's file permissions.
+
+Native terminal support is optional. Ordinary shell commands use pipes, and CLI authentication, inspection and synchronization remain available when the optional dependency is omitted. Interactive terminal requests require that dependency. See [CLI installation](/developers/cli) for the supported Node.js version and package command.
+
 ## Connect and inspect
 
 ```bash
