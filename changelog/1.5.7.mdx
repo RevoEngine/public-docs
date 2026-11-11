@@ -5,7 +5,7 @@ icon: "tag"
 description: "18 September 2026"
 ---
 
-RevoEngine 1.5.7 adds database views as governed application resources and connects them to dashboards, exports, schedules and low-code workflows. It also introduces short-lived links for sharing the current authenticated workspace state, expands database index management, and improves the reliability and throughput of large exports.
+RevoEngine 1.5.7 adds database views as governed application resources and connects them to dashboards, exports, schedules and low-code workflows. It also introduces short-lived links for sharing the current authenticated workspace state and expands database index management.
 
 ## Highlights
 
@@ -56,8 +56,6 @@ const exportResult = await api.exportDatabaseView('monthly_revenue', {
 });
 return { exportId: exportResult.exportId };
 ```
-
-Large database exports now use bounded indexed reads when the selected relation and sort order support them. Serialization avoids reparsing generated CSV content, and multipart Storage uploads perform less repeated work while retaining integrity checks and bounded retry behavior. Export admission is bounded per instance, protects synchronous work from background saturation, and can recover an interrupted background execution without publishing a partial result.
 
 ## Manage indexes and automation by stable names
 

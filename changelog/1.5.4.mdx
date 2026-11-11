@@ -5,7 +5,7 @@ icon: "tag"
 description: "14 September 2026"
 ---
 
-RevoEngine 1.5.4 brings Assistant files into the shared Storage workflow, adds native PDF and DOCX text reading, and lets low-code scripts process complete structured files in awaited batches. It also improves operation recovery, repairs validation for large service payloads, and brings notification preferences together with more resilient email delivery.
+RevoEngine 1.5.4 brings Assistant files into the shared Storage workflow, adds native PDF and DOCX text reading, and lets low-code scripts process complete structured files in awaited batches. It also groups email notification preferences in Settings.
 
 ## Highlights
 
@@ -14,7 +14,6 @@ RevoEngine 1.5.4 brings Assistant files into the shared Storage workflow, adds n
 - Process whole structured files with configurable read and callback sizes, without manually following cursors.
 - Follow corrections and outcomes as one Assistant operation, with clearer handling of uncertain writes.
 - Control chat and system-message email separately from administrator job-failure notifications.
-- Open application views and dialogs on demand, reducing work during initial loading.
 
 ## In detail
 
@@ -72,9 +71,9 @@ Settings groups notification controls in a dedicated view. Chat and system-messa
 
 System messages, transactional email, job alerts and unread-chat digests now use persistent delivery tracking and retry handling. Digest selection excludes read messages and muted or archived conversations. Job alerts avoid generating an additional email through the system-message channel. Acceptance by the mail provider is not proof of delivery to the recipient's inbox.
 
-## Keep validation and application loading predictable
+## Await low-code validation results
 
-Low-code `util.validate` remains asynchronous: await its result before reading `valid`, `issues` or `value`. Service input validation now follows its ordinary validation path even for large pass-through payloads, so Storage uploads no longer depend on the low-code validation runtime merely because their content is large. The execution services also initialize the validation runtime explicitly.
+Low-code `util.validate` returns a Promise. Await it before reading `valid`, `issues` or `value`. Use the result to choose which fields to accept and which validation issues to return to the caller.
 
 ```js
 const result = await util.validate({ status: 'ready' }, {
@@ -86,8 +85,6 @@ const result = await util.validate({ status: 'ready' }, {
 if (!result.valid) throw new Error(result.issues[0]?.message ?? 'Invalid request');
 return result.value;
 ```
-
-Application views, search, Settings and table dialogs load their heavier dependencies when needed. Dialog actions wait for their tables to become ready, and repeated low-code library initialization reuses prepared code. These changes reduce repeated startup work without promising a fixed latency across workloads.
 
 
 ## Related guides

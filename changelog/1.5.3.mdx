@@ -44,7 +44,7 @@ return result.value;
 
 In Settings, instance administrators can enable job-failure system messages, email, or both independently; both channels are off by default. A separate choice controls intermediate failed attempts: final failure only, a 15-minute digest, or a message for every failed attempt. When a channel is enabled, final failures are queued for immediate delivery regardless of that choice. Notifications identify the job and summarize the attempt, reason, processing time when known, and retry context without copying job inputs into an email. The in-app reference opens the relevant job, where an operator can inspect the execution or ask the Assistant for help before deciding whether to run it again.
 
-Jobs that fail without an ordinary error-log entry now still reach a terminal error state. When a worker disappears, recovery records the last observed processing activity where available and labels the duration as an estimate. A missing observation is shown as not measured rather than as zero. Notification delivery has bounded retries, so a transient delivery problem does not change the job's own result.
+Job details show the terminal result. When a duration is estimated, the view labels it as an estimate. Use the job result and its related logs to decide whether to retry.
 
 ## Read and process Databases in bounded units
 
@@ -87,13 +87,11 @@ Excel writing also supports a declared direct mode for workflows that can provid
 
 Logs can now be filtered by HTTP method and path, RPC method, tool name and advanced structured conditions. Nested JSON fields can be selected for focused investigation, while plain text and incomplete log bodies remain readable. Endpoint and Job Template references are identified separately, so an operator can move from an execution log to the resource that actually ran.
 
-The Assistant's operational investigation guidance uses bounded log and execution evidence, including redacted previews. Public MCP discovery and health requests no longer depend on tenant session initialization before authentication; protected MCP operations keep their existing access checks.
+The Assistant can investigate execution evidence from logs and recorded runs. Operators can use the recorded status and error details to decide which execution to inspect next. Read [Logs](/operate/logs) for the public workflow.
 
 ## Keep account and tenant changes consistent
 
 Accounts now expose `metadata` and `metadataAdvanced` consistently across the Platform API, low-code current-user data and the user-management interface. Each field has an independent size and key-count limit. Existing legacy names remain accepted during migration, while conflicting values are rejected instead of silently choosing one. Operators can edit and filter these fields in account views; low-code `api.getInstanceData('Users')` supports both field names and structured metadata filters. In low-code, `api.currentUser().avatar` is the Storage entry ID; `/me` separately supplies a signed download URL when a client needs one.
-
-When a tenant schema upgrade is already running, updated services return a temporary maintenance response rather than starting a competing migration. The frontend retries that response and clears its loading state after a successful request. This supports rolling service updates without making users interpret a brief migration overlap as a permanent application failure.
 
 ## Inspect source together and await cryptographic work
 
@@ -108,7 +106,6 @@ For low-code `api.executeComponent`, CODE_JS and CODE_TS children now run in a f
 ## Also in this release
 
 - Primary data grids can preserve validated filters and sorting in a shareable URL; Logs keeps list state when a detail view closes.
-- Storage and Database fixes improve default legacy calls, batched mutations and walker sort handling.
 
 
 ## Related guides

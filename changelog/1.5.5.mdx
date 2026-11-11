@@ -83,12 +83,6 @@ Logs and endpoint statistics now distinguish transport status from the logical o
 
 Trace views use the available execution boundaries to present more accurate durations, request and response summaries, and meaningful status reasons. Endpoint statistics identify cold starts separately from measured execution time, helping operators interpret a slow first request without treating initialization overhead as representative steady-state performance.
 
-## Also in this release
-
-- Database selection inputs have clearer generated API documentation, and automation references use validated identifiers consistently.
-- Email templates escape user-provided values and runtime logs keep sensitive error details out of indexed failure fields.
-- Background execution and connection handling report terminal states more consistently when a client disconnects or a worker is cancelled.
-
 
 ## Related guides
 
