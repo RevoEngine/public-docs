@@ -12,6 +12,7 @@ icon: code
 Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
 or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
 and binary files are not supported in record mode. mode: "lines" supports physical text lines without parsing CSV fields.
+Gzip input uses the same logical records, including across concatenated gzip members.
 Omitted take scans all rows. XLSX uses the first visible sheet by default;
 XML requires recordPath.
 Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.

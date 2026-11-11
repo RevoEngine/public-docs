@@ -76,6 +76,20 @@ Do not parse CSV by splitting on commas or newlines. Quoted separators, escaped 
 
 CSV syntax and source field counts are validated before record processing. Invalid input fails with `STORAGE_CSV_INVALID` and bounded location diagnostics by default. Explicit `onError: 'skipRow'` skips only records with the wrong field count and reports their original locations; syntax and record-size errors still abort. CSV statistics distinguish logical `rowCount` from actual physical lines, including headers and blanks. Explicit `mode: 'lines'` is available for custom text workflows; it returns raw strings without CSV interpretation. See [Structured files](/operate/storage-csv#csv-errors-stop-record-processing) for dialect, validation and line-count semantics.
 
+In file details, choose **Compress** for a regular file or **Unpack** for gzip. The small dialog creates a new file in the same folder and preserves the source. An expired archived file needs a new retention period before Restore; the editor supplies a fresh period and keeps server errors visible.
+
+### Read and unpack gzip
+
+The existing record and document readers can read gzip-compressed files, including `orders.csv.gz` and `report.xlsx.gz`. They use the format of the inner file. The first read may stage a temporary decoded copy in Storage for later pages. Download and binary integrations still transfer the original archive.
+
+Use [`storage.unpack`](/low-code/reference/storage/unpack) to save a separate decoded file. Choose a destination folder or keep the source folder. Existing names are protected from overwrite. Repeat the request with the same source version, destination and retry key to reuse the result. Gzip members from incremental uploads decode in order into one file.
+
+### Prepare repeated or large gzip reads
+
+Cold automatic reads allow up to 256 MiB of stored archive bytes and 256 MiB of decoded content, checked separately. A larger unprepared archive returns `STORAGE_GZIP_PREPARATION_REQUIRED`; retrying the same cold read does not prepare it. The Assistant can inspect archive metadata and offer temporary read preparation, a separate unpacked file, or leaving the archive unchanged. An unknown decoded size stays unknown until measured.
+
+For writes and compressed database exports, set `prepareForRead: 'sync'` to wait for indexed access or `'async'` to queue preparation. Omit it for gzip-only publication. Prepared copies inherit source access, are pinned to the source content version and expire within 24 hours. Inspect preparation status before depending on a queued result; publication of the archive alone does not prove preparation succeeded. Use `storage.unpack` when a durable separate decoded file is needed.
+
 ## Workspaces and access
 
 The Platform API exposes the Storage workspaces available to the current identity. A workspace is a governed view, not a separate file format or upload protocol. Its policy decides whether the caller may list, read, create folders, or upload.

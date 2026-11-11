@@ -20,6 +20,7 @@ Notes:
   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
 - By default the call completes synchronously in its current runtime. Set `async: true` to queue it on Processor and receive a jobId.
+- With `compress: true`, `prepareForRead: 'sync'` waits for indexed read preparation, while `'async'` queues preparation after saving the archive.
 - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
   or provide an accessible Explorer folder storageEntryId.
 

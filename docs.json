@@ -349,6 +349,7 @@
           {
             "group": "Flow control",
             "pages": [
+              "patterns/event-job-delivery",
               "patterns/job-concurrency",
               "patterns/coordination-keys",
               "patterns/low-code-concurrency"
@@ -468,7 +469,8 @@
               "developers/sdk-hosted",
               "developers/sdk-standalone",
               "developers/sdk-storage-and-batching",
-              "developers/upgrading-to-1-8"
+              "developers/upgrading-to-1-8",
+              "developers/upgrading-to-1-9"
             ]
           },
           {
@@ -482,6 +484,166 @@
               "developers/cli-studio",
               "developers/cli-terminal",
               "developers/vscode-extension"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "icon": "clock-rotate-left",
+        "groups": [
+          {
+            "group": "Release notes",
+            "pages": [
+              "releases/changelog"
+            ]
+          },
+          {
+            "group": "Public releases",
+            "pages": [
+              {
+                "group": "1.9.x",
+                "pages": [
+                  "changelog/1.9.0"
+                ]
+              },
+              {
+                "group": "1.8.x",
+                "pages": [
+                  "changelog/1.8.0"
+                ]
+              },
+              {
+                "group": "1.7.x",
+                "pages": [
+                  "changelog/1.7.1",
+                  "changelog/1.7.0"
+                ]
+              },
+              {
+                "group": "1.6.x",
+                "pages": [
+                  "changelog/1.6.6",
+                  "changelog/1.6.5",
+                  "changelog/1.6.4",
+                  "changelog/1.6.3",
+                  "changelog/1.6.2",
+                  "changelog/1.6.1",
+                  "changelog/1.6.0"
+                ]
+              },
+              {
+                "group": "1.5.x",
+                "pages": [
+                  "changelog/1.5.9",
+                  "changelog/1.5.8",
+                  "changelog/1.5.7",
+                  "changelog/1.5.6",
+                  "changelog/1.5.5",
+                  "changelog/1.5.4",
+                  "changelog/1.5.3",
+                  "changelog/1.5.2",
+                  "changelog/1.5.1",
+                  "changelog/1.5.0"
+                ]
+              },
+              {
+                "group": "1.4.x",
+                "pages": [
+                  "changelog/1.4.3",
+                  "changelog/1.4.2",
+                  "changelog/1.4.1",
+                  "changelog/1.4.0"
+                ]
+              },
+              {
+                "group": "1.3.x",
+                "pages": [
+                  "changelog/1.3.3",
+                  "changelog/1.3.2",
+                  "changelog/1.3.1",
+                  "changelog/1.3.0"
+                ]
+              },
+              {
+                "group": "1.2.x",
+                "pages": [
+                  "changelog/1.2.3",
+                  "changelog/1.2.2",
+                  "changelog/1.2.1",
+                  "changelog/1.2.0"
+                ]
+              },
+              {
+                "group": "1.1.x",
+                "pages": [
+                  "changelog/1.1.4",
+                  "changelog/1.1.3",
+                  "changelog/1.1.2",
+                  "changelog/1.1.1",
+                  "changelog/1.1.0"
+                ]
+              },
+              {
+                "group": "1.0.x",
+                "pages": [
+                  "changelog/1.0.3",
+                  "changelog/1.0.2",
+                  "changelog/1.0.1",
+                  "changelog/1.0.0"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Before 1.0",
+            "pages": [
+              {
+                "group": "2026",
+                "pages": [
+                  "changelog/0.9.0",
+                  "changelog/0.8.0"
+                ]
+              },
+              {
+                "group": "2025",
+                "pages": [
+                  "changelog/0.7.0",
+                  "changelog/0.6.0",
+                  "changelog/0.5.2",
+                  "changelog/0.5.1",
+                  "changelog/0.5.0",
+                  "changelog/0.4.1"
+                ]
+              },
+              {
+                "group": "2024",
+                "pages": [
+                  "changelog/0.4.0",
+                  "changelog/0.3.3",
+                  "changelog/0.3.2",
+                  "changelog/0.3.1",
+                  "changelog/0.3.0"
+                ]
+              },
+              {
+                "group": "2023",
+                "pages": [
+                  "changelog/0.2.0",
+                  "changelog/0.1.3",
+                  "changelog/0.1.2",
+                  "changelog/0.1.1",
+                  "changelog/0.1.0",
+                  "changelog/0.0.3",
+                  "changelog/0.0.2"
+                ]
+              },
+              {
+                "group": "2022",
+                "pages": [
+                  "changelog/0.0.1"
+                ]
+              }
             ]
           }
         ]
@@ -577,6 +739,7 @@
                       "low-code/reference/api/getOperationId",
                       "low-code/reference/api/executeComponent",
                       "low-code/reference/api/input",
+                      "low-code/reference/api/walkTriggers",
                       "low-code/reference/api/log",
                       "low-code/reference/api/exit",
                       "low-code/reference/api/throw"
@@ -629,6 +792,7 @@
                       "low-code/reference/api/triggerEvent",
                       "low-code/reference/api/triggerTarget",
                       "low-code/reference/api/triggerJob",
+                      "low-code/reference/api/triggerJobs",
                       "low-code/reference/api/triggerWebhook",
                       "low-code/reference/api/cancelJobs",
                       "low-code/reference/api/retryJobs",
@@ -676,6 +840,8 @@
                       "low-code/reference/storage/walkFileData",
                       "low-code/reference/storage/getFileStats",
                       "low-code/reference/storage/putObject",
+                      "low-code/reference/storage/compress",
+                      "low-code/reference/storage/unpack",
                       "low-code/reference/storage/getDownload",
                       "low-code/reference/storage/getDocument"
                     ]
@@ -864,160 +1030,6 @@
           {
             "group": "Platform API",
             "openapi": "api-reference/openapi.json"
-          }
-        ]
-      },
-      {
-        "tab": "Changelog",
-        "icon": "clock-rotate-left",
-        "groups": [
-          {
-            "group": "Release notes",
-            "pages": [
-              "releases/changelog"
-            ]
-          },
-          {
-            "group": "Public releases",
-            "pages": [
-              {
-                "group": "1.8.x",
-                "pages": [
-                  "changelog/1.8.0"
-                ]
-              },
-              {
-                "group": "1.7.x",
-                "pages": [
-                  "changelog/1.7.1",
-                  "changelog/1.7.0"
-                ]
-              },
-              {
-                "group": "1.6.x",
-                "pages": [
-                  "changelog/1.6.6",
-                  "changelog/1.6.5",
-                  "changelog/1.6.4",
-                  "changelog/1.6.3",
-                  "changelog/1.6.2",
-                  "changelog/1.6.1",
-                  "changelog/1.6.0"
-                ]
-              },
-              {
-                "group": "1.5.x",
-                "pages": [
-                  "changelog/1.5.9",
-                  "changelog/1.5.8",
-                  "changelog/1.5.7",
-                  "changelog/1.5.6",
-                  "changelog/1.5.5",
-                  "changelog/1.5.4",
-                  "changelog/1.5.3",
-                  "changelog/1.5.2",
-                  "changelog/1.5.1",
-                  "changelog/1.5.0"
-                ]
-              },
-              {
-                "group": "1.4.x",
-                "pages": [
-                  "changelog/1.4.3",
-                  "changelog/1.4.2",
-                  "changelog/1.4.1",
-                  "changelog/1.4.0"
-                ]
-              },
-              {
-                "group": "1.3.x",
-                "pages": [
-                  "changelog/1.3.3",
-                  "changelog/1.3.2",
-                  "changelog/1.3.1",
-                  "changelog/1.3.0"
-                ]
-              },
-              {
-                "group": "1.2.x",
-                "pages": [
-                  "changelog/1.2.3",
-                  "changelog/1.2.2",
-                  "changelog/1.2.1",
-                  "changelog/1.2.0"
-                ]
-              },
-              {
-                "group": "1.1.x",
-                "pages": [
-                  "changelog/1.1.4",
-                  "changelog/1.1.3",
-                  "changelog/1.1.2",
-                  "changelog/1.1.1",
-                  "changelog/1.1.0"
-                ]
-              },
-              {
-                "group": "1.0.x",
-                "pages": [
-                  "changelog/1.0.3",
-                  "changelog/1.0.2",
-                  "changelog/1.0.1",
-                  "changelog/1.0.0"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Before 1.0",
-            "pages": [
-              {
-                "group": "2026",
-                "pages": [
-                  "changelog/0.9.0",
-                  "changelog/0.8.0"
-                ]
-              },
-              {
-                "group": "2025",
-                "pages": [
-                  "changelog/0.7.0",
-                  "changelog/0.6.0",
-                  "changelog/0.5.2",
-                  "changelog/0.5.1",
-                  "changelog/0.5.0",
-                  "changelog/0.4.1"
-                ]
-              },
-              {
-                "group": "2024",
-                "pages": [
-                  "changelog/0.4.0",
-                  "changelog/0.3.3",
-                  "changelog/0.3.2",
-                  "changelog/0.3.1",
-                  "changelog/0.3.0"
-                ]
-              },
-              {
-                "group": "2023",
-                "pages": [
-                  "changelog/0.2.0",
-                  "changelog/0.1.3",
-                  "changelog/0.1.2",
-                  "changelog/0.1.1",
-                  "changelog/0.1.0",
-                  "changelog/0.0.3",
-                  "changelog/0.0.2"
-                ]
-              },
-              {
-                "group": "2022",
-                "pages": [
-                  "changelog/0.0.1"
-                ]
-              }
-            ]
           }
         ]
       },

@@ -14,7 +14,7 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 577
+      "operations": 583
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
@@ -84,6 +84,7 @@
         "low-code/reference/api/getOperationId.mdx",
         "low-code/reference/api/executeComponent.mdx",
         "low-code/reference/api/input.mdx",
+        "low-code/reference/api/walkTriggers.mdx",
         "low-code/reference/api/log.mdx",
         "low-code/reference/api/exit.mdx",
         "low-code/reference/api/throw.mdx",
@@ -114,6 +115,7 @@
         "low-code/reference/api/triggerEvent.mdx",
         "low-code/reference/api/triggerTarget.mdx",
         "low-code/reference/api/triggerJob.mdx",
+        "low-code/reference/api/triggerJobs.mdx",
         "low-code/reference/api/triggerWebhook.mdx",
         "low-code/reference/api/cancelJobs.mdx",
         "low-code/reference/api/retryJobs.mdx",
@@ -136,6 +138,8 @@
         "low-code/reference/storage/getEntry.mdx",
         "low-code/reference/storage/createFolder.mdx",
         "low-code/reference/storage/putObject.mdx",
+        "low-code/reference/storage/compress.mdx",
+        "low-code/reference/storage/unpack.mdx",
         "low-code/reference/storage/createUploadSession.mdx",
         "low-code/reference/storage/extendUploadSession.mdx",
         "low-code/reference/storage/getUploadSession.mdx",

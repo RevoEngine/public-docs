@@ -1,0 +1,25 @@
+---
+title: storage.unpack()
+sidebarTitle: unpack()
+description: Public low-code contract, signatures and examples for storage.unpack.
+icon: code
+---
+
+<span id="storage-unpack" aria-hidden="true"></span>
+
+## `storage.unpack()`
+
+Decode one gzip layer (including concatenated append members) and save a new Storage file.
+Reusing the same request returns the finalized result. The source is retained and existing
+destination files are never overwritten. By default the result is created beside the source.
+Use parentStorageEntryId to select a folder or null for the namespace root.
+
+### Overloads
+
+```ts
+static unpack(storageEntryId: string, options?: StorageUnpackOptions): Promise<StorageEntryView>;
+
+static unpack(namespace: string, storageEntryId: string, options?: StorageUnpackOptions): Promise<StorageEntryView>;
+```
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

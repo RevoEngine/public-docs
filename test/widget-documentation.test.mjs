@@ -99,7 +99,7 @@ test('Assistant-card sources remain independent and use the confirmed Job receip
   assert.equal(config.actionTargets.status.readOnly, true);
   const receipt = plain(await run(config.actionTargets.launch.code, {
     input: () => ({ quantity: 3 }),
-    triggerJob: async (id, input) => { assert.equal(input.quantity, 3); return 'job-1'; },
+    triggerJob: async (id, trigger) => { assert.equal(trigger.input.quantity, 3); return 'job-1'; },
   }));
   assert.deepEqual(receipt, { jobId: 'job-1' });
   const partial = plain(await run(code, {

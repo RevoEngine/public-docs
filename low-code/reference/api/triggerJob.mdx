@@ -9,35 +9,29 @@ icon: code
 
 ## `api.triggerJob()`
 
-Schedules an active job template by its exact ID or exact unique name.
-
-Notes:
-- Unavailable with `readOnly: true` (throws an error).
-- Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
-- The input argument is copied directly into the target job's flat
-  `api.input().templateInputs`, shallow-spread over template defaults.
-  Non-colliding defaults remain and matching keys are overwritten; it is not
-  nested under `templateInputs.input` or exposed at top level.
-- Pass `&#123; scheduleFor &#125;`; the maximum horizon is 30 days.
-- Retired positional date and relative-delay arguments are ignored.
+Schedules an active Job Template by exact ID or unique name. Read the run
+trigger from api.input().triggers and the saved defaults from templateInputs.
+Use options.scheduleFor to schedule up to 30 days ahead.
+Unavailable with readOnly: true.
 
 ### Signature
 
 ```ts
 static triggerJob(
       templateIdOrName: string,
-      templateInputs?: Record<string, JsonValue>,
+      trigger?: JobRunTrigger,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
 ```
 ### Example
 
 ```ts
-const jobId = await api.triggerJob(
-  templateId,
-  { customerId: 'c-1' },
-  { scheduleFor: new Date(Date.now() + 15 * 60 * 1000) },
-);
+const jobId = await api.triggerJob('Export', {
+  input: { orderId: 'order-1' },
+  type: 'EXPORT_REQUESTED',
+  message: { format: 'xlsx' },
+  metadata: { source: 'orders' },
+}, { scheduleFor: Date.now() + 300_000 });
 ```
 
 

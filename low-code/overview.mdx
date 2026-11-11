@@ -47,7 +47,7 @@ return response.data;
 
 ## Wait within the execution budget
 
-Use `await util.sleep(ms)` for a delay of up to 60,000 milliseconds. The wait uses the current execution's timeout budget and stops when the execution is cancelled or times out. An interrupted wait still rejects; expected cancellation does not add a spurious error diagnostic. Returning from an execution also clears pending waits, so await delays that the workflow needs before returning its result.
+Use `await util.sleep(ms)` for a delay of up to 60,000 milliseconds. The wait uses the current execution's timeout budget and rejects if the execution is cancelled or times out. Await delays that the workflow needs before returning its result.
 
 ## Input, results, and composition
 

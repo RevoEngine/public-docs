@@ -401,6 +401,8 @@ export const PlaygroundStyle = () => <style>{`
   .revo-demo .rd-node[aria-current="step"] { border-color: var(--rd-accent); box-shadow: inset 0 3px 0 var(--rd-accent); background: var(--rd-panel); animation: rd-arrive .3s ease-out; }
   .revo-demo .rd-detail { padding: 16px; border-radius: 12px; border: 1px solid var(--rd-border); background: var(--rd-panel); min-height: 155px; }
   .revo-demo .rd-result { display: block; margin: 14px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 ui-monospace,monospace; padding: 11px; border-left: 3px solid var(--rd-accent); }
+  .revo-demo .rd-event-input { max-height: 330px; overflow: auto; }
+  .revo-demo .rd-event-input:focus-visible { outline: 3px solid var(--rd-accent); outline-offset: 3px; }
   .revo-demo .rd-error { border-left-color: #dc2626; }
   .revo-demo .rd-warning { border-left-color: #d97706; }
   .revo-demo .rd-meters { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0; font-variant-numeric: tabular-nums; }
@@ -459,6 +461,143 @@ export const FlowDemo = ({ topic }) => {
     <div className="rd-controls"><button type="button" disabled={step === 0} onClick={() => { stop(); setStep(step - 1); }}>Back</button><button type="button" className="rd-primary" disabled={step === steps.length - 1} onClick={() => { stop(); advance(); }}>Next step</button><button type="button" disabled={step === steps.length - 1} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Pause' : 'Play'}</button><button type="button" onClick={() => { stop(); setStep(0); }}>Reset</button><span className="rd-muted">{step + 1} / {steps.length}</span></div>
     <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{step + 1}. {current[0]}</strong><p>{current[1]}</p><code className={'rd-result rd-' + (current[3] || 'normal')}>{current[2]}</code></div>
     <p className="rd-footnote">Illustrative local simulation. No request is sent to a RevoEngine instance. Steps show contract boundaries, not measured timing. With reduced motion, use Next step.</p>
+  </section>;
+};
+
+export const eventDeliveryExample = (configuration = {}) => {
+  const limits = { size: configuration.size ?? 4, wait: configuration.wait ?? 10, quiet: configuration.quiet ?? 5 };
+  const groupByKey = configuration.groupByKey ?? true;
+  const events = [
+    [0, 'A1', 'A'], [1, 'A2', 'A'], [2, 'B1', 'B'], [3, 'A3', 'A'], [4, 'A4', 'A'],
+    [8, 'U1', null], [9, 'B2', 'B'], [14, 'C1', 'C'], [18, 'C2', 'C'], [22, 'C3', 'C'],
+  ].map(([at, id, key]) => ({ at, id, key }));
+  const modes = [
+    ['SINGLE', 'Single'],
+    ['BATCH', 'Batch'],
+    ['DEBOUNCE', 'Debounce'],
+  ].map(([mode, name]) => {
+    const jobs = [];
+    const open = {};
+    events.forEach(event => {
+      Object.keys(open).forEach(key => {
+        const group = open[key];
+        if (group && group.at <= event.at) {
+          jobs.push(group);
+          open[key] = null;
+        }
+      });
+      if (mode === 'SINGLE') {
+        jobs.push({
+          at: event.at, events: [event], reason: 'Event admitted',
+        });
+        return;
+      }
+      const key = groupByKey ? (event.key ?? 'isolated:' + event.id) : 'template';
+      const group = open[key] ?? { events: [], deadline: event.at + limits.wait };
+      group.events.push(event);
+      if (group.events.length === limits.size) {
+        jobs.push({ ...group, at: event.at, reason: 'Maximum triggers reached' });
+        open[key] = null;
+      } else {
+        const quietAt = event.at + limits.quiet;
+        const quietFirst = mode === 'DEBOUNCE' && quietAt < group.deadline;
+        group.at = quietFirst ? quietAt : group.deadline;
+        group.reason = quietFirst ? 'Quiet period elapsed' : 'Maximum wait reached';
+        open[key] = group;
+      }
+    });
+    Object.values(open).filter(Boolean).forEach(group => jobs.push(group));
+    jobs.sort((a, b) => a.at - b.at);
+    jobs.forEach(job => {
+      const triggers = job.events.map(({ id, key }) => ({
+        triggerType: 'EVENT', eventName: 'Collect price changes',
+        jobEventId: 'price-change-subscription', eventHistoryId: 'history-' + id,
+        type: 'PRICE_CHANGED',
+        message: key === null ? { changeId: id } : { priceListId: key, changeId: id },
+        metadata: { source: 'catalog' },
+        input: { validate: true },
+      }));
+      const { type, message, metadata } = triggers[0];
+      job.input = { templateInputs: { region: 'EU' }, triggers, ...(mode === 'SINGLE' ? { type, message, metadata } : {}) };
+    });
+    const times = [...events.map(event => event.at), ...jobs.map(job => job.at)]
+      .sort((a, b) => a - b)
+      .filter((time, index, all) => index === 0 || time !== all[index - 1]);
+    return { name, jobs, times };
+  });
+  return { events, limits, modes, groupByKey };
+};
+
+export const EventDeliveryDemo = ({ mode = 'Batch' }) => {
+  const [configuration, setConfiguration] = useState({});
+  const { events, limits, modes, groupByKey } = eventDeliveryExample(configuration);
+  const { jobs, times } = modes.find(candidate => candidate.name === mode);
+  const [step, setStep] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const time = times[step];
+  const done = step === times.length - 1;
+  const arrivals = events.filter(event => event.at === time);
+  const eligible = jobs.filter(job => job.at <= time);
+  const pending = jobs.filter(job => job.at > time && job.events[0].at <= time);
+  const current = eligible[selected] ?? eligible[eligible.length - 1];
+  const stop = useCallback(() => setPlaying(false), []);
+  const advance = useCallback(() => {
+    setSelected(null);
+    setStep(value => Math.min(value + 1, times.length - 1));
+  }, [times.length]);
+  useDemoPlayback(playing, advance, stop);
+  useEffect(() => { if (done) stop(); }, [done, stop]);
+  const configure = updates => {
+    stop();
+    setStep(0);
+    setSelected(null);
+    const next = { ...limits, groupByKey, ...updates };
+    setConfiguration({ ...next, quiet: Math.min(next.quiet, next.wait) });
+  };
+  return <section className="revo-demo not-prose" aria-label={mode + ' Event delivery simulation'}>
+    <PlaygroundStyle />
+    <div className="rd-eyebrow">Interactive simulation</div>
+    <h3>{mode} timeline</h3>
+    <p className="rd-muted">Advance the same price changes, then select an eligible Job to inspect its runtime input.</p>
+    {mode !== 'Single' && <div className="rd-controls" role="group" aria-label="Grouping settings">
+      <label>Maximum triggers <select value={limits.size} onChange={event => configure({ size: Number(event.target.value) })}>
+        {[2, 3, 4, 5, 6].map(size => <option key={size} value={size}>{size}</option>)}
+      </select></label>
+      <label>Maximum wait <select value={limits.wait} onChange={event => configure({ wait: Number(event.target.value) })}>
+        {[5, 10, 15].map(wait => <option key={wait} value={wait}>{wait}s</option>)}
+      </select></label>
+      {mode === 'Debounce' && <label>Quiet period <select value={limits.quiet} onChange={event => configure({ quiet: Number(event.target.value) })}>
+        {[2, 3, 5, 8, 10].filter(quiet => quiet <= limits.wait).map(quiet => <option key={quiet} value={quiet}>{quiet}s</option>)}
+      </select></label>}
+      <label><input type="checkbox" checked={groupByKey} onChange={event => configure({ groupByKey: event.target.checked })} /> Group by price list</label>
+    </div>}
+    <div className="rd-controls" role="group" aria-label="Timeline controls">
+      <button type="button" disabled={step === 0} onClick={() => { stop(); setSelected(null); setStep(step - 1); }}>Back</button>
+      <button type="button" className="rd-primary" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      <button type="button" disabled={done} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Pause' : 'Play'}</button>
+      <button type="button" onClick={() => { stop(); setStep(0); setSelected(null); }}>Reset</button>
+      <button type="button" disabled={done} onClick={() => { stop(); setStep(times.length - 1); setSelected(null); }}>Show outcome</button>
+    </div>
+    <div className="rd-detail">
+      <div aria-live="polite" aria-atomic="true">
+        <strong>Time +{time}s · {eligible.length} eligible {eligible.length === 1 ? 'Job' : 'Jobs'}</strong>
+        <p>Arrivals at this step · {arrivals.map(event => event.id).join(', ') || 'None'}</p>
+        <p>Open groups · {pending.map(job => job.events.filter(event => event.at <= time).map(event => event.id).join(', ')).join(' / ') || 'None'}</p>
+      </div>
+      {eligible.length > 0 && <>
+        <label className="rd-controls">Inspect Job input
+          <select value={eligible.indexOf(current)} onChange={event => { stop(); setSelected(Number(event.target.value)); }}>
+            {eligible.map((job, index) => <option key={index} value={index}>
+              +{job.at}s · {job.events.map(event => event.id).join(', ')} · {job.reason}
+            </option>)}
+          </select>
+        </label>
+        <pre className="rd-result rd-event-input" tabIndex={0} aria-label="Example Job input">{JSON.stringify(current.input, null, 2)}</pre>
+      </>}
+    </div>
+    <p className="rd-footnote">Synthetic inputs. Each release marks when a Job can be queued.
+      Actual start time depends on dispatch and available concurrency. With reduced motion, use Next step.</p>
   </section>;
 };
 

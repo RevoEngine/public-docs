@@ -12,7 +12,7 @@ icon: code
 Schedules a custom event.
 Matches active definitions by `custom: true` and the uppercase event type.
 No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
-The message can use up to 10 MiB of serialized UTF-8 JSON.
+The message can use up to 1 MiB of serialized UTF-8 JSON. Store larger data in Storage and pass a reference.
 For data over 1 MiB, prefer a finalized file in a restricted Explorer folder.
 Pass its `storageEntryId` and filter fields in `message`. Give the Job execution
 account read access and retain the file through the scheduled run and retries.

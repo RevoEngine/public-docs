@@ -7,6 +7,12 @@ icon: brackets-curly
 
 `api.input()` reads the source's configured arguments. Later interactive executions add a reserved **`$widget`** object. The spelling is `$widget`, with the dollar sign first.
 
+The code editor and refreshed VS Code editor types expose `WidgetContextInterface`:
+`api.input().$widget` is optional, while `api.input('$widget')` returns the context
+or `null` when absent. Both forms provide field completion and hover documentation
+in JavaScript and TypeScript. Use optional access, for example
+`const values = api.input('$widget')?.values ?? {};`.
+
 ```js
 const input = api.input() ?? {};
 const ui = input.$widget ?? {};

@@ -65,6 +65,16 @@ An Endpoint is uniquely identified by its HTTP method and normalized path. Suppo
 
 Named dynamic segments are decoded and exposed to the Component as path parameters. Static paths are preferred over dynamic candidates, so `/customers/current` is more specific than `/customers/:customerId`.
 
+In a new Endpoint Component, find the `ENDPOINT` entry in `api.input().triggers`. It carries `endpointId`, the request ID when available, `method`, `path`, named `parameters`, `query`, filtered `headers`, and the body as `input`. A configured guard runs before the Component receives these values. Existing Components can still read the original top-level HTTP fields.
+
+```js
+const request = api.input().triggers?.find(trigger => trigger.triggerType === 'ENDPOINT');
+const orderId = request?.parameters.orderId;
+```
+
+When the Component calls `api.triggerJob`, the Job receives an `EXECUTION` entry with the values explicitly passed to that call and the source execution ID when available. Map the values the Job needs from the HTTP request.
+
+
 Paths:
 
 - start with `/`;

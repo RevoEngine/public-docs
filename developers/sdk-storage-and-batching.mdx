@@ -49,11 +49,15 @@ revo.batch.configure({
 | `independent` | Every valid call runs and its promise settles independently |
 | `stop` | Calls run in order; entries after the first rejection fail with `BATCH_STOPPED` |
 
-The SDK defaults to 32 calls, 256 KiB per request, four in-flight batches, and 1,024 queued calls. Client configuration can only lower platform ceilings. The current server envelope allows up to 64 calls, a 1 MiB request, and a 4 MiB response.
+The SDK defaults to 32 calls per frame, a 256 KiB soft packing target, a 12 MiB hard frame ceiling and four in-flight frames. A call above the soft target travels alone if it fits the hard ceiling: a full 1 MB Event message plus its envelope and a complete 5 MiB atomic Job batch are supported. The 5 MiB business JSON budget and 12 MiB wire-frame ceiling are separate limits. Configure `targetRequestBytes` for packing and `maxRequestBytes` for a lower hard ceiling. The server can lower negotiated limits; its current maximum is 64 calls, a 12 MiB request and a 4 MiB response.
+
+At most 1,024 unsettled calls and 16 MiB of encoded arguments are retained across queued, dispatch-waiting and active frames. `maxRetainedBytes` and `maxQueuedCalls` can lower those budgets. Oversized arguments are checked before encoding, and capacity is returned on settlement. Await existing work before publishing more when a budget is full. Encoded-byte accounting is not a process-memory or database-capacity quota.
 
 <Warning>
   Runtime batches are never retried automatically because they can contain mutations. A transport interruption after dispatch produces an indeterminate result; inspect durable state before retrying.
 </Warning>
+
+For atomic Job admission, use `api.triggerJobs(items, { idempotencyKey })`, not a collection of ordinary calls in `Promise.all`. See [produce a Job batch](/operate/jobs#produce-an-atomic-job-batch).
 
 ## Small objects
 

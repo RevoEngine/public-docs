@@ -24,6 +24,11 @@ Notes:
   parts. `incremental` assigns part numbers by default and also accepts an
   explicit number for repair. `writeMode` is independent: it controls only
   CSV/XLSX row materialization (`staged` or declared-schema `direct`).
+- Set `compress: true` in any upload mode to publish one `.gz` file at
+  gzip level 1. For byte parts, each part becomes a gzip member. For direct
+  and structured uploads, Storage gzips the completed bytes. Send raw input.
+- Optional `prepareForRead: 'sync' | 'async'` applies at finalization. It requires `compress: true`.
+  Omit it to publish gzip only. Prepared copies expire after up to 24 hours.
 - Use incremental sessions for append-style writes. Managed direct uploads are
   finalized automatically after Storage confirms the transfer; observe the
   session until `FINALIZED` and do not call `finalizeUploadSession` for that

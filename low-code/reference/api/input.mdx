@@ -12,19 +12,32 @@ icon: code
 Returns the current execution payload.
 
 Notes:
-- In endpoint context this usually includes body, query, headers, params, path, and method.
-- In event or job context it commonly includes type and message.
+- Endpoint Components receive an ENDPOINT trigger with method, path,
+  parameters, query, headers and the request body as input.
+- Jobs receive EVENT, SCHEDULE, REQUEST or EXECUTION trigger entries.
+  existing components. Small Job snapshots contain full
+  entries with deferred: false. Larger snapshots use deferred: true.
+  walkTriggers() reads full entries in order without changing the snapshot.
+- Event and Schedule input is on each trigger entry. templateInputs contains
+  the Job Template defaults for these Jobs.
+- REQUEST and EXECUTION entries carry the explicit run input. The direct-run
+  templateInputs overlay is retained for existing components.
 - Passing a name returns a single top-level property.
+- $widget contains host-owned interactive widget state. It is optional in
+  the complete input; input('$widget') returns null when absent.
 
-### Signature
+### Overloads
 
 ```ts
+static input(name: '$widget'): WidgetContextInterface | null;
+
 static input(name?: string): Input;
 ```
 ### Example
 
 ```ts
-const customerId = api.input()?.body?.customerId;
+const endpoint = api.input().triggers?.find(trigger => trigger.triggerType === 'ENDPOINT');
+const customerId = endpoint?.parameters.customerId;
 ```
 
 

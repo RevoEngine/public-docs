@@ -24,27 +24,19 @@ The Asterion subscription listens for `ASTERION_SUPPLIER_FEED_READY` and targets
 
 ## Filter event messages
 
-The visual filter builder supports **all**, **any**, and **none** matching. Enter message paths without the `message.` prefix; use dot notation for nested properties.
+The visual filter builder supports **all**, **any**, and **none** matching. Select **Browse history** beside a condition to browse Events of the configured type, including Events that did not match the current filter. Select a row to inspect its JSON, then click a field to fill the condition. Set the operator and comparison value in the Event form.
 
-```text
-customer.region      eq       eu
-order.total          gte      10000
-order.currency       in       EUR,PLN
-```
-
-Supported comparisons include equality, numeric ordering, list membership, null checks, contains, starts/ends with, and case-sensitive or case-insensitive pattern matching.
-
-The UI accepts only the property inside the event `message`. For example, enter `name`, `mimeType`, or `metadata.kind`; the editor persists the safe query path as `message.name`, `message.mimeType`, or `message.metadata.kind`. Do not type the `message.` prefix into the visual field.
+The builder uses the same JSON Pointer format as **Grouping key path** for Batch and Debounce and **Dynamic key path** for Jobs. A field displayed as `message.pricelists[0]` becomes `/message/pricelists/0`. The filter tests the selected value, while grouping and concurrency use a scalar value as a key.
 
 For a CSV ingestion subscription, configure all conditions:
 
 ```text
-mimeType              eq       text/csv
-metadata.pipeline     eq       settlements
-name                  ilike    settlement-*.csv
+/message/mimeType          eq       text/csv
+/message/metadata/pipeline eq       settlements
+/message/name              ilike    settlement-*.csv
 ```
 
-Wildcard text entered as `*` is normalized to the query wildcard used by the stored filter. Property paths are limited to safe dot notation; prototype-related segments and prefixed paths are rejected.
+Use `/metadata/pipeline` to select metadata on the published Event. Use `/message/metadata/pipeline` when the publisher put it inside the message. Wildcard text entered as `*` is normalized to the query wildcard.
 
 ### Filter operators
 
@@ -59,16 +51,18 @@ Wildcard text entered as `*` is normalized to the query wildcard used by the sto
 | `like`, `notLike` | SQL-style `%` and `_` pattern match. The UI converts `*` to `%`. |
 | `ilike`, `notILike` | Case-insensitive pattern match. |
 
-The visual builder supports up to six safe message-path segments and deliberately writes only `message.*` filters. The Platform API accepts a validated filter tree over `message.*`, searchable `metadata.*`, or the event `type`, with nested `and`, `or`, and `not` groups and at most twelve field-path segments. Unsafe keys such as `__proto__`, `prototype`, and `constructor` are rejected on both surfaces.
+Event filters can address `/message`, `/metadata`, or `/type`. Paths allow up to 12 segments and 256 characters for JSON Pointer, including array indexes. Encode a literal slash as `~1` and a literal tilde as `~0`. Prototype-related keys are rejected.
+
+The Platform API accepts nested `and`, `or`, and `not` groups. Existing dotted fields such as `message.order.region` remain valid. The visual builder preserves saved conditions beyond its editing capabilities.
 
 ```json
 {
   "or": [
-    { "field": "metadata.source", "op": "eq", "value": "checkout" },
+    { "field": "/metadata/source", "op": "eq", "value": "checkout" },
     {
       "and": [
-        { "field": "type", "op": "eq", "value": "ORDER_APPROVED" },
-        { "field": "message.order.region", "op": "in", "value": ["eu", "uk"] }
+        { "field": "/type", "op": "eq", "value": "ORDER_APPROVED" },
+        { "field": "/message/order/region", "op": "in", "value": ["eu", "uk"] }
       ]
     }
   ]

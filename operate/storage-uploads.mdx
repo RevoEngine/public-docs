@@ -31,6 +31,16 @@ RESERVED -> UPLOADING -> FINALIZING -> FINALIZED
 
 `writeMode` is a separate setting for structured CSV/XLSX row materialization. It does not choose how raw bytes are transferred. See [Structured files](/operate/storage-structured-files).
 
+### Store a gzip file
+
+In Storage, open **Upload a file** and turn on **Compress as gzip (.gz)**. The switch starts off for each upload.
+
+Set `compress: true` when creating an upload session or uploading a small file in one call. Send the original uncompressed bytes. Storage publishes one `.gz` file. For an upload session, the entry becomes readable at `FINALIZED`. The option works with `direct`, `incremental`, and `chunked` sessions. See [`storage.createUploadSession()`](/low-code/reference/storage/createUploadSession) and [`storage.putObject()`](/low-code/reference/storage/putObject).
+
+Set `prepareForRead` to `"sync"` or `"async"` with `compress: true` when the result needs immediate or queued indexed access. Omit it to publish only the archive. See [large gzip reads](/operate/storage#prepare-repeated-or-large-gzip-reads).
+
+To compress a file already in Storage, use [`storage.compress()`](/low-code/reference/storage/compress). It creates a separate `.gz` file alongside the original.
+
 ## Direct frontend upload
 
 Create the session in trusted backend or low-code logic, return only the temporary upload contract to the frontend, and keep the session ID for status checks.

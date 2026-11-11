@@ -105,7 +105,7 @@ const quantity = api.input().quantity;
 if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100)
   throw new Error('Invalid quantity');
 return {
-  jobId: await api.triggerJob('VERIFIED_JOB_TEMPLATE_ID', { quantity }),
+  jobId: await api.triggerJob('VERIFIED_JOB_TEMPLATE_ID', { input: { quantity } }),
 };
 `,
       },
@@ -186,7 +186,7 @@ return [
 };
 ```
 
-The source branches on `$widget.targetIds` before reading data. After confirmed completion, only `total` is returned, so the form remains mounted and retains its values. Clicking that tile opens `details`, then More opens a second level using the received quantity. Back restores each retained frame. The worker receives `quantity` in `api.input().templateInputs`.
+The source branches on `$widget.targetIds` before reading data. After confirmed completion, only `total` is returned, so the form remains mounted and retains its values. Clicking that tile opens `details`, then More opens a second level using the received quantity. Back restores each retained frame. The worker receives `quantity` in the `EXECUTION` trigger’s `input`.
 
 For horizontal bar charts, use a number x-axis and a category y-axis, or omit explicit axes. Text category values on a number axis are rejected before the card is published.
 

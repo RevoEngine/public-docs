@@ -37,7 +37,7 @@ Job History separates the source of a run from the account that initiated it:
 
 The Trigger picker opens with 20 definitions and loads more as you scroll. Search matches a name fragment. Each choice includes its source type; an Event and a Schedule with the same name remain independent selections. You can select both. Choices come from the definitions catalog, so they can appear even when they have no Jobs in the selected date range. Inactive definitions remain searchable; deleted definitions appear when deleted resources are included.
 
-Request, Execution, and Retry rows have an empty Trigger cell. Use Trigger Type to find those runs and Requested by to narrow them to an initiating account. Open the Job details to inspect its execution or retry provenance. For example, select Request and an operator account to find that operator's direct requests without confusing the operator with a Service Account that executed the work.
+Request, Execution, and Retry rows have an empty Trigger cell. Use Trigger Type to find those runs and Requested by to narrow them to an initiating account. Open the Job details to inspect its execution or retry provenance. For example, select Request and an operator account to find that operator's direct requests without confusing the operator with a Service Account that executed the work. A mixed Batch or Debounce Job has no single initiating user; inspect its Triggers section for each entry's initiator and origin.
 
 ## The limit model
 
@@ -91,20 +91,100 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 
 A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration.
 
-## Runtime input from Events and Schedules
+## Runtime input and trigger provenance
 
-The template's **Runtime input** is stored as `options.input` and exposed to the Component through `api.input('templateInputs')`. A Job-targeting [Event](/operate/event-inputs#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedule-inputs#configure-runtime-input-for-a-job-target) can configure its own Runtime input in **Options**:
+<span id="runtime-input-from-events-and-schedules" aria-hidden="true"></span>
 
-- **Override** (default) shallowly overlays the automation input onto template defaults; Event or Schedule keys win.
-- **Replace** replaces the whole template input for that execution; `{}` clears it.
+The Job Template’s **Runtime input** is stored as `options.input` and exposed as `api.input().templateInputs`. A [Job-targeting Event](/operate/event-inputs#configure-runtime-input-for-a-job-target) or [Schedule](/operate/schedule-inputs#configure-runtime-input-for-a-job-target) supplies its own Runtime input as `input` on each trigger. In native low-code, use `api.walkTriggers()` to read full entries in order for single Events, grouped Events and Schedules.
 
-This lets several automations reuse one Job template while selecting different Component behavior. The template still owns the execution principal, limits, concurrency, and retry policy. Event messages remain separate from `templateInputs`.
+Check `triggerType` before reading an entry. New retained triggers also carry `initiatedByUserId` and `origin`, independently of the shared Job executor. The origin keeps the original execution and Assistant conversation references when available. Older Event history may have no initiating account recorded. These audit fields are assigned by the platform; caller-supplied values cannot replace them.
 
-Existing automation definitions retain their effective input after migration; definitions using the former default keep Job defaults. The resolved input is retained with the Job; later Event or Schedule edits do not change queued or running Jobs, or their retry input.
+| Trigger | When it appears | Source input |
+| --- | --- | --- |
+| `EVENT` | Single, Batch, or Debounce delivery | The subscription's Runtime input and the occurrence's own message, type, and metadata. |
+| `SCHEDULE` | A cron occurrence or **Run** on the Schedule | The Schedule's Runtime input, metadata, and occurrence identity. |
+| `REQUEST` | A manual Job run from the UI or Platform API | The supplied run input and request ID when available. |
+| `EXECUTION` | A Job started from another execution, such as by `api.triggerJob` | The supplied run input and source execution ID when available. |
+
+A manual Run can span several Jobs when its trigger array reaches the template’s hard batch limit. The Platform API response keeps `jobId` as the first affected Job and includes every affected ID in ordered `jobIds`. All parts commit together; inspect each Job’s Triggers section to see its assigned entries.
+
+## Trigger a Job from code
+
+Pass the trigger envelope as the second argument to `api.triggerJob`. Put `scheduleFor` in the third argument to run later.
+
+```js
+const jobId = await api.triggerJob('Export', {
+  input: { orderId: 'order-1' },
+  type: 'EXPORT_REQUESTED',
+  message: { format: 'xlsx' },
+  metadata: { source: 'export-form' },
+}, { scheduleFor: Date.now() + 300_000 });
+```
+
+Select **Run** to edit **Template inputs** and **Triggers** separately. Template inputs overlay saved defaults for this run; triggers are an ordered array of explicit request envelopes. The Platform API accepts `inputs` and `triggers` together in `POST /api/v1/automation/template/{jobTemplateId}/run`. `trigger` is shorthand for one entry; use either `trigger` or `triggers`. Add `scheduleFor` to run later. Explicit triggers have a 1 MB serialized limit and no separate item-count limit. The platform assigns REQUEST provenance; an application `type` does not turn a request into a retained Event.
+
+Small trigger sets resolve before execution with `deferred: false`. Larger sets expose ordered references with `deferred: true`. Use `api.walkTriggers()` for complete entries in either case. Payloads are retained once rather than duplicated into each stored Job input.
+
+Read the supplied fields from the resulting `REQUEST` or `EXECUTION` entry. `type` is an application label and `triggerType` identifies the source. `message` accepts a JSON value. `metadata` is a JSON object with up to 64 keys and 16 KiB. Keys beginning with `__` are reserved.
+
+In 1.9.0, update existing native low-code and SDK 4.1.0 calls that passed run values directly as the second argument. For example, change `api.triggerJob('Export', { orderId })` to `api.triggerJob('Export', { input: { orderId } })`. Update the Job Component to read the `EXECUTION` trigger's `input` and use `trigger.message` for a separate application message. Keep reading old values from `templateInputs` while Jobs admitted before the upgrade can still run or retry.
+
+SDK 4.1.0 deliberately adopts this new envelope contract. Review callers before upgrading the SDK package; published SDK 4.0.0 keeps its original wire contract.
+
+The separate REST `inputs` field and the Job Template branch of `api.triggerTarget` still apply a shallow overlay. Already published hosted SDK revisions retain their original calling contract.
+
+## Produce an atomic Job batch
+
+Native low-code and SDK 4.1.0 can admit several direct Jobs together:
+
+```js
+const jobIds = await api.triggerJobs([
+  { name: 'Export', trigger: { input: { orderId: 'order-1' } } },
+  { name: 'Export', trigger: { input: { orderId: 'order-2' } } },
+], { idempotencyKey: 'orders-export:page-1' });
+```
+
+Use 1–100 items and at most 5 MiB of UTF-8 JSON for the complete batch. Acceptance is atomic and returns Job IDs in input order. Each item uses the template's normal executor, concurrency, retry and timeout settings. With Single mode, each item creates a separate Job. A template configured for Batch or Debounce can collect several items into the same Job; the returned IDs remain ordered and can repeat. Configure this in **Jobs → Templates → Execution mode**. All source types participate, including Events, Schedules, manual Run and low-code/REST.
+
+Preparation also has a 64 MiB per-batch ceiling including materialized template inputs. Prepared Job bytes count toward the same cumulative 64 MiB host producer budget for both single and bulk admission. Reduce work per execution when saved defaults are large; a failed preparation accepts no partial Jobs.
+
+The Platform API accepts `{ items, idempotencyKey }` at `POST /api/v1/automation/templates/run`. Reusing a key with the same ordered payload returns the first accepted Job IDs for that authenticated producer on the instance, across requests or executions. Changing the payload under the same key returns a conflict. The first acceptance retains its provenance. Choose a new key for intentional new work, and preserve page keys when reconciling an uncertain response.
+
+Receipts survive Job-history cleanup. Retrying an old key can therefore return IDs whose history has expired; it does not recreate those Jobs. Use a new key only for an intentional new operation.
+
+This API commits Job admission in its own transaction. It does not join `api.transactionDatabase` or `tx.*`; calling it inside a database transaction callback does not make a later database rollback cancel accepted Jobs.
+
+For more work, send bounded pages and await each admission. Ordinary SDK request batching is separate: it groups transport calls and is not a transaction. A successful receipt means accepted, not completed; follow the returned Job IDs.
+
+### Producer budgets
+
+Within one host execution or request, the covered producers allow four active calls, 64 retained calls and 8 MiB retained logical input. Their cumulative budget is 1,000 publication units, 64 MiB logical input and 1,000 attempts. A direct Job batch counts each item as a publication unit. Await pending calls to free retained capacity; cumulative capacity requires a separately admitted execution.
+
+These guards cover direct Job admission, Event publication and REST replay, Webhook publication and manual single retry. They add no new class of AI, Database or Storage limits. The asynchronous selector-based bulk-retry operation retains its own durable workset and bounded worker, including larger selections. Each separate SDK RPC request has its own host producer budget, even when requests carry the same hosted execution ID. Local child work shares its host budget. Delegated remote requests do not share an in-memory parent budget; these limits are not a new global cross-request or instance quota. Event subscriptions can still fan out asynchronously, so observe queue depth, execution concurrency and retained database history.
+
+## Inspect a Job's triggers
+
+Open **Triggers** in Job details. The server-side table pages through source metadata in input order without loading every message. Select a row to load its payload in the read-only JSON editor. Source and definition links open the matching Event, Schedule or originating execution when available. Request and Execution entries use the same view.
+
+Vault-protected input stays masked, including selected-payload reads. Unavailable retained data produces an explicit loading error. Historical payloads above the inspection limit use a bounded preview; this does not change execution or walker input.
+
+Use the [Single, Batch, and Debounce simulations](/patterns/event-job-delivery#explore-the-behavior) to inspect the input of Jobs created by Event subscriptions.
+
+## Limit concurrent Jobs per key
+
+Open **Concurrency** on the Job Template and set **Dynamic key path** to a JSON Pointer such as `/message/priceListId` for Event messages or `/templateInputs/priceListId` for template values. With a limit of 1, Jobs for the same value wait for a slot. Jobs for other values can run in parallel. The limit applies to whole Job executions.
+
+Select **Browse history** to open the Job history for this template. Filter the grid and select a row to inspect its payload. For grouped Jobs, switch between triggers in the preview. Pick a scalar field such as `message.pricelists[0]` to set the JSON Pointer `/message/pricelists/0` in the form. The dialog stays open while you compare runs.
+
+In the Platform API, use `options.concurrency.keyPath`. An optional `options.concurrency.key` shares the namespace with other templates that use the same key. Leaving it blank scopes dynamic slots to this template. A static key without a path works as before. Missing values, objects, arrays, and mixed values in a group use one fallback slot for the configured concurrency limit.
+
+For a grouped Event, an Event field such as `/message/priceListId` must resolve to the same scalar for every trigger to use that value's slot. Configure the Job Template's dynamic key to select the same field. Single Events and homogeneous groups can then share a slot. Use `/input/priceListId` if both Event and Schedule Jobs set that value in their own Runtime input and should share a slot. A retry uses the same saved inputs.
 
 ## Choose and retain the executor
 
 `executionPolicy` selects who executes the Job. A direct Platform API or MCP invocation requires the caller's automation permissions. Triggering a Job inside an Endpoint checks the Endpoint's execution account for those permissions.
+
+For **Single** execution, the following policies apply:
 
 | Mode | Executor |
 | --- | --- |
@@ -112,11 +192,13 @@ Existing automation definitions retain their effective input after migration; de
 | `CALLER` | Uses the account initiating the Job. A direct authenticated invocation uses that caller; a Job triggered inside an Endpoint uses the Endpoint's execution account. Unattended triggers without a known initiator cannot use this mode. |
 | `SERVICE_ACCOUNT` | Uses the selected active Service Account, which must have platform access and the required roles and resource ACLs. |
 
-Use a dedicated Service Account for unattended work. An explicit policy and `triggerUser` must agree; clear the legacy alias with `null` when replacing it. The Endpoint compatibility migration preserves existing instance Job defaults and template bindings.
+For **Batch** and **Debounce**, the template's configured `triggerUser` or Service Account executes the whole Job. Otherwise the Job inherits an instance Jobs Service Account, then falls back to the established instance Job account or System. `CALLER` does not reject authorized admissions or select the first caller as the batch executor. The initiating account and Assistant conversation do not split collection. Grouping mode comes from the Job Template's `delivery` configuration.
 
-Jobs capture their executor when the durable record is created. `api.currentUser()` returns that executor; Jobs do not have the Endpoint's separate business-identity setting. History distinguishes `executionUserId` from `initiatedByUserId`. A retry keeps the original executor and initiator even if a Template or instance default changes, and rechecks the executor's availability and current permissions before running.
+Use a dedicated Service Account for unattended work. A selected Service Account and `triggerUser` must name the same account. For Single, `CALLER` also requires clearing `triggerUser`; Batch and Debounce retain that binding as their shared executor when present. Clear the legacy alias with `null` when replacing it. The Endpoint compatibility migration preserves existing instance Job defaults and template bindings.
 
-For example, a human user invokes an Endpoint executing as System with Caller business identity. If that Endpoint triggers a `CALLER` Job, the Job executes as System, `api.currentUser()` in the Job is System, and `initiatedByUserId` remains the original human user. A Template selecting a different Service Account uses that account instead.
+Jobs capture their executor when the durable record is created. A mixed Batch or Debounce Job has an independent Job origin and no single job-level initiator; each trigger keeps its own `initiatedByUserId` and `origin`. `api.currentUser()` returns that executor; Jobs do not have the Endpoint's separate business-identity setting. History distinguishes `executionUserId` from `initiatedByUserId`. A retry keeps the original executor and initiator even if a Template or instance default changes, and rechecks the executor's availability and current permissions before running.
+
+For example, a human user invokes an Endpoint executing as System with Caller business identity. If that Endpoint triggers a Single `CALLER` Job, the Job executes as System, `api.currentUser()` in the Job is System, and `initiatedByUserId` remains the original human user. A Template selecting a different Service Account uses that account instead.
 
 The Job executor's roles authorize operation families, while resource ACLs determine access to particular Databases, Storage objects, and other restricted targets. Configured administrator Service Account execution also requires approved Component and library code. An approval failure produces a terminal error rather than repeatedly retrying unapproved code; inspect the failure and approve the intended executable version before starting new work.
 

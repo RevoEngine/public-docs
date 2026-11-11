@@ -1,0 +1,22 @@
+---
+title: api.triggerJobs()
+sidebarTitle: triggerJobs()
+description: Public low-code contract, signatures and examples for api.triggerJobs.
+icon: code
+---
+
+<span id="api-triggerJobs" aria-hidden="true"></span>
+
+## `api.triggerJobs()`
+
+Atomically accepts 1–100 Job requests within a 5 MiB serialized request budget.
+Returns Job IDs in input order after durable acceptance. Reuse the same required
+idempotencyKey and payload to recover the original IDs; changed payload conflicts.
+
+### Signature
+
+```ts
+static triggerJobs(items: JobTriggerItem[], options: { idempotencyKey: string }): Promise<string[]>;
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

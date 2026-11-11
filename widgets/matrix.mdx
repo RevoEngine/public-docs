@@ -40,6 +40,10 @@ The first row contains one full-width heading. The second contains two cells. Th
 
 With two unspecified widths, each cell receives half the row. If one cell uses `width: 60`, unspecified cells share the remaining 40. If every cell has a width, their proportions are normalized across the row. Use positive widths totaling 100 for predictable authoring, and a positive pixel height when you need a fixed chart area.
 
+Full available width is the default. Use an EMPTY cell with width for intentional space within a row; it does not cap the whole widget. Choose compact spacing, blank inner padding or a maximum width independently, only when the widget needs them.
+
+Omit fixed heights for compact controls. In Assistant cards, TEXT, INPUT, BUTTON and EMPTY heights can be 32–800 px; CHART, TABLE and FORM heights remain 80–800 px. Configure spacing and content width through [Layout](/widgets/source-configuration#layout).
+
 The dashboard itself has a **20-column outer grid**. Its panel `x`, `y`, `cols` and `rows` determine where the widget sits. The returned matrix controls only the content inside that panel.
 
 ## IDs and data fields

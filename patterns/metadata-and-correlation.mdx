@@ -12,7 +12,7 @@ Metadata is a small JSON object attached to a definition or occurrence. Use it t
 | --- | --- | --- |
 | Component, Event or Job-template definition metadata | Owner, environment, managed integration, portable `stableKey` | Discovery, administration and explicitly configured tools such as CLI identity matching |
 | Published Event metadata | `correlationId`, `operationKey`, `source` | Event history, API filters over `metadata.*`, and the target's `api.input('metadata')` |
-| Event message | Business IDs and the fields subscribers inspect | Filters over `message.*`; the target's `api.input('message')` |
+| Event message | Business IDs and the fields subscribers inspect | Filters over `message.*`; each EVENT trigger's `message` |
 | A resource's metadata inside an Event message | For example, the Storage entry's `pipeline` label | `message.metadata.pipeline`, a different path from occurrence metadata |
 | Webhook metadata | Originating Event, Job or operation references | RevoEngine history and search; not automatically the outbound HTTP body or headers |
 
@@ -37,7 +37,7 @@ const eventId = await api.triggerEvent(
 return { accepted: true, eventId };
 ```
 
-The returned ID confirms durable Event acceptance, not invoice completion. In the target Component, read `api.input('message')` and `api.input('metadata')`. Validate their contents, load the authoritative order and deliberately carry the operation key into the receiver contract or business record.
+The returned ID confirms durable Event acceptance, not invoice completion. In the target Job Component, read `message` and `metadata` from each EVENT entry in `api.input().triggers`. Validate their contents, load the authoritative order and deliberately carry the operation key into the receiver contract or business record.
 
 For a later Webhook, set its own `metadata` explicitly if you want the same correlation values in Webhook history. Set `request.body` or a receiver-supported header separately when the partner needs that identity. Metadata is not silently forwarded between every product boundary.
 

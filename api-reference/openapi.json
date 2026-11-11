@@ -1069,6 +1069,39 @@
         "operationId": "MeController_getKeys",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -1439,6 +1472,39 @@
         "description": "**Roles:** `USER_READ`, `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "UsersController_getAll",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -2089,6 +2155,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -2499,6 +2598,39 @@
         "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getTemplates",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -3142,6 +3274,39 @@
         "description": "**Roles:** `COMPONENT_READ`, `COMPONENT_WRITE`, `COMPONENT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ComponentController_getAll",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -4994,6 +5159,39 @@
         "operationId": "RoleGroupsController_getAll",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -5300,6 +5498,39 @@
             "in": "path",
             "description": "Provide roleGroupId.",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -5753,6 +5984,39 @@
         "operationId": "GroupsController_getAll",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -6059,6 +6323,39 @@
             "in": "path",
             "description": "Provide groupId.",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -6436,6 +6733,39 @@
       "get": {
         "operationId": "DatabaseViewController_findAll",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -6841,6 +7171,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "jsonPreviewHash": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Read one complete JSON cell only when its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column."
+                  },
+                  "jsonPreview": {
+                    "type": "boolean",
+                    "description": "Return bounded JSON values for grid previews; shortened values carry an explicit preview marker."
+                  },
+                  "jsonPreviewBytes": {
+                    "type": "integer",
+                    "minimum": 256,
+                    "maximum": 65536,
+                    "description": "Per-cell JSON preview budget, further bounded by the page budget."
+                  },
                   "fields": {
                     "type": "array",
                     "description": "Selected fields and computed expressions. Each entry is a field string or a structured SelectItem (for example { field, as, castAs, distinct }, { fn, args, as }, { jsonValue, as }, { cast, asType, as }, { coalesce, as }, or { case, as }). Field and expression validity is checked against the selected database at runtime.",
@@ -7599,6 +7944,39 @@
         "operationId": "DatabaseController_listOperations",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -7935,6 +8313,39 @@
         "operationId": "DatabaseController_getAll",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -8235,6 +8646,39 @@
         "description": "ROLES: RESOURCE_READ,RESOURCE_WRITE,RESOURCE_ADMIN",
         "operationId": "DatabaseController_getAuditGrid",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -8894,6 +9338,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -9070,6 +9547,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "jsonPreviewHash": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Read one complete JSON cell only when its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column."
+                  },
+                  "jsonPreview": {
+                    "type": "boolean",
+                    "description": "Return bounded JSON values for grid previews; shortened values carry an explicit preview marker."
+                  },
+                  "jsonPreviewBytes": {
+                    "type": "integer",
+                    "minimum": 256,
+                    "maximum": 65536,
+                    "description": "Per-cell JSON preview budget, further bounded by the page budget."
+                  },
                   "fields": {
                     "type": "array",
                     "description": "Selected fields and computed expressions. Each entry is a field string or a structured SelectItem (for example { field, as, castAs, distinct }, { fn, args, as }, { jsonValue, as }, { cast, asType, as }, { coalesce, as }, or { case, as }). Field and expression validity is checked against the selected database at runtime.",
@@ -9364,6 +9856,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -9513,6 +10038,31 @@
                 "tsv",
                 "ndjson",
                 "xlsx"
+              ]
+            }
+          },
+          {
+            "name": "compress",
+            "required": false,
+            "in": "query",
+            "description": "Stream the selected format into a gzip archive. The Storage file name ends in .gz.",
+            "schema": {
+              "default": false,
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "prepareForRead",
+            "required": false,
+            "in": "query",
+            "description": "Prepare a compressed export for indexed reads. Requires compress:true. Sync waits for preparation. Async queues preparation after saving the archive. Omit for on-demand preparation.",
+            "schema": {
+              "example": "async",
+              "type": "string",
+              "enum": [
+                "sync",
+                "async"
               ]
             }
           },
@@ -10111,6 +10661,39 @@
         "description": "**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "ConfigController_instanceLogs",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -11056,6 +11639,39 @@
         "operationId": "PreferencesController_getAll",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -11357,6 +11973,39 @@
         "operationId": "SecretsController_getAll",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -11514,7 +12163,14 @@
         },
         "responses": {
           "201": {
-            "description": "Created."
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstanceSecretResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad input of the data."
@@ -11551,7 +12207,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK."
+            "description": "OK.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstanceSecretResponseDto"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden."
@@ -11594,8 +12257,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "OK."
+          "200": {
+            "description": "OK.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstanceSecretResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad input of the data."
@@ -11666,6 +12336,39 @@
             "in": "path",
             "description": "Provide secretId.",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -13316,6 +14019,127 @@
           "Storage"
         ],
         "description": "Read a versioned UTF-8 text range or literal search results. The request enforces Storage access, workspace ownership, and entry lifecycle state."
+      }
+    },
+    "/api/v1/storage/entries/{storageEntryId}/document": {
+      "get": {
+        "operationId": "StorageController_previewDocument",
+        "parameters": [
+          {
+            "name": "storageEntryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": false,
+            "in": "query",
+            "description": "Exclusive byte end in the decoded document.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 262144,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview a bounded text range, transparently decoding a gzip file.",
+        "tags": [
+          "Storage"
+        ],
+        "description": "Preview a bounded text range, transparently decoding a gzip file. The request enforces Storage access, workspace ownership, and entry lifecycle state."
+      }
+    },
+    "/api/v1/storage/entries/{storageEntryId}/compress": {
+      "post": {
+        "operationId": "StorageController_compress",
+        "parameters": [
+          {
+            "name": "storageEntryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompressStorageEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Compress a file to a new gzip file in the same folder without replacing the source.",
+        "tags": [
+          "Storage"
+        ],
+        "description": "Compress a file to a new gzip file in the same folder without replacing the source. The request enforces Storage access, workspace ownership, and entry lifecycle state."
+      }
+    },
+    "/api/v1/storage/entries/{storageEntryId}/unpack": {
+      "post": {
+        "operationId": "StorageController_unpack",
+        "parameters": [
+          {
+            "name": "storageEntryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnpackStorageEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Decode one gzip layer to a new Storage file without overwriting an existing file.",
+        "tags": [
+          "Storage"
+        ],
+        "description": "Decode one gzip layer to a new Storage file without overwriting an existing file. The request enforces Storage access, workspace ownership, and entry lifecycle state."
       }
     },
     "/api/v1/storage/entries/{storageEntryId}/edit": {
@@ -17953,6 +18777,47 @@
         "x-revo-safety-tier": "read"
       }
     },
+    "/api/v1/automation/templates/run": {
+      "post": {
+        "description": "Accepts 1 to 100 Job requests, at most 5 MiB of UTF-8 JSON. Requires an idempotencyKey. The same key with a different payload returns 409. ROLES: AUTOMATION_RUNNER, AUTOMATION_ADMIN. USER: true. SERVICE ACCOUNT: true.",
+        "operationId": "AutomationController_triggerJobs",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerJobsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ordered Job IDs, atomically accepted. Identical retries return the original IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run an atomic Job Template batch.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
     "/api/v1/automation/trigger": {
       "get": {
         "description": "Searches current definitions by a literal name fragment with shared name/type/UID ordering and pagination. Does not read Jobs or occurrence history. ROLES: AUTOMATION_READ, AUTOMATION_ADMIN. USER: true. SERVICE ACCOUNT: true.",
@@ -18028,6 +18893,39 @@
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getJobs",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -18210,6 +19108,128 @@
         ]
       }
     },
+    "/api/v1/automation/job/{jobId}/triggers": {
+      "get": {
+        "operationId": "AutomationController_getJobTriggers",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "description": "The immutable trigger count is included with every page.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Grid presentation flag; trigger lists always omit payloads.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "maximum": 9007199254740991,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobTriggersResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List ordered Job trigger sources without their payloads.",
+        "tags": [
+          "Automation"
+        ],
+        "description": "List ordered Job trigger sources without their payloads. The request is scoped to the authenticated instance and enforces Automation roles and lifecycle state."
+      }
+    },
+    "/api/v1/automation/job/{jobId}/triggers/{position}": {
+      "get": {
+        "operationId": "AutomationController_getJobTriggerPayload",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "position",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobTriggerPayloadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inspect one retained Job trigger payload with Vault masking.",
+        "tags": [
+          "Automation"
+        ],
+        "description": "Inspect one retained Job trigger payload with Vault masking. The request is scoped to the authenticated instance and enforces Automation roles and lifecycle state."
+      }
+    },
     "/api/v1/automation/job/{jobId}/logs": {
       "get": {
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
@@ -18220,6 +19240,39 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -18574,6 +19627,39 @@
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getTemplates",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -18948,7 +20034,14 @@
         },
         "responses": {
           "201": {
-            "description": "Job scheduled."
+            "description": "Jobs scheduled. jobId is the first affected Job; jobIds contains the complete ordered admission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunJobResponseDto"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden."
@@ -19050,6 +20143,39 @@
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getSchedules",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -19509,6 +20635,39 @@
         "operationId": "AutomationController_getEventHistory",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -19878,6 +21037,39 @@
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getEvents",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -20343,6 +21535,39 @@
         "operationId": "AutomationController_getScheduleHistory",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -20518,6 +21743,39 @@
         "description": "**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_getWebhooks",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -21549,6 +22807,39 @@
         "operationId": "AssistantController_getAllThreads",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -22211,6 +23502,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -22661,6 +23985,39 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -26434,6 +27791,39 @@
         "operationId": "AgentMemoryController_listMemory",
         "parameters": [
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -26764,6 +28154,39 @@
       "get": {
         "operationId": "AgentController_listAgents",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -28042,6 +29465,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -28454,6 +29910,39 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "type": "string"
             }
           },
@@ -29517,6 +31006,39 @@
             }
           },
           {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
             "name": "skip",
             "required": false,
             "in": "query",
@@ -29757,6 +31279,39 @@
         "description": "Returns tenant agent plugins using QueryDTO filtering, sorting, projection, pagination, and count options.",
         "operationId": "AgentPluginController_listPlugins",
         "parameters": [
+          {
+            "name": "jsonPreview",
+            "required": false,
+            "in": "query",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "jsonPreviewBytes",
+            "required": false,
+            "in": "query",
+            "description": "JSON preview budget per cell; the server also applies a page budget.",
+            "schema": {
+              "minimum": 256,
+              "maximum": 65536,
+              "example": 2048,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jsonPreviewHash",
+            "required": false,
+            "in": "query",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column.",
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
           {
             "name": "skip",
             "required": false,
@@ -30525,7 +32080,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -36313,7 +37868,8 @@
               "tsv",
               "ndjson",
               "xlsx"
-            ]
+            ],
+            "description": "Format of the data. Gzip sources such as .csv.gz use the same format value as their decoded contents."
           },
           "mode": {
             "type": "string",
@@ -37145,6 +38701,24 @@
       "RestDatabaseExportBodyRequestDto": {
         "type": "object",
         "properties": {
+          "jsonPreview": {
+            "type": "boolean",
+            "description": "Return bounded JSON previews for grid presentation. Full values remain available through normal reads.",
+            "example": true
+          },
+          "jsonPreviewBytes": {
+            "type": "number",
+            "minimum": 256,
+            "maximum": 65536,
+            "example": 2048,
+            "description": "JSON preview budget per cell; the server also applies a page budget."
+          },
+          "jsonPreviewHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "description": "Read one complete JSON cell only if its preview fingerprint still matches. Requires take:1 and exactly one selected JSON column."
+          },
           "count": {
             "type": "boolean",
             "description": "Include the total count in the response envelope only when explicitly true. Omitted or false skips the count query.",
@@ -37249,6 +38823,21 @@
             ],
             "example": "xlsx",
             "default": "csv"
+          },
+          "compress": {
+            "type": "boolean",
+            "description": "Stream the selected format into a gzip archive. The Storage file name ends in .gz.",
+            "example": true,
+            "default": false
+          },
+          "prepareForRead": {
+            "type": "string",
+            "description": "Prepare a compressed export for indexed reads. Requires compress:true. Sync waits for preparation. Async queues preparation after saving the archive. Omit for on-demand preparation.",
+            "enum": [
+              "sync",
+              "async"
+            ],
+            "example": "async"
           },
           "retention": {
             "description": "Export file retention. Omit for the destination default, set null for no expiration, or provide exactly one of ttlSeconds and expiresAt.",
@@ -38506,6 +40095,14 @@
             "type": "number",
             "nullable": true
           },
+          "eventHistoryBytes": {
+            "type": "number",
+            "description": "Current storage usage in bytes for Event history, batch processing records, retained Job trigger payloads and immutable Job producer batch receipts."
+          },
+          "webhookHistoryBytes": {
+            "type": "number",
+            "description": "Current storage usage in bytes for Webhook history and delivery attempts."
+          },
           "capturedAt": {
             "type": "string",
             "nullable": true,
@@ -39565,9 +41162,104 @@
           "version"
         ]
       },
+      "InstanceSecretResponseDto": {
+        "type": "object",
+        "properties": {
+          "secretId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "desc": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "restricted": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Null indicates the legacy access policy."
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "accessUsers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Member labels on the detail response."
+          },
+          "accessGroups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Group labels on the detail response."
+          }
+        },
+        "required": [
+          "secretId",
+          "name",
+          "version",
+          "metadata",
+          "restricted",
+          "users",
+          "groups"
+        ]
+      },
       "CreateSecretDto": {
         "type": "object",
         "properties": {
+          "restricted": {
+            "type": "boolean",
+            "description": "Limit use to the creator, administrators, and explicitly assigned users and groups. New instance secrets default to true."
+          },
+          "users": {
+            "type": "array",
+            "maxItems": 1000,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Instance user IDs, including service accounts, allowed to use a restricted secret."
+          },
+          "groups": {
+            "type": "array",
+            "maxItems": 1000,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Instance group IDs allowed to use a restricted secret."
+          },
           "name": {
             "type": "string",
             "description": ""
@@ -39607,6 +41299,30 @@
       "UpdateSecretDto": {
         "type": "object",
         "properties": {
+          "restricted": {
+            "type": "boolean",
+            "description": "Limit use to the creator, administrators, and explicitly assigned users and groups. New instance secrets default to true."
+          },
+          "users": {
+            "type": "array",
+            "maxItems": 1000,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Instance user IDs, including service accounts, allowed to use a restricted secret."
+          },
+          "groups": {
+            "type": "array",
+            "maxItems": 1000,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Instance group IDs allowed to use a restricted secret."
+          },
           "name": {
             "type": "string",
             "description": ""
@@ -40146,6 +41862,19 @@
       "CreateStorageUploadSessionDto": {
         "type": "object",
         "properties": {
+          "compress": {
+            "type": "boolean",
+            "description": "Store a gzip-compressed .gz file. The input remains uncompressed.",
+            "example": true
+          },
+          "prepareForRead": {
+            "type": "string",
+            "enum": [
+              "sync",
+              "async"
+            ],
+            "description": "With compress: true, prepare a temporary indexed RAW copy for up to 24 hours. Omit to store gzip only."
+          },
           "retention": {
             "description": "Retention for the finalized file. Duration starts at finalization; null means no expiration.",
             "nullable": true,
@@ -40338,6 +42067,36 @@
           "path"
         ]
       },
+      "CompressStorageEntryDto": {
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Stable retry key for compressing the current source version to a new gzip file in the same folder."
+          }
+        }
+      },
+      "UnpackStorageEntryDto": {
+        "type": "object",
+        "properties": {
+          "parentStorageEntryId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Destination folder in the same Storage workspace. Omit for the source folder. Null selects the workspace root."
+          },
+          "name": {
+            "type": "string",
+            "description": "Destination name. The default removes one gzip suffix."
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Stable retry identity for this source version and destination."
+          }
+        }
+      },
       "StorageTextEditDto": {
         "type": "object",
         "properties": {
@@ -40367,6 +42126,19 @@
       "PutStorageObjectDto": {
         "type": "object",
         "properties": {
+          "compress": {
+            "type": "boolean",
+            "description": "Store a gzip-compressed .gz file. The input remains uncompressed.",
+            "example": true
+          },
+          "prepareForRead": {
+            "type": "string",
+            "enum": [
+              "sync",
+              "async"
+            ],
+            "description": "With compress: true, prepare a temporary indexed RAW copy for up to 24 hours. Omit to store gzip only."
+          },
           "retention": {
             "description": "File retention. Omit for the caller default, or set null for no expiration.",
             "nullable": true,
@@ -42501,6 +44273,107 @@
           "method"
         ]
       },
+      "DirectJobTriggerDto": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "Run input saved on the trigger."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "User metadata saved on the trigger. Keys beginning with \"__\" are reserved."
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Optional application-defined type. The source remains REQUEST or EXECUTION."
+          },
+          "message": {
+            "description": "Optional application message as a JSON value.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        }
+      },
+      "TriggerJobScheduleOptionsDto": {
+        "type": "object",
+        "properties": {
+          "scheduleFor": {
+            "description": "Absolute execution time as an ISO 8601 date-time string or Unix timestamp in milliseconds.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "format": "int64"
+              }
+            ]
+          }
+        }
+      },
+      "TriggerJobItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Exact active Job Template name or UUID.",
+            "maxLength": 500
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/DirectJobTriggerDto"
+          },
+          "options": {
+            "$ref": "#/components/schemas/TriggerJobScheduleOptionsDto"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "TriggerJobsRequestDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Ordered Job requests, accepted atomically. The complete request has a 5 MiB UTF-8 JSON limit.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TriggerJobItemDto"
+            }
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "description": "Required retry identity. Reuse the same key and ordered payload to receive the original Job IDs. A different payload under the same key conflicts.",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "items",
+          "idempotencyKey"
+        ]
+      },
       "TriggerLookupItemDto": {
         "type": "object",
         "properties": {
@@ -42551,6 +44424,130 @@
           "data",
           "results",
           "next"
+        ]
+      },
+      "JobTriggerSourceDto": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "number",
+            "description": "Zero-based immutable position in the Job trigger list."
+          },
+          "triggerType": {
+            "type": "string",
+            "enum": [
+              "EVENT",
+              "SCHEDULE",
+              "REQUEST",
+              "EXECUTION"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventHistoryId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "jobEventId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "scheduleHistoryId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "sourceExecutionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "initiatedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "origin": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "bytes": {
+            "type": "number",
+            "description": "Estimated serialized size; the list does not include the payload."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "position",
+          "triggerType",
+          "bytes",
+          "createdAt"
+        ]
+      },
+      "JobTriggersResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobTriggerSourceDto"
+            }
+          },
+          "results": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "next": {
+            "type": "boolean"
+          },
+          "redacted": {
+            "type": "boolean",
+            "description": "Vault or missing execution snapshot prevents inspecting trigger inputs."
+          }
+        },
+        "required": [
+          "data",
+          "results",
+          "total",
+          "next",
+          "redacted"
+        ]
+      },
+      "JobTriggerPayloadResponseDto": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "number"
+          },
+          "redacted": {
+            "type": "boolean"
+          },
+          "payload": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "One resolved trigger. Historical values above 2 MiB return an explicit __revoJsonPreview envelope; masked values are null."
+          }
+        },
+        "required": [
+          "position",
+          "redacted",
+          "payload"
         ]
       },
       "JobLogItemDto": {
@@ -42652,6 +44649,42 @@
           "next"
         ]
       },
+      "JobDeliveryDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "BATCH",
+              "DEBOUNCE"
+            ],
+            "description": "Collect Event, Schedule, manual and low-code/API triggers into one Job."
+          },
+          "maxSize": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 1000,
+            "description": "Hard maximum triggers per collected Job. An incoming array fills the current Job and opens subsequent Jobs in order, in one atomic admission."
+          },
+          "maxWaitSeconds": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3600,
+            "description": "Maximum collection time from the first admission, in seconds."
+          },
+          "quietPeriodSeconds": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3600,
+            "description": "DEBOUNCE quiet period in seconds, at most maxWaitSeconds."
+          }
+        },
+        "required": [
+          "mode",
+          "maxSize",
+          "maxWaitSeconds"
+        ]
+      },
       "RuntimeJobExecutionPolicyDto": {
         "type": "object",
         "properties": {
@@ -42681,8 +44714,16 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "Unique concurrency bucket key. When omitted, executions are not serialized.",
+            "description": "Static concurrency bucket key. With keyPath it scopes dynamic buckets and is used when the selected value is missing or not scalar. A dynamic path without a key is scoped to this Job Template.",
             "example": "nightly_sync"
+          },
+          "keyPath": {
+            "type": "string",
+            "description": "JSON Pointer into saved Job runtime input or trigger fields, such as /message/priceListId or /input/priceListId. String, number and boolean values get separate buckets. Trigger paths must resolve to the same value for every entry. Missing, mixed or non-scalar values share one fallback bucket.",
+            "example": "/message/priceListId",
+            "maxLength": 256,
+            "pattern": "^(?:\\/(?:[^~/\\u0000-\\u001f\\u007f]|~[01])*)+(?![\\s\\S])",
+            "nullable": true
           },
           "limit": {
             "type": "number",
@@ -42821,6 +44862,16 @@
       "JobTemplateRequestDto": {
         "type": "object",
         "properties": {
+          "delivery": {
+            "nullable": true,
+            "description": "Template-wide admission mode. Null or omitted means SINGLE. BATCH/DEBOUNCE collect all Event, Schedule, manual and low-code/API sources sharing execution authority and inputs.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobDeliveryDto"
+              }
+            ]
+          },
           "executionPolicy": {
             "nullable": true,
             "example": {
@@ -42936,8 +44987,23 @@
           },
           "inputs": {
             "type": "object",
-            "description": "Template input values for this run. Must be a JSON object; null is normalized to an empty object. Values are materialized only under api.input().templateInputs and cannot modify the top-level execution envelope.",
-            "nullable": true
+            "nullable": true,
+            "description": "Values that overlay the saved template inputs for this run. May be combined with triggers."
+          },
+          "trigger": {
+            "description": "Shorthand for a single REQUEST trigger. Use either trigger or triggers.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DirectJobTriggerDto"
+              }
+            ]
+          },
+          "triggers": {
+            "description": "Ordered REQUEST triggers, up to 1 MiB of UTF-8 JSON in total. May be combined with inputs.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DirectJobTriggerDto"
+            }
           },
           "options": {
             "description": "Options.",
@@ -42949,9 +45015,40 @@
           }
         }
       },
+      "RunJobResponseDto": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "First affected Job. Use jobIds for the complete admission."
+          },
+          "jobIds": {
+            "description": "All affected Job IDs in trigger order. A bounded batch can split one Run across multiple Jobs.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "jobId",
+          "jobIds"
+        ]
+      },
       "UpdateJobTemplate": {
         "type": "object",
         "properties": {
+          "delivery": {
+            "nullable": true,
+            "description": "Template-wide admission mode. Null or omitted means SINGLE. BATCH/DEBOUNCE collect all Event, Schedule, manual and low-code/API sources sharing execution authority and inputs.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/JobDeliveryDto"
+              }
+            ]
+          },
           "executionPolicy": {
             "nullable": true,
             "example": {
@@ -43037,18 +45134,7 @@
               }
             },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
-          },
-          "inputMode": {
-            "type": "string",
-            "enum": [
-              "override",
-              "deep_override",
-              "replace"
-            ],
-            "default": "override",
-            "example": "override",
-            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "description": "Runtime input for Job targets, saved as input on each trigger entry. Defaults to {}. Template defaults stay in templateInputs."
           },
           "name": {
             "type": "string",
@@ -43136,18 +45222,7 @@
               }
             },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
-          },
-          "inputMode": {
-            "type": "string",
-            "enum": [
-              "override",
-              "deep_override",
-              "replace"
-            ],
-            "default": "override",
-            "example": "override",
-            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "description": "Runtime input for Job targets, saved as input on each trigger entry. Defaults to {}. Template defaults stay in templateInputs."
           },
           "name": {
             "type": "string",
@@ -43259,9 +45334,67 @@
           "replays"
         ]
       },
+      "EventDeliveryDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "BATCH",
+              "DEBOUNCE"
+            ],
+            "description": "BATCH starts at size or timeout. DEBOUNCE also starts after a quiet period and retains all accepted events."
+          },
+          "keyPath": {
+            "type": "string",
+            "example": "/message/priceListId",
+            "maxLength": 256,
+            "pattern": "^(?:\\/(?:[^~/\\u0000-\\u001f\\u007f]|~[01])*)+(?![\\s\\S])",
+            "nullable": true,
+            "description": "JSON Pointer evaluated on each event envelope. Omit to group across this subscription. An event whose selector has no scalar value runs in its own batch."
+          },
+          "maxSize": {
+            "type": "number",
+            "example": 10,
+            "minimum": 2,
+            "maximum": 1000,
+            "description": "Maximum events per Job. Reaching this size releases the group immediately."
+          },
+          "maxWaitSeconds": {
+            "type": "number",
+            "example": 120,
+            "minimum": 1,
+            "maximum": 3600,
+            "description": "Maximum collection time in seconds, measured from the first admitted event."
+          },
+          "quietPeriodSeconds": {
+            "type": "number",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 3600,
+            "description": "For DEBOUNCE, seconds without a new event before releasing the group. At most maxWaitSeconds."
+          }
+        },
+        "required": [
+          "mode",
+          "maxSize",
+          "maxWaitSeconds"
+        ]
+      },
       "JobEventRequestDto": {
         "type": "object",
         "properties": {
+          "delivery": {
+            "nullable": true,
+            "deprecated": true,
+            "description": "Retired draft subscription policy. Omit or send null; non-null policies are rejected. Configure execution grouping on Job Template delivery instead.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventDeliveryDto"
+              }
+            ]
+          },
           "input": {
             "type": "object",
             "default": {},
@@ -43271,18 +45404,7 @@
               }
             },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
-          },
-          "inputMode": {
-            "type": "string",
-            "enum": [
-              "override",
-              "deep_override",
-              "replace"
-            ],
-            "default": "override",
-            "example": "override",
-            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "description": "Runtime input for Job targets, saved as input on each trigger entry. Defaults to {}. Template defaults stay in templateInputs."
           },
           "custom": {
             "type": "boolean",
@@ -43366,7 +45488,7 @@
           },
           "message": {
             "type": "object",
-            "description": "Event message as a JSON object, up to 10 MiB of serialized UTF-8 JSON."
+            "description": "Event message as a JSON object, up to 1 MiB of serialized UTF-8 JSON. Store larger data in Storage and pass a reference."
           },
           "metadata": {
             "type": "object",
@@ -43381,6 +45503,17 @@
       "UpdateJobEventRequestDto": {
         "type": "object",
         "properties": {
+          "delivery": {
+            "nullable": true,
+            "deprecated": true,
+            "description": "Retired draft subscription policy. Send null to clear an old draft; non-null policies are rejected. Configure Job Template delivery instead.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventDeliveryDto"
+              }
+            ]
+          },
           "input": {
             "type": "object",
             "default": {},
@@ -43390,18 +45523,7 @@
               }
             },
             "additionalProperties": true,
-            "description": "Runtime input for Job targets, exposed through api.input(\"templateInputs\"). Defaults to {}. Override is shallow; Deep Override recursively merges objects. Automation keys take precedence; arrays and null replace whole values. Does not change the event message, Job execution policy, concurrency or retry settings."
-          },
-          "inputMode": {
-            "type": "string",
-            "enum": [
-              "override",
-              "deep_override",
-              "replace"
-            ],
-            "default": "override",
-            "example": "override",
-            "description": "override: shallow overlay onto Job templateInputs; deep_override: recursively overlay objects, replacing arrays and retaining null as a value; automation keys win in both modes; replace: replace all Job templateInputs, including clearing them with {}. Defaults to override."
+            "description": "Runtime input for Job targets, saved as input on each trigger entry. Defaults to {}. Template defaults stay in templateInputs."
           },
           "custom": {
             "type": "boolean",

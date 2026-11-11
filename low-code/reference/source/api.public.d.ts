@@ -5,6 +5,7 @@ declare class vault {
   /** Gets the parent and selected revision with revision.value as the stored text string.
      * With no selector, reads the latest enabled revision whose validFrom is at most now.
      * A version/validFrom selector reads that exact retained revision, including disabled history.
+     * Instance access follows the execution account and the Secret access policy. Existing Secrets retain their previous rules until their policy is changed.
      * Saved personal Component/Tool reads require the exact grant and map its requested name.
      * Example:
      * const secret = await vault.get('TOKEN', { scope: 'user' });
@@ -13,12 +14,14 @@ declare class vault {
   static get(name: string, options?: SecretGetOptions): Promise<SecretWithValue>;
 
   /** Creates a new parent and first revision atomically. An existing name conflicts. No value in the result.
+     * New instance Secrets default to restricted. Pass users and groups as instance-local IDs. The users list accepts service-account user IDs.
      * Example:
      * const secret = await vault.create('TOKEN', { value: input.token }, { scope: 'user' });
      */
   static create(name: string, data: SecretCreateInput, options?: SecretScopeOptions): Promise<Secret | null>;
 
-  /** Updates parent category, description and metadata at its metadata counter. Never changes revision values.
+  /** Updates parent properties at its metadata counter. Never changes revision values.
+     * For an instance Secret, set restricted, users, or groups to change its access policy. Other metadata updates preserve existing access.
      * Example:
      * const current = await vault.get('TOKEN');
      * await vault.update('TOKEN', { version: current.version, description: 'CRM credential' });
@@ -236,6 +239,7 @@ declare class api {
      *   preserves database value types where Excel supports them, and runs a server-side COUNT(*) before starting.
      *   A failed export is discarded and can be retried by its job; a header row leaves 1,048,575 data rows available.
      * - By default the call completes synchronously in its current runtime. Set `async: true` to queue it on Processor and receive a jobId.
+     * - With `compress: true`, `prepareForRead: 'sync'` waits for indexed read preparation, while `'async'` queues preparation after saving the archive.
      * - Omit `storageDestination` for private user storage, use `ROOT` for Explorer root,
      *   or provide an accessible Explorer folder storageEntryId.
      *
@@ -717,14 +721,35 @@ declare class api {
      * Returns the current execution payload.
      *
      * Notes:
-     * - In endpoint context this usually includes body, query, headers, params, path, and method.
-     * - In event or job context it commonly includes type and message.
+     * - Endpoint Components receive an ENDPOINT trigger with method, path,
+     *   parameters, query, headers and the request body as input.
+     * - Jobs receive EVENT, SCHEDULE, REQUEST or EXECUTION trigger entries.
+     *   Single Event Jobs retain deprecated top-level type and message for
+     *   existing components. Small Job snapshots contain full
+     *   entries with deferred: false. Larger snapshots use deferred: true.
+     *   walkTriggers() reads full entries in order without changing the snapshot.
+     * - Event and Schedule input is on each trigger entry. templateInputs contains
+     *   the Job Template defaults for these Jobs.
+     * - REQUEST and EXECUTION entries carry the explicit run input. The direct-run
+     *   templateInputs overlay is retained for existing components.
      * - Passing a name returns a single top-level property.
+     * - $widget contains host-owned interactive widget state. It is optional in
+     *   the complete input; input('$widget') returns null when absent.
      *
      * Example:
-     * const customerId = api.input()?.body?.customerId;
+     * const endpoint = api.input().triggers?.find(trigger => trigger.triggerType === 'ENDPOINT');
+     * const customerId = endpoint?.parameters.customerId;
      */
+  static input(name: '$widget'): WidgetContextInterface | null;
+
+  /** Returns the current input; $widget is optional and owned by the widget host. */
   static input(name?: string): Input;
+
+  /**
+     * Yield complete trigger entries in admission order, one at a time.
+     * @localOnly Available in native low-code.
+     */
+  static walkTriggers(): AsyncIterable<ExecutionTrigger>;
 
   /**
      * Adds a log entry.
@@ -1098,7 +1123,7 @@ declare class api {
      * Schedules a custom event.
      * Matches active definitions by `custom: true` and the uppercase event type.
      * No implicit CUSTOM_ prefix is added. Native events can only be replayed from history.
-     * The message can use up to 10 MiB of serialized UTF-8 JSON.
+     * The message can use up to 1 MiB of serialized UTF-8 JSON. Store larger data in Storage and pass a reference.
      * For data over 1 MiB, prefer a finalized file in a restricted Explorer folder.
      * Pass its `storageEntryId` and filter fields in `message`. Give the Job execution
      * account read access and retain the file through the scheduled run and retries.
@@ -1128,27 +1153,26 @@ declare class api {
     ): Promise<string>;
 
   /**
-     * Schedules generic execution against a normalized target.
-     *
-     * Notes:
-     * - Use `JOB_TEMPLATE` for legacy template execution or `AGENT` for agent-native dispatch.
-     * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
-     * - Retired positional date and relative-delay arguments are ignored.
-     * - Unavailable with `readOnly: true` (throws an error).
-     * - For `JOB_TEMPLATE`, `targetId` accepts an exact active template ID or unique name.
-     *   The third argument is copied directly into the
-     *   target job's flat `api.input().templateInputs`. It is shallow-spread over
-     *   template defaults, retaining non-colliding defaults and overwriting only
-     *   matching keys; it is never nested below another input property.
-     *
-     * Example:
-     * const jobId = await api.triggerTarget(
-     *   'JOB_TEMPLATE',
-     *   templateId,
-     *   { customerId: 'c-1' },
-     *   { scheduleFor: Date.now() + 5 * 60 * 1000 },
-     * );
+     * Schedules a Job Template using the compatibility contract. Per-run values
+     * overlay the saved values in api.input().templateInputs.
+     * Use options.scheduleFor to schedule up to 30 days ahead.
      */
+  static triggerTarget(
+      targetType: 'JOB_TEMPLATE',
+      targetId: string,
+      templateInputs?: Record<string, JsonValue>,
+      options?: AutomationScheduleOptions,
+    ): Promise<string>;
+
+  /** Schedules an Agent using its existing input object. Use options.scheduleFor to run later. */
+  static triggerTarget(
+      targetType: 'AGENT',
+      targetId: string,
+      input?: Record<string, JsonValue>,
+      options?: AutomationScheduleOptions,
+    ): Promise<string>;
+
+  /** Accepts a target type selected at runtime with the same compatibility inputs. */
   static triggerTarget(
       targetType: ExecutionTargetType,
       targetId: string,
@@ -1157,30 +1181,31 @@ declare class api {
     ): Promise<string>;
 
   /**
-     * Schedules an active job template by its exact ID or exact unique name.
-     *
-     * Notes:
-     * - Unavailable with `readOnly: true` (throws an error).
-     * - Convenience wrapper for `api.triggerTarget('JOB_TEMPLATE', templateIdOrName, ...)`.
-     * - The input argument is copied directly into the target job's flat
-     *   `api.input().templateInputs`, shallow-spread over template defaults.
-     *   Non-colliding defaults remain and matching keys are overwritten; it is not
-     *   nested under `templateInputs.input` or exposed at top level.
-     * - Pass `{ scheduleFor }`; the maximum horizon is 30 days.
-     * - Retired positional date and relative-delay arguments are ignored.
+     * Schedules an active Job Template by exact ID or unique name. Read the run
+     * trigger from api.input().triggers and the saved defaults from templateInputs.
+     * Use options.scheduleFor to schedule up to 30 days ahead.
+     * Unavailable with readOnly: true.
      *
      * Example:
-     * const jobId = await api.triggerJob(
-     *   templateId,
-     *   { customerId: 'c-1' },
-     *   { scheduleFor: new Date(Date.now() + 15 * 60 * 1000) },
-     * );
+     * const jobId = await api.triggerJob('Export', {
+     *   input: { orderId: 'order-1' },
+     *   type: 'EXPORT_REQUESTED',
+     *   message: { format: 'xlsx' },
+     *   metadata: { source: 'orders' },
+     * }, { scheduleFor: Date.now() + 300_000 });
      */
   static triggerJob(
       templateIdOrName: string,
-      templateInputs?: Record<string, JsonValue>,
+      trigger?: JobRunTrigger,
       options?: AutomationScheduleOptions,
     ): Promise<string>;
+
+  /**
+     * Atomically accepts 1–100 Job requests within a 5 MiB serialized request budget.
+     * Returns Job IDs in input order after durable acceptance. Reuse the same required
+     * idempotencyKey and payload to recover the original IDs; changed payload conflicts.
+     */
+  static triggerJobs(items: JobTriggerItem[], options: { idempotencyKey: string }): Promise<string[]>;
 
   /**
      * Schedules a webhook delivery.
@@ -1468,6 +1493,7 @@ declare class storage {
      *
      * Notes:
      * - CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays, and XML return structured pages with rows, headers, columns, and a cursor. Detection uses MIME or the supported file extension; XML requires recordPath.
+     * - Logical reads decode one gzip layer and use the inner format. Cold gzip reads require preparation if either stored or decoded data exceeds 256 MiB. `buffer: true` returns the stored archive bytes and uses stored-byte ranges.
      * - mode: "lines" returns physical string lines, including headers and the final empty line; encoding and separator are detected or overridden.
      * - CSV dialect options include encoding, delimiter, recordDelimiter, headerRow, quote and escape. quote: false keeps quotes/backslashes literal and ignores escape.
      * - maxRecordBytes defaults to 64 MiB per logical CSV record, independently of page/callback sizes. Oversized or malformed records reject indexing with STORAGE_CSV_INVALID before rows are returned. Wrong-width records also reject by default; onError: "skipRow" skips them with csvReport diagnostics.
@@ -1494,6 +1520,7 @@ declare class storage {
      * Streams structured records from CSV/TSV, XLSX, NDJSON/JSONL, JSON arrays,
      * or record-oriented XML into awaited callbacks. Plain text, top-level JSON objects,
      * and binary files are not supported in record mode. mode: "lines" supports physical text lines without parsing CSV fields.
+     * Gzip input uses the same logical records, including across concatenated gzip members.
      * Omitted take scans all rows. XLSX uses the first visible sheet by default;
      * XML requires recordPath.
      * Defaults: batchSize=2000, readBatchSize=100000; both accept 1–100,000.
@@ -1525,6 +1552,7 @@ declare class storage {
 
   /**
      * Builds reusable record or worksheet indexes and returns file statistics.
+     * Gzip input returns the statistics of its decoded content.
      *
      * Notes:
      * - mode: "lines" builds a separate physical-line index with lineCount, map, batches, encoding and separator.
@@ -1584,7 +1612,9 @@ declare class storage {
   static createFolder(namespace: string, data: StorageFolderInput): Promise<StorageEntryView>;
 
   /**
-     * Uploads a small object in one request in the default `explorer` namespace.
+     * Uploads a small object in one request in the default `explorer` namespace. Set `compress: true` to store it as gzip.
+     * Omit `prepareForRead` for gzip-only writes. `'sync'` waits for a temporary indexed RAW copy, and `'async'` queues it.
+     * Prepared copies expire after up to 24 hours and inherit access from the archive.
      *
      * Notes:
      * - Unavailable with `readOnly: true` (throws an error).
@@ -1602,6 +1632,30 @@ declare class storage {
   static putObject(namespace: string, data: StorageBinaryPutObjectInput): Promise<StorageEntryView>;
 
   /**
+     * Streams an existing file to a separate .gz file in the same folder.
+     * Awaits publication within the current executor's limits. A retry with the
+     * same idempotency key reuses the compression session. Omit the key to use
+     * the current source generation as the retry identity.
+     *
+     * Example:
+     * const gz = await storage.compress(file.storageEntryId, { idempotencyKey: 'daily-export-2026-11-10' });
+     * const download = await storage.getDownload(gz.storageEntryId);
+     */
+  static compress(storageEntryId: string, options?: { idempotencyKey?: string }): Promise<StorageEntryView>;
+
+  static compress(namespace: string, storageEntryId: string, options?: { idempotencyKey?: string }): Promise<StorageEntryView>;
+
+  /**
+     * Decode one gzip layer (including concatenated append members) and save a new Storage file.
+     * Reusing the same request returns the finalized result. The source is retained and existing
+     * destination files are never overwritten. By default the result is created beside the source.
+     * Use parentStorageEntryId to select a folder or null for the namespace root.
+     */
+  static unpack(storageEntryId: string, options?: StorageUnpackOptions): Promise<StorageEntryView>;
+
+  static unpack(namespace: string, storageEntryId: string, options?: StorageUnpackOptions): Promise<StorageEntryView>;
+
+  /**
      * Opens an upload session for a file in the default `explorer` namespace.
      *
      * Notes:
@@ -1617,6 +1671,11 @@ declare class storage {
      *   parts. `incremental` assigns part numbers by default and also accepts an
      *   explicit number for repair. `writeMode` is independent: it controls only
      *   CSV/XLSX row materialization (`staged` or declared-schema `direct`).
+     * - Set `compress: true` in any upload mode to publish one `.gz` file at
+     *   gzip level 1. For byte parts, each part becomes a gzip member. For direct
+     *   and structured uploads, Storage gzips the completed bytes. Send raw input.
+     * - Optional `prepareForRead: 'sync' | 'async'` applies at finalization. It requires `compress: true`.
+     *   Omit it to publish gzip only. Prepared copies expire after up to 24 hours.
      * - Use incremental sessions for append-style writes. Managed direct uploads are
      *   finalized automatically after Storage confirms the transfer; observe the
      *   session until `FINALIZED` and do not call `finalizeUploadSession` for that
@@ -1955,6 +2014,7 @@ declare class storage {
      * is limited to 10 MiB; use getFileData for XLSX or record-oriented files.
      *
      * `format: 'text'` is the default and supports optional byte ranges.
+     * Gzip input uses its decoded content for format detection, line windows and byte ranges.
      * For text line windows pass startLine/endLine/maxChars; the result contains
      * line metadata instead of byte offsets. Do not mix line and byte ranges.
      * `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`

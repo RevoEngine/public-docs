@@ -52,6 +52,18 @@ return rows;
 
 `disabled: true` disables the button. `on.click` holds one action object. For a write, register an [EXECUTE target](/widgets/execute) with explicit permission and server-side input validation.
 
+### Button appearance
+
+BUTTON cells and TABLE toolbar buttons accept optional `appearance`:
+
+| Field | Values | Meaning |
+| --- | --- | --- |
+| `variant` | `primary`, `secondary`, `ghost` | Native Revo theme; ghost has no resting fill or border. |
+| `size` | `small`, `medium`, `large` | 32, 40 or 48 pixel button height. |
+| `fullWidth` | boolean | Fill the containing cell when true. |
+
+For a keypad key use `appearance: { variant: 'secondary', size: 'large', fullWidth: true }`; reserve primary for its main action. A cell's percentage width controls its layout area, while `fullWidth` controls the button inside that area. Omitted appearance preserves the existing defaults.
+
 ## Empty cells
 
 ```js
@@ -64,4 +76,6 @@ return [
 ];
 ```
 
-EMPTY deliberately reserves space. Add an ID when it should host an [inline destination](/widgets/navigation). It is not a loading or error indicator.
+EMPTY deliberately reserves space within a row; use `width` to align siblings or leave an intentional gap. Add an ID when it should host an [inline destination](/widgets/navigation). It is not a loading or error indicator.
+
+A spacer does not make the whole widget compact or set its maximum width. Extra EMPTY rows add height, and each spacer counts toward the row's cell limit. Use compact density to reduce gaps, blank surface to remove redundant inner padding, and maxWidth to bound a small utility. These [layout options](/widgets/source-configuration#layout) are independent and optional; full available width remains the default.

@@ -1,0 +1,82 @@
+---
+title: Upgrade to RevoEngine 1.9
+description: Coordinate explicit Job inputs, grouped Events, JSON previews and compressed Storage.
+icon: arrow-up-right-dots
+---
+
+RevoEngine 1.9 builds on [1.8](/developers/upgrading-to-1-8). Review Job callers and Components together before enabling grouped delivery. Updating a client does not upgrade its target instance.
+
+## Coordinate versions
+
+| Product | Version for this release |
+| --- | --- |
+| Platform and frontend | 1.9.0 |
+| Node.js SDK | 4.1.0 |
+| CLI | 2.1.0 |
+| VS Code extension | 2.1.0 |
+
+Versions are independent. SDK 4.1.0 intentionally changes the `api.triggerJob` calling contract to the native explicit trigger envelope. Published SDK 4.0.0 keeps its original wire contract on the new platform; review callers before upgrading their package. Existing hosted revisions keep their recorded SDK until redeployed. New hosted Components use the exact platform-supported SDK version.
+
+## Separate template values from triggers
+
+Configure execution grouping on the **Job Template**, not the Event subscription. BATCH/DEBOUNCE collect Event, Schedule, manual and low-code/REST triggers together within matching Job configuration and template-input boundaries. Different authorized callers and Assistant conversations can join one Job. The shared executor comes from the Job account, then the instance Jobs policy, then the established instance Job account or System. Each trigger retains its initiating account and origin. `api.triggerJobs` still returns one ID per item, but IDs may repeat when items join one group.
+
+Job Template input remains in `api.input().templateInputs`. Event and Schedule configuration supplies `input` on its own trigger and no longer overlays template values. Remove `inputMode` from managed definitions and update Components that depended on `override`, `deep_override` or `replace`.
+
+Native low-code and SDK 4.1.0 use an explicit envelope:
+
+```js
+const jobId = await api.triggerJob('Export', {
+  input: { orderId: 'order-1' },
+  type: 'EXPORT_REQUESTED',
+  message: { format: 'csv' },
+});
+```
+
+The Job reads run values from its `EXECUTION` trigger. During migration, handle queued Jobs and retries that still use the previous shape. Do not replay business side effects just to convert inputs.
+
+Manual **Run** separates **Template inputs** from **Triggers**. The API accepts `inputs` and `triggers` together; `trigger` is shorthand for one entry. Use either `trigger` or `triggers`, never both. The explicit trigger array has a 1 MB serialized limit and no separate item-count limit. The platform assigns source identities.
+
+Use `api.triggerJobs(items, { idempotencyKey })` for atomic direct Job admission in pages of at most 100 items and 5 MiB. The SDK now separates a 256 KiB packing target from its 12 MiB hard frame ceiling, allowing a full Event message plus its envelope. Review [producer budgets](/operate/jobs#producer-budgets) and [SDK batching](/developers/sdk-storage-and-batching#automatic-batching) when publishing from loops.
+
+## Read retained triggers
+
+Small trigger sets are resolved before the Component starts and carry `deferred: false`. Larger sets expose ordered references with `deferred: true`. Native Components can use `api.walkTriggers()` for either shape:
+
+```js
+for await (const trigger of api.walkTriggers()) {
+  if (trigger.triggerType !== 'EVENT') continue;
+  api.log({ message: 'Event received', args: { eventHistoryId: trigger.eventHistoryId, type: trigger.type } });
+}
+```
+
+Process entries incrementally. Collecting all messages into an array defeats bounded reading. The walker is a native low-code iterator, not a remotely transported SDK stream. New Event messages have a 1 MB limit; put larger content in Storage and publish its reference. Grouping retains every accepted occurrence.
+
+Open **Triggers** in Job details to inspect one occurrence and follow its source. Vault protection still applies. Retained sources cannot be removed while a Job or retry depends on them; include automation history in database-capacity planning.
+
+## Verify previews and compressed files
+
+Database lists use bounded JSON previews. Click any value or the remaining-item count to open the complete cell. Low-code reads with explicit JSON columns and exports continue returning full values.
+
+Gzip uploads and exports are opt-in. Supported native readers decode the inner format; binary downloads preserve the archive. Read preparation can be synchronous or queued, with source access applying to prepared copies. See [Storage](/operate/storage#read-and-unpack-gzip) and [uploads](/operate/storage-uploads#store-a-gzip-file).
+
+## Keep dashboard layout choices optional
+
+Upgrading to 1.9 does not require compacting existing dashboards. Full available width remains the default; preserve saved panel geometry. Wide charts and tables should normally retain that space.
+
+- Use `EMPTY` with `width` to reserve intentional space or align cells within a row; a named EMPTY can host an inline destination. Extra empty rows add height, and every spacer consumes a cell slot.
+- Use `layout.density: 'compact'` when denser control spacing is wanted.
+- Use `layout.surface: 'blank'` when the surrounding surface already supplies the inner padding.
+- Set `layout.maxWidth` only when a small utility needs a width cap. It does not resize the outer dashboard panel.
+
+These choices can be combined or used separately; they are not a required bundle. See the [layout decision guide](/widgets/source-configuration#layout) and [row layout](/widgets/matrix).
+
+## Roll out and verify
+
+Apply instance migrations before new backend readers or frontend. Ensure the supported SDK package is available before creating or redeploying hosted Components. Upgrade execution services, API and frontend as a coordinated set. Avoid mixing old processors with newly created trigger references.
+
+On a controlled test instance, verify manual Run with both editors, Event and Schedule delivery, Batch and Debounce, retry provenance, restricted Secrets, full JSON cells and gzip upload/export/readback. Re-pull automation definitions and regenerate reviewed CLI plans before promotion.
+
+Atomic Job-batch receipts survive all Job-history cleanup and block downgrade even when no Jobs remain; preserve them through forward-compatible recovery or a verified restore.
+
+Plan forward-compatible fixes for this upgrade and verify database backups and restore procedures with queued Jobs, retries and retained completed Jobs. A backend downgrade does not undo input or retention migrations. Draining the active queue alone is insufficient: completed history can still depend on retained triggers. Preserve external-operation receipts and retained sources during recovery.

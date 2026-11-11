@@ -1,59 +1,31 @@
 ---
 title: "Configure Event input"
-description: "Map Event Runtime input onto a Job template."
+description: "Pass Event configuration and messages to a Job."
 icon: book-open
 ---
 
-import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
-
-## Example: configure the supplier input
-
-After the supplier predicate matches, this sample uses **Override** to supply `{ "supplierId": "VEGA" }` as runtime input to **Supplier stock intake**. The Job reads `api.input('templateInputs')`. The message filter decides whether dispatch is eligible; the input mode decides what the selected Job receives. Changing one does not automatically change the other.
-
-<Frame caption="Filter, input mode and JSON input are separate configuration controls.">
-  <img src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" />
-</Frame>
-
-<ScreenshotDetail src="/images/asterion/event-filter-and-input.jpg" alt="Event filter supplierId equal VEGA and Override runtime input containing supplierId VEGA" width={1114} height={982} />
-
 ## Configure Runtime input for a Job target
 
-Select a Job target, then use the expanded **Options** section at the bottom of the Event editor. **Runtime input** uses the same JSON-object editor as Job templates. The **Input mode** dropdown shows **Override**, **Deep Override** and **Replace**, with icons and descriptions.
-
-| Mode | Effective `templateInputs` |
-| --- | --- |
-| **Override** (default) | `{ ...jobTemplateInput, ...eventInput }`: Event keys take precedence; other Job defaults remain. |
-| **Deep Override** | Recursively combines nested objects with automation values taking precedence. Arrays are replaced in full; `null` stays a value. |
-| **Replace** | Only the Event input. An empty `{}` removes all Job template defaults for this execution. |
-
-Override is shallow: a supplied nested object or array replaces the whole value at that key. Values such as `false`, `0`, and `null` inside the object are retained. The root must be an object; arrays, strings, numbers, and `null` are rejected.
-
-Use **Deep Override** to change part of a nested configuration. For example, Job defaults `{ "export": { "format": "csv", "encoding": "utf8" } }` and automation input `{ "export": { "format": "xlsx" } }` produce `{ "export": { "format": "xlsx", "encoding": "utf8" } }`. An empty nested object preserves existing nested values; a change of value type replaces the whole value. Arrays are never concatenated, and `null` does not delete a field. Existing **Override** and **Replace** behavior is unchanged.
-
-For example, a Job template with `{ "region": "eu", "mode": "incremental" }` and an Event with `{ "mode": "full" }` in Override mode execute with `{ "region": "eu", "mode": "full" }`.
-
-The Platform API uses these fields on the Event definition:
+Select a Job Template target and enter a JSON object in **Options → Runtime input**. The object defaults to `{}` and is saved on each trigger entry as `input`. Job Template defaults remain in `api.input().templateInputs`. A filter controls which messages reach the subscription.
 
 ```json
 {
-  "input": { "mode": "full" },
-  "inputMode": "override"
+  "input": { "supplierId": "VEGA" }
 }
 ```
 
-Read the resolved values in the Component:
+Read each Event’s input and message together. The same code works for one Event or an entire group.
 
 ```js
-const templateInputs = api.input('templateInputs');
-const message = api.input('message');
+for await (const trigger of api.walkTriggers()) {
+  if (trigger.triggerType === "EVENT") {
+    api.log({ message: 'Processing Event', args: { supplier: trigger.input.supplierId, eventType: trigger.type } });
+  }
+}
 ```
 
-Event Runtime input configures `templateInputs`; it does not replace the Event `message`, `type`, or user `metadata`. Agent delivery remains configured through its target settings.
+An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **Single** mode retain the top-level `type`, `message`, and `metadata` for existing Components. The editor marks top-level `type` and `message` as deprecated. Use the iterator to handle all three delivery modes with the same code. For Batch and Debounce, the synchronous `api.input().triggers` array contains references marked `deferred: true`.
 
-The Platform API uses `inputMode: "override"` for **Override**, `inputMode: "deep_override"` for **Deep Override** and `inputMode: "replace"` for **Replace**, matching the UI. Existing definitions are migrated without changing their effective behavior.
+If an existing Component read a subscription value through `templateInputs`, read it through the trigger instead. This applies to newly prepared Jobs. Queued Jobs and retries retain the original saved input.
 
-New definitions default to `input: {}` and `inputMode: "override"`, preserving Job defaults. On an API update, omitted fields retain their stored values. Send both `input: {}` and `inputMode: "override"` to restore the default configuration.
-
-Each accepted delivery retains its Runtime input and mode. Editing the Event changes future deliveries; it does not rewrite the input of Jobs already queued or running, or their retry attempts. The Job template continues to own execution policy, concurrency, and retry settings.
-
-Continue with [events](/operate/events).
+Try the [Job delivery simulation](/patterns/event-job-delivery#explore-the-behavior) to see the trigger array for each resulting Job.

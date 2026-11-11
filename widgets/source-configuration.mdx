@@ -1,5 +1,5 @@
 ---
-title: "Configure a Custom Widget"
+title: "Configure a Widget"
 description: "Choose Inline or Component sources, inputs, execution limits and revisions."
 sidebarTitle: Source configuration
 icon: book-open
@@ -7,7 +7,7 @@ icon: book-open
 
 ## Choose the source
 
-A **Custom Widget** renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
+The **Widget** palette entry renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
 
 | Setting | Meaning |
 | --- | --- |
@@ -21,6 +21,27 @@ A **Custom Widget** renders code output as text, charts, tables, forms, inputs, 
 | Memory | New editor configuration starts at 32 MiB; allowed range 32–1024. |
 | Refresh | Optional automatic refresh from 1 to 600 seconds. |
 | Restricted mode | Reusable Components expose **Tryb ograniczony** (`readOnly`); new configurations default to restricted execution. Keep view Components restricted; registered action targets can explicitly request `readOnly: false`. |
+
+## Layout
+
+**Full available width is the default.** Leave layout options unset for a normal responsive dashboard. Preserve an existing dashboard's panel geometry unless a layout change is requested; wide charts and tables usually benefit from the available space.
+
+**Configure → Layout** offers **Density**, **Surface** and **Maximum content width**. These optional source fields belong under `specificCustomWidgetConfig.layout`, or `widgetConfig.layout` for an Assistant card. Choose the mechanism that matches the need:
+
+| Need | Mechanism | Effect and boundary |
+| --- | --- | --- |
+| Reserve space or align content within a row | An `EMPTY` cell with `width` | Occupies part of that row. It does not reduce gaps or bound the whole widget. Add an `id` when it should host an inline destination. |
+| Reduce gaps in a deliberately dense control layout | `density: 'compact'` | Reduces spacing and retains row columns on narrow screens. The default is `comfortable`; compact does not impose a width cap. |
+| Remove inner padding already supplied by the surrounding surface | `surface: 'blank'` | Removes inner padding while keeping native Revo controls and theme. The default is `default`; blank is not an empty cell or an HTML/CSS surface. |
+| Bound a small utility, such as a calculator | `maxWidth` from 240–3840 pixels | Caps widget content and the chat card, shrinking further to fit its container. Omit it for full available width. It does not resize the outer dashboard panel. |
+
+These options are independent: a compact widget can still use full width, and a width-bounded widget can keep comfortable spacing and default padding. Do not apply compact, blank or maxWidth to every dashboard.
+
+One optional compact-keypad recipe is `layout: { density: 'compact', maxWidth: 360, surface: 'blank' }`, with four equal cell widths and full-width [buttons](/widgets/text-and-buttons). Use the width cap or blank surface only when useful for that widget; this recipe is not the starting layout for all dashboards. Omit fixed control heights unless needed. Dynamic and fixed-snapshot conversion preserve layout.
+
+`EMPTY` is useful for intentional alignment, but extra empty rows add height. Every spacer consumes a cell slot: an Assistant card allows four cells per row, so a four-button keypad row cannot also contain two spacers. See [rows and matrix](/widgets/matrix) and [empty cells](/widgets/text-and-buttons#empty-cells).
+
+Keep inline and registered source code readable: indent blocks, split statements and expand long objects. Preserve line breaks in code strings and test the final formatted source. Formatting is authoring guidance, not an execution requirement.
 
 ## Execution and permissions
 

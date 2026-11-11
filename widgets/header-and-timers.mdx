@@ -21,4 +21,10 @@ the legacy fallback refreshes the whole widget every 6000 seconds (100 minutes).
 Per-cell timers suppress that fallback. Timer reads pause while the document or
 replacement frame is hidden. These controls do not change access permissions or read-only behavior.
 
+## Assistant card toolbar
+
+Private executable cards expose **Refresh widget** next to copy definition, source code, dashboard conversion and fullscreen. Refresh reads the mounted view with its current input values; it does not ask the Assistant to generate the card again. Shared/report cards remain inactive snapshots.
+
+Generation warnings, errors, logs and measured performance appear as icons in the same toolbar when available. Each icon opens its details in a popover instead of expanding the card body. Performance is adjacent to Refresh widget. A subsequent execution replaces those diagnostics with its own result. Performance uses recorded timing and resource measurements; it does not prove browser rendering or chart performance. Refresh indicates only the current execution and settles when that execution completes.
+
 Continue with [reactive widgets](/operate/reactive-widgets).

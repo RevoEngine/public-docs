@@ -15,6 +15,7 @@ with explicit extraction/truncation and possible-OCR metadata. Source input
 is limited to 10 MiB; use getFileData for XLSX or record-oriented files.
 
 `format: 'text'` is the default and supports optional byte ranges.
+Gzip input uses its decoded content for format detection, line windows and byte ranges.
 For text line windows pass startLine/endLine/maxChars; the result contains
 line metadata instead of byte offsets. Do not mix line and byte ranges.
 `format: 'json'` returns `document` from JSON.parse; `format: 'xml'`

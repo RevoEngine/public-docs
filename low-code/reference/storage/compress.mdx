@@ -1,0 +1,32 @@
+---
+title: storage.compress()
+sidebarTitle: compress()
+description: Public low-code contract, signatures and examples for storage.compress.
+icon: code
+---
+
+<span id="storage-compress" aria-hidden="true"></span>
+
+## `storage.compress()`
+
+Streams an existing file to a separate .gz file in the same folder.
+Awaits publication within the current executor's limits. A retry with the
+same idempotency key reuses the compression session. Omit the key to use
+the current source generation as the retry identity.
+
+### Overloads
+
+```ts
+static compress(storageEntryId: string, options?: { idempotencyKey?: string }): Promise<StorageEntryView>;
+
+static compress(namespace: string, storageEntryId: string, options?: { idempotencyKey?: string }): Promise<StorageEntryView>;
+```
+### Example
+
+```ts
+const gz = await storage.compress(file.storageEntryId, { idempotencyKey: 'daily-export-2026-11-10' });
+const download = await storage.getDownload(gz.storageEntryId);
+```
+
+
+See [all storage methods](/low-code/reference/storage) or [runtime basics](/low-code/overview).

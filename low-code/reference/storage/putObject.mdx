@@ -9,7 +9,9 @@ icon: code
 
 ## `storage.putObject()`
 
-Uploads a small object in one request in the default `explorer` namespace.
+Uploads a small object in one request in the default `explorer` namespace. Set `compress: true` to store it as gzip.
+Omit `prepareForRead` for gzip-only writes. `'sync'` waits for a temporary indexed RAW copy, and `'async'` queues it.
+Prepared copies expire after up to 24 hours and inherit access from the archive.
 
 Notes:
 - Unavailable with `readOnly: true` (throws an error).

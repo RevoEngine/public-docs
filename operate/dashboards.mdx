@@ -35,6 +35,18 @@ Dashboards turn the RevoEngine control plane into an operator-specific workspace
 
 Use **Manage** to open, search, rename, change visibility/default, or delete a saved dashboard. **Home** is the built-in view; create a named dashboard before adding widgets. **Reload** discards unsaved layout changes and reloads the saved preference. The grid has 20 columns; palette sizes are starting footprints and may be enlarged for dense data. Widgets are shown only when the viewer has their required roles and resource access.
 
+## Embed an external frontend
+
+Add an **Iframe** widget to a named dashboard. In **Configure → Iframe**, enter the external app's HTTPS URL, choose an isolation profile and select **Apply**. Select the dashboard **Save** button to keep the URL and profile. To clear the source, leave the URL empty and apply the change.
+
+| Profile | Browser behavior |
+| --- | --- |
+| **Static** | Displays the page with scripts and forms disabled. |
+| **Isolated scripts** | Runs scripts with an opaque origin. |
+| **Application origin** | Runs scripts and forms with the external app's own origin. Use it for a trusted frontend whose APIs authorize that origin. |
+
+The external site must allow the RevoEngine app to frame it. For cross-origin requests to the Endpoint runtime or another API, configure that API's CORS policy for the frontend origin and use the app's own authentication. Dashboard viewers still need permission for the actions they perform. Keep credentials out of the saved URL. All profiles sandbox the frame and block top-level navigation and pop-ups.
+
 ## Combine business operations with AI
 
 The [Asterion Supply example](/platform/asterion-supply) combines four live widgets: catalog/order/invoice counts, daily sales from a Materialized View, an exception View, and the finance Agent. Select the Agent in **Configure → Agent** to inspect its runs and workspace evidence beside business data. Its presence on a dashboard does not grant the viewer permission to run it.

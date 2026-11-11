@@ -214,9 +214,11 @@ try {
 const jobId = reservation.duplicate
   ? undefined
   : await api.triggerJob(settleOrderTemplateId, {
-      orderId,
-      transactionId: reservation.transactionId,
-      parentOperationId: operationId,
+      input: {
+        orderId,
+        transactionId: reservation.transactionId,
+        parentOperationId: operationId,
+      },
     });
 
 api.log(

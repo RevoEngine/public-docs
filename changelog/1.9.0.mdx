@@ -1,0 +1,57 @@
+---
+title: "1.9.0 — Grouped automation, readable data, and compressed Storage"
+sidebarTitle: "1.9.0"
+icon: "tag"
+description: "11 November 2026"
+---
+
+Collect related executions into one Job, inspect each Job trigger, read JSON directly in data grids, and work with gzip files through native Storage tools.
+
+## Highlights
+
+- Collect Event, Schedule, manual and low-code triggers with Job Template Batch or Debounce and process them in order with `api.walkTriggers()`.
+- Inspect a Job's triggers and open a complete JSON cell without loading every payload into a list.
+- Compress uploads and database exports, and read supported gzip files through native Storage tools.
+- Share restricted Secrets with selected workloads and embed an external frontend in a dashboard.
+
+## In detail
+
+## Collect executions with explicit Job inputs
+
+Configure Batch or Debounce on the Job Template to collect Event, Schedule, manual and programmatic triggers into one Job. Release on size, maximum wait or quiet period; every accepted trigger remains available in order. Job Template values stay in `templateInputs`; each trigger carries its own `input`, message and source. Authorized callers and Assistant conversations can join one group; the Job uses its configured shared execution account and each trigger retains its own initiator and origin. Manual Run has separate editors for template inputs and explicit triggers. Use `api.walkTriggers()` for the same native code across small and large batches. New Event messages have a 1 MB limit; pass larger data through Storage references. See [Event delivery](/patterns/event-job-delivery) and [Jobs](/operate/jobs#runtime-input-and-trigger-provenance).
+
+## Admit direct Jobs atomically
+
+Use `api.triggerJobs` to admit up to 100 direct Jobs together, with a stable idempotency key and ordered Job IDs. Repeating the same ordered request recovers its first receipt. Producer loops have bounded host admission. Template execution mode decides whether accepted items create separate Jobs or join a group; ordered Job IDs can repeat. SDK transport separates its packing target from the hard frame limit, preserving full-size Event messages. See [atomic Job batches](/operate/jobs#produce-an-atomic-job-batch).
+
+## Inspect triggers and full JSON values
+
+Open **Triggers** in Job details to page through occurrences, inspect a selected payload and follow its source. Data grids show JSON and metadata values that fit the column. Click any value or the remaining-item count to open the entire cell. Lists use bounded previews; selecting a cell loads its full value. Explicit JSON columns in low-code queries and exports continue returning complete values. See [Databases](/operate/databases) and [Job operations](/operate/jobs).
+
+## Compress uploads and database exports
+
+Enable gzip on an upload or CSV, TSV, NDJSON or XLSX export. Supported native readers can decode gzip files; downloads preserve archive bytes. Choose Compress or Unpack in Storage file details, or use `storage.compress` and `storage.unpack`. The source is preserved. For repeated reads, prepare indexed access immediately or in the background. See [Storage uploads](/operate/storage-uploads) and [Storage](/operate/storage).
+
+## Share Secrets and embed external applications
+
+New instance Secrets default to **Restricted**. Grant access to selected users, service accounts or groups; existing Secrets retain their prior policy until explicitly changed. Add an **Iframe** dashboard widget with a chosen isolation profile for an external HTTPS application. See [Secret access](/operate/secrets#access-control) and [dashboard embedding](/operate/dashboards#embed-an-external-frontend).
+
+## Author typed dashboards
+
+Use shared DashboardElementInterface and DashboardRowInterface declarations, WidgetContextInterface and matching JavaScript/TypeScript examples in Monaco and VS Code. Editor completion and diagnostics describe the existing widget runtime without changing its output format. See [dashboard authoring](/operate/dashboards).
+
+## Upgrade Job callers and clients together
+
+Native low-code and SDK 4.1.0 use `api.triggerJob(name, trigger, options?)`. SDK 4.1.0 intentionally changes the earlier flat-input contract: move run values into `trigger.input` and read the resulting EXECUTION trigger. Event and Schedule input no longer overlays template values; `inputMode` is retired. Previously queued Jobs and published SDK 4.0.0 retain their recorded contract. Review both callers and Job Components before upgrading. See the [1.9 upgrade guide](/developers/upgrading-to-1-9).
+
+
+## Related guides
+
+- [Upgrade to 1.9](/developers/upgrading-to-1-9)
+- [Configure Job execution modes](/patterns/event-job-delivery)
+- [Inspect Job triggers](/operate/jobs)
+- [Read and write compressed files](/operate/storage)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.8.0](/changelog/1.8.0)

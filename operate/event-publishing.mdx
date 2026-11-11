@@ -8,7 +8,7 @@ icon: book-open
 
 Disable **Internal** when the signal belongs to your application rather than a RevoEngine resource lifecycle, then enter `ORDER_APPROVED` in **Type**. The API stores `type: "ORDER_APPROVED", custom: true`; no prefix is added. Event names are normalized to uppercase.
 
-With **Internal** enabled, Type is a selector populated from the supported platform catalogue. Switching back to Internal clears a custom name that is not in that catalogue. The usage hint shows `api.input('message')` for internal messages and `api.triggerEvent()` for a custom event.
+With **Internal** enabled, Type is a selector populated from the supported platform catalogue. Switching back to Internal clears a custom name that is not in that catalogue. For a native Event targeting a Job Template, the usage hint points to `api.input().triggers`. The custom Event hint shows how to publish with `api.triggerEvent()`.
 
 Use a stable namespace and past-tense business fact. A custom event should announce something that already happened, not hide a command such as `SEND_EMAIL_NOW`.
 
@@ -125,7 +125,7 @@ supports up to 10 MiB of serialized UTF-8 JSON.
    triggering the event. Keep the file available through the scheduled run
    and the retry window for the workflow.
 3. Send the finalized file's `storageEntryId` in `message`, alongside any fields
-   the event filters need. The Job receives the ID in `api.input().message`.
+   the event filters need. In the Job, read the ID from each EVENT entry’s `message` in `api.input().triggers`.
    Read record-oriented files in batches with `storage.walkFileData`.
 
 ```json

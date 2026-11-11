@@ -8,7 +8,7 @@ import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 import { ConcurrencyDemo, PlaygroundStyle, useDemoPlayback, makeQueue, advanceQueue } from "/snippets/revo-playground.jsx";
 
-Use Job concurrency when several Jobs compete for the same external account or shared resource. A configured key groups executions; the limit controls how many can run simultaneously.
+Use Job concurrency when several eligible Jobs compete for the same account or shared resource. The key identifies the capacity bucket and the limit controls how many executions can run simultaneously. [Job execution modes](/patterns/event-job-delivery) control which triggers collect into a Job and when it becomes eligible.
 
 ## Explore the behavior
 
@@ -41,12 +41,13 @@ flowchart LR
 
 | Field | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `key` | string | No keyed admission | Shared bucket in the instance. Use letters, digits, underscores and hyphens. |
+| `key` | string | Template scope with `keyPath` | A static shared bucket or a namespace for dynamically keyed buckets. Use letters, digits, underscores and hyphens. |
+| `keyPath` | JSON Pointer | Unset | Resolves a scalar from the Job input, for example `/message/priceListId`. |
 | `limit` | integer | 1 when a key is set | Maximum admitted executions; 1–1000. |
 | `retryDelaySeconds` | integer | 30 | Delay before a waiting Job retries admission; 1–3600 seconds. |
 | `ttl` | integer | Legacy preference | Accepted for compatibility; ordinary Jobs use a managed renewable lease. |
 
-The key is a configured string. It is not an expression evaluated against each Event payload. Giving all account imports the literal key `accountId` puts them in one bucket; it does not create one bucket per account.
+A static `key` such as `accountId` puts all matching Jobs in one bucket. In the UI, enter a static value or JSON Pointer in the single **Key** input; use its magnifier to inspect **Job history**. To create a bucket per account through the API, set `keyPath` to a JSON Pointer such as `/message/accountId`. For a grouped Job, every trigger must resolve to the same scalar to use that value's bucket. Missing, non-scalar, or mixed values use the fallback bucket. See [dynamic key examples](/operate/jobs#limit-concurrent-jobs-per-key).
 
 ## Choose the key deliberately
 
@@ -72,4 +73,4 @@ The retry policy allows **3 total attempts**, starts with a **5-second** minimum
 
 <ScreenshotDetail src="/images/asterion/job-concurrency-retry.jpg" alt="Invoice Job with shared concurrency key, limit one, TTL 180 seconds and three total retry attempts" width={1114} height={1000} />
 
-For per-customer isolation, deliberately choose a key containing that customer's stable business identity in a supported keyed execution path. For one invoice per order, also use a unique business key and recover the existing invoice receipt; a different concurrency key alone cannot prevent duplicates.
+For per-customer isolation, set a dynamic key path that resolves to the customer's stable business identifier. For one invoice per order, also use a unique business key and recover the existing invoice receipt; a different concurrency key alone cannot prevent duplicates.

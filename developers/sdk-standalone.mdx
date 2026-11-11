@@ -50,7 +50,7 @@ const revo = new RevoClient({
   batch: {
     failureMode: 'independent',
     maxCalls: 16,
-    maxRequestBytes: 128 * 1024,
+    targetRequestBytes: 128 * 1024,
     maxInFlight: 2,
     maxQueuedCalls: 256,
   },

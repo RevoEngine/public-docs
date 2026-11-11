@@ -28,7 +28,7 @@ Both instance and personal Secrets retain encrypted revision history and have an
 
 | Behavior | Instance Secret | Personal Secret |
 | --- | --- | --- |
-| Ownership | Instance resource roles and ownership | Verified personal account and explicit consumer grants |
+| Ownership | Instance Secret roles and [per-Secret access](/operate/secrets#access-control) | Verified personal account and explicit consumer grants |
 | Revision history | Revision metadata is browsable in the Secret detail | Revision metadata is browsable in Personal Settings and the personal-account API |
 | Rotate | Immediate replacement of all earlier active and scheduled revisions | Immediate replacement of all earlier eligible and scheduled values, checked against the current revision |
 | Read old values | Explicit, authorized Reveal action | Explicit owner-only Reveal action; no dedicated restore action |

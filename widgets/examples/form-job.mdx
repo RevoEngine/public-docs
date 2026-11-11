@@ -9,7 +9,7 @@ icon: book-open
 
 This example has two cells: a form and a recent-jobs tile. Submit commits the form, starts a Job, polls that exact Job and refreshes only `jobResult`. The form remains mounted with its values.
 
-Prepare an active Job template that accepts a `batch` input. Its worker reads that value from `api.input().templateInputs.batch`. Prepare two Components with a visible element named `Data`: one starts the Job, the other reads its status. The examples below supply their bodies.
+Prepare an active Job template that accepts a `batch` input. Its worker reads that value from `api.input().triggers?.find(trigger => trigger.triggerType === 'EXECUTION')?.input.batch`. Prepare two Components with a visible element named `Data`: one starts the Job, the other reads its status. The examples below supply their bodies.
 
 ### 1. Configure the widget
 
@@ -161,8 +161,7 @@ if (!claimed) {
 }
 
 const jobId = await api.triggerJob(input.templateId, {
-  batch: input.batch.trim(),
-  requestId,
+  input: { batch: input.batch.trim(), requestId },
 });
 const receipt = { jobId };
 await api.setInstanceCache(key, receipt, 3600);

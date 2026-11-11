@@ -96,6 +96,14 @@ Native Storage reports physical bytes across namespaces, including retained vers
 
 Transfer separates observed incoming and outgoing traffic into **external**, **internal · free**, and **unclassified** categories. Creating a file is not a transfer measurement. Partial coverage and source timestamps are visible; missing measurements must not be interpreted as zero traffic. Capacity snapshots and imported traffic can arrive later than the operation itself.
 
+Usage also shows current Event/trigger history and Webhook history footprints in the Database tab. Event history includes retained Job trigger payloads and grouping/retention records, including direct Job calls and immutable Job producer batch receipts. These are capacity observations, not a new Event-count quota. Retained occurrences remain protected while a Job or retry depends on them; review retention and Job fanout when planning capacity.
+
+New Event messages and explicit manual Job trigger arrays have a 1 MB serialized limit. Larger application data belongs in Storage, referenced by ID. Batch and Debounce keep every accepted occurrence; the per-message boundary does not become a smaller aggregate batch limit.
+
+Direct Job producers, Event publication/replay, Webhooks and manual single retry share a host execution/request budget: four active calls, 64 retained calls and 8 MiB retained logical input; cumulatively 1,000 publication units, 64 MiB logical input and 1,000 attempts. Local children share that host budget. Separate SDK RPC requests have separate producer budgets, even with the same hosted execution ID. This does not establish a global instance quota or share an in-memory parent budget across delegated remote requests. Asynchronous selector-based bulk retry keeps its durable bounded worker; AI, Database and Storage operations do not acquire this new producer limit class. See [producer budgets](/operate/jobs#producer-budgets).
+
+Atomic direct Job admission accepts 1–100 items and 5 MiB of JSON with an explicit idempotency key. SDK transport separately uses a 256 KiB soft packing target and a 12 MiB hard RPC frame, preserving the full Event message limit. Its retained encoded-argument budget includes active and queued frames. See [SDK batching](/developers/sdk-storage-and-batching#automatic-batching).
+
 Component version history is always retained. RAW_SQL and low-code database queries are available without an instance feature switch; roles and query safety rules still apply. Realtime transport has no channel or message quota statistics in Usage.
 
 ## Operator workflow

@@ -1,0 +1,110 @@
+---
+title: "Job execution modes"
+description: "Compare Single, Batch, and Debounce, configure grouping, and inspect the resulting Job input."
+icon: layer-group
+---
+
+import { EventDeliveryDemo, eventDeliveryExample, PlaygroundStyle, useDemoPlayback } from "/snippets/revo-playground.jsx";
+
+Execution grouping belongs to the **Job Template** and collects Event, Schedule, manual Run, REST and low-code/SDK triggers together. Event subscriptions only decide which occurrences match and supply their raw runtime input. Concurrency and retries remain separate settings on the template. For example, a 10-minute / 100-trigger Batch can collect 80 Events, 10 Schedules, 5 manual Runs and 5 low-code calls into one Job.
+
+| Mode | When a Job becomes eligible | Use it when |
+| --- | --- | --- |
+| **Single** | One Job per admission, or at an explicitly requested future time. | Each occurrence needs independent processing or uses the existing Single contract. |
+| **Batch** | The first of **Maximum triggers** or **Maximum wait** from the first Event in the group. | One bulk operation can process several changes, and a fixed collection deadline is acceptable. |
+| **Debounce** | The first of **Maximum triggers**, **Maximum wait** from the first Event, or **Quiet period** after the latest Event in the group. | Changes arrive in bursts and you want to process the burst soon after it settles. |
+
+## Explore the behavior
+
+The three simulations use the same price changes. Each Job starts with `templateInputs.region = "EU"`, and each Event trigger carries the subscription's `input.validate = true`. Select **Next step** to follow admission or **Show outcome** to inspect the final Jobs. The selector shows example trigger payloads and the release reason. For grouped Jobs, it shows the full entries returned by `api.walkTriggers()`. The synchronous `api.input().triggers` array contains full entries for small inputs and lightweight references for larger inputs.
+
+### Single
+
+Single is the default for existing and new templates without grouped execution. Each matching Event adds one entry to `triggers[]`. Existing Components can continue reading top-level `type`, `message`, and `metadata`. For new native Components, iterate with `api.walkTriggers()` so the same code works with grouped delivery.
+
+<EventDeliveryDemo mode="Single" />
+
+### Batch
+
+The first accepted Event opens a group and fixes its maximum wait. Later Events for that key increase the count. If a group starts at +0s with a 10-second wait, an Event at +8s joins the group without extending its +10s deadline. Reaching the size limit releases it sooner.
+
+<EventDeliveryDemo mode="Batch" />
+
+### Debounce
+
+Each accepted Event moves the quiet-period deadline for its own group. The maximum wait stays anchored to the first Event. With a 5-second quiet period and Events for one key at +0s and +3s, the Job becomes eligible at +8s if neither cap is reached sooner. All collected Events remain in the array. RevoEngine keeps their messages separately, even if several messages have the same fields or values.
+
+<EventDeliveryDemo mode="Debounce" />
+
+### Compare the default scenario
+
+Each bracketed list is the ordered Event list for one Job. The grouped simulations default to **4 Events**, **10s maximum wait**, and grouping by price list. Debounce also defaults to a **5s quiet period**. Times show eligibility.
+
+| Arrivals | Single | Batch | Debounce |
+| --- | --- | --- | --- |
+| A1 at +0s, A2 at +1s, A3 at +3s, A4 at +4s | Four Jobs at arrival | +4s `[A1, A2, A3, A4]` by size | +4s `[A1, A2, A3, A4]` by size |
+| B1 at +2s, B2 at +9s | +2s `[B1]` and +9s `[B2]` | +12s `[B1, B2]` by maximum wait | +7s `[B1]` and +14s `[B2]` by quiet period |
+| U1 at +8s with no price list | +8s `[U1]` | +18s `[U1]` in a separate group | +13s `[U1]` in a separate group |
+| C1 at +14s, C2 at +18s, C3 at +22s | Three Jobs at arrival | +24s `[C1, C2, C3]` by maximum wait | +24s `[C1, C2, C3]` by maximum wait |
+| **Total eligible Jobs** | **10** | **4** | **5** |
+
+## Configure the Job Template
+
+In **Jobs → Templates**, open **Execution mode**. Choose Single, Batch or Debounce. In the Platform API, configure root `delivery` on the Job Template; omit it on creation for Single or send `"delivery": null` to switch back. Omission on update preserves the saved setting.
+
+```json
+{
+  "delivery": {
+    "mode": "BATCH",
+    "maxSize": 100,
+    "maxWaitSeconds": 600
+  }
+}
+```
+
+For Debounce, set `"mode": "DEBOUNCE"` and add `"quietPeriodSeconds": 30`.
+
+| Field | UI label | Values and scope |
+| --- | --- | --- |
+| `mode` | Mode | `BATCH` or `DEBOUNCE`. |
+| `maxSize` | Maximum triggers | 2–1,000; a hard maximum per Job. An incoming trigger array fills the current group and opens subsequent groups in order, without exceeding this bound. |
+| `maxWaitSeconds` | Maximum wait | 1–3,600 seconds from the first admission. |
+| `quietPeriodSeconds` | Quiet period | Required for Debounce; 1 second through `maxWaitSeconds`. Omit for Batch. |
+
+With 95 triggers collected and a maximum of 100, the next array of 10 closes the first Job at 100 and opens another with 5. The remainder starts its own waiting window. All parts are accepted atomically; retrying the same admission does not append its triggers again.
+
+The **Concurrency → Key** input accepts either a static key or a JSON Pointer such as `/message/priceListId`. Its magnifier opens **Job history** to inspect a payload and select a field. A dynamic key also partitions collection by the resolved scalar. Missing or mixed scalar values collect separately from other admissions. The examples above use Event arrivals to illustrate the same Job-wide timing rules.
+
+Groups share the same template revision, instance execution-policy revision, options and static template inputs. Different source types, authorized initiating accounts and Assistant conversations can join the same group when those configuration boundaries and any dynamic key match. The Job uses one configured execution account; each trigger retains its own initiator and origin. Protected Vault and lifecycle invocations bypass collection. Explicit future scheduling retains its requested time. The hard size bound also splits oversized isolated or explicitly scheduled runs, preserving their isolation and requested time. Retries reuse the saved trigger list.
+
+## Read the Job input
+
+Each Event entry has `triggerType: "EVENT"`, its `eventHistoryId`, subscription `jobEventId` and `eventName` when available, and its own `type`, `message`, `metadata`, and `input`. The last field comes from the subscription's **Runtime input**. Small sets resolve before execution with `deferred: false`, including Batch and Debounce. Larger sets keep ordered references marked `deferred: true`. The native walker returns full entries in either case. A batch of 500 roughly 1 KB messages normally fits the small-input budget. Payloads remain retained in Event History rather than copied into stored Job inputs or moved to Storage.
+
+```js
+const { templateInputs } = api.input();
+const changes = [];
+
+for await (const trigger of api.walkTriggers()) {
+  if (trigger.triggerType === 'EVENT' && typeof trigger.message?.changeId === 'string') {
+    changes.push({
+      changeId: trigger.message.changeId,
+      validate: trigger.input.validate,
+    });
+  }
+}
+
+return { region: templateInputs.region, changes };
+```
+
+If an older Event or Schedule used configured runtime input to override template defaults, update the Component to read that data from `triggers[].input` for new Jobs. Saved Job inputs and retries retain their recorded payloads.
+
+## Understand queueing and recovery
+
+**Accept trigger → Collect on Job Template if configured → Queue Job → Check concurrency**
+
+Explicit future invocations retain their requested time. Vault-bearing and native Job lifecycle invocations retain separate execution boundaries. Different Assistant conversations do not partition ordinary collection; their origins remain on the individual triggers.
+
+[Event History](/operate/event-history) links each accepted occurrence to the shared Job. Replaying an occurrence admits new triggers under the current Job Template policy. Retrying a Job uses its saved trigger list. Make external effects safe to repeat per Event or per business operation.
+
+A new Event group for the same key can become eligible while an earlier Job is still running. To prevent overlap, set a matching [dynamic concurrency key](/operate/jobs#limit-concurrent-jobs-per-key) on the Job Template with a limit of 1.

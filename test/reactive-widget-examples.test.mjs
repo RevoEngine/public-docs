@@ -61,7 +61,7 @@ test('published start component validates arguments and guards duplicate dispatc
     setInstanceCache: async (key, value) => { cache.set(key, value); },
     triggerJob: async (template, args) => {
       assert.equal(template, 'template-1');
-      assert.deepEqual(plain(args), { batch: 'BATCH-001', requestId: 'request-1' });
+      assert.deepEqual(plain(args), { input: { batch: 'BATCH-001', requestId: 'request-1' } });
       triggers++;
       return 'job-1';
     },

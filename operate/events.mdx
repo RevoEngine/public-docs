@@ -25,7 +25,7 @@ One Event definition has one target. Create several active definitions for the s
 <span id="chain-component-jobs-from-execution-outcomes" aria-hidden="true"></span>
 
 <CardGroup cols={2}>
-  <Card title="Configure Event input" href="/operate/event-inputs" icon="book-open">Map Event Runtime input onto a Job template.</Card>
+  <Card title="Configure Event input" href="/operate/event-inputs" icon="book-open">Pass input on each Event trigger.</Card>
   <Card title="Filter Event messages" href="/operate/event-filters" icon="book-open">Configure message paths, operators and compound conditions.</Card>
   <Card title="Publish a custom Event" href="/operate/event-publishing" icon="book-open">Create a business signal and test immediate, large or delayed delivery.</Card>
   <Card title="Native Event types" href="/operate/event-types" icon="book-open">Choose Storage, identity, API-key and Job lifecycle triggers.</Card>
@@ -69,15 +69,30 @@ Open **Jobs → Events**, select **Add**, and configure the definition.
 | Metadata | No | Searchable ownership, service, environment, or cost-centre labels. |
 | Filter | No | Conditions evaluated against the normalized message. Empty means match all. |
 | Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
-| Input mode | Job only | **Override** overlays Job defaults; **Deep Override** merges nested objects; **Replace** replaces the input entirely. Defaults to **Override**. |
 
 For a Job target, the selected template carries the Component, execution principal, input defaults, limits, concurrency, and retry policy. For an Agent target, delivery uses the current Agent definition.
+
+## Group Events into one Job
+
+In **Jobs → Templates**, configure **Execution mode** on the target template. **Single** is the default. Batch and Debounce collect matching Events together with Schedule, manual Run and low-code/REST admissions to that template, within the same execution authority and input boundaries. Event subscriptions do not configure grouping.
+
+| Delivery | When the Job becomes eligible | Job input |
+| --- | --- | --- |
+| **Single** | After each matching event is admitted, or when a future-dated event becomes due. | One entry in `triggers` plus top-level `type`, `message`, and `metadata`. |
+| **Batch** | When the group reaches **Maximum triggers** or **Maximum wait** from its first event, whichever comes first. | One entry in `triggers` per collected event. |
+| **Debounce** | When the group reaches **Maximum triggers**, **Maximum wait** from the first event, or the **Quiet period** after the most recent event for that key, whichever comes first. | One entry in `triggers` per collected event, with every message retained. |
+
+Batch and Debounce keep one entry per collected Event in admission order. Small inputs resolve before execution with `deferred: false`; larger inputs keep references with `deferred: true`. Native Job Components can read full entries with `api.walkTriggers()`. Job Template defaults stay in `api.input().templateInputs`. See [Configure Event input](/operate/event-inputs) for the Component contract.
+
+### Compare Job delivery modes
+
+Open the [Event delivery guide](/patterns/event-job-delivery#explore-the-behavior) for separate Single, Batch, and Debounce simulations. Each shows when Jobs become eligible and lets you inspect the resulting JSON. [Dynamic Job concurrency](/operate/jobs#limit-concurrent-jobs-per-key) applies after delivery makes a Job eligible.
 
 ## Operate configured Events
 
 The **Jobs → Events** grid is the inventory of current and deleted definitions. It exposes name, category, description, active state, Internal classification, Type, target references, metadata, creation/update ownership, version, and deletion state. Every visible column can be used as an operator filter where its data type allows it.
 
-Open a row to review the effective target, delivery mode, metadata, and filter before changing lifecycle state. The header links directly to **History**, so the definition and its observed deliveries remain separate:
+Open a row to review the effective target, metadata, and filter before changing lifecycle state. The header links directly to **History**, so the definition and its observed deliveries remain separate:
 
 | Definition action | Effect |
 | --- | --- |
@@ -94,8 +109,8 @@ Instance settings govern the total and active Event-definition quotas. An active
 
 1. An operator, SDK, or Component uploads a file into the Storage **Files** workspace and finalization creates a `storageEntryId`.
 2. `STORAGE_CREATED` records the entry projection as the Event message. A filter admits only the intended MIME type, folder policy, or user metadata.
-3. The selected Job template starts its Component under the template's service account. The Job input contains `{ type, metadata, message }`.
-4. The Component reads `api.input()?.message.storageEntryId`, validates authoritative entry metadata and content, and uses bounded `storage.getFileData()` batches.
+3. The selected Job template starts its Component under the template's service account. The Job input contains the Event in `triggers[]`.
+4. The Component reads `trigger.message.storageEntryId` from the Event entry, validates authoritative entry metadata and content, and uses bounded `storage.getFileData()` batches.
 5. It writes a result with `storage.putObject()` or a finalized upload session, then returns the operation ID and both Storage entry IDs.
 6. Event History proves admission and target scheduling; Job History, logs, and the output Storage entry prove processing.
 

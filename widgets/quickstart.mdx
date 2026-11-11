@@ -73,3 +73,29 @@ return rows;
 - `??` preserves valid empty strings and zero values, unlike a truthiness fallback.
 
 Continue with [rows, cells and matrix](/widgets/matrix), then [input configuration](/widgets/inputs).
+
+## Editor assistance
+
+Widget code can use the global `DashboardRowInterface[]` type for the returned
+matrix and `DashboardElementInterface` for one cell. Choose the cell's `type`
+first to get completion for its fields and required properties. These describe
+the widget's inner rows; the saved dashboard's layout is configured separately.
+
+```ts
+const rows: DashboardRowInterface[] = [
+  [{ type: 'TEXT', value: '## Summary' }],
+];
+return rows;
+```
+
+In JavaScript, put `/** @type {DashboardRowInterface[]} */` immediately above
+`const rows = ...`. Add `// @ts-check` at the top of the source for local JavaScript
+diagnostics when needed. No imports or namespace prefixes are required.
+
+Changing the inline source language switches completion and checking while preserving
+your source text. Adjust the code syntax for the selected language.
+
+Monaco and the RevoEngine VS Code extension provide the same starting snippets:
+`revo-widget`, `revo-table`, `revo-chart`, `revo-form`, `revo-button` and
+`revo-widget-input`. In VS Code, refresh editor types after upgrading the platform.
+Types and completion help while writing; execution and render checks still apply.

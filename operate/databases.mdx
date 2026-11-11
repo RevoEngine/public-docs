@@ -150,6 +150,10 @@ administration bounds, and recovery patterns.
 
 The generated reference owns the current contracts for [Create Database](/api-reference/databases/create-database), [Update Database](/api-reference/databases/update-database), [Insert Database data](/api-reference/databases/insert-database-data), [mass update](/api-reference/databases/mass-update-database-data-based-on-filters), [mass delete](/api-reference/databases/mass-delete-database-data-based-on-filters), [export](/api-reference/databases/export-table-view-or-materialized-view-data-to-csv-tsv-ndjson-or-xlsx), [clone](/api-reference/databases/clone-database), and [restore](/api-reference/databases/restore-database).
 
+### Gzip import and export
+
+To export a gzip file, choose CSV, TSV, NDJSON, or Excel and enable **Compress as gzip (.gz)**. The output keeps the selected format inside the archive. Import accepts the same formats with a `.gz` suffix and uses the existing preview, mapping, and commit flow.
+
 ## Access model
 
 Resource roles and per-resource ACLs work together:
@@ -171,9 +175,7 @@ Schema-changing operations, clones, exports, scheduled materialized refreshes, a
 
 ### Instance readiness
 
-After an instance starts or reconnects, requests can wait while its data connection, schema check and required system schedules become ready. Concurrent requests share that preparation instead of treating it as a schema migration.
-
-A temporary maintenance response still applies when a schema migration is genuinely in progress. Connection and system-schedule initialization failures retain their normal error handling; requests use the instance only after the required preparation succeeds.
+Requests can wait for an instance to become ready after startup or reconnection. During a schema migration, the Platform API can return a temporary maintenance response.
 
 ## Production checklist
 
@@ -218,3 +220,9 @@ A temporary maintenance response still applies when a schema migration is genuin
     Combine resource roles with user and group ACLs.
   </Card>
 </CardGroup>
+
+## Inspect JSON and metadata
+
+JSON and JSONB columns, metadata and advanced metadata show compact values that fit the column width. The remaining-item count changes when resizing. Click any value or the count to open the complete cell in a JSON popup. Escape or clicking outside dismisses it.
+
+Lists request bounded previews before large values are transferred. Selecting a cell loads its full value, including values larger than the preview. If a keyless View changes during that read, refresh the row first. This applies to table data and Views; normal low-code reads with explicit JSON columns and exports still return full values.
