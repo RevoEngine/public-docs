@@ -18982,10 +18982,32 @@
             }
           },
           {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "Filter tree as JSON over triggerType, source and definition. Supports the standard text, membership, blank and boolean-group operators.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "distinct",
+            "required": false,
+            "in": "query",
+            "description": "Return paged distinct nonblank names for the corresponding grid filter.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "source",
+                "definition"
+              ]
+            }
+          },
+          {
             "name": "count",
             "required": false,
             "in": "query",
-            "description": "The immutable trigger count is included with every page.",
+            "description": "The filtered count is included with every page.",
             "schema": {
               "type": "boolean"
             }
@@ -43542,6 +43564,16 @@
             "type": "string",
             "nullable": true
           },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "Source display name: occurrence name, recorded caller name, or Execution."
+          },
+          "definition": {
+            "type": "string",
+            "nullable": true,
+            "description": "Event, Schedule or explicitly recorded Component definition name."
+          },
           "eventHistoryId": {
             "type": "string",
             "format": "uuid",
@@ -43593,14 +43625,35 @@
           "createdAt"
         ]
       },
+      "JobTriggerNameDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source name when distinct=source."
+          },
+          "definition": {
+            "type": "string",
+            "description": "Definition name when distinct=definition."
+          }
+        }
+      },
       "JobTriggersResponseDto": {
         "type": "object",
         "properties": {
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/JobTriggerSourceDto"
-            }
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/JobTriggerSourceDto"
+                },
+                {
+                  "$ref": "#/components/schemas/JobTriggerNameDto"
+                }
+              ]
+            },
+            "description": "Metadata rows, or named choices when distinct is requested."
           },
           "results": {
             "type": "number"

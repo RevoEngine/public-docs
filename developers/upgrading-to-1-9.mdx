@@ -37,7 +37,7 @@ The Job reads run values from its `EXECUTION` trigger. During migration, handle 
 
 Manual **Run** separates **Template inputs** from **Triggers**. The API accepts `inputs` and `triggers` together; `trigger` is shorthand for one entry. Use either `trigger` or `triggers`, never both. The explicit trigger array has a 1 MB serialized limit and no separate item-count limit. The platform assigns source identities.
 
-Use `api.triggerJobs(items, { idempotencyKey })` for atomic direct Job admission in pages of at most 100 items and 5 MiB. The SDK now separates a 256 KiB packing target from its 12 MiB hard frame ceiling, allowing a full Event message plus its envelope. Review [producer budgets](/operate/jobs#producer-budgets) and [SDK batching](/developers/sdk-storage-and-batching#automatic-batching) when publishing from loops.
+Use `api.triggerJobs(items, { idempotencyKey })` for atomic direct Job admission in pages of at most 100 items and 5 MiB. The SDK now separates a 256 KiB packing target from its 12 MiB hard frame ceiling, allowing a full Event message plus its envelope. Review [producer backpressure](/operate/jobs#producer-budgets) and [SDK batching](/developers/sdk-storage-and-batching#automatic-batching) when publishing from loops.
 
 ## Read retained triggers
 

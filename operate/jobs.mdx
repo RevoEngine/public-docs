@@ -148,7 +148,7 @@ const jobIds = await api.triggerJobs([
 
 Use 1–100 items and at most 5 MiB of UTF-8 JSON for the complete batch. Acceptance is atomic and returns Job IDs in input order. Each item uses the template's normal executor, concurrency, retry and timeout settings. With Single mode, each item creates a separate Job. A template configured for Batch or Debounce can collect several items into the same Job; the returned IDs remain ordered and can repeat. Configure this in **Jobs → Templates → Execution mode**. All source types participate, including Events, Schedules, manual Run and low-code/REST.
 
-Preparation also has a 64 MiB per-batch ceiling including materialized template inputs. Prepared Job bytes count toward the same cumulative 64 MiB host producer budget for both single and bulk admission. Reduce work per execution when saved defaults are large; a failed preparation accepts no partial Jobs.
+Preparation also has a 64 MiB per-batch ceiling including materialized template inputs. This ceiling applies to one batch, not to the total work published by an execution. A failed preparation accepts no partial Jobs.
 
 The Platform API accepts `{ items, idempotencyKey }` at `POST /api/v1/automation/templates/run`. Reusing a key with the same ordered payload returns the first accepted Job IDs for that authenticated producer on the instance, across requests or executions. Changing the payload under the same key returns a conflict. The first acceptance retains its provenance. Choose a new key for intentional new work, and preserve page keys when reconciling an uncertain response.
 
@@ -160,9 +160,11 @@ For more work, send bounded pages and await each admission. Ordinary SDK request
 
 ### Producer budgets
 
-Within one host execution or request, the covered producers allow four active calls, 64 retained calls and 8 MiB retained logical input. Their cumulative budget is 1,000 publication units, 64 MiB logical input and 1,000 attempts. A direct Job batch counts each item as a publication unit. Await pending calls to free retained capacity; cumulative capacity requires a separately admitted execution.
+Native Job, Event and Webhook publications automatically queue in memory when the runtime transfer window is busy. Normal `Promise.all` and `Promise.allSettled` calls wait for capacity instead of failing because their combined queued arguments exceed a fixed byte or call count. There is no cumulative publication-count, byte or attempt allowance for an execution.
 
-These guards cover direct Job admission, Event publication and REST replay, Webhook publication and manual single retry. They add no new class of AI, Database or Storage limits. The asynchronous selector-based bulk-retry operation retains its own durable workset and bounded worker, including larger selections. Each separate SDK RPC request has its own host producer budget, even when requests carry the same hosted execution ID. Local child work shares its host budget. Delegated remote requests do not share an in-memory parent budget; these limits are not a new global cross-request or instance quota. Event subscriptions can still fan out asynchronously, so observe queue depth, execution concurrency and retained database history.
+The runtime transfers at most four calls concurrently, targeting 8 MiB of arguments in flight. A valid individual call larger than this window runs alone; the method's own payload contract still applies. Waiting snapshots consume the execution's configured memory, and retaining application data or all results with `Promise.all` also consumes memory. For very large data sources, an awaited walker keeps application memory smaller.
+
+The host preserves caller authorization and Vault context while calls wait. Cancellation and deadlines prevent queued work from starting. Local child work shares the active window; this is not an instance-wide rate or storage quota. Independent [SDK transport limits](/developers/sdk-storage-and-batching#automatic-batching), per-request Job batch limits and existing Event/Webhook payload limits still apply. Event subscriptions can fan out asynchronously, so observe queue depth, execution concurrency and retained database history.
 
 ## Inspect a Job's triggers
 
