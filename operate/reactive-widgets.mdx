@@ -19,37 +19,53 @@ A reactive Custom Widget adds inputs, selection, events and registered actions t
 
 <FlowDemo topic="widget" />
 
-## Connect inputs, events and destinations
+## Pick an interaction
 
-Read [events](/widgets/events), [actions](/widgets/actions) and [bindings](/widgets/bindings).
+<span id="open-a-detail-view-and-return" aria-hidden="true"></span>
+<span id="charts-records-and-multiple-selection" aria-hidden="true"></span>
+<span id="interactive-cards-in-assistant" aria-hidden="true"></span>
 
-## Form → Job → one refreshed tile
+| Operator action | Connect | Example |
+| --- | --- | --- |
+| Change a filter | Input binding → event → refresh a cell by ID | [Partial refresh](/widgets/refresh) |
+| Submit a form | Registered executor → Job acceptance → completion probe | [Form to Job](/widgets/examples/form-job) |
+| Select a record | Pass its key → open a registered view → return to the parent | [Open a detail view](/widgets/navigation#open-a-detail-view-and-return) |
+| Act on a chart point or selected rows | Use the event datum or the selected keys | [Table actions and selection](/widgets/examples/table-actions) |
+| Act in an Assistant conversation | Return an interactive card with allowed actions | [Assistant card](/widgets/examples/assistant-card) |
 
-Follow the [complete form-to-Job example](/widgets/examples/form-job).
+<span id="connect-inputs-events-and-destinations" aria-hidden="true"></span>
 
-## Open a detail view and return
+The same `rows` structure describes each view. Use [events](/widgets/events), [actions](/widgets/actions) and [bindings](/widgets/bindings) to map input to an effect.
 
-See [navigation](/widgets/navigation).
+<span id="preserve-or-refill-inputs" aria-hidden="true"></span>
+<span id="ordered-button-commands" aria-hidden="true"></span>
+<span id="limits-and-next-steps" aria-hidden="true"></span>
 
-## Preserve or refill inputs
+- [Preserve or refill inputs](/widgets/state#preserve-or-refill-inputs) across refreshes and navigation. Read committed values through [`$widget`](/widgets/context).
+- [Queue ordered refresh commands](/widgets/refresh#ordered-commands) when a button depends on the preceding result.
+- [Check limits and diagnose failures](/widgets/limits) when the matrix or interaction is rejected.
 
-Read [state and lifecycle](/widgets/state) and [the $widget context](/widgets/context).
+<span id="form-→-job-→-one-refreshed-tile" aria-hidden="true"></span>
 
-## Charts, records and multiple selection
+## Follow the form-to-Job example
 
-Use [tables](/widgets/tables), [charts](/widgets/charts) and the [selection example](/widgets/examples/table-actions).
+The [complete example](/widgets/examples/form-job) keeps the form mounted and refreshes the result tile after confirming the exact Job. Jump to the step you need.
 
-## Limits and next steps
+### 1. Configure the widget
 
-Check [limits and troubleshooting](/widgets/limits).
+[Register the write target and the read-only status probe](/widgets/examples/form-job#1-configure-the-widget).
 
-## Interactive cards in Assistant
+### 2. Return the form and result tile
 
-Follow [the Assistant card example](/widgets/examples/assistant-card).
+[Paste the view code and bind the form submission](/widgets/examples/form-job#2-return-the-form-and-result-tile).
 
-### Ordered button commands
+### 3. Start the Job in the write Component
 
-See [ordered refresh commands](/widgets/refresh#ordered-commands).
+[Validate input, start the Job and retain its receipt](/widgets/examples/form-job#3-start-the-job-in-the-write-component).
+
+### 4. Read the exact Job in the status Component
+
+[Look up the returned Job ID before refreshing the tile](/widgets/examples/form-job#4-read-the-exact-job-in-the-status-component).
 
 ## Dashboard header controls
 

@@ -1,0 +1,119 @@
+---
+title: Run a Job from a custom Event
+description: Create a Job template, publish a filtered Event, and follow the matched Job to its result.
+icon: bolt
+---
+
+An inventory import has prepared a batch. Publish a synthetic `DEMO_BATCH_READY` Event and let a Job check the batch against a configured size limit. This example exercises the Event filter, Job input mapping and result without external requests or customer data.
+
+Use a test instance. Creating Job templates and Event definitions requires `AUTOMATION_ADMIN`. Running a saved Event requires `AUTOMATION_RUNNER` or `AUTOMATION_ADMIN`. Inspecting the resulting history requires `AUTOMATION_READ` or `AUTOMATION_ADMIN`. Choose an active execution account for the Job.
+
+## 1. Create and test the worker
+
+Create a JavaScript Component named **Inspect inventory batch** with a visible element named **Report**. Paste this complete body.
+
+```js title="Component · Report"
+const policy = api.input('templateInputs') ?? {};
+let event;
+for await (const trigger of api.walkTriggers()) {
+  if (trigger.triggerType === 'EVENT') { event = trigger; break; }
+}
+const message = event?.message ?? {};
+const metadata = event?.metadata ?? {};
+
+if (message.kind !== 'inventory' || typeof message.batchId !== 'string' ||
+    !/^batch-[0-9]{3}$/.test(message.batchId)) {
+  throw new Error('A valid inventory batch is required');
+}
+if (!Number.isSafeInteger(policy.maxRecords) || policy.maxRecords < 1 ||
+    !Number.isSafeInteger(message.recordCount) || message.recordCount < 1 ||
+    message.recordCount > policy.maxRecords) {
+  throw new Error('Record count is outside the batch limit');
+}
+
+const correlationId = typeof metadata.correlationId === 'string' &&
+  /^demo-import-[0-9]{3}$/.test(metadata.correlationId) ? metadata.correlationId : null;
+
+return {
+  batchId: message.batchId,
+  recordCount: message.recordCount,
+  maxRecords: policy.maxRecords,
+  reportMode: event.input.reportMode ?? policy.reportMode,
+  correlationId,
+};
+```
+
+In the Component debugger, supply the input shape the Event-triggered Job will receive.
+
+```json title="Debugger input"
+{
+  "templateInputs": { "maxRecords": 10, "reportMode": "summary" },
+  "triggers": [{
+    "triggerType": "EVENT",
+    "type": "DEMO_BATCH_READY",
+    "message": { "batchId": "batch-001", "kind": "inventory", "recordCount": 3 },
+    "metadata": { "correlationId": "demo-import-001" },
+    "input": { "reportMode": "detailed" }
+  }]
+}
+```
+
+Expect **Report** to return the batch ID, a count of 3 and a limit of 10. Activate the Component.
+
+## 2. Create the Job template
+
+In **Jobs**, create a template named **Inspect inventory batch** and select the active Component. Use a dedicated Service Account for unattended execution. This worker needs no Database, Storage or Secret access. Keep **Execution mode** on **Single** and automatic retries off for the exercise, set a short timeout such as 30 seconds, and keep the response visible in Job History.
+
+Set **Runtime input** to these template defaults and save the template.
+
+```json title="Job template · Runtime input"
+{ "maxRecords": 10, "reportMode": "summary" }
+```
+
+## 3. Configure the Event trigger
+
+In **Events**, create an active definition named **Inventory batch ready**.
+
+| Setting | Value |
+| --- | --- |
+| Internal | Off, for a custom Event |
+| Type | `DEMO_BATCH_READY` |
+| Target | **Job Template** → **Inspect inventory batch** |
+| Message filter | `message.kind` equals `inventory` |
+| Runtime input | `{"reportMode":"detailed"}` |
+
+The [message filter](/operate/event-filters) selects which occurrences start the Job. [Runtime input](/operate/event-inputs) stays on the Event trigger. The worker uses the static `maxRecords: 10` from the Job template and explicitly selects `reportMode: "detailed"` from that trigger.
+
+## 4. Publish and follow one occurrence
+
+Open the Event and choose **Run**. Enter the message and metadata below in their respective controls. For the Platform API, the same object is the request body for `POST /api/v1/automation/event/{eventId}/run`, where the path ID identifies the saved Event definition.
+
+```json title="Event publication"
+{
+  "message": { "batchId": "batch-001", "kind": "inventory", "recordCount": 3 },
+  "metadata": { "correlationId": "demo-import-001" }
+}
+```
+
+1. Open this occurrence in **Event History**. For API publication, use the returned `eventId` from the acceptance receipt. When running in the app, use the synthetic correlation ID to identify the occurrence and copy its history ID.
+2. Confirm that **Inventory batch ready** matched. Open the related Job and record its Job ID.
+3. Wait for the exact run to reach `FINISHED`. Open its output and inspect **Report**. Through the Platform API, the same result is at `output.results.Report` on `GET /api/v1/automation/job/{jobId}`.
+
+```json title="Report result"
+{
+  "batchId": "batch-001",
+  "recordCount": 3,
+  "maxRecords": 10,
+  "reportMode": "detailed",
+  "correlationId": "demo-import-001"
+}
+```
+
+## 5. Check both failure boundaries
+
+| Change in a new occurrence | Expected evidence |
+| --- | --- |
+| Set `kind` to `orders` | The occurrence is accepted. The inventory definition does not match, so it creates no related Job. |
+| Keep `kind: "inventory"` and set `recordCount` to `11` | The definition matches and creates a Job. The worker errors because its effective limit is 10. |
+
+Use [Event History](/operate/event-history#follow-one-delivery-end-to-end) to diagnose dispatch and [Job History](/operate/jobs#operate-a-job) for the result. When introducing writes, use a durable business key before enabling [retry or replay](/patterns/delivery-guarantees). Share synthetic batch IDs, correlation IDs and status when documenting the flow.

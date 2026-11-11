@@ -8,6 +8,12 @@ import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 import { FilterDemo, PlaygroundStyle, routeExample } from "/snippets/revo-playground.jsx";
 
+Evaluate a condition before dispatch, such as supplier `VEGA` or an order total above a threshold. A filter that does not match skips that target. It leaves the occurrence and other subscriptions available in Event History.
+
+## Explore the behavior
+
+<FilterDemo />
+
 ## Example: admit one supplier feed
 
 The Asterion subscription listens for `ASTERION_SUPPLIER_FEED_READY` and targets **Supplier stock intake**. Its filter compares the message's `supplierId` with `VEGA`. An occurrence for another supplier does not reach this target. Definition metadata `demo: asterion` helps operators find the subscription; it is not the message's supplier identity.
@@ -17,10 +23,6 @@ The Asterion subscription listens for `ASTERION_SUPPLIER_FEED_READY` and targets
 </Frame>
 
 <ScreenshotDetail src="/images/asterion/event-filter-and-metadata.jpg" alt="Supplier feed Event targeting a Job, with demo metadata and supplierId equal VEGA filter" width={1114} height={1024} />
-
-## Explore the behavior
-
-<FilterDemo />
 
 ## Filter event messages
 

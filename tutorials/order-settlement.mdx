@@ -4,25 +4,24 @@ description: "Run external settlement as durable background work."
 icon: book-open
 ---
 
-Requires the reservation Component and Endpoint from step 2, plus an authorized test integration.
+Create this template before activating the Endpoint in step 2. Use an authorized provider test environment.
 
 <span id="5-configure-durable-settlement" aria-hidden="true"></span>
 
 ## Configure durable settlement
 
-Create a Job template for the provider call. The Job reads the transaction by `transactionId`, verifies that its state is still eligible, calls the provider with a provider-side idempotency key, and records only the safe provider reference.
+Create a TypeScript Component with a visible element named **Settlement**. Activate it and select it in a Job template. Keep **Execution mode** on **Single** for this worker. The Job reads `transactionId` from the explicit EXECUTION trigger created by `api.triggerJob()`. It obtains the original Operation ID and amount from the ledger.
 
 | Job setting | Initial policy | Why |
 | --- | --- | --- |
-| Trigger user | `payments-runtime` service account | Prevents execution under a developer identity. |
-| Runtime input | Provider name and non-secret policy only | Per-order data arrives in the invocation input. |
+| Execution authority | `payments-runtime` Service Account | Use an account with the required Table, Secret and Storage access. |
+| Runtime input | `{}` | The Endpoint supplies the transaction ID when it starts the Job. |
 | Concurrency key | `settle-order` | Bounds simultaneous provider work. |
-| Concurrency limit | Provider- and tenant-appropriate | Protects provider and platform capacity. |
-| Retry | Transient failures only | Authentication or validation failures require intervention. |
-| Max attempts | Small and explicit | Includes the original attempt. |
-| Timeout | Below the provider and platform deadline | Leaves time to record a controlled failure. |
+| Concurrency limit | `1` | Serializes retries and duplicate submissions for this example. |
+| Automatic retry | Off | Review an uncertain provider outcome in Job History before retrying. |
+| Timeout | `60` seconds | Leaves time for the 15-second provider request and local work. |
 
-Jobs can run much longer than Endpoints, but they are still bounded. Instance policy can grant up to **59 minutes** of execution time and **4 GiB** of memory. Design larger work as checkpoints or multiple Jobs rather than assuming an unbounded process, and reserve only the memory the workload actually needs.
+Use the [current Job limits](/operate/jobs#the-limit-model) for deployment. **4 GiB** is a longer-term product target. The currently enforced maximum is **2 GiB**. Split larger work into resumable stages.
 
 <Tip>
   A remote timeout is ambiguous: the provider might have completed the operation before the connection failed. Query by the provider idempotency/correlation key before retrying the side effect.
@@ -30,179 +29,178 @@ Jobs can run much longer than Endpoints, but they are still bounded. Instance po
 
 ### Settlement worker: Secret, HTTP egress, and Storage evidence
 
-Before activating the template, create `PAYMENTS_API_KEY` under **Secrets**, grant the Job service account access to it, configure the provider URL as non-secret Component configuration, and pre-create `payments/settlement-receipts` as a restricted Storage path for finance/audit groups. The Component still verifies effective restriction at runtime because `storage.ensureFolderPath()` does not mutate ACLs on folders that already exist.
+Before activating the template, create `PAYMENTS_API_KEY` under **Secrets**, grant the Job Service Account access, and pre-create `payments/settlement-receipts` as a restricted Storage path. Replace the example hostname in the code with an authorized test provider. Use a provider that supports idempotency by transaction ID, lookup by that key, and a confirmed response with `status: "SETTLED"` and a stable `reference` for the same operation.
 
-The settlement Component binds the credential at the HTTP boundary, sends a JSON request to the provider, updates the ledger, and writes a restricted receipt artifact. It never returns or logs the resolved API key. The originating Endpoint operation and the Job operation remain separate but linked.
+After provider confirmation, a local transaction marks the ledger and order settled and consumes the reserved amount. The worker then writes the restricted receipt. A Job retry after that database commit uses the stored settlement facts and resumes at the receipt step.
 
 ```ts
-type SettlementInput = {
+type Settlement = {
   transactionId: string;
-  parentOperationId: string;
+  orderId: string;
+  accountId: string;
+  amountMinor: string;
+  currency: string;
+  status: string;
+  operationId: string;
+  providerReference: string | null;
+  settledAt: string | null;
+  settlementOperationId: string | null;
+  receiptStorageEntryId: string | null;
 };
 
-const { transactionId, parentOperationId } = api.input()
-  ?.message as SettlementInput;
-const operationId = api.getOperationId();
-const transactions = await api.getDatabaseData('transactions', {
-  filter: { field: 'transactionId', op: 'eq', value: transactionId },
-  take: 1,
-});
-
-if (transactions.results !== 1) {
-  api.throw(404, { message: 'Transaction not found', operationId });
+let transactionId: unknown;
+for await (const trigger of api.walkTriggers()) {
+  if (trigger.triggerType === 'EXECUTION' || trigger.triggerType === 'REQUEST') {
+    transactionId = trigger.input.transactionId;
+    break;
+  }
+}
+if (typeof transactionId !== 'string' || !util.isUUID(transactionId)) {
+  throw new Error('A valid transaction ID is required');
 }
 
-const transaction = transactions.data[0];
+const filter = { field: 'transactionId', op: 'eq' as const, value: transactionId };
+const initial = await api.getDatabaseDataRow<Settlement>('transactions', { filter });
+if (!initial || !['PENDING_SETTLEMENT', 'SETTLED'].includes(initial.status)) {
+  throw new Error('Transaction is unavailable for settlement');
+}
+let settlement: Settlement = initial;
 
-const provider = await api.httpCall(
-  {
-    url: 'https://payments.example.com/v1/settlements',
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${
-        (await vault.get('PAYMENTS_API_KEY')).revision.value
-      }`,
-      'Idempotency-Key': transaction.transactionId,
-      'X-Correlation-ID': operationId,
-    },
-    data: {
-      transactionId: transaction.transactionId,
-      amountMinor: transaction.amountMinor,
-      currency: transaction.currency,
-    },
-  },
-  {
-    requestType: 'json',
-    responseType: 'json',
-    timeout: 15_000,
-  },
-);
+const operationId = api.getOperationId();
+const parentOperationId = settlement.operationId;
 
-if (provider.status < 200 || provider.status >= 300) {
-  api.log(
+if (settlement.status === 'PENDING_SETTLEMENT') {
+  const provider = await api.httpCall(
     {
-      message: 'Payment provider rejected settlement',
-      args: {
-        operationId,
+      url: 'https://payments.example.com/v1/settlements',
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${(await vault.get('PAYMENTS_API_KEY')).revision.value}`,
+        'Idempotency-Key': transactionId,
+        'X-Correlation-ID': operationId,
+      },
+      data: {
         transactionId,
-        providerStatus: provider.status,
-        durationMs: provider.time,
+        amountMinor: settlement.amountMinor,
+        currency: settlement.currency,
       },
     },
-    'WARN',
+    { requestType: 'json', responseType: 'json', timeout: 15_000 },
   );
 
-  api.throw(424, {
-    message: 'Settlement provider did not accept the operation',
-    operationId,
-    transactionId,
-  });
-}
+  const providerData: unknown = provider.data;
+  if (provider.status < 200 || provider.status >= 300 ||
+      !providerData || typeof providerData !== 'object' ||
+      !('status' in providerData) || providerData.status !== 'SETTLED' ||
+      !('reference' in providerData) ||
+      typeof providerData.reference !== 'string' || !providerData.reference) {
+    throw new Error('Provider settlement is not confirmed');
+  }
+  const providerReference = providerData.reference;
 
-if (typeof provider.data?.reference !== 'string') {
-  api.throw(424, {
-    message: 'Settlement provider returned an invalid response',
-    operationId,
-    transactionId,
-  });
-}
+  settlement = await api.transactionDatabase(async (tx) => {
+    const ledger = await tx.getDatabaseData<Settlement>(
+      'transactions', { filter, take: 1 }, { lock: 'update' },
+    );
+    const current = ledger.data[0];
+    if (!current) throw new Error('Transaction is unavailable');
+    if (current.status === 'SETTLED') return current;
+    if (current.status !== 'PENDING_SETTLEMENT') {
+      throw new Error('Transaction is no longer eligible');
+    }
 
-const providerReference = provider.data.reference;
-const settledAt = new Date().toISOString();
-
-await api.updateDatabaseData(
-  'transactions',
-  { transactionId, status: 'PENDING_SETTLEMENT' },
-  {
-    status: 'SETTLED',
-    providerReference,
-    settledAt,
-    settlementOperationId: operationId,
-  },
-);
-
-const receiptFolder = await storage.ensureFolderPath(
-  'payments/settlement-receipts',
-  {
-    restricted: true,
-  },
-);
-
-if (!receiptFolder.effectiveRestricted) {
-  api.throw(500, {
-    message: 'Settlement receipt folder is not restricted',
-    operationId,
-    parentOperationId,
-    transactionId,
-  });
-}
-
-const receiptName = `settlement-${transactionId}.json`;
-const priorReceipts = await storage.explore({
-  parentStorageEntryId: receiptFolder.storageEntryId,
-  term: receiptName,
-  take: 10,
-});
-const priorReceipt = priorReceipts.data.find(
-  (entry) => entry.name === receiptName,
-);
-
-const receipt =
-  priorReceipt ??
-  (await storage.putObject({
-    parentStorageEntryId: receiptFolder.storageEntryId,
-    name: receiptName,
-    data: JSON.stringify(
+    const order = await tx.getDatabaseData<{ orderId: string }>(
+      'orders',
       {
-        operationId,
-        parentOperationId,
-        transactionId,
-        orderId: transaction.orderId,
-        amountMinor: transaction.amountMinor,
-        currency: transaction.currency,
-        providerReference,
-        settledAt,
+        filter: { and: [
+          { field: 'orderId', op: 'eq', value: current.orderId },
+          { field: 'reservationTransactionId', op: 'eq', value: transactionId },
+          { field: 'status', op: 'eq', value: 'RESERVED' },
+        ] },
+        take: 1,
       },
-      null,
-      2,
-    ),
+      { lock: 'update' },
+    );
+    const balance = await tx.getDatabaseData<{ balanceId: string; reservedMinor: string }>(
+      'balances',
+      {
+        filter: { and: [
+          { field: 'accountId', op: 'eq', value: current.accountId },
+          { field: 'currency', op: 'eq', value: current.currency },
+        ] },
+        take: 1,
+      },
+      { lock: 'update' },
+    );
+    const reservedMinor = BigInt(balance.data[0]?.reservedMinor ?? '0');
+    const amountMinor = BigInt(current.amountMinor);
+    if (order.results !== 1 || balance.results !== 1 ||
+        amountMinor <= 0n || reservedMinor < amountMinor) {
+      throw new Error('Reserved order and balance require reconciliation');
+    }
+
+    await tx.updateDatabaseData('balances', { balanceId: balance.data[0].balanceId }, {
+      reservedMinor: (reservedMinor - amountMinor).toString(),
+      lastOperationId: operationId,
+    });
+    await tx.updateDatabaseData('orders', { orderId: current.orderId }, {
+      status: 'SETTLED',
+      lastOperationId: operationId,
+    });
+    const changes = {
+      status: 'SETTLED',
+      providerReference,
+      settledAt: new Date().toISOString(),
+      settlementOperationId: operationId,
+    };
+    await tx.updateDatabaseData('transactions', { transactionId }, changes);
+    return { ...current, ...changes };
+  });
+}
+
+const { providerReference, settledAt, settlementOperationId } = settlement;
+if (!providerReference || !settledAt || !settlementOperationId) {
+  throw new Error('Recorded settlement requires reconciliation');
+}
+
+let receiptStorageEntryId = settlement.receiptStorageEntryId;
+if (!receiptStorageEntryId) {
+  const folder = await storage.ensureFolderPath('payments/settlement-receipts', {
+    restricted: true,
+  });
+  if (!folder.effectiveRestricted) throw new Error('Receipt folder must be restricted');
+
+  const name = `settlement-${transactionId}.json`;
+  const entries = await storage.explore({ parentStorageEntryId: folder.storageEntryId, term: name, take: 10 });
+  const existing = entries.data.find((entry: { name: string }) => entry.name === name);
+  const receipt = existing ?? await storage.putObject({
+    parentStorageEntryId: folder.storageEntryId,
+    name,
+    data: JSON.stringify({
+      transactionId,
+      orderId: settlement.orderId,
+      amountMinor: settlement.amountMinor,
+      currency: settlement.currency,
+      providerReference,
+      settledAt,
+      parentOperationId,
+      settlementOperationId,
+    }),
     mimeType: 'application/json',
     computeStats: 'sync',
-    metadata: {
-      operationId,
-      parentOperationId,
-      transactionId,
-      documentType: 'settlement-receipt',
-    },
-  }));
-
-await api.updateDatabaseData(
-  'transactions',
-  { transactionId },
-  { receiptStorageEntryId: receipt.storageEntryId },
-);
-
-api.log(
-  {
-    message: 'Order settlement completed',
-    args: {
-      operationId,
-      parentOperationId,
-      transactionId,
-      providerReference,
-      receiptStorageEntryId: receipt.storageEntryId,
-      providerDurationMs: provider.time,
-    },
-  },
-  'INFO',
-);
+    metadata: { transactionId, parentOperationId, settlementOperationId },
+  });
+  receiptStorageEntryId = receipt.storageEntryId;
+  await api.updateDatabaseData('transactions', { transactionId }, { receiptStorageEntryId });
+}
 
 return {
   operationId,
   parentOperationId,
+  settlementOperationId,
   transactionId,
   providerReference,
-  receiptStorageEntryId: receipt.storageEntryId,
+  receiptStorageEntryId,
   status: 'SETTLED',
 };
 ```
@@ -211,7 +209,7 @@ return {
   Never log `provider.request`, request headers, the Secret value, or an unrestricted provider response. `api.httpCall()` returns diagnostic request data for runtime use; application logs should contain only allowlisted identifiers, status, and timing.
 </Warning>
 
-If the HTTP connection times out, query the provider with the same `transactionId` idempotency key before sending another settlement. If Storage writing fails after provider success, a retry can reconstruct the deterministic receipt from the settled ledger record without repeating the provider effect.
+If the HTTP connection times out or the local settlement commit fails, look up the provider operation by `transactionId` before retrying the Job. Retry only while the provider can safely resolve that same idempotency key. If Storage fails after the local settlement commit, retry the Job to rebuild or find the receipt from the stored settlement facts. Save the template and copy its ID back to the Endpoint configuration in [step 2](/tutorials/order-reservation#configure-the-endpoint).
 
 Continue with [first production workflow](/platform/first-production-workflow).
 

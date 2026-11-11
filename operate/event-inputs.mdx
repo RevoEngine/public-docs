@@ -24,7 +24,7 @@ for await (const trigger of api.walkTriggers()) {
 }
 ```
 
-An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **Single** mode retain the top-level `type`, `message`, and `metadata` for existing Components. The editor marks top-level `type` and `message` as deprecated. Use the iterator to handle all three delivery modes with the same code. For Batch and Debounce, the synchronous `api.input().triggers` array contains references marked `deferred: true`.
+An Event entry includes `eventName`, `jobEventId`, `eventHistoryId`, `type`, `message`, `metadata`, and `input`. Jobs in **Single** mode retain the top-level `type`, `message`, and `metadata` for existing Components. The editor marks top-level `type` and `message` as deprecated. Use the iterator to handle all three delivery modes with the same code. Small trigger sets are resolved before execution with `deferred: false`; larger sets keep references marked `deferred: true`. The walker returns full entries in both cases.
 
 If an existing Component read a subscription value through `templateInputs`, read it through the trigger instead. This applies to newly prepared Jobs. Queued Jobs and retries retain the original saved input.
 

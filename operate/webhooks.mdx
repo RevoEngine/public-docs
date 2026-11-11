@@ -4,9 +4,11 @@ description: Deliver governed asynchronous HTTP requests and inspect every attem
 icon: webhook
 ---
 
-import { WebhookDemo, PlaygroundStyle, webhookAttempt } from "/snippets/revo-playground.jsx";
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
 
-RevoEngine Webhooks are durable **outbound HTTP attempts**. Use them when RevoEngine should notify an external system asynchronously without holding an Endpoint response open.
+import { WebhookDemo, PlaygroundStyle, useDemoPlayback, webhookAttempt } from "/snippets/revo-playground.jsx";
+
+Create an **outbound Webhook** when a partner should receive an HTTP request after your application responds. One Webhook record tracks the request and its separate delivery attempts.
 
 <Warning>
   This workspace does not create inbound subscriptions. To receive a partner callback, publish an authenticated [Endpoint](/operate/endpoints), validate the request, and then create a Job or Event.
@@ -78,14 +80,16 @@ A delayed Webhook starts `SCHEDULED`; an immediately eligible one starts `PENDIN
 
 Attempt evidence can arrive out of order. A late response for attempt 2 does not replace a newer attempt 3 in the summary, and duplicate evidence does not increment the record version. A terminal outcome is not reopened by a late delivery notification. Check individual attempts when investigating timestamps rather than assuming their arrival order is execution order.
 
-```text
-request accepted
-  -> durable webhook row
-  -> attempt scheduled
-  -> HTTP delivery
-  -> response or transport failure recorded
-  -> retry until success, cancellation, or the retry limit
-```
+<ReadingFlow
+  label="Observe attempts under one Webhook record"
+  steps={[
+    ["Create delivery", "Keep the durable Webhook ID."],
+    ["Send attempt", "Use the configured HTTP request.", "Failed with retries available → wait, then send a new attempt for the same Webhook."],
+    ["Inspect delivery", "HTTP 2xx finishes delivery.", "Retry stops → inspect the terminal error."],
+  ]}
+/>
+
+A timeout can occur after the receiver accepts the request. The history shows the delivery outcome RevoEngine observed. Check the receiver before retrying an uncertain business effect.
 
 Cancellation stops eligible future processing; it cannot recall a request already accepted by the remote server. Delete and restore change platform visibility, not remote state.
 

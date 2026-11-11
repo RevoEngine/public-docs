@@ -4,6 +4,8 @@ description: "Configure input controls, values, commit timing and client validat
 icon: sliders
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 An INPUT holds one editable scalar value. Its stable `id` is the key used by `$widget.values` and `from: 'input'` bindings.
 
 ## Control types
@@ -57,6 +59,15 @@ This example creates a control only. Add `on.change` when committing a value sho
 | `valueMode` | `initial`, `sync` | `initial` | Whether a returned value can refill an existing input. |
 
 Use `submit` inside a [FORM](/widgets/forms), which supplies the commit action. A standalone submit-only input has no form submission path.
+
+<ReadingFlow
+  label="A value passes through three boundaries"
+  steps={[
+    ["Default", "The source supplies the initial value."],
+    ["Draft", "The viewer edits a control."],
+    ["Commit", "The runtime records the value for the next action."],
+  ]}
+/>
 
 ## Values and drafts
 

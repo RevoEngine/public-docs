@@ -4,7 +4,18 @@ description: Pair a workstation, select an approved workspace, inspect its statu
 icon: terminal
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 The terminal connector makes an approved directory on your computer available to the Assistant. The CLI process must remain online. The connection, workspace approval, command policy, network permission and browser authentication are separate controls; start with [Connect a terminal](/ai/terminals).
+
+<ReadingFlow
+  label="Connect the CLI to an Assistant"
+  steps={[
+    ["Start", "Run the terminal connection in the intended workspace."],
+    ["Allow", "Set command and network grants for that workspace."],
+    ["Observe", "Check command output and completion in the conversation."],
+  ]}
+/>
 
 ## Connect and inspect
 

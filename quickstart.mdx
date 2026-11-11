@@ -4,58 +4,90 @@ description: Build and run your first RevoEngine endpoint.
 icon: rocket
 ---
 
-This walkthrough creates a Component, validates it in the Sandbox, and exposes it as an HTTP Endpoint. You will finish with one versioned unit of logic and one callable interface rather than code hidden inside a route.
+Send `POST /hello` with a name, receive a greeting, then locate its execution. An invalid request should stop at the guard.
 
 ## Before you start
 
-You need permission to create Components and Endpoints in the target instance. Use Sandbox or a non-production environment for the first run. Keep any credential in Secrets; this example does not require one.
+Use a non-production instance. You need permission to create and activate a Component and Endpoint, and a credential allowed to invoke the Endpoint. Set `REVO_API_KEY` in your shell without pasting its value into the guide or your code.
 
 <Steps>
-  <Step title="Create a component">
-    Open **Build → Components**, create a JavaScript Component, and add one code element. Name it so its business purpose remains clear when it is later reused by a Job, Event, or Agent plugin.
+  <Step title="Create the Response element">
+    In **Components**, create a JavaScript Component named **Hello greeting** with a visible element named **Response**. Paste this complete element body.
 
-    ```js
-    const name = api.input('name') ?? 'world';
-    return {
-      message: `Hello, ${name}!`,
-      executionId: api.getExecutionId(),
-    };
-    ```
-  </Step>
-  <Step title="Run it in the Sandbox">
-    Open the debugger, provide an input object, and run the component.
-
-    ```json
-    { "name": "RevoEngine" }
+    ```js Response
+    const { name } = api.input('body');
+    return { message: `Hello, ${name}!`, executionId: api.getExecutionId() };
     ```
 
-    Expect a result shaped like `{ "message": "Hello, RevoEngine!", "executionId": "…" }`. Inspect the result, logs, execution ID, and timing before saving the version.
-  </Step>
-  <Step title="Create an endpoint">
-    Open **Build → Endpoints**, select the Component, choose `POST` and a route such as `/hello`, then configure input validation and a bounded timeout. Activate the Endpoint only after the validation preview succeeds.
-  </Step>
-  <Step title="Call the endpoint">
-    Use the endpoint URL shown by the platform. Authentication and the exact base URL depend on the endpoint policy configured for your instance.
+    In the debugger, supply the same input envelope the Endpoint will build.
 
-    ```bash
-    curl --request POST \
-      --url "https://your-endpoint.example/hello" \
-      --header "content-type: application/json" \
+    ```json Sandbox inputs
+    { "body": { "name": "RevoEngine" } }
+    ```
+
+    Expect the `Response` element to return a greeting and an execution ID. Save and activate the Component.
+  </Step>
+
+  <Step title="Configure POST /hello">
+    In **Endpoints**, create a definition named **Hello greeting**, select the Component and set the method to **POST** and the path to **/hello**. Choose **HTTP**, **Success status** to **200** and **Result element → Response**. Set **Validation status** to **422**.
+
+    Paste this schema into the inline request guard. It requires a nonempty name in the JSON body.
+
+    ```json Inline guard
+    {
+      "profile": "strict",
+      "schema": {
+        "type": "object",
+        "additionalProperties": "allow",
+        "objectSchema": [
+          {
+            "property": "body",
+            "schema": {
+              "type": "object",
+              "required": true,
+              "objectSchema": [
+                {
+                  "property": "name",
+                  "schema": { "type": "string", "required": true, "min": 1 }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+    ```
+
+    Check the selected Component version and caller policy, then activate the Endpoint.
+  </Step>
+
+  <Step title="Send one valid request">
+    Set `REVO_ENDPOINT_URL` to the Endpoint runtime base URL shown for your instance, without the trailing slash or `/hello`.
+
+    ```bash Request
+    curl --include --request POST "$REVO_ENDPOINT_URL/hello" \
+      --header "Authorization: Bearer $REVO_API_KEY" \
+      --header "Content-Type: application/json" \
       --data '{"name":"RevoEngine"}'
+    ```
+
+    The selected result is returned directly with HTTP **200**.
+
+    ```json Response
+    { "message": "Hello, RevoEngine!", "executionId": "<execution-id>" }
     ```
   </Step>
 </Steps>
 
 ## Verify the result
 
-Confirm all four conditions before treating the quickstart as complete:
+Find the execution in [Observability](/operate/traces) using the response's execution ID. Send the same request with `--data '{}'` to see HTTP **422**. The guard rejects that request before the Component runs.
 
-- the Endpoint returns `2xx` for the valid request;
-- the JSON response contains the submitted name and an execution identifier;
-- the Component execution is visible in operational evidence;
-- an invalid request follows the configured validation contract instead of failing as an unstructured runtime error.
-
-If the call returns `401` or `403`, check the Endpoint authentication policy and caller identity. If it returns `404`, verify the active route and environment. If it returns `5xx`, use the returned execution identifier to inspect logs and trace evidence rather than retrying blindly.
+| What you see | Check first |
+| --- | --- |
+| `401` or `403` | Credential, invocation permission and Endpoint policy. |
+| `404` | Active method, path and instance runtime URL. |
+| An extra `Response` wrapper | Set **Result element** to **Response**. |
 
 ## Continue with your preferred workflow
 

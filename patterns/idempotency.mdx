@@ -5,7 +5,9 @@ sidebarTitle: Idempotency
 icon: shield-check
 ---
 
-import { IdempotencyDemo, PlaygroundStyle, attemptKey } from "/snippets/revo-playground.jsx";
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
+import { IdempotencyDemo, PlaygroundStyle, useDemoPlayback, attemptKey } from "/snippets/revo-playground.jsx";
 
 Use idempotency when repeated delivery must not repeat a payment, invoice issue, notification or other business effect. A concurrency limit only bounds simultaneous work; the same operation may still run again later.
 
@@ -36,6 +38,15 @@ return { key, admitted: acquired };
 The first call returns `admitted: true`; a repeated call while the key exists returns `false`. The admission key is stored durably per instance. Acquiring it requires write-capable execution.
 
 ## Complete the business design
+
+<ReadingFlow
+  label="Recognize a repeated invoice command"
+  steps={[
+    ["Acquire", "Use a stable key for the intended effect.", "Already held → find the existing operation."],
+    ["Execute if admitted", "Perform the authorized work and retain a durable receipt."],
+    ["Resolve the result", "Return the confirmed result when present.", "Still pending or uncertain → reconcile before repeating the effect."],
+  ]}
+/>
 
 1. Record the intended operation and its correlation ID durably.
 2. Send the same idempotency key through the destination's supported contract when available.

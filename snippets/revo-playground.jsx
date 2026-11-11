@@ -110,7 +110,7 @@ export const flowCatalog = {
     { name: 'Job target', steps: [
       ['Configure', 'Select an active Schedule, a five-field cron expression and an IANA timezone.', '09:00 in the configured timezone'],
       ['Due', 'The next matching time makes the target eligible for dispatch.', 'Schedule delivery'],
-      ['Inputs', 'Resolve Runtime input. Override shallowly overlays automation values; Replace uses only the automation object.', 'Effective templateInputs'],
+      ['Inputs', 'Keep Job Template values in templateInputs and Runtime input on each Event trigger.', 'Separate templateInputs and trigger input'],
       ['Admission', 'The Job still passes execution policy and configured concurrency. Lack of capacity can delay its start.', 'Accepted does not mean running'],
       ['Outcome', 'Read Schedule History for dispatch and Job History for the work result.', 'Verify the terminal Job outcome'],
     ] },
@@ -380,47 +380,125 @@ export const flowCatalog = {
 };
 
 export const PlaygroundStyle = () => <style>{`
-  .revo-demo { --rd-border: #d4d4d8; --rd-muted: #52525b; --rd-panel: #fafafa; --rd-accent: #0f766e; color: #18181b; border: 1px solid var(--rd-border); border-radius: 18px; margin: 1.5rem 0 2rem; padding: 22px; background: #fff; font-size: 14px; line-height: 1.55; overflow: hidden; }
-  .dark .revo-demo { --rd-border: #52525b; --rd-muted: #d4d4d8; --rd-panel: #27272a; --rd-accent: #5eead4; color: #fafafa; background: #18181b; }
+  .revo-demo {
+    --rd-border: #ccd7df; --rd-muted: #455665; --rd-panel: #f3f7fa;
+    --rd-accent: #006e65; --rd-active: #d9f2ed; --rd-error: #a92c38;
+    --rd-warning: #8a5406; --rd-alt: #6343a4; --rd-alt-bg: #ece6fa;
+    color: #172636; background: #fff; border: 1px solid var(--rd-border);
+    border-radius: 14px; margin: 1.25rem 0 1.75rem; padding: 16px;
+    font-size: 14px; line-height: 1.45; overflow-wrap: anywhere;
+  }
+  .dark .revo-demo {
+    --rd-border: #465564; --rd-muted: #becbd5; --rd-panel: #1c2a37;
+    --rd-accent: #70dfca; --rd-active: #16493f; --rd-error: #ffa5ab;
+    --rd-warning: #ffcd79; --rd-alt: #d2b7ff; --rd-alt-bg: #3f315b;
+    color: #eef5fa; background: #14212e;
+  }
   .revo-demo * { box-sizing: border-box; }
-  .revo-demo .rd-eyebrow { color: var(--rd-accent); font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
-  .revo-demo h3 { color: inherit; margin: 5px 0 7px; font-size: 21px; line-height: 1.25; font-weight: 650; }
-  .revo-demo p { margin: 8px 0; }
-  .revo-demo .rd-muted { color: var(--rd-muted); }
-  .revo-demo .rd-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; align-items: center; }
-  .revo-demo button, .revo-demo select { font: inherit; color: inherit; background: var(--rd-panel); border: 1px solid var(--rd-border); border-radius: 8px; padding: 7px 11px; cursor: pointer; min-height: 44px; }
-  .revo-demo select { max-width: 100%; }
+  .revo-demo h3 { margin: 0; color: inherit; font-size: 18px; line-height: 1.25; font-weight: 650; }
+  .revo-demo p { margin: 0; }
+  .revo-demo .rd-toolbar, .revo-demo .rd-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .revo-demo .rd-toolbar { justify-content: space-between; margin: 10px 0; }
+  .revo-demo .rd-controls { margin: 8px 0; }
+  .revo-demo button, .revo-demo select {
+    min-height: 44px; max-width: 100%; padding: 5px 10px; color: inherit; background: var(--rd-panel);
+    border: 1px solid var(--rd-border); border-radius: 8px; font: inherit; cursor: pointer;
+  }
   .revo-demo button:hover:not(:disabled) { border-color: var(--rd-accent); }
-  .revo-demo button:focus-visible, .revo-demo select:focus-visible, .revo-demo input:focus-visible { outline: 3px solid var(--rd-accent); outline-offset: 3px; }
-  .revo-demo button[aria-pressed="true"], .revo-demo .rd-primary { background: #0f766e; border-color: #0f766e; color: #fff; }
-  .revo-demo button:disabled { opacity: .48; cursor: default; }
-  .revo-demo label { min-width: 0; max-width: 100%; display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
-  .revo-demo .rd-track { display: grid; grid-template-columns: repeat(auto-fit,minmax(90px,1fr)); gap: 7px; padding: 0; margin: 18px 0; list-style: none; }
-  .revo-demo .rd-node { min-height: 78px; padding: 11px 8px; border: 1px solid var(--rd-border); border-radius: 10px; font-size: 12px; overflow-wrap: anywhere; }
-  .revo-demo .rd-node b { display: block; font-size: 11px; margin-bottom: 7px; color: var(--rd-muted); }
-  .revo-demo .rd-node[aria-current="step"] { border-color: var(--rd-accent); box-shadow: inset 0 3px 0 var(--rd-accent); background: var(--rd-panel); animation: rd-arrive .3s ease-out; }
-  .revo-demo .rd-detail { padding: 16px; border-radius: 12px; border: 1px solid var(--rd-border); background: var(--rd-panel); min-height: 155px; }
-  .revo-demo .rd-result { display: block; margin: 14px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 ui-monospace,monospace; padding: 11px; border-left: 3px solid var(--rd-accent); }
+  .revo-demo button:disabled { opacity: .55; cursor: default; }
+  .revo-demo button.rd-primary { background: #006e65; border-color: #006e65; color: #fff; }
+  .revo-demo :is(button, select, input, summary):focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
+  .revo-demo label { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; min-width: 0; }
+  .revo-demo label:has(input[type="checkbox"]) { min-height: 44px; cursor: pointer; }
+  .revo-demo details { margin: 4px 0 0; }
+  .revo-demo summary { display: list-item; width: fit-content; min-height: 44px; padding: 11px 0; color: var(--rd-accent); cursor: pointer; }
+  .revo-demo code { font: 12px/1.35 ui-monospace, monospace; color: inherit; background: none; }
+  .revo-demo .rd-muted, .revo-demo .rd-footnote { color: var(--rd-muted); }
+  .revo-demo .rd-footnote { margin: 8px 0 0; font-size: 12px; }
+  .revo-demo .rd-intro { margin: 5px 0 0; color: var(--rd-muted); font-size: 13px; }
+  .revo-demo .rd-track, .revo-demo .rd-rows { list-style: none; padding: 6px 9px; margin: 0; background: var(--rd-panel); border: 1px solid var(--rd-border); border-radius: 9px; }
+  .revo-demo .rd-step { position: relative; margin: 0; }
+  .revo-demo .rd-step-link { position: absolute; pointer-events: none; left: 19px; top: calc(50% + 10px); height: calc(100% - 20px); width: 2px; background: var(--rd-border); }
+  .revo-demo .rd-step-link i {
+    display: block; height: 100%; background: var(--rd-accent); transform: scaleY(0);
+    transform-origin: top; transition: transform .3s ease-out;
+  }
+  .revo-demo .rd-step[data-state="seen"] .rd-step-link i { transform: scaleY(1); }
+  .revo-demo .rd-step button {
+    display: grid; grid-template-columns: 24px minmax(70px, .45fr) minmax(0, 1fr);
+    align-items: center; gap: 8px; width: 100%; text-align: left; padding: 5px 8px; border-color: transparent; background: transparent;
+  }
+  .revo-demo .rd-step button[aria-current="step"] { background: var(--rd-active); animation: rd-arrive .3s ease-out; }
+  .revo-demo .rd-step-number {
+    display: grid; place-items: center; z-index: 1; border: 1px solid var(--rd-border); border-radius: 50%;
+    width: 24px; height: 24px; background: var(--rd-panel); font-weight: 700; font-size: 12px;
+  }
+  .revo-demo .rd-step[data-state="seen"] .rd-step-number,
+  .revo-demo .rd-step button[aria-current="step"] .rd-step-number { background: var(--rd-accent); color: var(--rd-panel); border-color: var(--rd-accent); }
+  .revo-demo [data-tone="error"] { color: var(--rd-error); }
+  .revo-demo [data-tone="warning"] { color: var(--rd-warning); }
+  .revo-demo .rd-step-copy { margin-top: 8px; min-height: 2.9em; color: var(--rd-muted); font-size: 13px; }
+  .revo-demo .rd-board {
+    position: relative; display: grid; grid-template-columns: minmax(74px, auto) minmax(0, 1fr);
+    grid-template-rows: repeat(3, 38px); align-items: center; column-gap: 6px;
+    border: 1px solid var(--rd-border); border-radius: 9px; padding: 4px 6px;
+    background: var(--rd-panel);
+  }
+  .revo-demo .rd-lane-name { grid-column: 1; padding-left: 4px; font-size: 12px; font-weight: 650; }
+  .revo-demo .rd-lane {
+    grid-column: 2; height: 32px; border-radius: 6px;
+    background: repeating-linear-gradient(90deg, transparent 0, transparent calc(100% / 6 - 1px), var(--rd-border) calc(100% / 6 - 1px), var(--rd-border) calc(100% / 6));
+  }
+  .revo-demo .rd-slots { grid-area: 2 / 2; position: relative; height: 32px; }
+  .revo-demo .rd-slot, .revo-demo .rd-job {
+    position: absolute; width: min(28px, calc(100% / 6 - 2px)); height: 27px; border-radius: 6px;
+    left: calc((var(--rd-index) + .5) * 100% / 6); transform: translateX(-50%);
+  }
+  .revo-demo .rd-slot {
+    top: 2px; display: grid;
+    place-items: center; color: var(--rd-muted); font-size: 10px; border: 1px dashed var(--rd-muted);
+  }
+  .revo-demo .rd-tokens { grid-area: 1 / 2 / span 3; height: 100%; position: relative; pointer-events: none; }
+  .revo-demo .rd-job {
+    top: calc(var(--rd-row) * 38px + 5px);
+    transition: left .42s ease, top .42s ease, background .25s ease;
+    display: grid; place-items: center; overflow: hidden; font-size: 11px; font-weight: 750;
+    background: var(--rd-active); border: 1px solid var(--rd-accent); color: var(--rd-accent);
+  }
+  .revo-demo .rd-job[data-kind="Invoices"] { background: var(--rd-alt-bg); color: var(--rd-alt); border-color: var(--rd-alt); }
+  .revo-demo .rd-job i { position: absolute; bottom: 0; left: 0; height: 3px; background: currentColor; transition: width .42s ease; }
+  .revo-demo .rd-legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 7px 0; color: var(--rd-muted); font-size: 12px; }
+  .revo-demo .rd-legend b { color: var(--rd-accent); }
+  .revo-demo .rd-legend b[data-kind="Invoices"] { color: var(--rd-alt); }
+  .revo-demo .rd-status { margin: 6px 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .revo-demo .rd-row {
+    display: grid; grid-template-columns: minmax(62px, .55fr) minmax(0, 1fr) minmax(64px, auto);
+    align-items: center; gap: 8px; min-height: 40px; margin: 0; padding: 5px 6px; border-radius: 6px;
+    font-size: 12px;
+  }
+  .revo-demo .rd-row + .rd-row { border-top: 1px solid var(--rd-border); }
+  .revo-demo .rd-row[aria-current="step"] { background: var(--rd-active); animation: rd-arrive .3s ease-out; }
+  .revo-demo .rd-row[data-state="future"] { color: var(--rd-muted); }
+  .revo-demo .rd-row > :last-child { text-align: right; font-weight: 650; }
+  .revo-demo .rd-result { display: block; margin: 0; padding: 8px 10px; white-space: pre-wrap; border-radius: 8px; background: var(--rd-panel); }
+  .revo-demo [aria-label="Delivery mode"] [aria-pressed="true"] { background: var(--rd-active); border-color: var(--rd-accent); }
+  .revo-demo .rd-event-detail { padding: 10px; border: 1px solid var(--rd-border); border-radius: 9px; }
+  .revo-demo .rd-detail { padding: 12px; border: 1px solid var(--rd-border); border-radius: 9px; background: var(--rd-panel); }
   .revo-demo .rd-event-input { max-height: 330px; overflow: auto; }
-  .revo-demo .rd-event-input:focus-visible { outline: 3px solid var(--rd-accent); outline-offset: 3px; }
-  .revo-demo .rd-error { border-left-color: #dc2626; }
-  .revo-demo .rd-warning { border-left-color: #d97706; }
-  .revo-demo .rd-meters { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0; font-variant-numeric: tabular-nums; }
-  .revo-demo .rd-board { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; margin: 16px 0; }
-  .revo-demo .rd-lane { padding: 10px; border: 1px solid var(--rd-border); border-radius: 12px; min-height: 190px; background: var(--rd-panel); }
-  .revo-demo .rd-lane strong { display: block; font-size: 12px; margin-bottom: 10px; }
-  .revo-demo .rd-job { margin: 8px 0; padding: 9px; border: 1px solid var(--rd-border); border-radius: 8px; background: inherit; overflow-wrap: anywhere; font-size: 12px; animation: rd-arrive .3s ease-out; }
-  .revo-demo .rd-job small { display: block; color: var(--rd-muted); font-size: 10px; }
-  .revo-demo .rd-progress { height: 4px; background: var(--rd-border); border-radius: 3px; overflow: hidden; margin-top: 9px; }
-  .revo-demo .rd-progress span { display: block; height: 100%; background: var(--rd-accent); transition: width .5s ease; }
-  .revo-demo .rd-attempts { list-style: none; padding: 0; margin: 12px 0; max-height: 290px; overflow: auto; }
-  .revo-demo .rd-attempt { display: grid; grid-template-columns: 1fr auto; gap: 8px; border-top: 1px solid var(--rd-border); padding: 10px 0; animation: rd-arrive .3s ease-out; }
-  .revo-demo .rd-attempt code { display: block; font: 11px/1.6 ui-monospace,monospace; overflow-wrap: anywhere; }
-  .revo-demo .rd-badge { font-size: 11px; font-weight: 650; }
-  .revo-demo .rd-footnote { font-size: 12px; color: var(--rd-muted); border-top: 1px solid var(--rd-border); padding-top: 12px; margin-top: 15px; }
-  @keyframes rd-arrive { from { opacity: .3; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-  @media (max-width: 480px) { .revo-demo { padding: 14px; } .revo-demo select { font-size: 16px; } .revo-demo .rd-board { grid-template-columns: 1fr; } .revo-demo .rd-lane { min-height: 64px; } .revo-demo .rd-track { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-  @media (prefers-reduced-motion: reduce) { .revo-demo * { animation: none !important; transition: none !important; } }
+  .revo-demo .rd-event-input:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
+  .revo-demo .rd-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @keyframes rd-arrive { from { transform: translateY(2px); } to { transform: translateY(0); } }
+  @media (max-width: 480px) {
+    .revo-demo { padding: 11px; }
+    .revo-demo select { font-size: 16px; }
+    .revo-demo .rd-track, .revo-demo .rd-rows { padding: 4px; }
+    .revo-demo .rd-step button { grid-template-columns: 24px minmax(54px, .5fr) minmax(0, 1fr); gap: 6px; }
+    .revo-demo .rd-row { gap: 5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .revo-demo * { animation: none !important; transition: none !important; }
+    .revo-demo .rd-playback { display: none; }
+  }
 `}</style>;
 
 export const useDemoPlayback = (playing, advance, stop) => {
@@ -436,9 +514,15 @@ export const useDemoPlayback = (playing, advance, stop) => {
       frame = requestAnimationFrame(tick);
     };
     const reduce = () => { if (motion.matches) stop(); };
+    const resetClock = () => { previous = undefined; };
     motion.addEventListener('change', reduce);
+    document.addEventListener('visibilitychange', resetClock);
     frame = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(frame); motion.removeEventListener('change', reduce); };
+    return () => {
+      cancelAnimationFrame(frame);
+      motion.removeEventListener('change', reduce);
+      document.removeEventListener('visibilitychange', resetClock);
+    };
   }, [playing, advance, stop]);
 };
 
@@ -447,20 +531,46 @@ export const FlowDemo = ({ topic }) => {
   const [selected, setSelected] = useState(0);
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const steps = flow.cases[selected].steps;
+  const scenario = flow.cases[selected];
+  const steps = scenario.steps;
   const current = steps[step];
+  const done = step === steps.length - 1;
   const stop = useCallback(() => setPlaying(false), []);
   const advance = useCallback(() => setStep(value => Math.min(value + 1, steps.length - 1)), [steps.length]);
   useDemoPlayback(playing, advance, stop);
-  useEffect(() => { if (step === steps.length - 1) setPlaying(false); }, [step, steps.length]);
+  useEffect(() => { if (done) stop(); }, [done, stop]);
+
+  const togglePlayback = () => {
+    if (done) setStep(0);
+    setPlaying(!playing);
+  };
+
   return <section className="revo-demo not-prose" aria-label={flow.title}>
     <PlaygroundStyle />
-    <div className="rd-eyebrow">Interactive walkthrough</div><h3>{flow.title}</h3><p className="rd-muted">{flow.intro}</p>
-    <div className="rd-controls" aria-label="Choose a scenario">{flow.cases.map((item, index) => <button type="button" key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setStep(0); stop(); }}>{item.name}</button>)}</div>
-    <ol className="rd-track">{steps.map((item, index) => <li key={index} className="rd-node" aria-current={index === step ? 'step' : undefined}><b>{index + 1}</b>{item[0]}</li>)}</ol>
-    <div className="rd-controls"><button type="button" disabled={step === 0} onClick={() => { stop(); setStep(step - 1); }}>Back</button><button type="button" className="rd-primary" disabled={step === steps.length - 1} onClick={() => { stop(); advance(); }}>Next step</button><button type="button" disabled={step === steps.length - 1} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Pause' : 'Play'}</button><button type="button" onClick={() => { stop(); setStep(0); }}>Reset</button><span className="rd-muted">{step + 1} / {steps.length}</span></div>
-    <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{step + 1}. {current[0]}</strong><p>{current[1]}</p><code className={'rd-result rd-' + (current[3] || 'normal')}>{current[2]}</code></div>
-    <p className="rd-footnote">Illustrative local simulation. No request is sent to a RevoEngine instance. Steps show contract boundaries, not measured timing. With reduced motion, use Next step.</p>
+    <h3>{flow.title}</h3>
+    <p className="rd-intro">{flow.intro}</p>
+    <div className="rd-toolbar">
+      <select aria-label="Scenario" value={selected} onChange={event => { stop(); setSelected(Number(event.target.value)); setStep(0); }}>
+        {flow.cases.map((item, index) => <option key={item.name} value={index}>{item.name}</option>)}
+      </select>
+      <div className="rd-controls">
+        <button type="button" className="rd-primary rd-playback" onClick={togglePlayback} disabled={steps.length === 1} aria-pressed={playing}>{playing ? 'Pause' : done ? 'Replay' : 'Play'}</button>
+        <button type="button" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      </div>
+    </div>
+    <ol className="rd-track">
+      {steps.map(([name, , outcome, tone], index) => <li className="rd-step" key={index} data-state={index < step ? 'seen' : 'upcoming'}>
+        {index < steps.length - 1 && <span className="rd-step-link" aria-hidden="true"><i /></span>}
+        <button type="button" aria-current={index === step ? 'step' : undefined} onClick={() => { stop(); setStep(index); }}>
+          <span className="rd-step-number" aria-hidden="true">{index + 1}</span>
+          <strong>{name}</strong>
+          <code data-tone={tone}>{outcome}</code>
+        </button>
+      </li>)}
+    </ol>
+    <p className="rd-step-copy">{current[1]}</p>
+    <p className="rd-visually-hidden" role="status" aria-live="polite">Step {step + 1} of {steps.length}. {current[0]}. {current[2]}.</p>
+    <p className="rd-footnote">Illustration only. Select a step to inspect it or return to the start.</p>
   </section>;
 };
 
@@ -606,40 +716,127 @@ export const ConcurrencyDemo = ({ keys = false }) => {
   const [limit, setLimit] = useState(2);
   const [jobs, setJobs] = useState(() => makeQueue(false));
   const [playing, setPlaying] = useState(false);
-  const [tick, setTick] = useState(0);
   const done = jobs.every(job => job.status === 'finished');
   const stop = useCallback(() => setPlaying(false), []);
-  const advance = useCallback(() => { setJobs(value => advanceQueue(value, limit)); setTick(value => value + 1); }, [limit]);
+  const advance = useCallback(() => setJobs(value => advanceQueue(value, limit)), [limit]);
   useDemoPlayback(playing, advance, stop);
   useEffect(() => { if (done) stop(); }, [done, stop]);
-  const reset = (nextSeparate, nextLimit) => { stop(); setSeparate(nextSeparate); setLimit(nextLimit); setJobs(makeQueue(nextSeparate)); setTick(0); };
-  const running = jobs.filter(job => job.status === 'running').length;
+
+  const reset = (nextSeparate, nextLimit) => {
+    stop();
+    setSeparate(nextSeparate);
+    setLimit(nextLimit);
+    setJobs(makeQueue(nextSeparate));
+  };
+  const waiting = jobs.filter(job => job.status === 'waiting');
+  const running = jobs.filter(job => job.status === 'running');
+  const finished = jobs.filter(job => job.status === 'finished');
+  const capacity = separate ? limit * 2 : limit;
+  const lanes = [waiting, running, finished];
+  const indexInLane = job => {
+    if (job.status === 'running' && separate) {
+      return running.filter(item => item.key === job.key).indexOf(job) + (job.resource === 'Invoices' ? 3 : 0);
+    }
+    return lanes.find(items => items.includes(job)).indexOf(job);
+  };
+
   return <section className="revo-demo not-prose" aria-label={keys ? 'Compare coordination keys' : 'Explore Job concurrency'}>
-    <PlaygroundStyle /><div className="rd-eyebrow">Interactive simulation</div><h3>{keys ? 'Same key, shared capacity' : 'Let six Jobs compete for slots'}</h3><p className="rd-muted">Two templates: Orders and Invoices. Change the limit or split their configured keys, then advance the queue.</p>
-    <div className="rd-controls"><label>Limit per key <select aria-label="Limit per key" value={limit} onChange={event => reset(separate, Number(event.target.value))}>{[1, 2, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label><button type="button" aria-pressed={!separate} onClick={() => reset(false, limit)}>Shared key</button><button type="button" aria-pressed={separate} onClick={() => reset(true, limit)}>Separate keys</button></div>
-    <code className="rd-result">{separate ? 'Orders → import_orders\nInvoices → import_invoices' : 'Orders + Invoices → shared_import'}{'\nlimit: ' + limit + ' per key'}</code>
-    <div className="rd-meters" aria-live="polite"><span><strong>{running}</strong> running</span><span><strong>{jobs.filter(job => job.status === 'waiting').length}</strong> waiting</span><span><strong>{jobs.filter(job => job.status === 'finished').length}</strong> finished</span></div>
-    <div className="rd-controls"><button type="button" className="rd-primary" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button><button type="button" disabled={done} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? 'Pause' : 'Play'}</button><button type="button" onClick={() => reset(separate, limit)}>Reset</button><span className="rd-muted">{done ? 'All Jobs finished' : 'Simulation step ' + tick}</span></div>
-    <div className="rd-board">{[['waiting', 'Waiting'], ['running', 'Running'], ['finished', 'Finished']].map(([status, label]) => <div className="rd-lane" key={status}><strong>{label}</strong>{jobs.filter(job => job.status === status).map(job => <div className="rd-job" key={job.id}>{job.id} · {job.resource}<small>{job.key}</small>{status === 'running' && <div className="rd-progress" aria-hidden="true"><span style={{ width: (4 - job.remaining) / 3 * 100 + '%' }} /></div>}</div>)}</div>)}</div>
-    <p>{separate ? 'Different keys allow independent capacity. Both templates can run up to the limit, so total load can be twice as high.' : 'The shared key puts both templates in the same capacity bucket. Together they cannot exceed its configured limit in this example.'}</p>
-    <p className="rd-footnote">Local simulation of ordinary admission; no real Jobs run. Waiting here is not an ERROR. Keys are literal template settings, not expressions from Event payloads. Steps are not seconds; order and duration are illustrative, not a fairness guarantee. Force-run and configured retry bypass are outside this example. Use Next step with reduced motion.</p>
+    <PlaygroundStyle />
+    <h3>{keys ? 'Same key, shared capacity' : 'Six Jobs, limited capacity'}</h3>
+    <div className="rd-toolbar">
+      <code>{separate ? 'import_orders · import_invoices' : 'shared_import'} · {limit} {limit === 1 ? 'slot' : 'slots'} per key</code>
+      <div className="rd-controls">
+        <button type="button" className="rd-primary rd-playback" aria-pressed={playing} onClick={() => {
+          if (done) setJobs(makeQueue(separate));
+          setPlaying(!playing);
+        }}>{playing ? 'Pause' : done ? 'Replay' : 'Play'}</button>
+        <button type="button" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      </div>
+    </div>
+    <div className="rd-board" aria-hidden="true">
+      <span className="rd-lane-name" style={{ gridRow: 1 }}>Waiting</span><span className="rd-lane" style={{ gridRow: 1 }} />
+      <span className="rd-lane-name" style={{ gridRow: 2 }}>Running</span><span className="rd-lane" style={{ gridRow: 2 }} />
+      <span className="rd-lane-name" style={{ gridRow: 3 }}>Finished</span><span className="rd-lane" style={{ gridRow: 3 }} />
+      <div className="rd-slots">
+        {Array.from({ length: capacity }, (_, index) => <span className="rd-slot" key={index} style={{ '--rd-index': separate && index >= limit ? 3 + index - limit : index }}>{separate ? index < limit ? 'O' : 'I' : '·'}</span>)}
+      </div>
+      <div className="rd-tokens">
+        {jobs.map((job, index) => <span className="rd-job" key={job.id} title={job.id + ' · ' + job.resource} data-kind={job.resource} data-status={job.status} style={{ '--rd-index': indexInLane(job), '--rd-row': job.status === 'waiting' ? 0 : job.status === 'running' ? 1 : 2 }}>
+          {job.resource[0]}{index + 1}
+          {job.status === 'running' && <i style={{ width: (4 - job.remaining) / 3 * 100 + '%' }} />}
+        </span>)}
+      </div>
+    </div>
+    <p className="rd-legend"><span><b>O</b> Orders</span><span><b data-kind="Invoices">I</b> Invoices</span><span>Dashed boxes are available slots</span></p>
+    <p className="rd-status" aria-live="polite">
+      <strong>{running.length}/{capacity} slots in use</strong> · {waiting.length} waiting · {finished.length} finished
+      {separate && <span className="rd-visually-hidden">. Orders: {running.filter(job => job.resource === 'Orders').length}/{limit}. Invoices: {running.filter(job => job.resource === 'Invoices').length}/{limit}.</span>}
+    </p>
+    <details open={keys || undefined}>
+      <summary>Change key or limit</summary>
+      <div className="rd-controls">
+        <select aria-label="Key grouping" value={separate ? 'separate' : 'shared'} onChange={event => reset(event.target.value === 'separate', limit)}>
+          <option value="shared">Shared key</option><option value="separate">Separate keys</option>
+        </select>
+        <label>Limit per key <select value={limit} onChange={event => reset(separate, Number(event.target.value))}>{[1, 2, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+        <button type="button" onClick={() => reset(separate, limit)}>Reset</button>
+      </div>
+    </details>
+    <p className="rd-footnote">Illustration of ordinary admission. A waiting Job has no slot and has not failed. The example steps do not specify timing or execution order.</p>
   </section>;
 };
 
 export const IdempotencyDemo = () => {
   const [strategy, setStrategy] = useState('stable');
-  const [state, setState] = useState({ keys: [], attempts: [] });
-  const reset = value => { setStrategy(value); setState({ keys: [], attempts: [] }); };
-  const attempt = operation => setState(value => attemptKey(value, operation, strategy));
-  const latest = state.attempts[state.attempts.length - 1];
+  const [step, setStep] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const operations = strategy === 'expiry' ? ['invoice-1', 'invoice-1', null, 'invoice-1'] : ['invoice-1', 'invoice-1', 'invoice-2'];
+  const initial = { keys: [], attempts: [] };
+  const frames = operations.reduce((items, operation) => {
+    const previous = items.at(-1) || initial;
+    items.push(operation ? attemptKey(previous, operation, strategy) : { ...previous, keys: [] });
+    return items;
+  }, []);
+  const current = step ? frames[step - 1] : initial;
+  const latest = current.attempts.at(-1);
+  const done = step === operations.length;
+  const stop = useCallback(() => setPlaying(false), []);
+  const advance = useCallback(() => setStep(value => Math.min(value + 1, operations.length)), [operations.length]);
+  useDemoPlayback(playing, advance, stop);
+  useEffect(() => { if (done) stop(); }, [done, stop]);
+
   return <section className="revo-demo not-prose" aria-label="Explore idempotency keys">
-    <PlaygroundStyle /><div className="rd-eyebrow">Interactive simulation</div><h3>Recognize the same business operation</h3><p className="rd-muted">Acquire an admission key, repeat the request, then try a different invoice. No invoice is actually issued.</p>
-    <div className="rd-controls"><label>Key strategy <select aria-label="Key strategy" value={strategy} onChange={event => reset(event.target.value)}><option value="stable">Stable business key</option><option value="random">New key on every request</option><option value="global">One key for all invoices</option></select></label></div>
-    <div className="rd-controls"><button type="button" className="rd-primary" disabled={state.attempts.length >= 12} onClick={() => attempt('invoice-1')}>Request invoice 1 again</button><button type="button" disabled={state.attempts.length >= 12} onClick={() => attempt('invoice-2')}>Request invoice 2</button><button type="button" disabled={!state.keys.length} onClick={() => setState(value => ({ ...value, keys: [] }))}>Simulate TTL expiry</button><button type="button" onClick={() => reset(strategy)}>Reset</button></div>
-    <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{!state.keys.length && state.attempts.length ? 'No active keys remain' : latest ? (latest.admitted ? 'Admission acquired' : 'Duplicate admission refused') : 'Ready for the first request'}</strong><p>{strategy === 'random' ? 'A new request key makes every retry look like new work. It does not protect the business operation.' : strategy === 'global' ? 'A global key can block unrelated invoices. The key is too broad for this operation.' : 'The same invoice and operation version reuse one key. A different invoice can be admitted independently.'}</p><code className="rd-result">{latest ? 'Last attempt: ' + latest.key + '\nacquireIdempotencyKey → ' + latest.admitted + '\nActive keys now: ' + state.keys.length : 'Choose a request above.'}</code></div>
-    <ol className="rd-attempts">{state.attempts.map(item => <li className="rd-attempt" key={item.number}><div>#{item.number} · {item.operation}<code>{item.key}</code></div><span className="rd-badge">{item.admitted ? 'ACQUIRED' : 'DUPLICATE'}</span></li>)}</ol>
-    {state.attempts.length >= 12 && <p>Reset to start another sequence.</p>}
-    <p className="rd-footnote">Local admission simulation only. Acquiring a key is not proof of a completed effect and is not atomic with a separate HTTP call or database write. TTL expiry allows admission again; it does not undo a previous effect. Retain business evidence and reconcile uncertain outcomes. Do not release a key blindly after an error.</p>
+    <PlaygroundStyle />
+    <h3>Recognize a repeated operation</h3>
+    <div className="rd-toolbar">
+      <select aria-label="Key strategy" value={strategy} onChange={event => { stop(); setStrategy(event.target.value); setStep(0); }}>
+        <option value="stable">Stable business key</option>
+        <option value="random">New key each time</option>
+        <option value="global">One global key</option>
+        <option value="expiry">Stable key expires</option>
+      </select>
+      <div className="rd-controls">
+        <button type="button" className="rd-primary rd-playback" aria-pressed={playing} onClick={() => { if (done) setStep(0); setPlaying(!playing); }}>{playing ? 'Pause' : done ? 'Replay' : 'Play'}</button>
+        <button type="button" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      </div>
+    </div>
+    <ol className="rd-rows" aria-label="Requests, keys and admission outcomes">
+      {operations.map((operation, index) => {
+        const attempt = frames[index].attempts.at(-1);
+        const outcome = !operation ? 'Expired' : attempt.admitted ? 'Acquired' : 'Duplicate';
+        return <li className="rd-row" key={index} aria-current={step === index + 1 ? 'step' : undefined} data-state={step <= index ? 'future' : 'seen'}>
+          <strong>{operation === 'invoice-1' && index ? index === 3 ? 'After expiry' : 'Retry invoice 1' : operation || 'TTL expiry'}</strong>
+          <code>{operation ? attempt.key : 'Clear active key'}</code>
+          <span data-tone={outcome === 'Duplicate' ? 'warning' : undefined}>{outcome}</span>
+        </li>;
+      })}
+    </ol>
+    <p className="rd-status" aria-live="polite">
+      <strong>{current.keys.length} active {current.keys.length === 1 ? 'key' : 'keys'}</strong> · {step}/{operations.length} steps
+      {step > 0 && <span className="rd-visually-hidden">. {operations[step - 1] ? latest.admitted ? 'Key acquired' : 'Duplicate refused' : 'Key expired'}.</span>}
+    </p>
+    <p className="rd-footnote">Acquiring a key is not proof of a completed effect. TTL expiry allows admission again; it does not undo a previous effect. No invoice is issued.</p>
+    <details><summary>Reset playback</summary><button type="button" onClick={() => { stop(); setStep(0); }}>Reset</button></details>
   </section>;
 };
 
@@ -677,50 +874,152 @@ export const webhookAttempt = (state, outcome, protectedReceiver, maxRetries, st
 };
 
 export const FilterDemo = () => {
-  const [region, setRegion] = useState('eu');
-  const [amount, setAmount] = useState('12500');
-  const [source, setSource] = useState('checkout');
+  const presets = {
+    matching: { region: 'eu', amount: '12500', source: 'checkout' },
+    wrongRegion: { region: 'us', amount: '12500', source: 'checkout' },
+    wrongType: { region: 'eu', amount: 'string', source: 'checkout' },
+    wrongSource: { region: 'eu', amount: '12500', source: 'import' },
+  };
+  const [input, setInput] = useState(presets.matching);
   const [mode, setMode] = useState('and');
+  const { region, amount, source } = input;
+  const scenario = Object.keys(presets).find(key => Object.keys(input).every(field => input[field] === presets[key][field])) || 'custom';
   const actualAmount = amount === 'string' ? '12500' : Number(amount);
   const result = routeExample(region, actualAmount, source, mode);
-  const reset = () => { setRegion('eu'); setAmount('12500'); setSource('checkout'); setMode('and'); };
+  const setField = (field, value) => setInput(previous => ({ ...previous, [field]: value }));
+
   return <section className="revo-demo not-prose" aria-label="Explore Event filters">
-    <PlaygroundStyle /><div className="rd-eyebrow">Interactive filter</div><h3>Will this Event reach the target?</h3><p className="rd-muted">Change the message and occurrence metadata. This example uses the Platform API filter syntax.</p>
-    <div className="rd-controls"><label>Region <select value={region} onChange={event => setRegion(event.target.value)}><option value="eu">eu</option><option value="us">us</option></select></label><label>Total <select value={amount} onChange={event => setAmount(event.target.value)}><option value="12500">12500 · number</option><option value="500">500 · number</option><option value="string">"12500" · string</option></select></label><label>Metadata source <select value={source} onChange={event => setSource(event.target.value)}><option value="checkout">checkout</option><option value="import">import</option></select></label><label>Match <select value={mode} onChange={event => setMode(event.target.value)}><option value="and">All conditions</option><option value="or">Any condition</option></select></label><button type="button" onClick={reset}>Reset</button></div>
-    <ol className="rd-attempts">{result.rules.map(rule => <li className="rd-attempt" key={rule.field}><div><code>{rule.field + ' ' + rule.op + ' ' + JSON.stringify(rule.value)}</code><small>Actual: {JSON.stringify(rule.actual)}</small></div><span className="rd-badge">{rule.matches ? 'MATCH' : 'NO MATCH'}</span></li>)}</ol>
-    <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{result.matches ? 'Subscription matches' : 'No target from this subscription'}</strong><p>{result.matches ? 'The target is eligible for dispatch. Its Component must still validate the business data and authorization.' : 'The Event can still match another definition. This is a routing decision, not a failed Job.'}</p><code className="rd-result">{JSON.stringify({ [mode]: result.rules.map(({ field, op, value }) => ({ field, op, value })) }, null, 2)}</code></div>
-    <p className="rd-footnote">Local example of eq, numeric gte, and/or only; not a complete filter engine. The visual editor accepts message-relative paths and cannot express this top-level metadata condition. A numeric string does not satisfy numeric ordering. No request is sent.</p>
+    <PlaygroundStyle />
+    <h3>From Event values to a routing decision</h3>
+    <div className="rd-toolbar">
+      <select aria-label="Event input" value={scenario} onChange={event => setInput(presets[event.target.value])}>
+        <option value="matching">Matching input</option>
+        <option value="wrongRegion">Other region</option>
+        <option value="wrongType">Total is a string</option>
+        <option value="wrongSource">Other metadata source</option>
+        <option value="custom" disabled>Custom values</option>
+      </select>
+      <select aria-label="Condition group" value={mode} onChange={event => setMode(event.target.value)}>
+        <option value="and">All conditions</option><option value="or">Any condition</option>
+      </select>
+    </div>
+    <ol className="rd-rows" aria-label="Input, predicate and match">
+      {result.rules.map(rule => <li className="rd-row" key={rule.field} data-tone={rule.matches ? undefined : 'warning'}>
+        <code>{JSON.stringify(rule.actual)}</code>
+        <code>{rule.field + ' ' + rule.op + ' ' + JSON.stringify(rule.value)}</code>
+        <span>{rule.matches ? 'Matches' : 'No match'}</span>
+      </li>)}
+    </ol>
+    <p className="rd-status" aria-live="polite"><strong>{result.matches ? 'Target eligible' : 'No dispatch to this target'}</strong> · {result.rules.filter(rule => rule.matches).length}/3 conditions match</p>
+    <details>
+      <summary>Change individual values or inspect JSON</summary>
+      <div className="rd-controls">
+        <label>Region <select value={region} onChange={event => setField('region', event.target.value)}><option value="eu">eu</option><option value="us">us</option></select></label>
+        <label>Total <select value={amount} onChange={event => setField('amount', event.target.value)}><option value="12500">12500 · number</option><option value="500">500 · number</option><option value="string">"12500" · string</option></select></label>
+        <label>Metadata source <select value={source} onChange={event => setField('source', event.target.value)}><option value="checkout">checkout</option><option value="import">import</option></select></label>
+        <button type="button" onClick={() => { setInput(presets.matching); setMode('and'); }}>Reset</button>
+      </div>
+      <code className="rd-result">{JSON.stringify({ [mode]: result.rules.map(({ field, op, value }) => ({ field, op, value })) }, null, 2)}</code>
+    </details>
+    <p className="rd-footnote">Platform API filter example. A numeric string does not satisfy numeric ordering. The visual editor uses message-relative paths and does not express this top-level metadata condition.</p>
   </section>;
 };
 
 export const DeliveryDemo = () => {
-  const initial = { occurrences: [], jobs: [], deliveries: 0, note: 'Accept order-1 to start. Billing and Audit are two matching Event definitions.' };
-  const [state, setState] = useState(initial);
-  const send = action => setState(value => dispatchExample(value, action));
+  const [step, setStep] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const initial = { occurrences: [], jobs: [], deliveries: 0 };
+  const actions = ['accept', 'redeliver', 'replay'];
+  const labels = ['Accept Event', 'Redeliver', 'Operator Replay'];
+  const frames = actions.reduce((items, action) => {
+    items.push(dispatchExample(items.at(-1) || initial, action));
+    return items;
+  }, []);
+  const state = step ? frames[step - 1] : initial;
+  const done = step === actions.length;
+  const stop = useCallback(() => setPlaying(false), []);
+  const advance = useCallback(() => setStep(value => Math.min(value + 1, actions.length)), [actions.length]);
+  useDemoPlayback(playing, advance, stop);
+  useEffect(() => { if (done) stop(); }, [done, stop]);
+
   return <section className="revo-demo not-prose" aria-label="Explore Event delivery and replay">
-    <PlaygroundStyle /><div className="rd-eyebrow">Interactive dispatch</div><h3>Same delivery or new occurrence?</h3><p className="rd-muted">Two subscriptions handle one business operation: order-1. Job completion and external effects are separate.</p>
-    <div className="rd-controls"><button type="button" className="rd-primary" disabled={state.occurrences.length > 0} onClick={() => send('accept')}>Accept Event</button><button type="button" disabled={!state.occurrences.length} onClick={() => send('redeliver')}>Redeliver same occurrence</button><button type="button" disabled={!state.occurrences.length || state.occurrences.length >= 4} onClick={() => send('replay')}>Operator Replay</button><button type="button" onClick={() => setState(initial)}>Reset</button></div>
-    <div className="rd-meters"><span>Delivery observations <strong>{state.deliveries}</strong></span><span>Occurrences <strong>{state.occurrences.length}</strong></span><span>Initial Jobs <strong>{state.jobs.length}</strong></span></div>
-    <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{state.note}</strong><code className="rd-result">{'Business key stays: order-1:invoice:v1\nInitial child identity belongs to: occurrence + Event definition'}</code></div>
-    <ol className="rd-attempts">{state.jobs.map(job => <li className="rd-attempt" key={job.id}><div><code>{job.id}</code><small>{job.occurrence} → {job.definition}</small></div><span className="rd-badge">CREATED</span></li>)}</ol>
-    <p className="rd-footnote">Synthetic IDs and two fixed matching definitions. Replay evaluates current definitions and filters; changing them can change fan-out. The same target template used by two definitions still represents two subscriptions. Application retries create later attempts, outside this initial-dispatch counter. This is not an exactly-once business-effect guarantee.</p>
+    <PlaygroundStyle />
+    <h3>One business key, two dispatch paths</h3>
+    <div className="rd-toolbar">
+      <code>order-1:invoice:v1</code>
+      <div className="rd-controls">
+        <button type="button" className="rd-primary rd-playback" aria-pressed={playing} onClick={() => { if (done) setStep(0); setPlaying(!playing); }}>{playing ? 'Pause' : done ? 'Replay animation' : 'Play'}</button>
+        <button type="button" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      </div>
+    </div>
+    <ol className="rd-rows" aria-label="Operation, occurrence and child Jobs">
+      {frames.map((frame, index) => <li className="rd-row" key={actions[index]} aria-current={step === index + 1 ? 'step' : undefined} data-state={step <= index ? 'future' : 'seen'}>
+        <strong>{labels[index]}</strong>
+        <code>{frame.occurrences.at(-1)} → Billing + Audit</code>
+        <span>{index === 1 ? 'Reuse 2' : '+2 Jobs'}</span>
+      </li>)}
+    </ol>
+    <p className="rd-status" aria-live="polite"><strong>{state.occurrences.length} {state.occurrences.length === 1 ? 'occurrence' : 'occurrences'} · {state.jobs.length} Jobs</strong>{state.note ? ' · ' + state.note : ''}</p>
+    <p className="rd-footnote">Replay evaluates current definitions and filters. This example fixes two matching definitions. Initial dispatch and later attempts are separate from the business outcome.</p>
+    <details><summary>Reset playback</summary><button type="button" onClick={() => { stop(); setStep(0); }}>Reset</button></details>
   </section>;
 };
 
 export const WebhookDemo = () => {
-  const initial = { attempts: 0, effects: 0, status: 'PENDING', terminal: false, log: [] };
-  const [state, setState] = useState(initial);
+  const [scenario, setScenario] = useState('lostThenSuccess');
   const [protectedReceiver, setProtected] = useState(true);
   const [retries, setRetries] = useState(1);
   const [stop401, setStop401] = useState(true);
-  const attempt = outcome => setState(value => webhookAttempt(value, outcome, protectedReceiver, retries, stop401));
+  const [step, setStep] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const initial = { attempts: 0, effects: 0, status: 'PENDING', terminal: false, log: [] };
+  const sequence = scenario === 'lostAlways' ? Array(retries + 1).fill('lost') : [scenario === 'unauthenticated' ? 'unauthenticated' : 'lost', 'success'];
+  const outcomeLabels = { lost: 'Commit, response lost', success: 'HTTP 2xx', unauthenticated: 'HTTP 401' };
+  const frames = sequence.reduce((items, outcome) => {
+    const previous = items.at(-1) || initial;
+    if (!previous.terminal) items.push(webhookAttempt(previous, outcome, protectedReceiver, retries, stop401));
+    return items;
+  }, []);
+  const state = step ? frames[step - 1] : initial;
+  const done = step === frames.length;
+  const stop = useCallback(() => setPlaying(false), []);
+  const advance = useCallback(() => setStep(value => Math.min(value + 1, frames.length)), [frames.length]);
+  useDemoPlayback(playing, advance, stop);
+  useEffect(() => { if (done) stop(); }, [done, stop]);
+  const reset = () => { stop(); setStep(0); };
+
   return <section className="revo-demo not-prose" aria-label="Explore webhook attempts">
-    <PlaygroundStyle /><div className="rd-eyebrow">Interactive delivery</div><h3>One Webhook, several possible attempts</h3><p className="rd-muted">First try “Commit, lose response”, then “Deliver with 2xx”. Compare the number of HTTP attempts with the receiver's business effects.</p>
-    <div className="rd-controls"><label>Receiver <select value={protectedReceiver ? 'safe' : 'unsafe'} onChange={event => { setProtected(event.target.value === 'safe'); setState(initial); }}><option value="safe">Deduplicates business key</option><option value="unsafe">Applies every request</option></select></label><label>maxRetries <select value={retries} onChange={event => { setRetries(Number(event.target.value)); setState(initial); }}>{[0, 1, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label><label><input type="checkbox" checked={stop401} onChange={event => { setStop401(event.target.checked); setState(initial); }} />Stop on 401</label></div>
-    <div className="rd-controls"><button type="button" className="rd-primary" disabled={state.terminal} onClick={() => attempt('lost')}>Commit, lose response</button><button type="button" disabled={state.terminal} onClick={() => attempt('success')}>Deliver with 2xx</button><button type="button" disabled={state.terminal} onClick={() => attempt('unauthenticated')}>Return 401</button><button type="button" onClick={() => setState(initial)}>Reset</button></div>
-    <div className="rd-meters"><span>Webhook records <strong>1</strong></span><span>HTTP attempts <strong>{state.attempts}</strong></span><span>Receiver effects <strong>{state.effects}</strong></span></div>
-    <div className="rd-detail" aria-live="polite" aria-atomic="true"><strong>{state.status}</strong><p>{state.log.length ? state.log[state.log.length - 1].text : 'No request has been attempted.'}</p><code className="rd-result">{'Idempotency-Key: order-1:ready:v1\nMaximum outgoing attempts: ' + (retries + 1) + '\n' + (state.terminal ? 'Delivery stopped. A repeated dispatch does not issue another request.' : 'A further attempt is permitted by this example policy.')}</code></div>
-    <ol className="rd-attempts">{state.log.map(item => <li className="rd-attempt" key={item.attempt}><div>Attempt {item.attempt}<code>{item.outcome}</code></div><span className="rd-badge">{item.effects} effect(s)</span></li>)}</ol>
-    <p className="rd-footnote">Synthetic receiver, no HTTP requests. A stable key works only when the receiver enforces it and retains its result. Configure that key explicitly in request headers or body; Webhook metadata is not automatically sent. FINISHED confirms HTTP delivery, not a partner's later asynchronous business workflow. Backoff timing and manual retry are outside this simulation.</p>
+    <PlaygroundStyle />
+    <h3>One Webhook, separate attempts and effects</h3>
+    <div className="rd-toolbar">
+      <select aria-label="Delivery scenario" value={scenario} onChange={event => { reset(); setScenario(event.target.value); }}>
+        <option value="lostThenSuccess">Lost response, then 2xx</option>
+        <option value="lostAlways">Lose every response</option>
+        <option value="unauthenticated">Receiver rejects with 401</option>
+      </select>
+      <div className="rd-controls">
+        <button type="button" className="rd-primary rd-playback" aria-pressed={playing} onClick={() => { if (done) setStep(0); setPlaying(!playing); }}>{playing ? 'Pause' : done ? 'Replay' : 'Play'}</button>
+        <button type="button" disabled={done} onClick={() => { stop(); advance(); }}>Next step</button>
+      </div>
+    </div>
+    <p className="rd-legend"><span><code>order-1:ready:v1</code></span><span>{protectedReceiver ? 'Receiver deduplicates' : 'Receiver applies every request'}</span></p>
+    <ol className="rd-rows" aria-label="HTTP attempt, receiver outcome and cumulative effects">
+      {frames.map((frame, index) => <li className="rd-row" key={index} aria-current={step === index + 1 ? 'step' : undefined} data-state={step <= index ? 'future' : 'seen'}>
+        <strong>Attempt {index + 1}</strong>
+        <code data-tone={frame.status === 'ERROR' ? 'error' : undefined}>{outcomeLabels[frame.log.at(-1).outcome]}</code>
+        <span>{frame.effects} {frame.effects === 1 ? 'effect' : 'effects'}</span>
+      </li>)}
+    </ol>
+    <p className="rd-status" aria-live="polite"><strong>{state.status}</strong> · {state.attempts} HTTP {state.attempts === 1 ? 'attempt' : 'attempts'} · {state.effects} business {state.effects === 1 ? 'effect' : 'effects'}</p>
+    <details>
+      <summary>Receiver and retry settings</summary>
+      <div className="rd-controls">
+        <label>Receiver <select value={protectedReceiver ? 'safe' : 'unsafe'} onChange={event => { reset(); setProtected(event.target.value === 'safe'); }}><option value="safe">Deduplicates business key</option><option value="unsafe">Applies every request</option></select></label>
+        <label>maxRetries <select value={retries} onChange={event => { reset(); setRetries(Number(event.target.value)); }}>{[0, 1, 3].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label><input type="checkbox" checked={stop401} onChange={event => { reset(); setStop401(event.target.checked); }} />Stop on 401</label>
+        <button type="button" onClick={reset}>Reset</button>
+      </div>
+    </details>
+    <p className="rd-footnote">Synthetic receiver. A stable key works when the receiver enforces it. Send it explicitly in the HTTP request. FINISHED confirms HTTP delivery. A lost response can hide a committed effect.</p>
   </section>;
 };

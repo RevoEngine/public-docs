@@ -12,7 +12,7 @@ Requires the complete reservation and settlement workflow from steps 1–3. Test
 
 <Steps>
   <Step title="Validate the happy path">
-    Seed one `PENDING` order and a matching balance. Confirm that available funds decrease, reserved funds increase, one ledger row appears, and the response exposes all three identifiers.
+    Seed one `PENDING` order and a matching balance. Confirm that available funds decrease, reserved funds increase, one ledger row appears, and the response includes the Job ID. After settlement, verify the order and ledger are `SETTLED`, the reserve was consumed once and the restricted receipt exists.
   </Step>
   <Step title="Replay the same request">
     Send the same `requestKey`. Confirm that no second reservation or ledger entry is created and the prior transaction can be identified.
@@ -24,7 +24,13 @@ Requires the complete reservation and settlement workflow from steps 1–3. Test
     Confirm a `409` response, no partial balance update, no reserved order state, and no ledger insert.
   </Step>
   <Step title="Interrupt settlement">
-    Simulate a provider timeout. Confirm that the Job retry preserves `transactionId`, `operationId`, retry lineage, and provider idempotency metadata.
+    Simulate a provider timeout. Look up the operation using its transaction ID. Retry the Job only after verifying the provider can safely resolve the same key. The retry keeps the transaction ID and original Endpoint Operation ID, and receives its own execution identifiers.
+  </Step>
+  <Step title="Recover a failed handoff">
+    In the test instance, make the Job template unavailable before sending the reservation. Verify that the ledger is pending settlement. Restore the template, repeat the same order ID and request key, and verify that one reservation remains and a Job receipt is recorded.
+  </Step>
+  <Step title="Recover a failed receipt write">
+    Block writes to the receipt folder for the test worker after setup. Confirm that the order and ledger are settled but the Job errors. Restore the permission and retry the Job. Verify that it writes the receipt from the stored settlement without another provider request or balance update.
   </Step>
   <Step title="Verify least privilege">
     Run with the real service account, then remove one required Table or Secret permission and confirm the workflow fails closed.
@@ -48,7 +54,7 @@ Start with the identifier closest to the report:
 In **Jobs History**, inspect status, duration, attempt, selected template and Component version, timestamps, metadata, and actor. In **Databases → Audit**, verify the balance and order transition. In **Trace**, follow the `operationId` across Endpoint execution and Job dispatch.
 
 <Note>
-  A successful Endpoint response proves that reservation committed and settlement was scheduled. It does not prove that the provider settled the order. Customer notification should follow a terminal Job state plus a confirmed transaction/provider state.
+  Use the Endpoint response to identify the committed reservation and any recorded Job ID. Confirm provider settlement and receipt creation separately in the ledger and Job History. If a Job ID is already recorded, retry that failed run from Job History after investigating it.
 </Note>
 
 ## Production extensions

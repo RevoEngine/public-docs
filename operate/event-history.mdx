@@ -33,13 +33,14 @@ Matched definitions, mapped templates and created executions are separate eviden
 4. Open each related Job and capture its job and operation identifiers.
 5. Correlate the execution in Logs or Trace when the target failed or produced an unexpected result.
 
-```text
-jobEventHistoryId
-  -> Event definition / targetId
-  -> jobId or agentRunId
-  -> operationId
-  -> logs and trace spans
+```mermaid
+flowchart TD
+  A["Event History ID"] --> B["Matched definition and target"]
+  B --> C["Job ID or Agent run ID"]
+  C --> D["Operation ID · recorded execution and logs"]
 ```
+
+Compare these records before replaying. A matching Event can have a scheduled Job whose business result is still pending.
 
 ## Replay
 

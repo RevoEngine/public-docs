@@ -4,6 +4,8 @@ description: Follow an order-ready signal from publication through routing, exec
 icon: diagram-project
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Notify a warehouse when an order becomes ready. The Event routes a small business signal, a Job prepares the request, and a Webhook delivers it. Each stage has its own record and completion boundary.
 
 ## Before you start
@@ -102,6 +104,16 @@ return { accepted: true, eventId };
 ```
 
 ## Verify each outcome
+
+<ReadingFlow
+  label="Follow an Event to the receiver"
+  steps={[
+    ["Publish", "Send ORDER_READY and evaluate the region filter.", "Mismatch → Event History shows the skipped target."],
+    ["Run the Job", "Follow the matched target to its recorded result."],
+    ["Open the Webhook", "Use the returned Webhook ID to inspect HTTP attempts."],
+    ["Check the receiver", "Use receiver evidence to verify the business effect."],
+  ]}
+/>
 
 | Evidence | Expected result | Still unconfirmed |
 | --- | --- | --- |

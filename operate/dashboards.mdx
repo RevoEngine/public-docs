@@ -6,24 +6,14 @@ icon: chart-line
 
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
-Dashboards turn the RevoEngine control plane into an operator-specific workspace. A dashboard can combine live resource grids, performance and identity charts, Trace, Storage, and custom widgets on one movable grid.
+Build a dashboard around an operator decision. An order-operations dashboard can show orders awaiting reconciliation, their latest Job outcome and a link to the recorded execution. Widgets read their own authorized sources.
 
-<span id="complete-widget-library" aria-hidden="true"></span>
-<span id="configure-a-widget" aria-hidden="true"></span>
-<span id="preserve-an-operator-view" aria-hidden="true"></span>
-<span id="custom-widgets-inline-or-reusable-code" aria-hidden="true"></span>
-
-<CardGroup cols={2}>
-  <Card title="Built-in widget library" href="/widgets/dashboard-library" icon="book-open">Choose a built-in dashboard panel and its source.</Card>
-  <Card title="Configure a Custom Widget" href="/widgets/source-configuration" icon="book-open">Choose Inline or Component sources, inputs, execution limits and revisions.</Card>
-</CardGroup>
-
-
-<Frame caption="A synthetic operations dashboard combines counts, business trends and Agent run state. Each widget still has its own source and permissions.">
-  <img src="/images/asterion/operations-dashboard.jpg" alt="Asterion operations dashboard with catalog, orders, invoices, exception counts, trend chart and Agent runs" />
-</Frame>
-
-<ScreenshotDetail src="/images/asterion/operations-dashboard.jpg" alt="Asterion operations dashboard with catalog, orders, invoices, exception counts, trend chart and Agent runs" width={1920} height={1080} />
+| Show this | Choose this widget source |
+| --- | --- |
+| A filtered list of unresolved orders | **Database Table** or **Database View** with the relevant source |
+| A trend that can tolerate scheduled refresh | A Custom Widget reading a Materialized View |
+| The latest run from an Agent | The built-in Agents widget |
+| A custom action with inputs | A [reactive Custom Widget](/operate/reactive-widgets) |
 
 ## Create a dashboard in the app
 
@@ -34,6 +24,26 @@ Dashboards turn the RevoEngine control plane into an operator-specific workspace
 5. Select the dashboard **Save** button to persist the complete layout and current built-in grid filters and sort. Select **Lock** to return to the operator view. Locking alone does not save edits.
 
 Use **Manage** to open, search, rename, change visibility/default, or delete a saved dashboard. **Home** is the built-in view; create a named dashboard before adding widgets. **Reload** discards unsaved layout changes and reloads the saved preference. The grid has 20 columns; palette sizes are starting footprints and may be enlarged for dense data. Widgets are shown only when the viewer has their required roles and resource access.
+
+<Frame caption="A synthetic operations dashboard combines counts, business trends and Agent run state. Each widget still has its own source and permissions.">
+  <img src="/images/asterion/operations-dashboard.jpg" alt="Asterion operations dashboard with catalog, orders, invoices, exception counts, trend chart and Agent runs" />
+</Frame>
+
+<ScreenshotDetail src="/images/asterion/operations-dashboard.jpg" alt="Asterion operations dashboard with catalog, orders, invoices, exception counts, trend chart and Agent runs" width={1920} height={1080} />
+
+## Configure widgets and save the view
+
+<span id="complete-widget-library" aria-hidden="true"></span>
+<span id="configure-a-widget" aria-hidden="true"></span>
+<span id="preserve-an-operator-view" aria-hidden="true"></span>
+<span id="custom-widgets-inline-or-reusable-code" aria-hidden="true"></span>
+
+- [Choose a built-in widget](/widgets/dashboard-library#complete-widget-library) from the dashboard palette.
+- [Configure a widget](/widgets/dashboard-library#configure-a-widget) with a source and presentation options.
+- [Preserve an operator view](/widgets/dashboard-library#preserve-an-operator-view) with saved filters, sort and layout.
+- [Choose Inline code or a reusable Component](/widgets/source-configuration#choose-the-source) for a Custom Widget.
+
+For a complete Custom Widget, start with [Chart Job runs](/widgets/examples/job-chart) or [Submit a form and follow a Job](/widgets/examples/form-job).
 
 ## Embed an external frontend
 
@@ -64,7 +74,7 @@ For expensive repeatable aggregation, build a materialized view and refresh it t
 An order-operations dashboard can combine:
 
 - an Endpoint performance panel filtered to checkout routes;
-- a Database Data panel showing orders stuck in `PROCESSING`;
+- a Database Table panel showing orders stuck in `PROCESSING`;
 - Job History filtered to reconciliation failures;
 - Webhooks filtered by warehouse correlation metadata;
 - a custom widget summarizing balances, orders, and unsettled transactions.

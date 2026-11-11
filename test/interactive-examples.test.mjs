@@ -175,10 +175,10 @@ test('all demo topics are embedded, all scenarios have readable outcomes, and im
       FlowDemo: ['PlaygroundStyle', 'useDemoPlayback', 'flowCatalog'],
       EventDeliveryDemo: ['PlaygroundStyle', 'useDemoPlayback', 'eventDeliveryExample'],
       ConcurrencyDemo: ['PlaygroundStyle', 'useDemoPlayback', 'makeQueue', 'advanceQueue'],
-      IdempotencyDemo: ['PlaygroundStyle', 'attemptKey'],
+      IdempotencyDemo: ['PlaygroundStyle', 'useDemoPlayback', 'attemptKey'],
       FilterDemo: ['PlaygroundStyle', 'routeExample'],
-      DeliveryDemo: ['PlaygroundStyle', 'dispatchExample'],
-      WebhookDemo: ['PlaygroundStyle', 'webhookAttempt'],
+      DeliveryDemo: ['PlaygroundStyle', 'useDemoPlayback', 'dispatchExample'],
+      WebhookDemo: ['PlaygroundStyle', 'useDemoPlayback', 'webhookAttempt'],
     };
     const dependencies = Object.entries(required).filter(([name]) => imported.includes(name)).flatMap(([, names]) => names);
     assert.ok(dependencies.length, 'Every snippet import must have a known component dependency contract');
@@ -206,6 +206,70 @@ test('playback is opt-in, bounded by visibility, cleaned up and reduced-motion a
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /:focus-visible/);
   assert.match(source, /@media \(max-width: 480px\)/);
+});
+
+test('playback counts visible time, honors motion changes, and releases listeners', () => {
+  const frames = new Map();
+  const motionListeners = new Map();
+  const documentListeners = new Map();
+  const motion = {
+    matches: false,
+    addEventListener: (type, listener) => motionListeners.set(type, listener),
+    removeEventListener: type => motionListeners.delete(type),
+  };
+  const page = {
+    hidden: false,
+    addEventListener: (type, listener) => documentListeners.set(type, listener),
+    removeEventListener: type => documentListeners.delete(type),
+  };
+  let cleanup;
+  let frameId = 0;
+  let advances = 0;
+  let stops = 0;
+  const runtime = {};
+  vm.runInNewContext(compiled.outputText, {
+    exports: runtime,
+    useEffect: setup => { cleanup = setup(); },
+    window: { matchMedia: () => motion },
+    document: page,
+    requestAnimationFrame: callback => { frames.set(++frameId, callback); return frameId; },
+    cancelAnimationFrame: id => frames.delete(id),
+  });
+  const advance = () => { advances++; };
+  const stop = () => { stops++; };
+  const draw = now => {
+    assert.equal(frames.size, 1);
+    const [id, callback] = frames.entries().next().value;
+    frames.delete(id);
+    callback(now);
+  };
+
+  runtime.useDemoPlayback(false, advance, stop);
+  assert.equal(frames.size, 0);
+  motion.matches = true;
+  runtime.useDemoPlayback(true, advance, stop);
+  assert.equal(stops, 1);
+  assert.equal(frames.size, 0);
+
+  motion.matches = false;
+  runtime.useDemoPlayback(true, advance, stop);
+  for (let now = 0; now <= 1000; now += 100) draw(now);
+  assert.equal(advances, 0);
+  page.hidden = true;
+  documentListeners.get('visibilitychange')();
+  for (let now = 1100; now <= 5100; now += 100) draw(now);
+  assert.equal(advances, 0);
+  page.hidden = false;
+  documentListeners.get('visibilitychange')();
+  for (let now = 5200; now <= 5600; now += 100) draw(now);
+  assert.equal(advances, 1);
+  motion.matches = true;
+  motionListeners.get('change')();
+  assert.equal(stops, 2);
+  cleanup();
+  assert.equal(frames.size, 0);
+  assert.equal(motionListeners.size, 0);
+  assert.equal(documentListeners.size, 0);
 });
 
 test('filter example distinguishes numeric values, metadata and compound groups', () => {

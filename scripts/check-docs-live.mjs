@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
+import { readDocsIndex } from './read-docs-index.mjs';
 const product = JSON.parse(readFileSync(new URL('../platform/product-contract.json', import.meta.url), 'utf8'));
 const origin = product.documentation.origin;
 const headers = { 'content-type': 'application/json', accept: 'application/json, text/event-stream' };
@@ -33,10 +34,29 @@ try {
     const tool = manifest.tools?.find((entry) => entry.name === name);
     if (tool?.inputSchema?.properties?.[field]?.type !== 'string' || !tool?.inputSchema?.required?.includes(field)) throw new Error(`Docs tool contract changed: ${name}`);
   }
-  const index = await (await request(product.documentation.index)).text();
+  const { indexPaths, pages, rootPages } = await readDocsIndex(origin, product.documentation.index, async (path) =>
+    (await request(path)).text());
+  const startPages = ['/introduction', '/quickstart', '/platform/product-model', '/developers/overview'];
+  const missingStartPages = startPages.filter((page) => !rootPages.has(page));
+  if (missingStartPages.length) throw new Error(`Root ${product.documentation.index} omits ${missingStartPages.join(', ')}`);
+  const requiredPages = new Set([
+    ...startPages,
+    ...product.documentation.entrypoints,
+    ...product.domains.map(({ docs }) => docs),
+    ...product.decisions.map(({ docs }) => docs),
+    '/developers/authentication',
+    '/api-reference/introduction',
+    '/low-code/reference/index',
+  ]);
+  const missingPages = [...requiredPages].filter((page) => !pages.has(page));
+  if (missingPages.length) throw new Error(`Published index omits ${missingPages.join(', ')}`);
+  console.log(`Published index verified: ${pages.size} pages across ${indexPaths.size} indexes, including all ${requiredPages.size} required pages.`);
   for (const page of ['/introduction', '/platform/product-model']) {
-    if (!index.includes(`${origin}${page}.md`)) throw new Error(`Published index omits ${page}`);
     const markdown = await (await request(`${page}.md`)).text();
+    const instructions = markdown.match(/^> ## Agent Instructions\r?\n((?:>[^\r\n]*\r?\n)*)/m)?.[1] ?? '';
+    if (startPages.some((path) => instructions.includes(`](${origin}${path}.md)`) || instructions.includes(`](${path}.md)`))) {
+      throw new Error(`${page}: starting links are repeated in the Markdown instructions.`);
+    }
     const retrieved = text(await rpc('tools/call', { name: 'query_docs_filesystem_revo_engine', arguments: { command: `head -35 ${page}.mdx` } }));
     for (const [label, content] of [['Markdown', markdown], ['MCP', retrieved]]) {
       if (!normalize(content).includes(normalize(product.summary))) throw new Error(`${page}: ${label} does not contain the current released product summary.`);

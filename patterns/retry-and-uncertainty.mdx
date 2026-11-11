@@ -49,6 +49,12 @@ Set the following object under a template's `options.retry`:
 
 ## Reconcile uncertain effects
 
+| What the destination confirms | Next action |
+| --- | --- |
+| The operation committed | Return its existing receipt. |
+| No effect occurred | Retry with the same operation identity and the configured policy. |
+| The effect is still unknown | Record uncertainty and reconcile it before repeating an irreversible action. |
+
 A disconnected caller cannot establish whether a remote mutation committed. Keep its operation key and receipt, query the destination or durable business record, and classify the result as confirmed success, confirmed failure or still unknown.
 
 Do not turn unknown into zero, an empty dataset or an automatic second payment. [Idempotency](/patterns/idempotency) makes retries safer, while [Job history](/operate/jobs#read-attempt-status-and-job-result) shows what each attempt actually established.

@@ -21,50 +21,30 @@ Databases provide the structured data layer for RevoEngine applications. The wor
   <Card title="Write and import records" href="/operate/database-mutations" icon="book-open">Use upserts, ordered updates, exports and Storage imports.</Card>
 </CardGroup>
 
+For a specific operation, go straight to [Preview a read plan](/operate/database-queries#preview-a-read-plan) or [Conditional upserts](/operate/database-mutations#conditional-upserts).
 
-## Start with a business record, not a generic table
-
-An `orders` Table is not merely a place to put JSON. It answers who may see an order, which field identifies it, which transitions are traceable, and which query must remain fast.
-
-<CardGroup cols={3}>
-  <Card title="Model" icon="table-columns">
-    Choose durable fields, primary keys, defaults, references, and only the indexes justified by a real read path.
-  </Card>
-  <Card title="Protect" icon="lock">
-    Make the Table restricted when a group or service account should be the only principal that can read or mutate it.
-  </Card>
-  <Card title="Operate" icon="timeline">
-    Enable audit before sensitive changes, export a governed CSV, TSV, NDJSON, or XLSX file when needed, and inspect change evidence without leaving the workspace.
-  </Card>
-</CardGroup>
-
-<CardGroup cols={3}>
-  <Card title="Tables" icon="table" href="/operate/database-definitions">
-    Define fields, constraints, partitions, ACLs, and store mutable application records.
-  </Card>
-  <Card title="Audit" icon="clock-rotate-left" href="/operate/database-audit">
-    Investigate row changes with actor, keys, before/after values, snapshots, and Trace correlation.
-  </Card>
-  <Card title="Views" icon="binoculars" href="/operate/database-views">
-    Save governed, read-only models over one or more Tables.
-  </Card>
-  <Card title="Materialized Views" icon="layer-group" href="/operate/materialized-views">
-    Persist query output for read-heavy workflows and refresh it deliberately or on a Schedule.
-  </Card>
-  <Card title="Cache" icon="bolt" href="/operate/database-cache">
-    Operate instance-scoped application keys, values, types, sizes, and TTLs.
-  </Card>
-</CardGroup>
+<span id="start-with-a-business-record-not-a-generic-table" aria-hidden="true"></span>
 
 ## Choose the correct database surface
 
-| Surface | Data ownership | Write model | Freshness | Primary use |
-| --- | --- | --- | --- | --- |
-| Table | Durable source of truth | Insert, update, delete, bulk mutation | Current | Orders, balances, transactions, configuration, workflow state |
-| Audit | Immutable row-change evidence until privileged deletion | Captured automatically from audited Tables | Created with each mutation | Investigation, accountability, compliance evidence |
-| View | Saved query over current sources | Read-only output; governed source actions are previewed separately | Current at query time | Reusable joins, filtered projections, read APIs |
-| Materialized View | Persisted query result | Read-only result; refresh rebuilds it | Last successful refresh | Expensive dashboards, summaries, read-heavy integration output |
-| Cache | Disposable application acceleration state | Atomic key/value operations with optional TTL | Until expiry or invalidation | Read-through caching, idempotency hints, counters, short leases |
+Start with the record your application owns. An `orders` Table holds current orders. A View can show current open orders, while a Materialized View can serve yesterday's completed order totals until it refreshes.
+
+| Surface | What it answers | Freshness |
+| --- | --- | --- |
+| [Tables](/operate/database-definitions) | What is the current business record? | Current rows |
+| [Audit](/operate/database-audit) | Who changed this row and what changed? | Captured mutations after audit is enabled |
+| [Views](/operate/database-views) | What does the saved query return now? | Current at query time |
+| [Materialized Views](/operate/materialized-views) | What did the saved query return at its last successful refresh? | Last successful refresh |
+| [Cache](/operate/database-cache) | Is there an accelerated value, counter or coordination key? | Until expiry or invalidation |
+
+```mermaid
+flowchart TD
+  A["Orders · current Table rows"] -->|Query| B["Open orders · View"]
+  A -->|Refresh| C["Order totals · Materialized View"]
+  A -->|Audited mutation| D["Before and after · Audit"]
+```
+
+Use a restricted Table when only specific users, Groups or Service Accounts should access its rows. Build indexes for a known query and enable audit before the changes you need to investigate.
 
 ## Build a Table
 

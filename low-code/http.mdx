@@ -4,6 +4,8 @@ description: Call external APIs, consume SSE and byte streams, submit multipart 
 icon: globe
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Use `api.httpCall()` for an outbound request that belongs to the current Component execution. It supports ordinary JSON and text responses, binary payloads, multipart forms, live byte or SSE iterators, and direct transfers between HTTP and Storage.
 
 Inbound HTTP is a different boundary. Publish an [Endpoint](/operate/endpoints) when another system must call RevoEngine; use a durable [outbound Webhook](/operate/webhooks) when RevoEngine should deliver a retried notification without holding the current execution open.
@@ -24,6 +26,15 @@ Inbound HTTP is a different boundary. Publish an [Endpoint](/operate/endpoints) 
   <Card title="Receive callbacks" href="/low-code/http-callbacks" icon="book-open">Choose Endpoints, Events and Webhooks for the correct HTTP direction.</Card>
 </CardGroup>
 
+
+<ReadingFlow
+  label="Use one outbound response"
+  steps={[
+    ["Call", "Choose the request format and make the request."],
+    ["Consume", "Read JSON, iterate a stream or finalize a Storage entry."],
+    ["Confirm", "Check the downstream operation separately when it has its own lifecycle."],
+  ]}
+/>
 
 ## Choose the right HTTP boundary
 

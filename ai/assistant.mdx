@@ -4,6 +4,8 @@ description: Work with the RevoEngine Interactive Agent in persistent, platform-
 icon: messages
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 The RevoEngine **Interactive Agent** is a workspace for platform questions and supervised execution. The current UI and API label this surface **Assistant**. It can explain a contract, find an object by name, investigate a failed run, review code, build an implementation plan, or perform an approved platform operation.
 
 Unlike a generic chatbot, the Interactive Agent works through the RevoEngine Agent Harness and keeps the conversation, execution state, and artifacts connected to one thread.
@@ -25,6 +27,15 @@ Unlike a generic chatbot, the Interactive Agent works through the RevoEngine Age
   <Card title="Charts and tables in Assistant" href="/ai/assistant-visuals" icon="book-open">Ask for visual results and save a live widget to a dashboard.</Card>
 </CardGroup>
 
+
+<ReadingFlow
+  label="Supervise a task in one thread"
+  steps={[
+    ["Request", "Give a goal and attach the relevant resource."],
+    ["Inspect", "Follow progress and review any action that needs approval."],
+    ["Verify", "Read the answer, evidence and produced files."],
+  ]}
+/>
 
 ## Where the Interactive Agent is strong
 

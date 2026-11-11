@@ -4,6 +4,8 @@ description: Give people and workloads the smallest practical access, then verif
 icon: users-gear
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 RevoEngine combines identity, platform roles, and resource-level access control. Authorization is evaluated for the current instance and current principal at each request or execution boundary.
 
 ## Follow the UI in the order an operator does
@@ -24,13 +26,15 @@ The workspace exposes **Users**, **Service Accounts**, **Groups**, and **Permiss
 
 ## Access model
 
-```text
-identity is valid
-  + instance access is enabled
-  + required platform role is present
-  + resource ACL allows the principal when restricted
-  = operation admitted
-```
+<ReadingFlow
+  label="Check the identity, role and resource grant"
+  steps={[
+    ["Identity", "Authenticate the user or Service Account and resolve instance access.", "Missing instance access → deny."],
+    ["Role", "Check the role needed for this operation.", "Missing role → deny."],
+    ["Resource", "Check ACL where the resource is restricted.", "Missing resource grant → deny."],
+    ["Admit", "Run the operation within the authorized identity."],
+  ]}
+/>
 
 Passing one layer does not bypass the others. For example, `RESOURCE_WRITE` permits data changes only for a Table the principal can access, unless the principal has the corresponding administrative authority.
 

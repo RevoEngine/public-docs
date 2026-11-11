@@ -51,10 +51,11 @@ Create a unique business constraint for the account and currency combination if 
 | `status` | `TEXT` | Indexed, not nullable | Starts as `PENDING_SETTLEMENT`. |
 | `operationId` | `TEXT` | Indexed, not nullable | Platform correlation identifier. |
 | `settlementOperationId` | `TEXT` | Nullable | Correlates the later Job execution. |
+| `settlementJobId` | `UUID` | Nullable | Retains the first recorded Job receipt for this reservation. |
 | `requestedBy` | `UUID` | Nullable | User or service-account identity. |
 | `providerReference` | `TEXT` | Nullable | Safe external correlation identifier. |
 | `receiptStorageEntryId` | `UUID` | Nullable | Restricted Storage evidence. |
-| `settledAt` | `TIMESTAMPTZ` | Nullable | Confirmed provider completion time. |
+| `settledAt` | `TIMESTAMPTZ` | Nullable | When the confirmed provider result was recorded locally. |
 
 Treat the `transactions` Table as an append-oriented ledger. Settlement should append or transition an explicit transaction state according to your accounting model; it should not silently rewrite the original amount.
 
@@ -62,29 +63,45 @@ Treat the `transactions` Table as an append-oriented ledger. Settlement should a
 
 ## Validate the public command
 
-Create a `JSON_VALIDATOR` Component and add an element such as `reserveOrderRequest`. The command accepts only the order ID and a caller-generated idempotency key:
+Create a `JSON_VALIDATOR` Component with an element named `reserveOrderRequest`. Use the RevoEngine validator format for the Endpoint request envelope. The guard accepts only the order ID and a caller-generated idempotency key in the body.
 
 ```json
 {
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["orderId", "requestKey"],
-  "properties": {
-    "orderId": {
-      "type": "string",
-      "format": "uuid"
-    },
-    "requestKey": {
-      "type": "string",
-      "minLength": 16,
-      "maxLength": 128,
-      "pattern": "^[A-Za-z0-9._:-]+$"
-    }
+  "profile": "strict",
+  "schema": {
+    "type": "object",
+    "additionalProperties": "allow",
+    "objectSchema": [
+      {
+        "property": "body",
+        "schema": {
+          "type": "object",
+          "required": true,
+          "additionalProperties": "reject",
+          "objectSchema": [
+            {
+              "property": "orderId",
+              "schema": { "type": "string", "required": true, "min": 36, "max": 36 }
+            },
+            {
+              "property": "requestKey",
+              "schema": {
+                "type": "string",
+                "required": true,
+                "min": 16,
+                "max": 128,
+                "regex": "^[A-Za-z0-9._:-]+(?![\\s\\S])"
+              }
+            }
+          ]
+        }
+      }
+    ]
   }
 }
 ```
 
-The amount, currency, destination account, and desired order status are intentionally absent. They come from trusted rows selected under the runtime principal.
+Save and activate the validator Component. The reservation Component also checks UUID syntax before querying the Table. It reads the amount, currency, account and order status from trusted rows under the runtime principal.
 
 Continue with [first production workflow](/platform/first-production-workflow).
 

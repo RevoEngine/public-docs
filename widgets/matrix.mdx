@@ -5,6 +5,8 @@ sidebarTitle: Rows and matrix
 icon: table-cells
 ---
 
+import { WidgetReadingPreview } from "/snippets/widget-reading-preview.jsx";
+
 A **matrix** is an array of rows. Each **row** is an array of cells displayed next to each other. Each **cell** is an object with a `type` and the fields required by that type.
 
 ```js
@@ -18,6 +20,8 @@ return [
 ```
 
 The first row contains one full-width heading. The second contains two cells. These are **rows of UI cells**, not database rows; a TABLE cell has its own `data` records.
+
+<WidgetReadingPreview />
 
 ## Return formats
 

@@ -4,17 +4,25 @@ description: "Understand enterprise sign-in, provider policy, provisioning and i
 icon: "key"
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Single sign-on establishes a person’s identity through an approved organization identity provider. RevoEngine then checks whether that identity may enter the selected instance and what it may do there.
 
 **OIDC** (OpenID Connect) and **SAML** are identity federation protocols. An approved provider integration must already be configured for the organization and instance. Entering an arbitrary issuer URL or possessing a JWT does not create a trusted integration.
 
 ## Follow a sign-in
 
-1. Choose **Company SSO** and enter your work email. The current application entry flow routes that email to the configured company sign-in.
-2. Complete the organization’s identity-provider flow.
-3. Select an eligible RevoEngine instance, or return to the authorized deep link you opened.
-4. Complete required MFA and trusted-browser verification.
-5. RevoEngine establishes the instance session. Each later operation still checks roles and resource access.
+<ReadingFlow
+  label="Follow a company sign-in to instance access"
+  steps={[
+    ["Sign in", "Enter a work email and authenticate through the configured identity provider."],
+    ["Select instance", "Check eligibility for the selected instance.", "Denied → inspect provider policy, membership or provisioning."],
+    ["Complete verification", "Complete required MFA and trusted-browser checks."],
+    ["Use the instance", "Start the instance session. Roles and ACLs apply to later operations."],
+  ]}
+/>
+
+Open **Company SSO** with your work email. After sign-in, choose the eligible instance or return to the authorized link you opened.
 
 Successful company sign-in can therefore be followed by denied instance access. Check the selected instance, accepted provider, account state and provisioning policy before changing resource permissions.
 

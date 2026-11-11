@@ -4,7 +4,18 @@ description: "Set up MFA, inspect trusted browsers and manage API keys without m
 icon: "shield-halved"
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Your identity, trusted browser, instance session and API keys have separate lifecycles. A saved website login in a [browser profile](/ai/browser-profiles) is also separate from the browser you trust to access RevoEngine.
+
+<ReadingFlow
+  label="Personal access boundaries"
+  steps={[
+    ["Sign in", "Authenticate and complete MFA when required."],
+    ["Select instance", "Use the active session within its authorized instance."],
+    ["Review devices", "Check and revoke trust separately from API credentials."],
+  ]}
+/>
 
 ## Register an authenticator
 

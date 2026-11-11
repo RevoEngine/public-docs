@@ -26,13 +26,13 @@ Realtime notifications are hints that something changed. Durable state remains a
 
 ## Connection flow
 
-```text
-authenticate
-  -> establish instance-bound WebSocket connection
-  -> join the allowed application channel when needed
-  -> receive events and activity
-  -> reload authoritative state
-  -> reconnect and resubscribe after interruption
+```mermaid
+flowchart TD
+  A["Authenticate and connect to the instance"] --> B["Join an allowed channel when required"]
+  B --> C["Load current state from the Platform API"]
+  C --> D["Use live events to refresh that state"]
+  D -->|Connection drops| E["Reconnect and restore subscriptions"]
+  E --> C
 ```
 
 The RevoEngine web application manages this flow automatically. A custom client should use the Realtime URL and authentication mode configured for its environment.

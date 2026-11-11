@@ -4,6 +4,8 @@ description: Authenticate, inspect an instance, configure local editor types, an
 icon: terminal
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 `@revoengine/cli` is the official command-line client for RevoEngine. It requires Node.js 24 or newer.
 
 ```bash
@@ -15,6 +17,15 @@ The package installs `revo` as the primary command. `revoengine` remains a compa
 These guides cover CLI **2.1.0**, with Platform **1.9.0 or later** and the matching VS Code extension **2.1.0 or later**. See [Upgrade to 1.9](/developers/upgrading-to-1-9) before updating existing Endpoint and Job manifests. CLI, Platform and extension versions are independent.
 
 Choose a focused guide for [command options](/developers/cli-command-reference), [projects and synchronization](/developers/cli-projects), [tests and debugging](/developers/cli-tests-and-debugging), [Studio sessions](/developers/cli-studio), [terminal commands](/developers/cli-terminal) or [environment promotion](/developers/cli-environments). Installing the CLI does not enable missing server capabilities.
+
+<ReadingFlow
+  label="From local changes to a selected target"
+  steps={[
+    ["Select", "Sign in and choose the workspace and environment."],
+    ["Compare", "Review drift before applying source changes."],
+    ["Verify", "Inspect the resulting definition or execution."],
+  ]}
+/>
 
 ## Sign in
 
@@ -154,8 +165,10 @@ usual conflict protection. No resource metadata setting is required.
 A nested path such as `options.input.region` preserves only that key. JSON Pointer
 paths, such as `/options/input/customer.region`, address literal dots in a key.
 Arrays can be omitted as a whole; indexes and wildcards are rejected. Job Template
-`inputs` is a legacy alias of `options.input`. Event `input` and `inputMode`
-also cover their legacy `extensions.*` representation, including nested input keys.
+`inputs` is a legacy alias of `options.input`. Event `input` also covers its legacy
+`extensions.input` representation, including nested input keys. Older snapshots may
+contain `inputMode`; remove that retired field before pushing definitions to 1.9
+as described in the [upgrade guide](/developers/upgrading-to-1-9).
 Endpoint uses `options.input` and
 `options.noResult`. Unknown paths, identity fields, versions, structural changes
 and dependency references cannot be omitted. An unqualified path must be supported

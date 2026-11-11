@@ -5,7 +5,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const snapshot = join(root, 'platform/product-contract.json');
-const canonical = resolve(root, '../@revoengine-platform/packages/domain/src/config/revo-product.contract.ts');
+const canonical = process.env.REVOENGINE_PRODUCT_CONTRACT
+  ? resolve(process.env.REVOENGINE_PRODUCT_CONTRACT)
+  : resolve(root, '../@revoengine-platform/packages/domain/src/config/revo-product.contract.ts');
 
 export function parseProductContract(source) {
   const match = source.match(/export const REVO_PRODUCT_CONTRACT = (\{[\s\S]*\}) as const;/);

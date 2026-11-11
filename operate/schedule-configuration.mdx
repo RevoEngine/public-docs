@@ -20,7 +20,6 @@ Open **Jobs → Schedule**, select **Add**, then provide:
 | Activate upon creation | New definitions | Whether scheduling begins immediately. |
 | Metadata | No | Searchable ownership, environment, or cost labels. |
 | Runtime input | Job only | JSON object configured in **Options**; defaults to `{}`. |
-| Input mode | Job only | **Override** overlays Job defaults; **Deep Override** merges nested objects; **Replace** replaces the input entirely. Defaults to **Override**. |
 
 The editor displays a human-readable cron description after validation.
 
@@ -67,7 +66,6 @@ The Platform API stores the same effective model shown in the UI:
   "targetType": "JOB_TEMPLATE",
   "targetId": "e8250fe1-f0e1-4d2b-b8c4-10494cb23f15",
   "input": { "region": "eu" },
-  "inputMode": "override",
   "metadata": {
     "owner": "payments-platform",
     "runbook": "settlement-v3"

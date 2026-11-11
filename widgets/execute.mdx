@@ -5,7 +5,19 @@ sidebarTitle: Execute and wait
 icon: play
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 EXECUTE selects one named `actionTargets` entry. Keep view code and completion probes read-only; use `readOnly: false` only on a target that intentionally changes state.
+
+<ReadingFlow
+  label="Distinguish submission from completion"
+  steps={[
+    ["Submit", "Send values to the registered executor."],
+    ["Accepted", "The executor can return a Job ID."],
+    ["Check", "The configured completion probe observes the operation."],
+    ["Update", "Continue the action chain after the confirmed result."],
+  ]}
+/>
 
 ## Execution sequence
 

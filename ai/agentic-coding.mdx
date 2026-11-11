@@ -49,6 +49,7 @@ Choose the simplest component type that satisfies the requirement:
 | `CODE_JS` | Standard isolated application and integration logic |
 | `CODE_TS` | Typed low-code logic when TypeScript is required |
 | `CODE_JS_LIB` / `CODE_TS_LIB` | Shared business logic exposed through `lib.LibraryName.ElementKey.member` |
+| `CODE_JS_TEST` / `CODE_TS_TEST` | [Native JavaScript and TypeScript test suites](/build/native-tests) for Component behavior and regressions using repeatable fixtures |
 | `JSON_VALIDATOR` | Reusable JSON input validation |
 | `CUSTOM_NODEJS` | Trusted multi-file Node.js code or npm dependencies |
 
@@ -57,6 +58,8 @@ New low-code logic normally uses JavaScript unless you explicitly request TypeSc
 ### 4. Validate before apply
 
 Depending on the target, validation can include a static contract check, compilation, safe code execution, Sandbox debugging, an endpoint call in the intended environment, or a snapshot comparison. Ask for the exact check you consider acceptance evidence.
+
+For native test Components, run the suite and inspect its case and assertion results. Run fixture suites independently or against a saved Studio candidate when you need evidence for that revision.
 
 ### 5. Apply through the platform
 

@@ -4,7 +4,19 @@ description: Move from one failed execution to verified cause, impact, recovery,
 icon: magnifying-glass-chart
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Use this workflow for failed Endpoints, Jobs, Events, Schedules, webhooks, integrations, Storage processing, or Agent runs.
+
+<ReadingFlow
+  label="Follow evidence before replay"
+  steps={[
+    ["Locate", "Start from the failed request or Job ID."],
+    ["Inspect", "Read the selected version, attempt and outcome."],
+    ["Reconcile", "Check for effects before repeating the operation."],
+    ["Prove recovery", "Inspect the new result and the affected records."],
+  ]}
+/>
 
 ## 1. Start from one exact execution
 

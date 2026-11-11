@@ -29,7 +29,7 @@ const result = await api.getDatabaseData('orders', {
 });
 ```
 
-Prefer a narrow projection and a bounded page. Follow the returned paging contract instead of loading an entire Table into memory.
+This returns up to 100 ready orders with totals of at least 100, newest first. Show it as a bounded page in the UI. For a full scan, follow the returned paging contract and use a stable order. See [bounded reads](/patterns/bounded-data).
 
 ### Platform API read paths
 

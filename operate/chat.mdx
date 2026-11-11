@@ -41,13 +41,12 @@ System threads are read-only notification conversations. Their content and membe
 
 Chat attachments are stored in RevoEngine Storage. The UI uses idempotent direct-upload batches so several selected files can be tracked as one composer operation.
 
-```text
-create upload batch
-  -> create one session per file
-  -> upload bytes to temporary provider URLs
-  -> heartbeat active sessions when needed
-  -> complete and verify uploads
-  -> send message with finalized Storage entry IDs
+```mermaid
+flowchart TD
+  A["Select files in the composer"] --> B["Create an upload session for each file"]
+  B --> C["Transfer bytes and confirm finalization"]
+  C --> D["Send the message with finalized Storage entry IDs"]
+  D --> E["Participants can open authorized attachments"]
 ```
 
 Finalization is the availability boundary. A selected file or completed byte transfer is not yet a message attachment until the Storage session is verified and bound.

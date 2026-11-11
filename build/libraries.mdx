@@ -4,6 +4,8 @@ description: Design reusable public APIs with named exports and a permanent defa
 icon: books
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 A JS or TS library shares business logic across components in the same instance. Put its main public API in `@default` for a short, stable caller contract; use ordinary elements to organize additional capabilities. Only active libraries appear in the runtime.
 
 | Source element | Public access |
@@ -13,6 +15,15 @@ A JS or TS library shares business logic across components in the same instance.
 | Ordinary element named `DEFAULT` | `lib.Customers.DEFAULT.member` |
 
 The library segment is the component **name**, not its category. Names and keys are case-sensitive. Use the `lib` namespace for all library calls.
+
+<ReadingFlow
+  label="Publish a shared pricing rule"
+  steps={[
+    ["Author", "Export the rule in the Library’s default or named element."],
+    ["Activate", "Select the version callers should use."],
+    ["Call", "Use lib.Pricing.quote() from an active consumer."],
+  ]}
+/>
 
 ## Start with an empty default
 

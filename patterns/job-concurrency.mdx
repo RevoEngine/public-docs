@@ -26,16 +26,7 @@ Set this object under the Job template's `options.concurrency`:
 }
 ```
 
-If five Jobs using this key arrive together, two can execute while the other three wait for admission. A waiting Job remains pending with a concurrency wait reason. It is not a failed attempt.
-
-```mermaid
-flowchart LR
-  A[Pending Job] --> B{Slot available?}
-  B -->|Yes| C[Execute Component]
-  B -->|No| D[Wait and retry admission]
-  D --> B
-  C --> E[Record terminal outcome]
-```
+Set the same key and limit on every template that uses the warehouse account. In Job History, a Job waiting for capacity remains pending with a concurrency wait reason. Once capacity is available, it can execute without creating a retry child.
 
 ## Configuration reference
 

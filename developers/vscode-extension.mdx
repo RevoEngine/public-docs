@@ -4,6 +4,8 @@ description: Develop RevoEngine low-code components locally with workspace views
 icon: square-terminal
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 <img src="/images/revoengine-vscode.png" alt="RevoEngine Platform Tools extension icon" width="72" />
 
 **RevoEngine Platform Tools** is the official VS Code extension for local RevoEngine low-code workspaces. It is an editor layer over the [RevoEngine CLI](/developers/cli): the extension presents project state, components, local changes, and debugger output; the CLI remains the authenticated platform client.
@@ -27,6 +29,15 @@ code --install-extension revoengine.revoengine
 ```
 
 You can also install **RevoEngine Platform Tools** from the VS Code Extensions view. If your organization distributes a signed `.vsix` artifact, use VS Code's **Install from VSIX…** command instead.
+
+<ReadingFlow
+  label="Edit a Component in a local workspace"
+  steps={[
+    ["Connect", "Choose the RevoEngine workspace and environment."],
+    ["Edit", "Use generated types and review local changes."],
+    ["Debug", "Run with a fixture before pushing or activating."],
+  ]}
+/>
 
 ## First workspace
 

@@ -14,16 +14,14 @@ A Job is a durable execution record for a Component. Use one when a task must ou
 
 ## Why use a Job instead of an Endpoint
 
-| Need | Use a Job | Do not use a Job |
+| Work | Good starting point | Confirm completion with |
 | --- | --- | --- |
-| Nightly synchronization with an ERP or CRM | Yes — Schedule a template, use a service-account principal, concurrency key, retry, and history. | An interactive user is waiting for a sub-second result. |
-| Export thousands of rows to Storage | Yes — return an accepted status to the UI and expose the finalized artifact when the Job ends. | A small synchronous download that fits the caller deadline. |
-| Process files uploaded by customers | Yes — Event-trigger a template, validate the file, save a durable result, and make replay safe. | The task is only to validate request shape at an Endpoint boundary. |
-| Send an external notification after a business event | Usually — protect the provider with idempotency and a retry policy. | The caller needs an immediate, transactional response from the provider. |
-| Rebuild a reporting projection overnight | Yes — run independently of UI sessions and retain success/failure evidence. | The value must be calculated inline for every HTTP request. |
-| One-off operator repair or backfill | Yes — use explicit input, a bounded selection, and a reviewable Job ID. | An ad-hoc script with unbounded production access. |
+| Look up one order while the caller waits | [HTTP Endpoint](/operate/endpoint-http) | Its response |
+| Export a report for later download | [Job started from an Endpoint returning `202`](/examples/endpoint-job) | Job result and finalized Storage entry |
+| Process an uploaded file | [Event](/operate/events) targeting a Job template | Event History and Job result |
+| Synchronize with an ERP overnight | [Schedule](/operate/schedules) targeting a Job template | Schedule History and Job result |
 
-An Endpoint is synchronous application ingress. It should validate, perform bounded work, and respond while the caller is still waiting. A Job is asynchronous application work. It can be started by an Endpoint, but the Endpoint should return a durable Job/operation reference rather than pretend a long task is complete.
+A template defines the Component, inputs and execution policy. Job History records the run, including who initiated it, the executor and any retry attempts.
 
 ## Find Jobs by trigger and requester
 
@@ -50,7 +48,7 @@ See [Limits and quotas](/platform/limits-and-quotas) for the distinction between
 | Minimum timeout | `1` second. |
 | Default timeout | `300` seconds (5 minutes) when a template does not set one. |
 | Maximum timeout | Instance quota `jobTimeout`, configurable up to `3540` seconds — **59 minutes**. A lower tenant quota takes precedence, so operators should confirm the current instance value before depending on the maximum. |
-| Default memory | `128` MiB when omitted by the job service. |
+| Default memory | `256` MiB when omitted by the Job service. |
 | Maximum memory | The low-code runtime ceiling is `2048` MiB — **2 GiB**. This is not an independently configurable `jobMemory` instance quota. Reserve only what the Component needs. |
 | Concurrency limit | Per logical key: `1`–`1000` concurrent executions. Lease TTL: `1`–`86400` seconds. |
 | Retry attempts | The configured total includes the initial attempt; retries apply after terminal `ERROR`, not cancellation or success. |
@@ -61,6 +59,10 @@ The 59-minute limit is intentionally not a substitute for an unbounded worker. S
 ## Configure a template
 
 The **Jobs** workspace shows template identity, Component, metadata, actor timestamps, and version. Select a template to open its Details panel: the panel separates **Runtime input**, **Concurrency**, **Retry**, and metadata, and offers **Run** for a deliberate operator invocation. This separation is useful: it makes the settings that change capacity and duplicate-side-effect risk visible before a run is created.
+
+1. Create and activate the Component. In **Jobs**, create a Job template and select the Component and version binding.
+2. Choose the execution account and set Runtime input, timeout, memory, concurrency, retry and history visibility.
+3. Save the template. Test with [a matching Event](/examples/event-job) and follow the exact Job to its result, or select **Run** on the template for a direct invocation with its required inputs.
 
 ```json
 {

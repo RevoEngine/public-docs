@@ -15,11 +15,12 @@ Use a database transaction for local records that must commit together. An exter
 
 ## Recommended boundary
 
-```text
-validate command
-  -> commit local state and pending operation
-  -> dispatch durable external work
-  -> record the confirmed external result
+```mermaid
+flowchart TD
+  A["Validate the order command"] --> B["Commit reservation and pending operation together"]
+  B --> C["Dispatch external settlement separately"]
+  C --> D["Confirm the receiver receipt"]
+  D --> E["Record the settlement result"]
 ```
 
 Keep a reconciliation path for the gap between committing local intent and dispatching work. A local commit followed by a separate enqueue is not one atomic operation merely because both calls appear in the same Component.

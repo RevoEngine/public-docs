@@ -4,25 +4,26 @@ description: Emit live events from Endpoint Components, return final results and
 icon: tower-broadcast
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 import { ScreenshotDetail } from "/snippets/screenshot-detail.jsx";
 
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
-<Note>These features require Platform 1.7.0 on the target instance. Publishing this documentation or updating the CLI does not upgrade the application.</Note>
+Use Server-Sent Events (SSE) when a caller needs progress, generated text or tool activity before work finishes. One HTTP response carries `Content-Type: text/event-stream` and a series of frames. Choose [HTTP responses](/operate/endpoint-http) for one completed result.
 
-Server-Sent Events (SSE) lets a Component send events while it works. Use it for
-progress, generated text, tool activity and other incremental results. A stream is
-one HTTP response with `Content-Type: text/event-stream`.
+## Read the response boundary
 
-SSE is a response mode of the same Endpoint. **POST**, request body, query, path
-parameters, authorization, execution policy and guards continue to work.
-Choose [HTTP](/operate/endpoint-http) when the caller only needs the final response.
+<ReadingFlow
+  label="See when an SSE stream opens and closes"
+  steps={[
+    ["Request", "Check access, route and guard.", "Rejected → ordinary HTTP error before a stream opens."],
+    ["Stream", "Open HTTP 200 with SSE and emit application events."],
+    ["Finish", "By default, a completed Component emits result then done.", "Failure while connected → error then done by default."],
+  ]}
+/>
 
-<Frame caption="A quote stream configured with result, error and done events, disconnect cancellation and a validation error response.">
-  <img src="/images/asterion/endpoint-sse-options.jpg" alt="SSE Endpoint settings showing event names, cancellation, validation status 422 and Main result selection" />
-</Frame>
-
-<ScreenshotDetail src="/images/asterion/endpoint-sse-options.jpg" alt="SSE Endpoint settings showing event names, cancellation, validation status 422 and Main result selection" width={1920} height={1080} />
+SSE requires Platform 1.7.0 or later and a local JavaScript or TypeScript Component. Method, body, query, path parameters and authorization work as they do for [HTTP Endpoints](/operate/endpoints).
 
 ## Explore the behavior
 

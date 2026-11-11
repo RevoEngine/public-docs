@@ -4,7 +4,19 @@ description: Turn one reviewed piece of business logic into a versioned building
 icon: puzzle-piece
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 Components are the primary unit of executable and reusable logic in RevoEngine. A component has metadata, ordered elements or files, versions, activation state, access rules, and optional deployment state.
+
+<ReadingFlow
+  label="Run one definition from different surfaces"
+  steps={[
+    ["Author", "Define ordered elements and their inputs."],
+    ["Debug", "Run a fixture and inspect each element result."],
+    ["Activate", "Select a reviewed Component version."],
+    ["Bind", "Choose that logic for an Endpoint, Job or Agent tool."],
+  ]}
+/>
 
 ## Start with the job to be done
 

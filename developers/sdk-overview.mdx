@@ -4,6 +4,8 @@ description: Use one typed RevoEngine runtime across hosted Custom Node.js and s
 icon: node-js
 ---
 
+import { ReadingFlow } from "/snippets/reading-flow.jsx";
+
 `@revoengine/sdk` exposes the modern RevoEngine runtime to Node.js 22 or newer. It provides:
 
 - `api` for platform-backed runtime operations;
@@ -41,6 +43,15 @@ Both modes expose the same top-level namespaces, but context methods reflect whe
 | Local `utils` and `batch.configure()` | Synchronous unless the utility is inherently async | Same |
 
 The exported `RevoApi` and `RevoStandaloneApi` types preserve this distinction.
+
+<ReadingFlow
+  label="One library function, two ways to supply its runtime"
+  steps={[
+    ["Select the host", "Use the injected hosted runtime or create a standalone client."],
+    ["Call your function", "Pass the small set of runtime operations it needs."],
+    ["Handle the result", "Await platform calls and inspect the returned data or error."],
+  ]}
+/>
 
 ## Shared function pattern
 

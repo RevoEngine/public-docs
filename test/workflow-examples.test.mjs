@@ -41,6 +41,61 @@ test('asynchronous export example consumes the accepted response rather than a m
 });
 
 
+const endpointJobPage = read('examples/endpoint-job.mdx');
+const [quoteWorker, quoteEndpoint] = codeExamples(endpointJobPage);
+const runElement = (source, api) => vm.runInNewContext(
+  '(async () => {\n' + source.code + '\n})()',
+  { api },
+);
+const exampleJson = title => {
+  const marker = '```json title="' + title + '"\n';
+  return JSON.parse(endpointJobPage.split(marker)[1].split('\n```')[0]);
+};
+
+test('Endpoint-to-Job example returns the exact receipt and the documented worker result', async () => {
+  const receipt = exampleJson('Accepted receipt');
+  const finished = exampleJson('Completed Job detail · selected fields');
+  assert.equal(finished.jobId, receipt.jobId);
+  let jobInput;
+  const result = await runElement(quoteEndpoint, {
+    input: () => ({
+      parameters: { orderId: 'order-123' },
+      body: { quantity: 3 },
+      templateInputs: { quoteJobTemplateId: 'template-1' },
+    }),
+    triggerJob: async (template, input) => {
+      assert.equal(template, 'template-1');
+      jobInput = JSON.parse(JSON.stringify(input));
+      return receipt.jobId;
+    },
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), receipt);
+  assert.deepEqual(jobInput, { input: { orderId: 'order-123', quantity: 3 }, type: 'QUOTE_REQUESTED' });
+  const quote = await runElement(quoteWorker, {
+    input: key => {
+      assert.equal(key, 'templateInputs');
+      return exampleJson('Job template · Runtime input');
+    },
+    async *walkTriggers() { yield { ...jobInput, triggerType: 'EXECUTION' }; },
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(quote)), finished.output.results.Quote);
+});
+
+test('Endpoint-to-Job example rejects invalid worker input and propagates failed admission', async () => {
+  await assert.rejects(runElement(quoteWorker, {
+    input: () => ({ unitPriceMinor: 1250 }),
+    async *walkTriggers() { yield { triggerType: 'EXECUTION', input: { orderId: 'order-123', quantity: 0 } }; },
+  }), /Quantity must be an integer/);
+  await assert.rejects(runElement(quoteEndpoint, {
+    input: () => ({
+      parameters: { orderId: 'order-123' },
+      body: { quantity: 3 },
+      templateInputs: { quoteJobTemplateId: 'template-1' },
+    }),
+    triggerJob: async () => { throw new Error('Job could not be accepted'); },
+  }), /Job could not be accepted/);
+});
+
 test('Job guides agree with the generated request ceiling rather than advertising unsupported memory', () => {
   const spec = JSON.parse(read('api-reference/openapi.json'));
   const maximum = spec.components.schemas.JobOptionsDto.properties.memory.maximum;

@@ -23,6 +23,8 @@ An operator view needs a bounded, understandable answer. Choose a limit before l
 
 ## Make the dataset boundary visible
 
+For an orders widget that reads a bounded page, display **Latest 20 matching orders**. Provide a paginated view or a separate export action when an operator needs every match. In a batch processor, use each returned cursor to request the next page before declaring the scan complete.
+
 “Latest 100 runs” is different from “All runs today.” If a query cap can omit records, avoid displaying the count as a complete business total. Include the filter, time window, timezone and completeness in the UI.
 
 Server pagination and browser filtering have different purposes. A Custom Widget TABLE filters the returned data; it does not automatically fetch missing pages. A full export should use the export contract and wait for its completion.

@@ -6,7 +6,13 @@ icon: table
 
 Storage uses one tabular contract for CSV, TSV, and XLSX. Declare it when the file's expected structure is known, regardless of whether the bytes come from a browser upload or rows generated through `uploadPart()`.
 
-The schema is stored on the upload session and reused when Storage builds the file index. It is not inferred from Excel formatting.
+The upload session stores the schema for validation and indexing. A supplier's CSV and an application-generated XLSX can use the same declared columns.
+
+| I need to… | Start here |
+| --- | --- |
+| Declare types, required values and extra-column behavior | [Structured file schema](/operate/storage-file-schema) |
+| Parse a supplier's delimiter, quote and record conventions | [CSV and TSV dialects](/operate/storage-csv) |
+| Generate rows and read them back as typed values | [Write and read typed rows](/operate/storage-typed-rows) |
 
 <span id="shared-schema-contract" aria-hidden="true"></span>
 <span id="column-types" aria-hidden="true"></span>
@@ -20,13 +26,6 @@ The schema is stored on the upload session and reused when Storage builds the fi
 <span id="compute-timing" aria-hidden="true"></span>
 <span id="read-the-typed-result" aria-hidden="true"></span>
 <span id="other-structured-formats" aria-hidden="true"></span>
-
-<CardGroup cols={2}>
-  <Card title="Structured file schema" href="/operate/storage-file-schema" icon="book-open">Configure columns, validation, unknown fields and strict validation.</Card>
-  <Card title="CSV and TSV dialects" href="/operate/storage-csv" icon="book-open">Configure delimiters and understand record and column errors.</Card>
-  <Card title="Write and read typed rows" href="/operate/storage-typed-rows" icon="book-open">Generate structured files and read their typed result.</Card>
-</CardGroup>
-
 
 ## Next steps
 
