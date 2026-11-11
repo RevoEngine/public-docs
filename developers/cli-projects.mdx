@@ -108,6 +108,62 @@ A clean local copy can fast-forward when only the remote changed. If both sides 
   The lock file is synchronization evidence, not deployed source of truth. RevoEngine remains authoritative for deployed state; local component files are the desired source you are proposing.
 </Warning>
 
+## Configure Single, Batch or Debounce Jobs
+
+CLI **2.1.0** synchronizes Job Template execution modes with Platform **1.9.0 or later**. Collection belongs to the Job Template, so matching Event, Schedule, manual and programmatic triggers can join the same Job. See [Job execution modes](/patterns/event-job-delivery) for grouping boundaries and runtime processing.
+
+Pull the current definitions from the selected project before editing their `job-template.json` manifests:
+
+```bash
+revo job-templates pull --all
+```
+
+Merge one of these fragments into a pulled manifest, keeping its identity, Component binding and other settings:
+
+<CodeGroup>
+```json Single
+{
+  "delivery": null
+}
+```
+
+```json Batch
+{
+  "delivery": {
+    "mode": "BATCH",
+    "maxSize": 100,
+    "maxWaitSeconds": 600
+  }
+}
+```
+
+```json Debounce
+{
+  "delivery": {
+    "mode": "DEBOUNCE",
+    "maxSize": 100,
+    "maxWaitSeconds": 600,
+    "quietPeriodSeconds": 30
+  }
+}
+```
+</CodeGroup>
+
+`maxSize` accepts 2–1000 triggers. Wait and quiet periods accept 1–3600 seconds. Debounce requires `quietPeriodSeconds` no greater than `maxWaitSeconds`; Batch does not accept a quiet period. Configure dynamic concurrency separately with `options.concurrency.keyPath`, for example `/message/orderId`.
+
+Review the plan before applying it. These commands cover all managed Job Templates in the workspace:
+
+```bash
+revo job-templates plan --all
+revo job-templates push --all --yes
+```
+
+<Warning>
+  In a CLI manifest, removing `delivery` or setting it to `null` requests **Single**, including when updating an existing Batch or Debounce Job Template. To preserve the target's execution mode while synchronizing other settings, use `--omit=delivery` on both `plan` and `push`.
+</Warning>
+
+Older Event-level `delivery` policies are rejected. Move the policy to the target Job Template and remove the former Event `keyPath`; choose any dynamic concurrency path separately. Event and Schedule `input` is retained on each trigger, while template defaults remain in `templateInputs`. CLI 2.1.0 ignores retired `inputMode` fields and excludes them from fresh pulls and API writes. Re-pull definitions and regenerate reviewed plans after upgrading; follow [Upgrade to 1.9](/developers/upgrading-to-1-9) when updating the Job's Component code.
+
 ## Portable owners and execution policies
 
 Use `owner: { "type": "system" }` for a Group or Service Account whose management owner is the built-in System account. An ordinary Service Account owner uses `owner: { "type": "service-account", "stableKey": "operations-worker" }`. The CLI resolves these references in the target instance. A Service Account manifest owner becomes management access; it does not grant execution roles. System itself is protected and is excluded from managed-account exports, updates, and pruning. A target without a valid physical System account is blocked before dependent writes.

@@ -17,6 +17,8 @@ RevoEngine 1.9 builds on [1.8](/developers/upgrading-to-1-8). Review Job callers
 
 Versions are independent. SDK 4.1.0 intentionally changes the `api.triggerJob` calling contract to the native explicit trigger envelope. Published SDK 4.0.0 keeps its original wire contract on the new platform; review callers before upgrading their package. Existing hosted revisions keep their recorded SDK until redeployed. New hosted Components use the exact platform-supported SDK version.
 
+For CLI-managed automation, see [Single, Batch and Debounce manifests](/developers/cli-projects#configure-single-batch-or-debounce-jobs), including how to preserve a target's execution mode during synchronization.
+
 ## Separate template values from triggers
 
 Configure execution grouping on the **Job Template**, not the Event subscription. BATCH/DEBOUNCE collect Event, Schedule, manual and low-code/REST triggers together within matching Job configuration and template-input boundaries. Different authorized callers and Assistant conversations can join one Job. The shared executor comes from the Job account, then the instance Jobs policy, then the established instance Job account or System. Each trigger retains its initiating account and origin. `api.triggerJobs` still returns one ID per item, but IDs may repeat when items join one group.
