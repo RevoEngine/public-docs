@@ -72,20 +72,12 @@ Message controls use the same `commit`, `debounceMs`, `valueMode`, `visibleWhen`
 
 Bind the whole draft with `{from: 'input', id: 'reply'}`. A writer receives an object; it must not treat the object as a string or send arbitrary fields without validation. Keep public correspondence separate from internal notes, and make any sending action explicit.
 
-## Prepare a standard email
+## Prepare an email in your application
 
-Use [util.renderEmail](/low-code/reference/util/renderEmail) to produce HTML and a text alternative from the same Markdown:
+Keep final Markdown-to-email rendering in the owning application's library, together with its templates and HTML/text policy. Discover that library's actual exported functions before using it; the platform does not provide a general email-rendering utility.
 
-```js
-const prepared = await util.renderEmail('Hello **customer**.\n\nWe are reviewing your request.', {
-  title: 'Case update',
-  footer: 'RevoEngine Support'
-});
-return {html: prepared.html, text: prepared.text};
-```
-
-`util.renderEmail(markdown, {title, footer?})` is available in native low-code, not as a local Node.js SDK utility. It is pure preparation. It accepts up to 100000 Markdown characters, a non-empty title up to 300 characters and an optional footer up to 1000. It uses the standard email shell, escapes raw HTML, omits remote image embedding and turns internal reference tokens into readable labels. It does not authorize recipients, load files, enqueue a delivery or send an email.
+Formatting a preview does not authorize recipients, load attachments, enqueue delivery or send mail. A separate explicit write action must validate the committed draft and current recipient/file permissions before storing or delivering a reviewed payload. Escape raw HTML and restrict links and image handling according to your application's email policy.
 
 Attachments remain separate Storage references. Do not insert signed links or pasted file data into the persisted Markdown draft. If a workflow later queues mail, store a reviewed prepared payload and stable attachment identities under its normal permission, idempotency and delivery rules.
 
-Follow [prepare a message without sending](/widgets/examples/message-draft) for a complete widget source. See [content readers](/widgets/content-readers) for incoming read-only HTML and [execution](/widgets/execute) for explicit write actions.
+Follow [preview a Markdown draft](/widgets/examples/message-draft) for a complete widget source. See [content readers](/widgets/content-readers) for incoming read-only HTML and [execution](/widgets/execute) for explicit write actions.

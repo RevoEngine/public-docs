@@ -1,10 +1,10 @@
 ---
-title: "Prepare a message without sending"
-description: "Build a read-only Markdown reply form and refresh its standard HTML and text preview."
+title: "Preview a Markdown draft"
+description: "Build a read-only Markdown reply form and refresh its committed preview."
 icon: envelope-open-text
 ---
 
-This complete Inline JavaScript widget lets an operator edit Markdown, prepare the standard email HTML and inspect its text alternative. **Prepare preview** commits the draft and refreshes only the preview cells. It does not send or queue a message.
+This complete Inline JavaScript widget lets an operator edit Markdown and inspect a committed preview. **Prepare preview** commits the draft and refreshes only the preview cell. It does not send or queue a message.
 
 ## Prerequisites
 
@@ -34,27 +34,15 @@ if (wanted('replyForm')) {
         ? {composer: {uploadFolderId: input.uploadFolderId}}
         : {})
     }],
-    on: {submit: {type: 'REFRESH', target: ['htmlPreview', 'textPreview']}}
+    on: {submit: {type: 'REFRESH', target: ['markdownPreview']}}
   }]);
 }
-if (wanted('htmlPreview') || wanted('textPreview')) {
-  const prepared = await util.renderEmail(draft.body, {
-    title: 'Case update', footer: 'RevoEngine Support'
-  });
-  if (wanted('htmlPreview')) {
-    rows.push([{
-      id: 'htmlPreview', type: 'TEXT', label: 'Prepared email', height: 360,
-      presentation: {kind: 'html', copy: true, fullscreen: true},
-      value: prepared.html
-    }]);
-  }
-  if (wanted('textPreview')) {
-    rows.push([{
-      id: 'textPreview', type: 'TEXT', label: 'Text alternative', height: 220,
-      presentation: {kind: 'plain', copy: true, fullscreen: true},
-      value: prepared.text
-    }]);
-  }
+if (wanted('markdownPreview')) {
+  rows.push([{
+    id: 'markdownPreview', type: 'TEXT', label: 'Committed message', height: 360,
+    presentation: {kind: 'markdown', copy: true, fullscreen: true},
+    value: draft.body
+  }]);
 }
 return rows;
 ```
@@ -62,13 +50,13 @@ return rows;
 ## Expected result
 
 1. Enter `Hello **customer**.` in the message field.
-2. Select **Prepare preview**. The HTML reader shows the prepared message and the plain reader includes `Hello customer.` plus the standard title/footer.
+2. Select **Prepare preview**. The Markdown reader shows the committed message with **customer** in bold.
 3. Edit the draft again. The prepared result stays unchanged until the next successful submit.
 4. Refresh the widget. The stable `reply` control retains its draft.
 
-The isolated HTML reader applies its own safe display styles; the prepared HTML payload retains the standard email shell. This is a content preview, not a pixel-for-pixel simulation of every email client.
+The Markdown reader previews message content. Final email HTML/text and templates belong in your application library; this example does not render a finished email.
 
-When an upload folder is configured, file selection, drag/drop or pasting a screenshot uploads a normal Storage attachment. Submission waits until uploads are ready or removed. The prepared HTML/text utility does not add or send those files; the committed draft retains their identities for a separately authorized writer.
+When an upload folder is configured, file selection, drag/drop or pasting a screenshot uploads a normal Storage attachment. Submission waits until uploads are ready or removed. The preview does not load or send those files; the committed draft retains their identities for a separately authorized writer.
 
 ## Failure behavior
 

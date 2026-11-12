@@ -865,7 +865,6 @@
                   {
                     "group": "Validation and utilities",
                     "pages": [
-                      "low-code/reference/util/renderEmail",
                       "low-code/reference/util/sleep",
                       "low-code/reference/util/isUUID",
                       "low-code/reference/util/randomUUID",
