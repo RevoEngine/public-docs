@@ -166,6 +166,44 @@ const created = await api.transactionDatabase(async (tx) => {
 
 Await transaction calls sequentially. Keep sleeps and remote HTTP/SFTP side effects outside the callback because a transaction reserves a connection and may hold row locks.
 
+### Choose isolation separately from atomicity
+
+Every supported isolation level keeps the transaction's database writes atomic: they commit together or roll back together. Isolation determines how concurrent reads and decisions are protected. The default remains `SERIALIZABLE`; the runtime does not retry callbacks automatically.
+
+| Workflow | Choice |
+| --- | --- |
+| Import batches, known-key updates and per-file progress | Explicit `READ COMMITTED`, with row locks, constraints or conditional writes protecting read-then-write decisions. |
+| Decisions across a read set or absent rows, such as a capacity check | `SERIALIZABLE`, database constraints and bounded whole-transaction retry. |
+| Several reads that need one consistent snapshot | `REPEATABLE READ`; this does not prevent every concurrent-write anomaly and writes can still require retry. |
+
+A row lock protects an existing matching row, not an absent row. Enforce uniqueness with a primary key or unique constraint and an appropriate insert/upsert operation. Different written keys can still conflict under `SERIALIZABLE`.
+
+For a batch that updates known rows and its existing progress record:
+
+```js
+await api.transactionDatabase(async (tx) => {
+  const progress = await tx.getDatabaseDataRow('import_progress', {
+    filter: { field: 'importId', op: 'eq', value: importId },
+  }, { lock: 'update' });
+  if (!progress) throw new Error('Import progress is missing.');
+  await tx.upsertDatabaseData('items', batch, { return: false });
+  await tx.updateDatabaseDataRequest('import_progress', {
+    filter: { field: 'importId', op: 'eq', value: importId },
+  }, { processed: Number(progress.processed) + batch.length }, { return: false });
+}, { isolationLevel: 'READ COMMITTED' });
+```
+
+This fragment assumes `importId` and `batch` are validated inputs, `import_progress.importId` is its primary key, the progress row already exists, and batch decisions are protected by the items' keys/constraints. It does not promise serialization of broader business rules.
+
+### Handle a transaction conflict
+
+`DATABASE_TRANSACTION_CONFLICT` exposes `statusCode: 409`, `retryable: true`, `stage: 'transaction'` and a bounded `cause.code`: `40001` for a serialization conflict or `40P01` for a deadlock. The code and recovery metadata are available on a caught low-code error and in terminal execution diagnostics.
+
+After rollback, retry the **complete transaction**, including the reads and decisions that produced its writes. Never retry only a failed `tx.*` call inside the aborted transaction. Limit attempts and respect the enclosing execution deadline. `retryable: true` describes the database transaction; it does not authorize automatic replay of the entire Job.
+
+The runtime performs no automatic callback retry. Database rollback does not undo HTTP, Events, accepted Jobs, Storage writes or changes to JavaScript variables. Keep external effects outside the transaction and reconstruct attempt-local state before any deliberate retry. Choose isolation for each workflow rather than changing a global default to resolve one conflict.
+
+
 ## Raw SQL
 
 `api.queryDatabase()` is for parameterized `SELECT` or `WITH` reads when the structured builder cannot express the query. Use the mutation helpers for writes.
