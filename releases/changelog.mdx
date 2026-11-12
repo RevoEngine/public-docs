@@ -7,22 +7,17 @@ description: "Explore RevoEngine's development timeline, product milestones and 
 
 From early experiments in 2020 to an integrated platform for building and operating applications. Follow the product's development, then open a release for its highlights and detailed changes.
 
-<Card title="Latest · 1.9.0 — Grouped automation, readable data, and compressed Storage" icon="sparkles" href="/changelog/1.9.0">
-  2026-11-11. Collect related executions into one Job, inspect each Job trigger, read JSON directly in data grids, and work with gzip files through native Storage tools.
+<Card title="Latest · 1.9.1 — Tabbed workspaces and focused Sandbox execution" icon="sparkles" href="/changelog/1.9.1">
+  2026-11-12. Build connected dashboard workspaces, choose native platform items, and run one Component element while debugging in Sandbox.
 </Card>
 
 ## Explore the current release
 
 | Change | Current operating guide |
 | --- | --- |
-| Collect executions with explicit Job inputs | [Event delivery](/patterns/event-job-delivery) |
-| Admit direct Jobs atomically | [atomic Job batches](/operate/jobs#produce-an-atomic-job-batch) |
-| Inspect triggers and full JSON values | [Databases](/operate/databases) |
-| Trace retries and initiating sources | [Job History](/operate/jobs#find-jobs-by-trigger-and-requester) |
-| Compress uploads and database exports | [Storage uploads](/operate/storage-uploads) |
-| Share Secrets and embed external applications | [Secret access](/operate/secrets#access-control) |
-| Author typed dashboards | [dashboard authoring](/operate/dashboards) |
-| Upgrade Job callers and clients together | [1.9 upgrade guide](/developers/upgrading-to-1-9) |
+| Build connected dashboard workspaces | [reactive widgets](/operate/reactive-widgets) |
+| Select items with native controls | [dashboards](/operate/dashboards) |
+| Run one element in Sandbox | [Sandbox execution selection](/developers/sandbox-api) |
 
 Follow the [Asterion Supply scenario](/platform/asterion-supply) to connect pricing, orders, files, automation and governed AI in one industrial distributor.
 
@@ -41,6 +36,9 @@ Early AI was a conversational alpha alongside that production platform. Platform
 Major product milestones have their own release pages. The sidebar also includes the smaller releases between them, preserving how each capability developed over time.
 
 <CardGroup cols={2}>
+  <Card title="1.9.0 · Grouped automation, readable data, and compressed Storage" href="/changelog/1.9.0">
+    2026-11-11 — Collect Event, Schedule, manual and low-code triggers with Job Template Batch or Debounce and process them in order with `api.walkTriggers()`.
+  </Card>
   <Card title="1.8.0 · Interactive workspaces and shared browsing" href="/changelog/1.8.0">
     2026-11-07 — Use forms, Job actions and drill-down views in dashboards and private Assistant cards.
   </Card>

@@ -46,6 +46,20 @@ Nested calls create a fresh isolated execution on the current host by default, w
 
 Calls inherit the caller's remaining deadline and nesting is limited to five levels. A local child also receives the caller's cancellation signal. Remote calls require at least one second of remaining time. Use a library when you only need shared business logic within the current execution.
 
+To execute one independent JavaScript or TypeScript element, pass the optional selector:
+
+```js
+const result = await api.executeComponent({
+  componentId: api.input('componentId'),
+  executionMode: 'selected',
+  elementKey: 'Conversation',
+  inputs: { caseId: api.input('caseId') },
+});
+return result;
+```
+
+`elementKey` must exactly match one unique existing key, including case. Only that element runs; predecessors, dependencies and earlier results are not supplied implicitly. Omitting `executionMode`, or choosing `all`, preserves ordered execution of all elements even if `elementKey` is present. Selection is available for local and remote child execution on supporting backends and retains full-Component authorization, approval and artifact identity. It does not change the child isolation or deadline rules above. See [Sandbox selection](/developers/sandbox-api#execute-all-elements-or-one-selected-element) and [widget source selection](/widgets/source-configuration#select-one-executable-element).
+
 ## Utilities
 
 ```js

@@ -955,6 +955,7 @@
               {
                 "group": "1.9.x",
                 "pages": [
+                  "changelog/1.9.1",
                   "changelog/1.9.0"
                 ]
               },

@@ -13,7 +13,7 @@ Use a reader to display a message, document or compact summary without turning e
 | `markdown` | TEXT | `value` string | Markdown headings, lists, links and code. |
 | `card` | TEXT | `value`; optional `label` | Markdown content with a titled card surface. |
 | `plain` | TEXT | `value` | Preserves line breaks without Markdown interpretation. |
-| `metric` | TEXT | `value`, optional `description` | Prominent value and supporting description. |
+| `metric` | TEXT | `value`, optional `label` and `description` | Themed metric card with a visible label, prominent value and supporting description. |
 | `html` | TEXT | `value` HTML string | Sanitized, isolated, read-only document. |
 | `image` | TEXT | `value` HTTPS image URL or supported image data URL | Image with optional `label` and `description`. |
 | `code` | TEXT | `value` string | Read-only code editor with a declared language. |
@@ -29,13 +29,15 @@ Omitting `presentation.kind` preserves the ordinary TEXT renderer. A presentatio
 | Field | Type | Default or behavior |
 | --- | --- | --- |
 | `kind` | One of the kinds above | Optional; choose a kind matching the cell. |
+| `frame` | `card` | Optional native border and titled section around a reader. |
+| `tone` | `neutral`, `info`, `success`, `warning`, `danger` | Semantic theme colors for a card or metric. |
 | `copy` | boolean | Opt-in copy for explicit Markdown/card, HTML and plain readers. |
 | `fullscreen` | boolean | Independent fullscreen for explicit Markdown/card, HTML, plain and image readers. |
 | `scroll` | boolean | TEXT scrolls automatically with a fixed height or `maxHeight`; can be overridden. |
-| `scrollControls` | boolean | Adds up/down controls, disabled at the respective boundary. |
+| `scrollControls` | boolean | Adds overlay up/down controls on hover or keyboard focus without reserving a row; touch controls remain visible. |
 | `minHeight`, `maxHeight`, `maxWidth` | pixels | Optional 1–10000; constrain the cell. |
 | `language` | string | Code only; defaults to `plaintext`. |
-| `allowImages` | boolean | HTML only; permits an operator image-consent control. |
+| `allowImages` | boolean | HTML only; loads permitted remote images automatically when true. |
 | `cidImages` | String map | HTML content IDs to authorized fresh Storage URLs, at most 30. |
 | `draggable` | boolean | List only; enables reorder controls and `on.change`. |
 
@@ -62,9 +64,9 @@ return [[{
 }]];
 ```
 
-HTML is sanitized and displayed in a sandboxed document. Scripts, inline event handlers, forms, buttons, embedded frames, navigation and content-supplied CSS are removed. The reader applies its own light/dark presentation. It is not a browser page and has no action bridge to the host. Put real controls outside the HTML and use [declared actions](/widgets/actions).
+Use `presentation.frame: 'card'` for a bordered message reader with its title and copy/fullscreen actions aligned in the header. HTML is sanitized and displayed in a sandboxed document. Scripts, inline event handlers, forms, buttons, embedded frames, navigation and content-supplied CSS are removed. The reader applies its own light/dark presentation. It is not a browser page and has no action bridge to the host. Put real controls outside the HTML and use [declared actions](/widgets/actions).
 
-Remote HTML images require both `allowImages: true` and the operator's **Load images** choice. Changing the displayed message clears that choice. Do not interpret blocked images as an empty message or missing attachment. For `cid:` images, the authorized source supplies normalized lowercase content IDs in `cidImages` with fresh signed Storage URLs. Do not copy customer-provided URLs into that map.
+With `allowImages: true`, permitted remote HTML images load automatically, including after changing the selected message. There is no separate image-loading button. With the option omitted or false, unrelated remote images remain blocked. For `cid:` images, the authorized source supplies normalized lowercase content IDs in `cidImages` with fresh signed Storage URLs; those authorized images render immediately. Do not copy customer-provided URLs into that map.
 
 The separate `image` reader displays its permitted source directly. Use it for deliberate images or screenshots, not unsolicited tracking images taken from email HTML. It accepts HTTPS URLs and base64 PNG/JPEG/GIF/WebP data URLs. `fullscreen: true` uses the image zoom surface.
 
@@ -109,3 +111,16 @@ const action = {
 ```
 
 The input ID is a lookup key for the authorized reader. Do not use clicked text as a signed URL. An unavailable, expired or denied file remains an error; it must not silently become an unrestricted link.
+
+
+## Shared section presets
+
+TEXT readers accept `presentation.preset: 'section' | 'subsection' | 'callout'`. Section uses the native titled card, subsection uses a more compact header and spacing, and callout adds a semantic accent. These presets reuse the current Revo theme in light and dark mode. Combine a callout with `tone: 'info' | 'success' | 'warning' | 'danger'` when that meaning helps the operator; custom CSS is not part of the contract.
+
+```js
+return [[{
+  id: 'guidance', type: 'TEXT', label: 'Before continuing',
+  value: 'Confirm the selected customer and keep private notes internal.',
+  presentation: { kind: 'markdown', preset: 'callout', tone: 'info' },
+}]];
+```

@@ -75,3 +75,102 @@ The button loads only when selected; the input action loads after commit, includ
 Hidden inline hosts do not mount or perform child reads. Showing a host again starts a fresh child read. Panels and inline children have independent loading/error, inputs and timers; nesting is limited to eight levels. Replacement navigation retains up to twelve frames, and its clickable breadcrumb restores a retained ancestor. Pending writes/probes must settle before back navigation.
 
 Child target maps can inherit the registered maps of the parent. This is declarative navigation between authorized sources, not a way to load arbitrary browser components.
+
+## Workspace section controls
+
+Use an INPUT with `control: 'tabs'` for a small set of workspace sections. It shares the normal scalar select options and frame state. Its native Revo buttons expose their selected state, support keyboard navigation and scroll horizontally when needed. This control changes a committed value; it does not change the browser URL or create another view frame.
+
+```js
+return [[{
+  id:'section',type:'INPUT',control:'tabs',label:'Workspace',value:'conversation',
+  options:[{value:'conversation',label:'Conversation'},{value:'triage',label:'Internal triage'}]
+}], [{
+  id:'conversation',type:'TEXT',value:'Conversation content',
+  visibleWhen:{input:'section',equals:'conversation'}
+}], [{
+  id:'triage',type:'TEXT',value:'Internal assessment',
+  visibleWhen:{input:'section',equals:'triage'}
+}]];
+```
+
+For server-derived section content, attach an ordinary `on.change` refresh and return exactly the requested cell IDs. For an independent detail view, continue to use a registered destination and OPEN_WIDGET.
+
+## Modal and popover destinations
+
+`OPEN_WIDGET` also accepts `mode: 'modal'` or `mode: 'popover'`. A modal is centered; a popover is anchored to the initiating control and stays within the viewport. Both use the native Revo surface, focus trap, Escape/backdrop dismissal and focus return. Registered widget code runs through the same Sandbox as a side panel; the click cannot supply executable source.
+
+A destination can instead contain `matrix` for declarative elements without a code call. Choose one content source: component, inline code, matrix or saved native dashboard widget.
+
+```js
+const widgetTargets = {
+  picker: {
+    header: { title: 'Choose status', actions: [{
+      id: 'apply', label: 'Use selection', icon: 'fa-regular fa-check',
+      on: { click: { type: 'RETURN', input: { selected: { from: 'input', id: 'status' } } } }
+    }] },
+    layout: { maxWidth: 480 },
+    matrix: [[{ id: 'status', type: 'INPUT', label: 'Status', control: 'select', value: 'OPEN',
+      options: [{ value: 'OPEN', label: 'New' }, { value: 'CLOSED', label: 'Closed' }] }]]
+  }
+};
+const on = { click: {
+  type: 'OPEN_WIDGET', target: 'picker', mode: 'popover', returnTo: { selected: 'parentStatus' }
+} };
+```
+
+Configure `parentStatus` as an INPUT in the parent. `returnTo` is an explicit map of returned keys to parent input IDs, available for modal/popover. RETURN must provide exactly those keys. All values are validated before any parent field changes. A changed, disabled, hidden, closed or replaced destination rejects the return and retains the newer draft. A RETURN outside an active selector reports an error. BACK inside the root of a floating view dismisses it; retained drill-down frames continue to go back normally.
+
+### Existing dashboard widget types
+
+Reuse an existing native dashboard item through a registered destination:
+
+```json
+{
+  "header": { "title": "Customer records" },
+  "dashboard": {
+    "preferenceId": "00000000-0000-4000-8000-000000000000",
+    "preferenceVersion": 3,
+    "widgetIndex": 0
+  },
+  "layout": { "maxWidth": 1200 }
+}
+```
+
+`widgetIndex` is zero-based in the saved preference's `data` array. Pin the current preference version so an edited/reordered dashboard cannot silently select another item. The current user must be able to read the preference and use the native widget. The same renderer supports Database Data, Database Views, Databases and the other existing dashboard types, retaining their type-specific settings and filters. Each embedding has its own instance/grid state and nested panels. It does not navigate to or replace the surrounding dashboard, and recursive references are bounded. This renders one existing item, not an entire dashboard grid.
+
+
+## Workspace tabs with browser history
+
+Choose a workspace source when each tab needs its own view and retained draft. Configure one workspace ID, one to twelve tabs and the corresponding registered destinations:
+
+```js
+const widgetConfig = {
+  workspace: { id: 'orders', defaultTab: 'overview', tabs: [
+    { id: 'overview', label: 'Overview', target: 'Overview' },
+    { id: 'notes', label: 'Notes', target: 'Notes' },
+  ] },
+  widgetTargets: {
+    Overview: { matrix: [[{ type: 'TEXT', value: 'Order overview' }]] },
+    Notes: { matrix: [[{ id: 'draft', type: 'INPUT', label: 'Private draft', value: '' }]] },
+  },
+};
+```
+
+The root workspace keeps its selected tab in `wtab.orders`. Back and Forward restore the selection and preserve other URL parameters. Unknown tab values use the configured default. Tabs visited during the current page session remain mounted, preserving unsaved inputs and pausing reads while hidden. Reloading restores the selected tab, not an unsaved draft. Nested, panel, modal and popover workspaces keep their selection local to that surface.
+
+## Select an existing resource
+
+Register a native resource destination instead of writing a custom picker:
+
+```js
+const widgetTargets = { filePicker: {
+  header: { title: 'Choose a file' },
+  resource: { type: 'storage', query: 'report' },
+} };
+const openPicker = {
+  type: 'OPEN_WIDGET', target: 'filePicker', mode: 'modal',
+  returnTo: { id: 'fileId', name: 'fileName', type: 'resourceType', version: 'fileVersion' },
+};
+```
+
+Create parent INPUT fields `fileId`, `fileName`, `resourceType` and numeric `fileVersion`. The picker returns only `id`, `name`, `type` and `version`. It searches the existing authorized resource list in pages of twenty and supports retry without discarding loaded rows. Supported types are `storage`, `database`, `component` and `preference`. Storage lists active files and accepts an optional `folderId`. Source, database rows and download URLs are not returned. Use `panel`, `modal` or `popover` with an explicit return mapping. If mapped parent fields change while the picker is open, the selection is rejected so it cannot replace newer edits.

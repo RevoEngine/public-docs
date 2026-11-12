@@ -94,3 +94,25 @@ return [[{
 ```
 
 A cell can expose a section toolbar through `buttons`; its actions use that cell as the source. For lightweight summaries, code, HTML and independently controlled copy/fullscreen, see [content readers](/widgets/content-readers).
+
+### Theme colors and selected state
+
+Use `appearance.tone` on buttons or `presentation.tone` on cards: `neutral`, `info`, `success`, `warning` or `danger`. These use the existing Revo light and dark theme colors. Arbitrary CSS colors are not accepted.
+
+`selectedWhen: {input: 'status', equals: 'OPEN'}` marks an action or clickable card as selected when the committed input matches. Selection is separate from its business action and from `disabledWhen`.
+
+Ordinary buttons display the first nonempty label, accessible name or tooltip, with a Run fallback. To deliberately show only a Font Awesome icon, use `appearance: {iconOnly: true}` and provide an accessible name. Busy or uncertain actions display their progress text. Keep normal business actions labeled so users can identify them without hovering.
+
+Clickable TEXT cards use `presentation: {kind: 'card'}` with `label`, `value` and optional `description`; their whole surface is one button. A `metric` uses the same pattern with a larger value. Use card tones to communicate status while retaining a written label.
+
+## Native application notifications
+
+Use `TOAST` for an explicit application notification. Its `toast` has a nonempty `message`, optional `title` and `tone`: `info`, `success`, `warning` or `danger`.
+
+```js
+const on = { click: { type: 'TOAST', toast: {
+  title: 'Support desk', message: 'Select a conversation first.', tone: 'info'
+} } };
+```
+
+An EXECUTE action can carry the same `toast`. It appears after confirmed success, including a configured completion probe. A failed, uncertain, still-running or `{ok:false}` result never produces a success notification. Keep delivery language accurate: preparing a held email is not confirmation that an email was sent. Notifications are plain text through Revo's existing application toast service.

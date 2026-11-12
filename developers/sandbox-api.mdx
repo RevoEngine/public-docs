@@ -6,6 +6,8 @@ icon: flask
 
 Sandbox is the authenticated authoring and ad-hoc execution surface. Its contract is separate from both the Platform API and customer-facing Endpoint invocation.
 
+Element selection belongs to explicit Sandbox calls. Endpoint and Job execution always run the full Component; similarly named fields in business input do not select elements. An explicit Sandbox child call has its own selection.
+
 Read `instance.endpoints.sandbox` from `GET /api/v1/me` or use the URL exposed by the platform. The Node.js SDK and CLI discover it automatically.
 
 ## HTTP surface
@@ -109,3 +111,10 @@ CLI component debugging accepts `--call-strategy=caller|endpoints|jobs`. You can
 set `callStrategy` in `.revoengine/debug.json`; the command-line flag takes precedence.
 VS Code exposes the same setting in the debugger configuration. Both default to `caller`.
 The setting is independent of `readOnly`; choosing a policy does not enable writes.
+
+
+## Execute all elements or one selected element
+
+Debug and saved execution, including both streaming variants, accept optional `executionMode: 'all' | 'selected'` and `elementKey: string`. Omitted mode or `all` retains ordered execution of every element, including when an element key is supplied alone. Selected execution requires an exact, case-sensitive key identifying one existing, uniquely keyed `CODE_JS` or `CODE_TS` element.
+
+For example, add `"executionMode": "selected", "elementKey": "Conversation"` to a saved execution request when the Component contains an independent `Conversation` element. For transient debugging, supply the full original source and select one of its keys. No predecessors or dependencies execute implicitly; previous element results are not restored. Full source remains the basis for access, approval and artifact identity. Deploy the supporting backend before enabling selection in clients.

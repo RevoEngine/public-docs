@@ -1,0 +1,39 @@
+---
+title: "1.9.1 — Tabbed workspaces and focused Sandbox execution"
+sidebarTitle: "1.9.1"
+icon: "tag"
+description: "12 November 2026"
+---
+
+Build connected dashboard workspaces, choose native platform items, and run one Component element while debugging in Sandbox.
+
+## Highlights
+
+- Organize dashboard content into workspace tabs with browser Back/Forward navigation and retained drafts.
+- Choose Storage, Database, Component and Preference items with native selectors, and present text as sections, subsections or callouts.
+- Execute one JavaScript or TypeScript element explicitly in Sandbox without running its predecessors.
+
+## In detail
+
+## Build connected dashboard workspaces
+
+Combine native content and version-pinned dashboard views in workspace tabs. Open supporting forms in panels, modals or popovers, return selected values, and refresh the intended parent cells after a confirmed action. Root tab changes participate in browser history while mounted forms retain their unsaved drafts. See [reactive widgets](/operate/reactive-widgets).
+
+## Select items with native controls
+
+Use native selectors for Storage, Databases, Components and Preferences instead of building separate lookup forms. Keep the selected item identity available to configured actions. Text section, subsection and callout presets provide a consistent hierarchy for dashboard instructions and supporting content. See [dashboards](/operate/dashboards).
+
+## Run one element in Sandbox
+
+Choose All elements or Selected element in Studio debugging, or send an explicit Sandbox execution mode and exact element key. Selected execution runs that element body without implicit predecessors or dependencies; shared libraries still initialize normally. Endpoint and Job execution continue running the full Component. See [Sandbox execution selection](/developers/sandbox-api).
+
+
+## Related guides
+
+- [Compose reactive widgets](/operate/reactive-widgets)
+- [Build dashboards](/operate/dashboards)
+- [Execute and debug in Sandbox](/developers/sandbox-api)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.9.0](/changelog/1.9.0)

@@ -64,3 +64,46 @@ These names have different roles. A cell ID does not select a Component or ident
 IDs start with a letter and contain only letters, digits, underscores, dots or hyphens, up to 100 characters. Keep them unique across a frame, including FORM fields. `constructor` and `prototype` are reserved. Keep IDs stable between reads so state and partial refresh can match the same elements.
 
 For a partial refresh, return exactly the requested IDs; see [partial refresh](/widgets/refresh). See [limits](/widgets/limits) for dashboard and Assistant-card bounds.
+
+## Responsive cell layout
+
+Use cell `layout` when a row must adapt to a narrow panel. This is separate from the whole-widget layout.
+
+| Field | Values | Effect |
+| --- | --- | --- |
+| `layout.minWidth` | 80–1920 pixels | Minimum useful width; the row wraps instead of squeezing controls together. |
+| `layout.width` | `content`, `fill` | Keep an action at its content width or allow the cell to fill available space. |
+| `layout.align` | `start`, `center`, `end` | Align a cell vertically within its row. |
+
+```js
+return [[
+  {id:'search',type:'INPUT',label:'Search',control:'text',layout:{minWidth:260}},
+  {id:'state',type:'INPUT',label:'Status',control:'select',value:'active',options:[{value:'active',label:'All active'},{value:'all',label:'All records'}],layout:{minWidth:180}},
+  {id:'apply',type:'BUTTON',label:'Apply filters',layout:{width:'content',align:'end'},on:{click:{type:'REFRESH',target:'summary'}}}
+], [{id:'summary',type:'TEXT',value:'Filters applied on request.'}]];
+```
+
+Percentage `width` remains available for proportions. Narrow screens stack cells. An empty TEXT feedback cell without a label, data or actions does not reserve a visible row; an explicit EMPTY cell remains an intentional spacer.
+
+## Kanban and pointer events
+
+A keyed TABLE can use `presentation.kind: 'kanban'` with a `board` definition. Set `columnKey`, `titleKey`, optional `descriptionKey`, and up to 12 unique columns with `value`, `label` and optional semantic `tone`. Return at most 500 cards; every row must belong to a declared column. Use `presentation.draggable: true` together with `on.drop` to enable movement.
+
+```js
+return [[{
+  id: 'board', type: 'TABLE', rowKey: 'id',
+  data: [{ id: 'one', status: 'OPEN', title: 'Review conversation' }],
+  presentation: { kind: 'kanban', draggable: true, board: {
+    columnKey: 'status', titleKey: 'title',
+    columns: [{ value: 'OPEN', label: 'New', tone: 'warning' }, { value: 'CLOSED', label: 'Closed', tone: 'success' }]
+  } },
+  on: { drop: { type: 'EXECUTE', target: 'moveCard',
+    input: { id: { from: 'event', path: 'key' }, status: { from: 'event', path: 'toColumn' } },
+    refresh: 'board', toast: { message: 'Card moved.', tone: 'success' }
+  } }
+}]];
+```
+
+Register `moveCard` as an action target and enforce permissions, idempotency and concurrency on the server. A drop contains `key`, `row`, `fromColumn`, `toColumn`, `beforeKey` (or null) and zero-based `index`. Reordering and keyboard column/up/down controls emit the same contract. The renderer retains confirmed rows until the action refreshes them; it does not claim an unconfirmed move was saved. Pending writes block another drag.
+
+Elements support explicit `on.hover` and `on.focus`; Kanban additionally emits `on.dragStart`, `on.dragEnd` and `on.drop`. Hover means pointer entry, and focus is entry into the element from outside its controls. All handlers use the normal registered action/runtime path. An element has no effect for an event unless its author configured one. File drag/drop and clipboard image paste remain separate message-composer upload operations.

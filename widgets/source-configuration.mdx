@@ -1,6 +1,6 @@
 ---
 title: "Configure a Widget"
-description: "Choose Inline or Component sources, inputs, execution limits and revisions."
+description: "Choose code, declarative elements or a saved dashboard widget, and configure execution and revisions."
 sidebarTitle: Source configuration
 icon: book-open
 ---
@@ -11,11 +11,12 @@ The **Widget** palette entry renders code output as text, charts, tables, forms,
 
 | Setting | Meaning |
 | --- | --- |
-| Source | Inline code or a reusable Component. A new widget starts in inline mode. |
+| Source | Inline code, reusable Component, declarative elements, a saved dashboard widget, a resource selector, or workspace tabs. A new widget starts in inline mode. |
 | Language and code | JavaScript or TypeScript source for inline mode. |
 | Component | Executable Component in reusable mode. |
 | Revision | Latest or an optional pinned Component digest in reusable mode. |
-| Element | Optional result element in a multi-element Component. |
+| Execution | `all` (default) or `selected`, with an exact element key for selected JavaScript/TypeScript execution. |
+| Element | Optional output projection from the returned Component result; independent of execution selection. |
 | Inputs | JSON object text passed to either source; use `{}` when no arguments are needed. |
 | Timeout | New editor configuration starts at 5 seconds; allowed range 5–600. |
 | Memory | New editor configuration starts at 32 MiB; allowed range 32–1024. |
@@ -60,11 +61,17 @@ See [Chart Job runs](/widgets/examples/job-chart) for a complete read-only data 
 | Field | Type | Required or default |
 | --- | --- | --- |
 | `header` | `{title, subtitle?, actions?}` | Optional shared content header; see [headers](/widgets/header-and-timers#shared-content-header). |
-| `sourceType` | `INLINE` or `COMPONENT` | Set explicitly. |
+| `sourceType` | `INLINE` or `COMPONENT` | Set for executable sources; omit for a declarative matrix or native dashboard reference. |
+| `resource` | `{type, query?, folderId?}` | Native identity selector; see [resource selection](/widgets/navigation#select-an-existing-resource). |
+| `workspace` | `{id, defaultTab?, tabs}` | Retained views with root URL selection; see [workspace tabs](/widgets/navigation#workspace-tabs-with-browser-history). |
+| `matrix` | Element matrix | Static declarative source; mutually exclusive with code, component and dashboard. |
+| `dashboard` | `{preferenceId, preferenceVersion, widgetIndex}` | Saved native dashboard item, pinned to its preference version; mutually exclusive with executable or matrix sources. |
 | `codeType` | `CODE_JS` or `CODE_TS` | Required for INLINE; the new dashboard editor starts with TypeScript. |
 | `code` | string | Complete independent function body for INLINE. |
 | `componentId` | string | Required for COMPONENT. |
-| `element` | string | Select the intended Component result element explicitly when registering a multi-element source. |
+| `executionMode` | `all` or `selected` | Optional; omitted means all elements execute in order. |
+| `elementKey` | string | Exact case-sensitive key required by selected execution. Ignored when execution mode is omitted or all. |
+| `element` | string | Optional output projection; does not select which source elements execute. |
 | `componentDigest` | string or null | Optional pinned digest; choose this or `componentVersion`. |
 | `componentVersion` | integer or null | Optional version; do not combine with a digest. |
 | `inputs` | JSON object string or null | Configured arguments; mapped action arguments override matching keys. |
@@ -104,3 +111,37 @@ See [navigation](/widgets/navigation), [execution](/widgets/execute) and [header
 ## Convert an Assistant result
 
 An analytical widget generated in an Assistant conversation can be saved here through **Convert to dashboard**. Choose a new or existing dashboard, review the original code and inputs, and select a dynamic source or fixed snapshot. Dynamic conversion preserves the complete source, configured inputs and registered action/navigation targets. The source executes when the dashboard loads and refreshes; a fixed snapshot preserves the displayed result with interactions disabled. Unsaved form drafts are not persisted as dashboard inputs. This is a user-directed save and requires dashboard write access. See [Assistant charts, diagrams and tables](/ai/assistant-visuals#charts-diagrams-and-tables-in-answers).
+
+
+## Select one executable element
+
+After deploying a backend that supports execution selection, a reusable source may set `executionMode: 'selected'` and an exact `elementKey`. Selected execution runs exactly that one existing, uniquely keyed JavaScript or TypeScript element. It does not run predecessors or dependencies, restore earlier results, or introduce a workflow graph. Each selected element must produce its own complete result from inputs and authorized reads.
+
+Omitting both fields preserves ordered execution of all elements. Providing `elementKey` alone also preserves all-element execution. The existing `element` field only projects a value from the result; it does not prevent other elements from running. Selection retains the full original Component for access checks, approval and compiled artifact identity; it does not create per-element artifact-cache variants.
+
+For a compact support desk, a Component can expose independent `Inbox`, `Conversation` and `Triage` elements:
+
+```js
+const widgetTargets = {
+  conversation: {
+    sourceType: 'COMPONENT', componentId: supportComponentId,
+    executionMode: 'selected', elementKey: 'Conversation',
+    element: 'Conversation', readOnly: true,
+  },
+  triage: {
+    sourceType: 'COMPONENT', componentId: supportComponentId,
+    executionMode: 'selected', elementKey: 'Triage',
+    element: 'Triage', readOnly: true,
+  },
+};
+const actionTargets = {
+  saveCase: {
+    sourceType: 'COMPONENT', componentId: supportActionsComponentId,
+    executionMode: 'selected', elementKey: 'SaveCase', readOnly: false,
+  },
+};
+```
+
+Replace the Component IDs with authorized resources and register these maps in source configuration. `Conversation`, `Triage` and `SaveCase` must be exact keys in those Components. Keep existing single-`Main` sources with input-based view branches unchanged unless deliberately refactoring them. Do not activate selected configurations against an older backend.
+
+Declarative matrices and saved native dashboard references are rendering sources, not executable action targets. Configure them through **Declarative elements** or **Saved dashboard widget**; these editor choices preserve their configuration when layout settings change. See [floating and native destinations](/widgets/navigation).
