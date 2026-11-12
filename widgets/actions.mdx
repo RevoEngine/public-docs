@@ -10,6 +10,7 @@ Every action has a `type`. Its target means something different for reads, navig
 | --- | --- | --- |
 | `REFRESH` | Cell ID, array of IDs, or `'*'` | Reruns the current source and merges the requested cells. |
 | `OPEN_WIDGET` | One `widgetTargets` key | Opens a registered destination. |
+| `OPEN_FILE` | One read-only `widgetTargets` key | Opens an authorized Storage file result. |
 | `EXECUTE` | One `actionTargets` key | Executes a registered source and optionally confirms its outcome. |
 | `BACK` | Omitted | Restores the previous replacement frame. |
 
@@ -33,6 +34,15 @@ See [partial refresh](/widgets/refresh) for a complete source that honors `targe
 | `hostId` | string | Required for inline | Existing cell that hosts the destination. |
 
 See [navigation](/widgets/navigation). A destination name is not a Component ID supplied by the clicked row.
+
+## OPEN_FILE
+
+| Field | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `target` | string | Required | Registered read-only file reader. |
+| `input` | Binding map | None | Resource IDs the reader must authorize. |
+
+The reader returns `WidgetStorageFile`, not a widget matrix. Use fresh authorized Storage metadata and a short-lived signed URL. A link from customer text is not a file authorization. Image/PDF preview and download use the normal file surface. See [authorized attachments](/widgets/content-readers#authorized-file-results) for the result and expiry contract.
 
 ## EXECUTE
 

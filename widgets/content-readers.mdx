@@ -1,0 +1,111 @@
+---
+title: "Content readers"
+description: "Present long text, safe HTML, images, code, properties, lists and authorized attachments."
+icon: book-open
+---
+
+Use a reader to display a message, document or compact summary without turning everything into a Markdown heading. Set `presentation` on the existing TEXT cell; the matrix and declarative action contract stay the same. Editing belongs in [inputs](/widgets/inputs) or the [message composer](/widgets/message-composer).
+
+## Choose a presentation
+
+| `presentation.kind` | Cell | Content | Behavior |
+| --- | --- | --- | --- |
+| `markdown` | TEXT | `value` string | Markdown headings, lists, links and code. |
+| `card` | TEXT | `value`; optional `label` | Markdown content with a titled card surface. |
+| `plain` | TEXT | `value` | Preserves line breaks without Markdown interpretation. |
+| `metric` | TEXT | `value`, optional `description` | Prominent value and supporting description. |
+| `html` | TEXT | `value` HTML string | Sanitized, isolated, read-only document. |
+| `image` | TEXT | `value` HTTPS image URL or supported image data URL | Image with optional `label` and `description`. |
+| `code` | TEXT | `value` string | Read-only code editor with a declared language. |
+| `properties` | TEXT | `data` object | Key/value description list. |
+| `list` | TEXT | `data` array | Displayed labels and optional local reordering. |
+| `attachments` | TEXT | `data` attachment records | File cards that emit `rowClick`. |
+| `message-list` | TABLE | Flat `data` and stable `rowKey` | Compact conversation selector; see [tables](/widgets/tables#conversation-message-list). |
+
+Omitting `presentation.kind` preserves the ordinary TEXT renderer. A presentation does not execute arbitrary browser code, load a custom component or grant access to the referenced data.
+
+## Reader configuration
+
+| Field | Type | Default or behavior |
+| --- | --- | --- |
+| `kind` | One of the kinds above | Optional; choose a kind matching the cell. |
+| `copy` | boolean | Opt-in copy for explicit Markdown/card, HTML and plain readers. |
+| `fullscreen` | boolean | Independent fullscreen for explicit Markdown/card, HTML, plain and image readers. |
+| `scroll` | boolean | TEXT scrolls automatically with a fixed height or `maxHeight`; can be overridden. |
+| `scrollControls` | boolean | Adds up/down controls, disabled at the respective boundary. |
+| `minHeight`, `maxHeight`, `maxWidth` | pixels | Optional 1–10000; constrain the cell. |
+| `language` | string | Code only; defaults to `plaintext`. |
+| `allowImages` | boolean | HTML only; permits an operator image-consent control. |
+| `cidImages` | String map | HTML content IDs to authorized fresh Storage URLs, at most 30. |
+| `draggable` | boolean | List only; enables reorder controls and `on.change`. |
+
+Copy and fullscreen are separate options. Ordinary TEXT retains its existing renderer defaults; explicit readers enable only the controls configured for their kind. A cell's `height` remains a cell field, outside `presentation`.
+
+```js
+return [[{
+  id: 'triage', type: 'TEXT', label: 'Triage', height: 420,
+  presentation: {kind: 'card', copy: true, fullscreen: true, scroll: true, scrollControls: true},
+  value: '## Findings\n\nReview the selected message before taking action.'
+}], [{
+  id: 'metadata', type: 'TEXT', presentation: {kind: 'properties'},
+  data: {Status: 'Open', Owner: 'Support team'}
+}]];
+```
+
+## Isolated HTML
+
+```js
+return [[{
+  id: 'message', type: 'TEXT', label: 'Customer message', height: 420,
+  presentation: {kind: 'html', allowImages: true, copy: true, fullscreen: true},
+  value: '<h2>Delivery question</h2><p>Please review the delivery date.</p>'
+}]];
+```
+
+HTML is sanitized and displayed in a sandboxed document. Scripts, inline event handlers, forms, buttons, embedded frames, navigation and content-supplied CSS are removed. The reader applies its own light/dark presentation. It is not a browser page and has no action bridge to the host. Put real controls outside the HTML and use [declared actions](/widgets/actions).
+
+Remote HTML images require both `allowImages: true` and the operator's **Load images** choice. Changing the displayed message clears that choice. Do not interpret blocked images as an empty message or missing attachment. For `cid:` images, the authorized source supplies normalized lowercase content IDs in `cidImages` with fresh signed Storage URLs. Do not copy customer-provided URLs into that map.
+
+The separate `image` reader displays its permitted source directly. Use it for deliberate images or screenshots, not unsolicited tracking images taken from email HTML. It accepts HTTPS URLs and base64 PNG/JPEG/GIF/WebP data URLs. `fullscreen: true` uses the image zoom surface.
+
+## Read-only code and structured summaries
+
+The code reader supports `plaintext`, `json`, `html`, `css`, `javascript`, `typescript`, `markdown` and `sql`. It displays source and never executes it:
+
+```js
+return [[{
+  id: 'receipt', type: 'TEXT', height: 300,
+  presentation: {kind: 'code', language: 'json'},
+  value: JSON.stringify({status: 'Prepared', recipients: 1}, null, 2)
+}]];
+```
+
+Properties use `data: {key: value}` and display scalar labels. Lists use strings or records such as `{id, label}`; a record can also supply `title`. Give records stable IDs before enabling `draggable`. Reordering emits ordered string `keys` through `on.change`; it is local until the registered action saves the new order. Keyboard move-up/move-down controls provide the same operation as dragging.
+
+## Authorized file results
+
+A TEXT attachment reader uses `presentation: {kind: 'attachments'}` and `data` records with `key` (or `id`), `name`, `contentType`, optional `size`, `state` and `isInline`. Bind `on.rowClick` to `OPEN_FILE` and pass an attachment identity to a registered read-only `widgetTargets` reader.
+
+The reader must authorize the caller, the selected record relationship and Storage metadata before returning this shape:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `kind` | `STORAGE_FILE` | Literal result kind. |
+| `storageEntryId` | string | Authorized Storage entry UUID. |
+| `name` | string | File name, at most 500 characters. |
+| `contentType` | string | Actual authorized file content type. |
+| `url` | string | Fresh signed Storage URL returned by the authorized source. |
+| `expiresAt` | ISO string | Future expiry, at most fifteen minutes ahead. |
+
+The file target returns this object, not a cell matrix. Its configured result element selects the object in a multi-element Component. The host validates the signed-link shape and expiration, and uses one file panel with image/PDF preview where supported. Image zoom and download acquire fresh links through the authenticated Storage API. A URL found in customer HTML or a table row does not establish file permission.
+
+For example, this action fragment belongs on an attachment cell after registering `attachmentReader`:
+
+```js
+const action = {
+  type: 'OPEN_FILE', target: 'attachmentReader',
+  input: {attachmentId: {from: 'event', path: 'row.id'}}
+};
+```
+
+The input ID is a lookup key for the authorized reader. Do not use clicked text as a signed URL. An unavailable, expired or denied file remains an error; it must not silently become an unrestricted link.

@@ -45,3 +45,11 @@ Configured values remain subject to execution permissions and instance policy.
 | Permission denied | Check the viewer and executor's permissions; dashboard visibility grants no resource access. |
 
 Validate initial and partial branches separately, including empty values and zero. A parsed result does not prove browser rendering, navigation or successful writes. Test write actions only in an authorized test environment.
+
+## Text, files and content readers
+
+Assistant artifacts allow TEXT `value` up to 500000 characters and ordinary INPUT strings up to 100000, within the combined 2 MB envelope. Ordinary JSON strings remain limited to 4000 characters; supported URL/CID entries may use up to 10000. A message draft has its own 100000-character body limit. The message editor defaults to 8000 typed characters unless `maxLength` is set explicitly.
+
+A message composer accepts at most ten attachments, 10 MiB per file and 20 MiB total. Its configured limits may be lower. These limits do not replace Storage permissions or the destination mail service's own limits. A ready attachment includes its authorized Storage entry ID and observed version; never persist a signed preview URL as the attachment identity.
+
+Content `minHeight`, `maxHeight` and `maxWidth` accept 1–10000 pixels. Table `pageSize` is 1–1000; offsets and known totals are non-negative integers. A file preview result must expire within fifteen minutes. See [message composer](/widgets/message-composer), [content readers](/widgets/content-readers) and [paged tables](/widgets/tables#paged-tables-and-footer-actions) for the complete shapes.

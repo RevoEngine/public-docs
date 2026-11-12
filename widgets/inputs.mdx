@@ -6,7 +6,7 @@ icon: sliders
 
 import { ReadingFlow } from "/snippets/reading-flow.jsx";
 
-An INPUT holds one editable scalar value. Its stable `id` is the key used by `$widget.values` and `from: 'input'` bindings.
+An INPUT holds one editable value: a scalar, a multiselect array or a structured message draft. Its stable `id` is the key used by `$widget.values` and `from: 'input'` bindings.
 
 ## Control types
 
@@ -15,7 +15,11 @@ An INPUT holds one editable scalar value. Its stable `id` is the key used by `$w
 | `text` | string | Default control. |
 | `textarea` | string | Multiline text. |
 | `number` | number, or `''` when cleared | Apply `min` and `max` where needed. |
-| `date` | string | Browser date value such as `2026-01-15`; clearing produces `''`. |
+| `date` | string | Shared date picker; `YYYY-MM-DD` in UTC, or `''` when cleared. |
+| `datetime` | string | Shared date/time picker; ISO timestamp in UTC, or `''` when cleared. |
+| `datetime-local` | string | Browser-local date/time text; convert explicitly before passing it to a UTC writer. |
+| `multiselect` | scalar array | Searchable selection; preserves declared option types. |
+| `message` | Message draft | Markdown body and Storage attachment references; see [message composer](/widgets/message-composer). |
 | `select` | string, number or boolean | Exactly one of the declared option values. |
 | `checkbox` | boolean | Defaults to `false` when no value is provided. |
 
@@ -44,12 +48,18 @@ This example creates a control only. Add `on.change` when committing a value sho
 | Field | Type | Default | Effect |
 | --- | --- | --- | --- |
 | `id` | string | Required | Unique INPUT identity. |
-| `control` | string | `text` | One of the six controls above. |
-| `value` | scalar or null | `''`, or `false` for checkbox | Initial value. |
+| `control` | string | `text` | One of the controls above. |
+| `value` | scalar, array or message draft | `''`; checkbox `false`; multiselect `[]`; message empty draft | Initial value. |
 | `label` | string | Input ID | Visible label. |
 | `description` | string | Absent | Help text below the control. |
 | `placeholder` | string | Empty; select uses `Select…` | Prompt when the control has no value. |
-| `options` | Array of `{ label, value }` | Required for select | Up to 1000 options. |
+| `options` | Array of `{ label, value }` | Required for select/multiselect | Up to 1000 options; values are string, number or boolean. |
+| `searchable` | boolean | `false` | Uses the searchable single-select; multiselect is always searchable. |
+| `preview` | boolean | `false` | Adds Markdown preview to a textarea. |
+| `height` | pixels | Automatic | Sets textarea/message editor height. |
+| `error` | string | Absent | Source-provided field error, at most 2000 characters. |
+| `visibleWhen`, `disabledWhen` | `{ input, equals }` | Absent | Compare another input with a literal; see conditional fields below. |
+| `composer` | Object | Absent | Upload folder, limits and authorized existing attachments for `message`. |
 | `required` | boolean | `false` | Rejects empty values; required checkbox must be checked. |
 | `disabled` | boolean | `false` | Prevents edits and commits. |
 | `min`, `max` | finite number | Unbounded | Numeric limits; minimum cannot exceed maximum. |
@@ -74,3 +84,36 @@ Use `submit` inside a [FORM](/widgets/forms), which supplies the commit action. 
 Typing creates a draft. A successful commit validates it and updates `$widget.values`. A FORM commits its fields together. With `valueMode: 'initial'`, later server defaults do not replace existing values. With `sync`, a returned value may refill the control only if there is no newer edit or pending draft.
 
 Use nullish defaults (`??`) when `0`, `false` or `''` are meaningful. UI validation improves feedback; the write Component must enforce the same business constraints. See [state and lifecycle](/widgets/state).
+
+## Typed multiple choices
+
+```js
+return [[{
+  id: 'channels', type: 'INPUT', control: 'multiselect', label: 'Notify channels',
+  value: ['email'], required: true,
+  options: [
+    {label: 'Email', value: 'email'},
+    {label: 'Workspace', value: 'workspace'}
+  ]
+}]];
+```
+
+The committed value is an array, not comma-separated text. Required multiselects reject an empty array; duplicate or unavailable choices are rejected. A single select can use `searchable: true` without changing its scalar value contract.
+
+## Conditional fields
+
+Use `visibleWhen: {input: 'notify', equals: true}` to show a field only when the named input equals the literal. `disabledWhen` uses the same shape. Comparisons use the current value, including an unsaved draft. There are no expressions or browser callbacks.
+
+For example, a public explanation can become visible when a checkbox is selected:
+
+```js
+return [[{
+  id: 'notify', type: 'INPUT', control: 'checkbox', label: 'Prepare public update', value: false
+}], [{
+  id: 'publicExplanation', type: 'INPUT', control: 'textarea', label: 'Public explanation',
+  height: 180, maxLength: 8000, preview: true,
+  visibleWhen: {input: 'notify', equals: true}
+}]];
+```
+
+Hidden or conditionally disabled FORM fields are skipped during form commit. Their retained values are not an authorization decision or a promise that sensitive data was erased. The executor must validate whether each supplied field is applicable and may be disclosed.

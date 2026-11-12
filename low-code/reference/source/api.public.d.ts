@@ -2777,6 +2777,18 @@ declare class sse {
 
 declare class util {
   /**
+     * Renders bounded Markdown into the standard email frame and a text alternative.
+     * Native low-code only: the platform owns this template; it is not a local SDK utility.
+     * @localOnly
+     * Does not send, enqueue, authorize recipients or load attachments. Raw HTML is escaped,
+     * images remain ordinary attachments, and internal reference tokens become readable labels.
+     *
+     * Example:
+     * const preview = await util.renderEmail('Hello **customer**.', { title: 'Case update', footer: 'RevoEngine Support' });
+     */
+  static renderEmail(markdown: string, options: { title: string; footer?: string }): Promise<{ html: string; text: string }>;
+
+  /**
      * Waits asynchronously, capped at 60 seconds per call.
      *
      * Example:

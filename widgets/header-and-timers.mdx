@@ -28,3 +28,31 @@ Private executable cards expose **Refresh widget** next to copy definition, sour
 Generation warnings, errors, logs and measured performance appear as icons in the same toolbar when available. Each icon opens its details in a popover instead of expanding the card body. Performance is adjacent to Refresh widget. A subsequent execution replaces those diagnostics with its own result. Performance uses recorded timing and resource measurements; it does not prove browser rendering or chart performance. Refresh indicates only the current execution and settles when that execution completes.
 
 Continue with [reactive widgets](/operate/reactive-widgets).
+
+## Shared content header
+
+The source configuration can add `header: {title, subtitle, actions}`. The same title/actions appear on the widget surface, including a panel. Header actions use the button contract and the active frame's declared targets and input bindings.
+
+| Field | Type | Limit |
+| --- | --- | --- |
+| `header.title` | Non-empty string | 300 characters. |
+| `header.subtitle` | Optional string | 1000 characters. |
+| `header.actions` | Button array | Up to 16; unique IDs and accessible labels. |
+
+This configuration fragment belongs beside `sourceType`, not inside a TEXT value:
+
+```json
+{
+  "header": {
+    "title": "Customer workspace",
+    "subtitle": "Review current records",
+    "actions": [{
+      "id": "refreshView", "icon": "fa-regular fa-arrow-rotate-right",
+      "ariaLabel": "Refresh customer workspace", "tooltip": "Refresh",
+      "on": {"click": {"type": "REFRESH", "target": "*"}}
+    }]
+  }
+}
+```
+
+Configure it through the widget's header settings or source configuration. Header visibility, table-footer refresh, content copy and fullscreen are separate controls. Use the shared header for a workspace title instead of making a Markdown heading carry navigation actions.

@@ -163,7 +163,9 @@
                     "pages": [
                       "widgets/elements",
                       "widgets/text-and-buttons",
+                      "widgets/content-readers",
                       "widgets/inputs",
+                      "widgets/message-composer",
                       "widgets/forms",
                       "widgets/tables",
                       "widgets/charts"
@@ -532,7 +534,8 @@
               "widgets/examples/job-chart",
               "widgets/examples/table-actions",
               "widgets/examples/form-job",
-              "widgets/examples/assistant-card"
+              "widgets/examples/assistant-card",
+              "widgets/examples/message-draft"
             ]
           },
           {
@@ -862,6 +865,7 @@
                   {
                     "group": "Validation and utilities",
                     "pages": [
+                      "low-code/reference/util/renderEmail",
                       "low-code/reference/util/sleep",
                       "low-code/reference/util/isUUID",
                       "low-code/reference/util/randomUUID",

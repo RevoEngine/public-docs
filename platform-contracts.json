@@ -213,6 +213,7 @@
         "low-code/reference/sse/comment.mdx",
         "low-code/reference/sse/remainingTime.mdx",
         "low-code/reference/util.mdx",
+        "low-code/reference/util/renderEmail.mdx",
         "low-code/reference/util/sleep.mdx",
         "low-code/reference/util/aesDecrypt.mdx",
         "low-code/reference/util/aesEncrypt.mdx",

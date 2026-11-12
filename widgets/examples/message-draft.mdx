@@ -1,0 +1,77 @@
+---
+title: "Prepare a message without sending"
+description: "Build a read-only Markdown reply form and refresh its standard HTML and text preview."
+icon: envelope-open-text
+---
+
+This complete Inline JavaScript widget lets an operator edit Markdown, prepare the standard email HTML and inspect its text alternative. **Prepare preview** commits the draft and refreshes only the preview cells. It does not send or queue a message.
+
+## Prerequisites
+
+Create a Custom Widget, select **Inline / JavaScript**, and keep view execution read-only. No target registry is needed: the form uses REFRESH in its own frame. Leave Inputs as `{}` to try the example without uploads. If uploads are needed, configure `uploadFolderId` with an existing folder the viewer may write to.
+
+## Source
+
+```js
+const input = api.input() ?? {};
+const ui = input.$widget ?? {};
+const targets = ui.targetIds ?? ['*'];
+const wanted = (id) => targets.includes('*') || targets.includes(id);
+const empty = {format: 'markdown', body: '', attachments: []};
+const draft = ui.values?.reply ?? empty;
+if (!draft || draft.format !== 'markdown' || typeof draft.body !== 'string') {
+  throw new Error('Expected a Markdown message draft');
+}
+const rows = [];
+if (wanted('replyForm')) {
+  rows.push([{
+    id: 'replyForm', type: 'FORM', label: 'Public reply',
+    submitLabel: 'Prepare preview',
+    fields: [{
+      id: 'reply', type: 'INPUT', control: 'message', label: 'Message',
+      value: empty, valueMode: 'initial', height: 240, maxLength: 12000,
+      ...(typeof input.uploadFolderId === 'string'
+        ? {composer: {uploadFolderId: input.uploadFolderId}}
+        : {})
+    }],
+    on: {submit: {type: 'REFRESH', target: ['htmlPreview', 'textPreview']}}
+  }]);
+}
+if (wanted('htmlPreview') || wanted('textPreview')) {
+  const prepared = await util.renderEmail(draft.body, {
+    title: 'Case update', footer: 'RevoEngine Support'
+  });
+  if (wanted('htmlPreview')) {
+    rows.push([{
+      id: 'htmlPreview', type: 'TEXT', label: 'Prepared email', height: 360,
+      presentation: {kind: 'html', copy: true, fullscreen: true},
+      value: prepared.html
+    }]);
+  }
+  if (wanted('textPreview')) {
+    rows.push([{
+      id: 'textPreview', type: 'TEXT', label: 'Text alternative', height: 220,
+      presentation: {kind: 'plain', copy: true, fullscreen: true},
+      value: prepared.text
+    }]);
+  }
+}
+return rows;
+```
+
+## Expected result
+
+1. Enter `Hello **customer**.` in the message field.
+2. Select **Prepare preview**. The HTML reader shows the prepared message and the plain reader includes `Hello customer.` plus the standard title/footer.
+3. Edit the draft again. The prepared result stays unchanged until the next successful submit.
+4. Refresh the widget. The stable `reply` control retains its draft.
+
+The isolated HTML reader applies its own safe display styles; the prepared HTML payload retains the standard email shell. This is a content preview, not a pixel-for-pixel simulation of every email client.
+
+When an upload folder is configured, file selection, drag/drop or pasting a screenshot uploads a normal Storage attachment. Submission waits until uploads are ready or removed. The prepared HTML/text utility does not add or send those files; the committed draft retains their identities for a separately authorized writer.
+
+## Failure behavior
+
+An invalid draft, excessive text, an inaccessible upload folder or unfinished attachment leaves the preparation incomplete. Review the local error, remove or retry the attachment and submit again. Neither a successful upload nor a preview confirms delivery.
+
+For a later sending workflow, register an explicit write action, validate recipients and current Storage access/version on the server, keep internal notes separate, and use its durable delivery/idempotency contract. See [message composer](/widgets/message-composer), [execution](/widgets/execute) and [state](/widgets/state).

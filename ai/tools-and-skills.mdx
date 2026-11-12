@@ -51,6 +51,10 @@ Public web research and RevoEngine Docs are optional read capabilities. They are
 
 Research output is external evidence. It cannot prove current tenant configuration, resource access, deployment state, or a successful RevoEngine operation. Private application data, source code, identifiers, credentials, and signed URLs must not be sent as public research queries.
 
+Public source reading supports HTML, Markdown, plain text, JSON, XML, CSV, and TSV. Text documents retain line breaks, tables, and code. Large textual files can be read in small byte ranges when the source server supports them. A partial read is evidence only for the returned portion; the Assistant must read the missing portions before claiming complete coverage. Source changes, unsupported formats, and unsuccessful reads are reported explicitly. Executable page content and binary downloads are not treated as readable documents.
+
+When **RevoEngine Docs** is enabled, documentation search follows the published split indexes and searches page titles and paths. The Assistant can then read a page in parts or scan its content for literal text. Search reports incomplete index coverage when an index cannot be read. A search result identifies a candidate page; the page itself must be read before citing its contents. This capability remains read-only and does not enable access to private instance data.
+
 ## Product knowledge and current application state
 
 The Interactive Agent combines a compact product model with focused guidance and current evidence. **RevoEngine Docs** is an opt-in preview that provides read-only search and page retrieval from the official documentation. An Instance Administrator enables it under **Settings → Agents → Runtime** when users need current product guidance or citations. It stays disabled by default because documentation lookup can add several network calls and increase response latency.

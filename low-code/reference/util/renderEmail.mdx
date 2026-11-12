@@ -1,0 +1,30 @@
+---
+title: util.renderEmail()
+sidebarTitle: renderEmail()
+description: Public low-code contract, signatures and examples for util.renderEmail.
+icon: code
+---
+
+<span id="util-renderEmail" aria-hidden="true"></span>
+
+## `util.renderEmail()`
+
+Renders bounded Markdown into the standard email frame and a text alternative.
+Native low-code only: the platform owns this template; it is not a local SDK utility.
+@localOnly
+Does not send, enqueue, authorize recipients or load attachments. Raw HTML is escaped,
+images remain ordinary attachments, and internal reference tokens become readable labels.
+
+### Signature
+
+```ts
+static renderEmail(markdown: string, options: { title: string; footer?: string }): Promise<{ html: string; text: string }>;
+```
+### Example
+
+```ts
+const preview = await util.renderEmail('Hello **customer**.', { title: 'Case update', footer: 'RevoEngine Support' });
+```
+
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

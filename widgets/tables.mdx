@@ -59,12 +59,73 @@ This source displays two selectable records. The TABLE ID is `orders`; each row 
 
 Assistant cards accept `TEXT`, `NUMBER`, `DATE` and `BOOLEAN` columns over flat scalar records. `JSON` is a dashboard TABLE capability; it is not accepted by the Assistant artifact contract.
 
+## Column presentation fields
+
+| Field | Type | Default or effect |
+| --- | --- | --- |
+| `width` | number | Optional fixed width; the renderer clamps to 60–2000 px. |
+| `minWidth` | number | Optional minimum; use 60–2000 px for Assistant compatibility. |
+| `wrapText` | boolean | Optional wrapping with automatic row height. |
+| `filter` | boolean | Omit for the type's native filter; `false` disables the filter and floating control. JSON remains unfilterable. |
+| `renderer` | `text`, `badge`, `datetime`, `relative` | Omit or `text` for the column type's normal rendering. |
+
+`badge` displays a themed status label. `datetime` displays a valid timestamp in UTC to minute precision; `relative` displays whole minutes ago or remaining. Relative values are calculated when rendered, so use normal widget refresh when a live age is needed. Invalid timestamps display a missing value. No callback or executable renderer source crosses the widget contract.
+
 ## Toolbar buttons
 
-Each toolbar button needs `id` and `label`. It can declare `disabled`, `requiresSelection` and `on.click`. With `requiresSelection: true`, it stays disabled until at least one record is selected.
+Each toolbar button needs `id` and an accessible name: a visible `label`, or `ariaLabel` for an icon-only action. It also accepts `icon`, `tooltip` and the shared `appearance`. It can declare `disabled`, `requiresSelection` and `on.click`. With `requiresSelection: true`, it stays disabled until at least one record is selected.
 
 See [selection and drill-down example](/widgets/examples/table-actions) for bindings and required targets.
 
 ## Data size and filters
 
 Filtering and sorting a Custom Widget TABLE operates on returned browser data. It does not fetch the next server page, and its live filter state is not saved as a built-in dashboard grid preference. Bound the source query and label a partial dataset. Use a built-in Database Table or View panel when you need its full workspace grid behavior.
+
+## Paged tables and footer actions
+
+Use `page: {offset: 0, pageSize: 50, total: 238}` on TABLE for a server-fetched page, or `hasMore` when the total is unknown. `on.pageChange` receives `offset` and `pageSize`; retained page state is available in `$widget.pagination[tableId]`. The source must apply that page to its query. Filtering and sorting of returned rows remains local.
+
+The standard refresh icon invokes `on.refresh`; when absent it refreshes that TABLE element. `on.download` overrides the standard CSV action; without it CSV exports the currently loaded browser rows. Label a whole-result export explicitly and implement it in an authorized source action.
+
+Columns support bounded `width`, `minWidth`, `wrapText`, `filter` and `renderer: 'text' | 'badge' | 'datetime' | 'relative'`. No executable cell-renderer callbacks are accepted.
+
+### Page metadata
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `offset` | non-negative integer | Zero-based first record in the fetched page. |
+| `pageSize` | integer, 1–1000 | Requested page size. |
+| `total` | Optional non-negative integer | Known full-result count. |
+| `hasMore` | Optional boolean | Whether another page exists when the total is unknown. |
+
+Bind `on.pageChange` to a REFRESH action to fetch the requested page. Updating page state alone does not execute the source. This complete source uses 125 synthetic orders to show the paging contract:
+
+```js
+const ui = api.input()?.$widget ?? {};
+const page = ui.pagination?.orders ?? {offset: 0, pageSize: 25};
+if (!Number.isSafeInteger(page.offset) || page.offset < 0 ||
+    !Number.isSafeInteger(page.pageSize) || page.pageSize < 1 || page.pageSize > 1000) {
+  throw new Error('Invalid page');
+}
+const all = Array.from({length: 125}, (_, index) => ({
+  id: 'order-' + (index + 1), number: index + 1
+}));
+return [[{
+  id: 'orders', type: 'TABLE', height: 360, rowKey: 'id',
+  data: all.slice(page.offset, page.offset + page.pageSize),
+  definition: [
+    {field: 'id', headerName: 'Order', type: 'TEXT', filter: false},
+    {field: 'number', headerName: 'Number', type: 'NUMBER'}
+  ],
+  page: {...page, total: all.length},
+  on: {pageChange: {type: 'REFRESH', target: 'orders'}}
+}]];
+```
+
+Initially the page contains orders 1–25. Next requests offset 25 and displays 26–50. A production source applies the same offset/pageSize to an authorized Database query and returns the actual count or `hasMore`. The browser's sort/filter applies only to fetched rows; supply explicit query controls and reset the offset when the application changes the server filter.
+
+## Conversation message list
+
+Use `presentation: {kind: 'message-list'}` on a TABLE with a stable `rowKey`. Records can provide `title`, `preview`, `meta` and `kindLabel` for the compact virtualized list. Bind `on.rowClick` to select a message and load its reader. `options: {selectedKey: messageId}` marks the active row. Full bodies should be read on selection rather than embedded into every summary. This presentation replaces the grid; it is not a second pagination footer.
+
+For attachment cards and authorized file opening, see [content readers](/widgets/content-readers). For editing a reply, see [message composer](/widgets/message-composer).

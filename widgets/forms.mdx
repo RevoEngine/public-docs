@@ -64,3 +64,13 @@ Initially the result is **Units: 2**. Editing the field leaves the result unchan
 Do not reuse the form ID for a field. A field's `id` becomes a key in `$widget.values`, so `quantity` is read directly as `ui.values.quantity`, not as `ui.values.quantityForm.quantity`.
 
 To start durable work, use [form → Job → result](/widgets/examples/form-job). Keep the view read-only and place writes in an explicitly registered action.
+
+## Conditional and structured fields
+
+All INPUT controls can be FORM fields, including searchable selects, multiselects, UTC date/time and the [message composer](/widgets/message-composer). A message field commits its whole `{format, body, attachments}` value. Submission waits until its attachments are finalized or removed; an in-progress or failed upload cannot become a ready attachment simply by submitting.
+
+Use `visibleWhen` and `disabledWhen` for applicable fields. Hidden, disabled and conditionally disabled fields are skipped during commit. Values already retained in the frame can still exist, so the server must validate the final action input rather than trusting visibility.
+
+Source-provided `error` supplies field feedback. A refresh with the same INPUT ID and `valueMode: 'initial'` preserves the operator's draft. Use distinct explicit public and internal note fields when only one may be sent outside the workspace.
+
+See [prepare a message without sending](/widgets/examples/message-draft) for a complete read-only FORM example.

@@ -30,6 +30,7 @@ Initial rendering preserves the original configured input shape. Always handle m
 | `reason` | `initial`, `manual`, `action`, `interval` | Why the read was requested. |
 | `values` | Object keyed by INPUT ID | Committed values, including submitted FORM fields. |
 | `selection` | Object keyed by TABLE ID | Each selection has `keys`, an array of string or numeric record keys. |
+| `pagination` | Object keyed by TABLE ID | Last requested `{offset, pageSize}` for each paged table. |
 | `event` | Optional object | Interaction details, including `sourceId` and `type`; type-specific fields are described in [events](/widgets/events). |
 | `requestId` | Optional string | Identity of this read or action dispatch. |
 | `actionResult` | Optional value | Receipt of the last successfully confirmed action in this frame. |
@@ -47,3 +48,9 @@ Initial rendering preserves the original configured input shape. Always handle m
 Configured defaults and mapped action arguments are merged, with mapped keys winning. A child with no INPUT controls can still read passed arguments through `api.input()`. An `input` binding, however, requires an actual INPUT in the current frame.
 
 See [bindings](/widgets/bindings) for the exact reference syntax and [state](/widgets/state) for drafts and reload behavior.
+
+## Structured input values
+
+`values` includes scalar controls, typed arrays from multiselects and complete message drafts from `control: 'message'`. Read a message body as `ui.values.reply.body`, after validating that the value is a message draft. Source parameters passed to a child still live directly in `api.input()`; a passed `customerId` does not create an INPUT called `customerId`.
+
+Read `ui.pagination?.orders ?? {offset: 0, pageSize: 50}` before fetching a table page. The source applies those values to the query and returns matching `page` metadata. The runtime does not turn browser-local filtering into a new server query.

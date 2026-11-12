@@ -79,3 +79,18 @@ return [
 EMPTY deliberately reserves space within a row; use `width` to align siblings or leave an intentional gap. Add an ID when it should host an [inline destination](/widgets/navigation). It is not a loading or error indicator.
 
 A spacer does not make the whole widget compact or set its maximum width. Extra EMPTY rows add height, and each spacer counts toward the row's cell limit. Use compact density to reduce gaps, blank surface to remove redundant inner padding, and maxWidth to bound a small utility. These [layout options](/widgets/source-configuration#layout) are independent and optional; full available width remains the default.
+
+### Icons and accessible labels
+
+BUTTON cells, section `buttons`, TABLE toolbar buttons and shared header actions accept `icon`, `ariaLabel` and `tooltip`. Use an existing application icon. Supply a non-empty `ariaLabel` when no visible label is present. A tooltip adds context; it does not replace the accessible name.
+
+```js
+return [[{
+  id: 'refreshSummary', type: 'BUTTON', icon: 'fa-regular fa-arrow-rotate-right',
+  ariaLabel: 'Refresh summary', tooltip: 'Refresh',
+  appearance: {variant: 'ghost', size: 'small'},
+  on: {click: {type: 'REFRESH', target: 'summary'}}
+}], [{id: 'summary', type: 'TEXT', value: 'Summary content'}]];
+```
+
+A cell can expose a section toolbar through `buttons`; its actions use that cell as the source. For lightweight summaries, code, HTML and independently controlled copy/fullscreen, see [content readers](/widgets/content-readers).

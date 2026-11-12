@@ -17,6 +17,9 @@ import { ReadingFlow } from "/snippets/reading-flow.jsx";
 | `rowClick` | TABLE row | `row`; read `row.<field>`. |
 | `pointClick` | CHART point | `datum`; read `datum.<field>`. |
 | `selectionChange` | Selectable TABLE | Read current keys with a selection binding. |
+| `refresh` | TABLE footer | Overrides the normal refresh of that TABLE cell. |
+| `download` | TABLE toolbar | Overrides export of loaded rows. |
+| `pageChange` | TABLE with `page` metadata | `offset` and `pageSize`; also retained in `$widget.pagination[tableId]`. |
 
 <ReadingFlow
   label="One input event refreshes one result"
@@ -42,10 +45,16 @@ const button = {
 };
 ```
 
-Choose one of [REFRESH, OPEN_WIDGET, EXECUTE or BACK](/widgets/actions). Do not supply functions, event-handler strings or an array of actions.
+Choose one of [REFRESH, OPEN_WIDGET, OPEN_FILE, EXECUTE or BACK](/widgets/actions). Do not supply functions, event-handler strings or an array of actions.
 
 ## Selection is separate from opening
 
 A TABLE checkbox updates selection. Clicking its row may open a detail view. Use `selectionChange` for work driven by selected keys and `rowClick` for a single-record action. Read selected keys from `selection`, not from an assumed `event.keys` property.
 
 For ordered command buttons, see [queued refresh](/widgets/refresh#ordered-commands). For form writes, see [execute and confirmation](/widgets/execute).
+
+## Reader events
+
+A TEXT list with `presentation: {kind: 'list', draggable: true}` emits `on.change` with ordered string `keys` after a pointer or keyboard reorder. Bind `{from: 'event', path: 'keys'}` to a registered action if the order should be saved; local rearrangement alone is not durable.
+
+A TEXT attachment reader emits `on.rowClick` with `row` and `key`. A TABLE with `presentation: {kind: 'message-list'}` also emits `rowClick`. Supply stable record identities and authorize the selected record in the destination. These readers do not run actions embedded in HTML.

@@ -50,3 +50,28 @@ return [
 Use `mode: 'panel'` to open the destination beside its parent, or `mode: 'inline'` with an existing parent cell ID in `hostId` to mount it inside that cell. These modes start independent state: BACK navigates a retained replacement frame, not a parent in a different surface. Dismiss a panel with Escape or an outside click. For deeper drill-down, register another named destination and pass the next record ID explicitly.
 
 Continue with [reactive widgets](/operate/reactive-widgets).
+
+## Load a child on demand
+
+An inline child needs a registered `widgetTargets` entry and a stable host ID. This parent source assumes the `customerDetails` destination has been registered. The destination reads `api.input().customerId`:
+
+```js
+const openChild = {
+  type: 'OPEN_WIDGET', target: 'customerDetails', mode: 'inline', hostId: 'detailsHost',
+  input: {customerId: {from: 'input', id: 'customer'}}
+};
+return [[{
+  id: 'customer', type: 'INPUT', control: 'select', label: 'Customer',
+  value: 'customer-1', searchable: true,
+  options: [{label: 'Example customer', value: 'customer-1'}],
+  on: {change: openChild}
+}], [{
+  id: 'loadDetails', type: 'BUTTON', label: 'Load details', on: {click: openChild}
+}], [{id: 'detailsHost', type: 'EMPTY', height: 360}]];
+```
+
+The button loads only when selected; the input action loads after commit, including any configured debounce. Reopening the same source and inputs refreshes the child while retaining its draft. A change to source or inputs creates a new child scope. A child REFRESH affects its own IDs, leaving the parent's draft intact.
+
+Hidden inline hosts do not mount or perform child reads. Showing a host again starts a fresh child read. Panels and inline children have independent loading/error, inputs and timers; nesting is limited to eight levels. Replacement navigation retains up to twelve frames, and its clickable breadcrumb restores a retained ancestor. Pending writes/probes must settle before back navigation.
+
+Child target maps can inherit the registered maps of the parent. This is declarative navigation between authorized sources, not a way to load arbitrary browser components.

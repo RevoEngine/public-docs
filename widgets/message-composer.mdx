@@ -1,0 +1,91 @@
+---
+title: "Markdown message composer"
+description: "Edit a message with preview and Storage attachments, then prepare a standard email separately."
+icon: pen-to-square
+---
+
+Use `INPUT` with `control: 'message'` when a workflow needs a reply or public update. It provides **Write**, **Preview**, fullscreen preview, file selection, drag/drop and pasted screenshot attachments. Its value is a structured Markdown draft. Preparing, approving, queueing and sending the message remain separate application operations.
+
+## The draft value
+
+```json
+{
+  "format": "markdown",
+  "body": "Hello **customer**. We are reviewing your request.",
+  "attachments": []
+}
+```
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `format` | `markdown` | Required literal. |
+| `body` | string | At most 100000 characters; configure a smaller `maxLength` for the workflow. |
+| `attachments` | Attachment array | At most ten records; the draft contains identities, not signed URLs or file bytes. |
+
+An omitted value starts with an empty Markdown draft. The editor defaults to 8000 typed characters. Preview shows formatted Markdown; it does not execute raw HTML, send mail or prove how every receiving email client will render the prepared message.
+
+## Composer configuration
+
+Set `composer` on the INPUT definition:
+
+| Field | Type | Default or limit |
+| --- | --- | --- |
+| `uploadFolderId` | string | Existing authorized Storage folder UUID; absent disables new uploads. |
+| `maxFiles` | integer | 10; configurable from 1 to 10. |
+| `maxFileBytes` | bytes | 10485760 (10 MiB); lower values may be configured. |
+| `maxTotalBytes` | bytes | 20971520 (20 MiB); lower values may be configured. |
+| `files` | Ready attachment array | Up to 1000 authorized existing Storage choices; the draft still allows at most ten selected files. |
+
+The operator needs normal Storage upload/read permissions. The widget source must select the correct folder and authorized existing files; a visible attachment picker is not an access grant. Uploads use the platform Storage lifecycle and become ready only after finalization.
+
+This source creates an editor without enabling uploads:
+
+```js
+return [[{
+  id: 'reply', type: 'INPUT', control: 'message', label: 'Public reply',
+  height: 240, maxLength: 12000, valueMode: 'initial',
+  value: {format: 'markdown', body: '', attachments: []}
+}]];
+```
+
+To enable uploads, supply an existing folder ID through the source's configured inputs and set `composer: {uploadFolderId: api.input().uploadFolderId}` after validating that input. Do not create a new folder on every view refresh.
+
+## Attachment records
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `key` | string | Stable draft identity, unique within the attachment list. |
+| `name` | string | Non-empty original name, at most 500 characters. |
+| `contentType` | string | Declared file type, at most 200 characters; the writer rechecks Storage metadata. |
+| `size` | integer | 1–10485760 bytes, within the total draft limit. |
+| `state` | `UPLOADING`, `READY`, `ERROR` | Upload state shown in the attachment card. |
+| `storageEntryId` | string | Required authorized Storage UUID when ready. |
+| `version` | non-negative integer | Required observed Storage entry version when ready. |
+
+Files selected from `composer.files` must already be ready. New uploads show progress and become READY or ERROR. The operator can remove an unavailable attachment and retry. Removing a file from the draft does not delete its Storage entry or promise cancellation of a running upload.
+
+Committing a message rejects UPLOADING or ERROR attachments. A required message needs a non-blank body or at least one ready attachment. Final server validation must re-read the file, verify its version and access, check its relation to the intended record and apply the delivery service's file/size policy. Client-provided state or metadata alone is insufficient.
+
+## Drafts and submission
+
+Message controls use the same `commit`, `debounceMs`, `valueMode`, `visibleWhen` and `disabledWhen` rules as other inputs. In a FORM, the submit commits the complete draft alongside the other applicable fields. Refreshing a stable initial-value control preserves unsaved work. A new child scope or full remount has a separate draft.
+
+Bind the whole draft with `{from: 'input', id: 'reply'}`. A writer receives an object; it must not treat the object as a string or send arbitrary fields without validation. Keep public correspondence separate from internal notes, and make any sending action explicit.
+
+## Prepare a standard email
+
+Use [util.renderEmail](/low-code/reference/util/renderEmail) to produce HTML and a text alternative from the same Markdown:
+
+```js
+const prepared = await util.renderEmail('Hello **customer**.\n\nWe are reviewing your request.', {
+  title: 'Case update',
+  footer: 'RevoEngine Support'
+});
+return {html: prepared.html, text: prepared.text};
+```
+
+`util.renderEmail(markdown, {title, footer?})` is available in native low-code, not as a local Node.js SDK utility. It is pure preparation. It accepts up to 100000 Markdown characters, a non-empty title up to 300 characters and an optional footer up to 1000. It uses the standard email shell, escapes raw HTML, omits remote image embedding and turns internal reference tokens into readable labels. It does not authorize recipients, load files, enqueue a delivery or send an email.
+
+Attachments remain separate Storage references. Do not insert signed links or pasted file data into the persisted Markdown draft. If a workflow later queues mail, store a reviewed prepared payload and stable attachment identities under its normal permission, idempotency and delivery rules.
+
+Follow [prepare a message without sending](/widgets/examples/message-draft) for a complete widget source. See [content readers](/widgets/content-readers) for incoming read-only HTML and [execution](/widgets/execute) for explicit write actions.

@@ -8,13 +8,13 @@ Every cell has a `type`. Add the fields for that type; unrelated fields do not c
 
 | Type | Purpose | Main fields | Reference |
 | --- | --- | --- | --- |
-| `TEXT` | Markdown text or a clickable label | `value`; optional `label`, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
+| `TEXT` | A content reader or a clickable label | `value`; optional `label`, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
 | `EMPTY` | Intentional spacing or an inline destination host | Optional `id`, `width`, `height` | [Text and buttons](/widgets/text-and-buttons) |
 | `CHART` | A chart over returned records | `data`, `options` | [Charts](/widgets/charts) |
 | `TABLE` | Columns and returned records | `data`, `definition` | [Tables](/widgets/tables) |
-| `INPUT` | One editable value | `id`, `control`, `value` | [Inputs](/widgets/inputs) |
+| `INPUT` | Scalar, multiple choice or message draft | `id`, `control`, `value` | [Inputs](/widgets/inputs) |
 | `FORM` | Inputs submitted together | `id`, `fields`, `on.submit` | [Forms](/widgets/forms) |
-| `BUTTON` | An explicit user action | `id`, `label`, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
+| `BUTTON` | An explicit user action | `id`, accessible label, `on.click` | [Text and buttons](/widgets/text-and-buttons) |
 
 ## Shared interaction fields
 
@@ -27,3 +27,11 @@ Every cell has a `type`. Add the fields for that type; unrelated fields do not c
 | `description` | string | Absent | Supporting text shown below an INPUT. |
 
 Learn the [matrix layout](/widgets/matrix) before composing different types. Use [events](/widgets/events) to determine which `on` entries each type emits.
+
+## Content presentation
+
+`presentation` configures an existing cell. It does not introduce another matrix format. TEXT readers cover Markdown, plain text, cards, metrics, isolated HTML, images, code, properties, reorderable lists and attachment cards. TABLE can use the conversation message-list presentation.
+
+See [content readers](/widgets/content-readers) for each data shape, image consent, independent copy/fullscreen controls and scrolling. Use [message composer](/widgets/message-composer) for editable messages; HTML readers are read-only.
+
+`visibleWhen` and `disabledWhen` compare a named INPUT with a scalar literal. They control presentation; resource permissions and business validation remain in the source or executor.
