@@ -74,3 +74,8 @@ Use `visibleWhen` and `disabledWhen` for applicable fields. Hidden, disabled and
 Source-provided `error` supplies field feedback. A refresh with the same INPUT ID and `valueMode: 'initial'` preserves the operator's draft. Use distinct explicit public and internal note fields when only one may be sent outside the workspace.
 
 See [prepare a message without sending](/widgets/examples/message-draft) for a complete read-only FORM example.
+
+
+## Arrange fields
+
+`FORM.formLayout` accepts `minFieldWidth` from 120–800 pixels and `gap` as none/small/medium/large. The form automatically fits columns to its container. `INPUT.layout.fieldSpan: 'full'` spans the row; `auto` opts into ordinary flow, including for textarea controls. Without an override, textarea and message fields keep their full-width default.

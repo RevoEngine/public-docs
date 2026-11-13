@@ -107,3 +107,8 @@ return [[{
 Register `moveCard` as an action target and enforce permissions, idempotency and concurrency on the server. A drop contains `key`, `row`, `fromColumn`, `toColumn`, `beforeKey` (or null) and zero-based `index`. Reordering and keyboard column/up/down controls emit the same contract. The renderer retains confirmed rows until the action refreshes them; it does not claim an unconfirmed move was saved. Pending writes block another drag.
 
 Elements support explicit `on.hover` and `on.focus`; Kanban additionally emits `on.dragStart`, `on.dragEnd` and `on.drop`. Hover means pointer entry, and focus is entry into the element from outside its controls. All handlers use the normal registered action/runtime path. An element has no effect for an event unless its author configured one. File drag/drop and clipboard image paste remain separate message-composer upload operations.
+
+
+### Resize adjacent columns
+
+Set `layout.resizable: true` on a cell with a following sibling and a stable ID. A visible separator resizes the pair with the pointer or arrow keys, respecting each cell's minimum width. Home/End move to the limits; Delete or a double click resets it. `layout.preferenceKey` remembers the ratio locally per user and instance. Container wrapping remains responsive.

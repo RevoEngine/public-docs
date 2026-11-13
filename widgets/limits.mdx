@@ -4,19 +4,19 @@ description: "Check matrix bounds, source limits and common widget failures."
 icon: triangle-exclamation
 ---
 
-Dashboard widgets and Assistant artifacts share interaction semantics but have different result-size limits.
+Dashboard widgets and Assistant artifacts share the matrix interaction contract. Bound source reads to useful results and aggregate large datasets before rendering.
 
 | Limit | Dashboard interaction contract | Assistant card |
 | --- | --- | --- |
-| Rows | 64 | 8 |
-| Cells per row | 64 | 4 |
-| Elements, including FORM fields | 256 | Also subject to artifact row and cell limits |
+| Rows | 64 | 64 |
+| Cells per row | 64 | 64 |
+| Elements, including FORM fields | 4096 | 4096 |
 | Fields per FORM | 64 | 64 within total limits |
 | Toolbar buttons per TABLE | 16 | 16 |
 | Records per chart or table | Bound source reads to a usable dataset | 5000 |
-| Columns per TABLE | Keep the visible grid usable | 12; TEXT, NUMBER, DATE or BOOLEAN |
+| Columns per TABLE | Keep the visible grid usable | No separate 12-column restriction; TEXT, NUMBER, DATE or BOOLEAN |
 | Cell width and height | Follow the row layout | Width greater than 0 up to 100; height 32–800 px for TEXT/INPUT/BUTTON/EMPTY, 80–800 px for CHART/TABLE/FORM |
-| Artifact rows plus sources | Not the Assistant artifact envelope | 2 MB |
+| Artifact rows plus sources | Not the Assistant artifact envelope | 8 MB |
 
 ## Source and action bounds
 
@@ -48,7 +48,7 @@ Validate initial and partial branches separately, including empty values and zer
 
 ## Text, files and content readers
 
-Assistant artifacts allow TEXT `value` up to 500000 characters and ordinary INPUT strings up to 100000, within the combined 2 MB envelope. Ordinary JSON strings remain limited to 4000 characters; supported URL/CID entries may use up to 10000. A message draft has its own 100000-character body limit. The message editor defaults to 8000 typed characters unless `maxLength` is set explicitly.
+Assistant artifacts allow TEXT `value` up to 500000 characters and ordinary INPUT strings up to 100000, within the combined 8 MB envelope. Ordinary JSON strings remain limited to 4000 characters; supported URL/CID entries may use up to 10000. A message draft has its own 100000-character body limit. The message editor defaults to 8000 typed characters unless `maxLength` is set explicitly.
 
 A message composer accepts at most ten attachments, 10 MiB per file and 20 MiB total. Its configured limits may be lower. These limits do not replace Storage permissions or the destination mail service's own limits. A ready attachment includes its authorized Storage entry ID and observed version; never persist a signed preview URL as the attachment identity.
 

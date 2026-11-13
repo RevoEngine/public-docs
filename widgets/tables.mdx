@@ -57,7 +57,7 @@ This source displays two selectable records. The TABLE ID is `orders`; each row 
 
 `field`, `headerName` and `type` are required strings. Keep `field` equal to a property in the returned records. A null or invalid date is displayed as missing, not as a valid date.
 
-Assistant cards accept `TEXT`, `NUMBER`, `DATE` and `BOOLEAN` columns over flat scalar records. `JSON` is a dashboard TABLE capability; it is not accepted by the Assistant artifact contract.
+Assistant cards accept `TEXT`, `NUMBER`, `DATE` and `BOOLEAN` columns over serializable records, including structured badge values. `JSON` is a dashboard TABLE capability; it is not accepted by the Assistant artifact contract.
 
 ## Column presentation fields
 
@@ -79,13 +79,13 @@ See [selection and drill-down example](/widgets/examples/table-actions) for bind
 
 ## Data size and filters
 
-Filtering and sorting a Custom Widget TABLE operates on returned browser data. It does not fetch the next server page, and its live filter state is not saved as a built-in dashboard grid preference. Bound the source query and label a partial dataset. Use a built-in Database Table or View panel when you need its full workspace grid behavior.
+Filtering and sorting a Custom Widget TABLE operates on returned browser data. It does not fetch the next server page, and its local view state can be remembered with grid.preferenceKey; it is separate from the shared dashboard preference. Bound the source query and label a partial dataset. Use a built-in Database Table or View panel when you need its full workspace grid behavior.
 
 ## Paged tables and footer actions
 
 Use `page: {offset: 0, pageSize: 50, total: 238}` on TABLE for a server-fetched page, or `hasMore` when the total is unknown. `on.pageChange` receives `offset` and `pageSize`; retained page state is available in `$widget.pagination[tableId]`. The source must apply that page to its query. Filtering and sorting of returned rows remains local.
 
-The standard refresh icon invokes `on.refresh`; when absent it refreshes that TABLE element. `on.download` overrides the standard CSV action; without it CSV exports the currently loaded browser rows. Label a whole-result export explicitly and implement it in an authorized source action.
+The standard refresh icon invokes `on.refresh`; when absent it refreshes that TABLE element. `on.download` overrides the standard download; without it the native XLSX download exports the currently loaded browser rows. Set grid.exportFormat to csv for CSV output. Label a whole-result export explicitly and implement it in an authorized source action.
 
 Columns support bounded `width`, `minWidth`, `wrapText`, `filter` and `renderer: 'text' | 'badge' | 'datetime' | 'relative'`. No executable cell-renderer callbacks are accepted.
 
@@ -129,3 +129,16 @@ Initially the page contains orders 1–25. Next requests offset 25 and displays 
 Use `presentation: {kind: 'message-list'}` on a TABLE with a stable `rowKey`. Records can provide `title`, `preview`, `meta` and `kindLabel` for the compact virtualized list. Bind `on.rowClick` to select a message and load its reader. `options: {selectedKey: messageId}` marks the active row. Full bodies should be read on selection rather than embedded into every summary. This presentation replaces the grid; it is not a second pagination footer.
 
 For attachment cards and authorized file opening, see [content readers](/widgets/content-readers). For editing a reply, see [message composer](/widgets/message-composer).
+
+
+## Compact tables and native downloads
+
+Use `grid: { chrome: 'compact', exportFormat: 'xlsx', fileName: 'orders', preferenceKey: 'orders-table' }` to keep refresh, paging and download in a slim toolbar without the footer status panel. XLSX download requires no trigger or write target. It exports loaded rows after local filtering and sorting, not all server pages. An explicit `on.download` takes precedence. `exportFormat: 'none'` hides native export. `chrome: 'none'` removes table controls and cannot be combined with server pagination.
+
+Optional `rowHeight` (24–120), `headerHeight` (24–120) and `borders: false` adjust density and separators. A stable `preferenceKey` remembers column widths, order, visibility, pinning, sort and filter locally per user and instance. **Reset my table layout** restores the authored column setup; row selection and server pagination remain controlled by the widget.
+
+### Hierarchical rows and badges
+
+`tree: {pathField: 'path', header: 'Hierarchy', expanded: 0}` displays complete hierarchical data. Each keyed row needs a unique nonempty string-array path, for example `['Platform', 'API']`. Tree mode cannot be combined with server pagination; missing ancestors appear as grouping rows and do not run record actions.
+
+A column with `renderer: 'badge'` accepts plain labels or `{label: 'In progress', icon: 'fa-regular fa-clock', tone: 'info'}`. Tone is neutral, info, success, warning or danger. Download exports the badge label.

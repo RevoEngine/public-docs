@@ -190,7 +190,7 @@ The source branches on `$widget.targetIds` before reading data. After confirmed 
 
 For horizontal bar charts, use a number x-axis and a category y-axis, or omit explicit axes. Text category values on a number axis are rejected before the card is published.
 
-Chat artifacts allow at most 8 rows, 4 cells per row, 5000 flat records per chart/table, 12 table columns and 2 MB for rows plus sources. Each target map allows 32 entries, with at most four nested target levels. Inline source code is limited to 120000 characters. Source `inputs` is JSON object text without `$widget`; timeout is 5–600 seconds and memory is 32–1024 MB. These limits do not grant execution access.
+Chat artifacts allow at most 64 rows, 64 cells per row, 4096 elements including form fields, 5000 serializable records per chart/table and 8 MB for rows plus sources. Each target map allows 32 entries, with at most four nested target levels. Inline source code is limited to 120000 characters. Source `inputs` is JSON object text without `$widget`; timeout is 5–600 seconds and memory is 32–1024 MB. These limits do not grant execution access.
 
 Before sharing a result, verify the real form submit, exact Job completion, retained inputs after partial refresh, two drill levels with Back, and dynamic dashboard conversion. A validated artifact alone does not prove browser rendering or Job success. A page reload restores configured defaults, not unsaved form drafts. Shared/report readers see disabled controls and cannot run actions from the card.
 

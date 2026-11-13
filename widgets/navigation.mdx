@@ -158,6 +158,33 @@ const widgetConfig = {
 
 The root workspace keeps its selected tab in `wtab.orders`. Back and Forward restore the selection and preserve other URL parameters. Unknown tab values use the configured default. Tabs visited during the current page session remain mounted, preserving unsaved inputs and pausing reads while hidden. Reloading restores the selected tab, not an unsaved draft. Nested, panel, modal and popover workspaces keep their selection local to that surface.
 
+### Open each record in its own tab
+
+Use `OPEN_WIDGET` with `mode: 'tab'` inside a workspace to keep several records open independently. The registered target remains the only source that can execute. Bind a stable record key and a short title:
+
+```javascript
+const openCase = {
+  type: 'OPEN_WIDGET', target: 'Case', mode: 'tab',
+  tab: {
+    key: { from: 'event', path: 'row.id' },
+    label: { from: 'event', path: 'row.title' },
+  },
+  input: { caseId: { from: 'event', path: 'row.id' } },
+};
+```
+
+The nearest mounted workspace opens the tab. Opening the same target and key again selects the existing view and preserves its inputs and draft. Different keys have independent views. Fixed sections stay open; record tabs have a close action. Arrow keys, Home and End select tabs; Delete closes a focused record tab.
+
+A workspace can retain twelve record tabs in addition to its fixed sections. At the limit, close a tab before opening another; existing drafts are never evicted. Closing a changed view asks before discarding its inputs. Pending actions and open detail panels block closing. Closing the active record selects the previous tab. Hidden views pause scheduled reads; refresh the list without replacing other tabs.
+
+Both tab bindings must resolve to nonblank strings: key up to 256 characters, title up to 120. Do not combine tab navigation with `returnTo` or a parent `refresh`. Dynamic tabs and their drafts belong to the current mounted workspace. Reloading or leaving the dashboard discards them; an unknown or closed URL selection falls back to the default fixed section. Tab URLs are navigation state, not durable record links.
+
+### Arrange and protect record tabs
+
+`tab` also accepts an `icon` binding and the author defaults `closable` and `pinned`. Choose a native Font Awesome class for icons. Drag record tabs to reorder them within their pinned or unpinned group; fixed sections remain in place. The pin action prevents closing until the tab is unpinned. Set `closable: false` for an author-protected record tab. Ctrl/Command + Shift + Arrow reorders a focused record tab; Ctrl/Command + Shift + P toggles its pin.
+
+When tabs overflow, use the horizontal scrollbar, navigation arrows or tab selector. `workspace.navigation: 'sidebar'` moves fixed section navigation to a sidebar; record tabs remain in their own strip.
+
 ## Select an existing resource
 
 Register a native resource destination instead of writing a custom picker:

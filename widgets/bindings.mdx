@@ -40,3 +40,8 @@ const action = {
 Use `set` on REFRESH to update existing INPUT state before rereading a view. It does not create controls or edit the saved source configuration. Use `input` on EXECUTE or OPEN_WIDGET to supply the registered target's arguments.
 
 Binding keys follow the [ID rules](/widgets/matrix#ids-and-data-fields). A map accepts up to 100 entries. Literal strings are limited to 4000 characters and scalar arrays to 5000 items. See [actions](/widgets/actions) for target-specific fields.
+
+
+## Local reactive text
+
+A TEXT cell can use `valueBinding: {from: 'input', id: 'subject'}` to show a local draft immediately without a server read. Selection and result references use the same shape. This presentation binding does not commit a draft: action inputs still use committed and validated values.

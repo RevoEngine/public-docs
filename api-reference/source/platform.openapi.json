@@ -11847,6 +11847,9 @@
           },
           "404": {
             "description": "Not found."
+          },
+          "409": {
+            "description": "The supplied preference version is stale. Refresh before saving again."
           }
         },
         "security": [

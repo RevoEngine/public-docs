@@ -7,7 +7,7 @@ icon: book-open
 
 ## Choose the source
 
-The **Widget** palette entry renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Inline code** for logic used only by this dashboard. Choose **Reusable component** when the same logic needs its own Component lifecycle or will serve several dashboards. Configure:
+The **Widget** palette entry renders code output as text, charts, tables, forms, inputs, buttons or empty space. Choose **Reusable component** for maintained dashboards and workspaces: keep the preference as a small binding and maintain the views in the Component. **Inline code** remains useful for simple one-off calculations. Configure:
 
 | Setting | Meaning |
 | --- | --- |
@@ -40,7 +40,7 @@ These options are independent: a compact widget can still use full width, and a 
 
 One optional compact-keypad recipe is `layout: { density: 'compact', maxWidth: 360, surface: 'blank' }`, with four equal cell widths and full-width [buttons](/widgets/text-and-buttons). Use the width cap or blank surface only when useful for that widget; this recipe is not the starting layout for all dashboards. Omit fixed control heights unless needed. Dynamic and fixed-snapshot conversion preserve layout.
 
-`EMPTY` is useful for intentional alignment, but extra empty rows add height. Every spacer consumes a cell slot: an Assistant card allows four cells per row, so a four-button keypad row cannot also contain two spacers. See [rows and matrix](/widgets/matrix) and [empty cells](/widgets/text-and-buttons#empty-cells).
+`EMPTY` is useful for intentional alignment, but extra empty rows add height. Every spacer consumes a cell slot: the shared matrix supports up to 64 cells per row, within the total element limit. See [rows and matrix](/widgets/matrix) and [empty cells](/widgets/text-and-buttons#empty-cells).
 
 Keep inline and registered source code readable: indent blocks, split statements and expand long objects. Preserve line breaks in code strings and test the final formatted source. Formatting is authoring guidance, not an execution requirement.
 
@@ -145,3 +145,16 @@ const actionTargets = {
 Replace the Component IDs with authorized resources and register these maps in source configuration. `Conversation`, `Triage` and `SaveCase` must be exact keys in those Components. Keep existing single-`Main` sources with input-based view branches unchanged unless deliberately refactoring them. Do not activate selected configurations against an older backend.
 
 Declarative matrices and saved native dashboard references are rendering sources, not executable action targets. Configure them through **Declarative elements** or **Saved dashboard widget**; these editor choices preserve their configuration when layout settings change. See [floating and native destinations](/widgets/navigation).
+
+
+## Keep a workspace in one Component
+
+Bind a reusable Component once and let its full read return `{ matrix: [], widgetConfig: { workspace, widgetTargets, actionTargets, header, layout } }`. The descriptor controls presentation and registered destinations; it cannot replace the configured source or its execution authority. Keep view reads restricted. To allow that trusted Component to declare write actions, the dashboard author explicitly enables **Allow component actions** (`allowComponentActions: true`) on its binding.
+
+Partial refresh reads return only the requested cells, without `widgetConfig`. A changed descriptor is refused while retained views have drafts or pending actions. Self-Component targets inherit a pinned source revision when they omit one; other targets keep their own revision choice. Edit the Component for subsequent view changes instead of replacing the whole dashboard preference.
+
+### Independent spacing
+
+`layout.gap` and `layout.padding` accept `none`, `small`, `medium` or `large`, independently of density. They change inner spacing; they do not alter the outer panel geometry. Wrapping follows the containing widget or panel width.
+
+The JSON configuration editors provide completion from the shared widget types. Runtime validation and a browser check are still required before publication.
