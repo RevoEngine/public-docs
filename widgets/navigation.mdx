@@ -181,9 +181,11 @@ Both tab bindings must resolve to nonblank strings: key up to 256 characters, ti
 
 ### Arrange and protect record tabs
 
-`tab` also accepts an `icon` binding and the author defaults `closable` and `pinned`. Choose a native Font Awesome class for icons. Drag record tabs to reorder them within their pinned or unpinned group; fixed sections remain in place. The pin action prevents closing until the tab is unpinned. Set `closable: false` for an author-protected record tab. Ctrl/Command + Shift + Arrow reorders a focused record tab; Ctrl/Command + Shift + P toggles its pin.
+`tab` also accepts an `icon` binding and the independent author controls `closable` and `pinnable`, and the default `pinned` state. Choose a native Font Awesome class for icons. Drag record tabs to reorder them within their pinned or unpinned group; fixed sections remain in place. The pin action prevents closing until the tab is unpinned. Set `closable: false` to hide closing, or `pinnable: false` to hide pinning and disable its keyboard shortcut. Pinning defaults to enabled for closable tabs; set `pinnable: true` explicitly to allow pinning a nonclosable tab. Fixed sections have no lock or pin decoration. Ctrl/Command + Shift + Arrow reorders a focused record tab; Ctrl/Command + Shift + P toggles its pin.
 
-When tabs overflow, use the horizontal scrollbar, navigation arrows or tab selector. `workspace.navigation: 'sidebar'` moves fixed section navigation to a sidebar; record tabs remain in their own strip.
+Pin and X actions are inside each record tab, using the same appearance as AI thread tabs. By default they appear on hover or keyboard focus and remain available on touch devices. Set `workspace.tabActions: 'always'` to keep the actions visible. Long labels truncate with an ellipsis and expose the full label in a tooltip. Only explicitly pinned record tabs receive the pinned appearance.
+
+When tabs overflow, use the horizontal scrollbar, navigation arrows or tab selector. `workspace.navigation: 'sidebar'` moves fixed section navigation to a sidebar. Choose `workspace.navigation: 'menu'` for a compact section button with a separate ⋮ picker, like the AI workspace. Both layouts keep record tabs in their own strip, retain independent drafts, and preserve the same close guards.
 
 ## Select an existing resource
 
