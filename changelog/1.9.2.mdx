@@ -1,0 +1,86 @@
+---
+title: "1.9.2 — Applications, flexible RUN and explicit access"
+sidebarTitle: "1.9.2"
+icon: "tag"
+description: "13 November 2026"
+---
+
+These capabilities require RevoEngine 1.9.2; check the version deployed in your environment before using them.
+
+Organize published endpoints into Applications without changing their paths. Choose HTTP formats, authenticated caller policies and deliberately enabled anonymous flows, while keeping established Default integrations and the existing mailing and widget work together.
+
+## Highlights
+
+- Select Applications by runtime subdomain, preserve existing Default URLs and configure CORS independently from invocation access.
+- Accept inline JSON, forms, text, XML, binary, multipart or raw bytes; stream bounded native Storage files through Component-selected references and verify signatures in low-code.
+- Control authenticated and anonymous invocation, synchronize Applications with CLI 2.2.0, and build operational widgets using native authoring controls.
+
+## In detail
+
+## Route by Application without rewriting paths
+
+Manage Applications in Settings, then assign an Endpoint to the intended Application. A configured `application--instance` runtime hostname selects the Application; a bare instance hostname selects Default. The Endpoint's METHOD, PATH and query remain unchanged. An explicit `default--instance` address remains available.
+
+Existing base runtime addresses and instance-selection headers keep their Default behavior. `/services/...` is an ordinary business path, never a reserved Application prefix. Existing consumers are not moved automatically. Standard upgrade routes remain in Default; unexpected global route uniqueness stops migration for explicit schema review, rather than removing unknown customer constraints. Two Applications can expose the same METHOD/PATH independently; a missing Application or route never falls back to another Application.
+
+The protected system key is displayed as *default*. Application settings show the derived runtime hostname and keep the immutable identity separate from its editable display name. See [Applications and access](/operate/endpoint-applications).
+
+## Restrict authenticated callers
+
+Choose all authorized callers, an allowlist or a denylist of Members and Groups. Members retain typed user and Service Account identities; Group rules evaluate the actual caller’s verified membership. A denylist blocks either a direct member or Group match. An omitted policy preserves existing access, including Service Accounts authorized to invoke all endpoints. A configured Application policy adds a restriction to existing invocation roles; it never grants a missing role, resource permission or execution authority.
+
+Policies evaluate the actual caller, independently from the saved executor and CORS. An explicit restriction also applies to administrator callers. Changing a policy affects new admission after propagation and does not automatically cancel work already admitted. See [caller access](/operate/endpoint-applications#restrict-authenticated-callers).
+
+## Publish anonymous endpoints deliberately
+
+Anonymous access is off by default. Enable it on the Application and the specific Endpoint, then select an explicit limited Service Account to execute that route. Inherited, System or administrator authority cannot silently become a public executor. Configure shared limits of 1–1000 requests per minute and 1–10 concurrent anonymous executions; unavailable admission fails closed without a process-local fallback.
+
+Missing credentials can use this explicit path. Present but invalid credentials still return 401, and valid authenticated callers still use their own invocation role and Application policy. Anonymous `caller` and `api.currentUser()` are null. Use `api.invocationContext()` to distinguish caller, current-user projection and executor. Personal ownership is not borrowed from the service executor. See [anonymous admission](/operate/endpoint-applications#allow-unauthenticated-requests-deliberately).
+
+## Choose the HTTP wire contract
+
+Configure request and response formats independently. Explicit JSON supports objects, arrays and scalars; form data is decoded; text and validated XML remain strings; binary input uses a lossless Base64 envelope; multipart exposes fields and ordered file envelopes. Omitting these options retains existing JSON/form and response behavior. SSE remains available with its existing completion and disconnect controls.
+
+Raw mode preserves exact bytes in a bounded inline envelope. For native file transfer, the Component selects an authorized empty direct upload session or existing file; the runtime streams bytes without passing a complete file buffer into low-code. Both directions default to and cap at 32 MiB; download checks the complete file for HEAD and Range too. Upload returns a verified JSON receipt, not provider authenticity. Anonymous upload is limited to local JavaScript/TypeScript and its saved restricted Storage-authorized Service Account; hosted/RPC streams do not inherit that grant. HTTP response headers use the structured native configurator with text values and reserved-header validation. See [request and response formats](/operate/endpoint-bodies).
+
+## Validate provider signatures in low-code
+
+Provider-specific authentication belongs to application code, rather than fixed Endpoint fields. Keep exact bytes, load verification material from authorized instance Vault and choose the provider's signing protocol. Generic HMAC and asynchronous P-256/SHA-256 verification support distinct signing constructions without coupling the runtime to one email or payment provider.
+
+The maintained examples demonstrate timestamped HMAC and asymmetric verification before application writes. Timestamp tolerance, rotated keys, delivery retries and durable idempotency remain explicit application decisions. See [signed webhook examples](/operate/signed-webhooks).
+
+## Synchronize with CLI 2.2.0
+
+Applications and Endpoints participate in one reviewed workspace plan. Applications use immutable keys, Endpoint references resolve target-specific Application identities, and Service Accounts retain portable Stable Keys. Caller policies preserve typed identities; Groups resolve by Stable Key and target identity, while crossing instances with user references requires an explicit target mapping rather than email matching.
+
+Reviewed plans retain definition, identity and execution-account fences across dependent phases. Omitted policies preserve remote restrictions. Default and Applications with retained Endpoint references are protected from unsafe deletion. Explicit formats or access policies unsupported by the local emulator fail clearly instead of claiming an authorized production-equivalent result. Use the actual RUN for complete transport validation. See [CLI Application workflows](/developers/cli-projects#synchronize-applications-and-endpoints).
+
+## Author with native forms and ordinary Save
+
+Application and Endpoint editors reuse shared Details sections, rich dropdowns, searchable resource selectors and section-header actions. Route validation checks METHOD/PATH within the selected Application, includes inactive routes and blocks Save while validation is pending or failed. Switching Applications triggers a fresh check. Header validation and Save state also settle after silent Component revision hydration, including when opening an existing Endpoint without edits.
+
+Ordinary low-code Save works independently from Studio sessions. It advances the canonical source and active runtime revision atomically while preserving unrelated staged work and existing execution pins. Explicit session review/activation remains available. Pinned Custom Node changes still require a prepared artifact and explicit activation. See [Component authoring](/build/components).
+
+## Compose operational panels and retain layouts
+
+Widget workspaces retain record tabs and drafts, author-controlled pin/close behavior, keyboard and drag ordering, sidebar navigation and adjustable adjacent panels. Content and conversation headers can contain actions; configured rows can be resized; compact and full tables keep native paging, refresh and download controls. Tree tables and direct XLSX/CSV export support operational views. Mail previews fill the available fullscreen surface, and section alerts follow the shared placement.
+
+Dashboard authoring retains the established 20-column grid. Previously saved fine-grid layouts are converted on read rather than repeatedly scaled, preserving classic layouts and resize behavior. Personal table and panel preferences remain scoped to their user, instance and widget. See [widget content readers](/widgets/content-readers), [row sizing](/widgets/matrix) and [table controls](/widgets/tables).
+
+## Keep mailing changes together
+
+Unread-chat summaries claim the complete eligible message set for one digest, show bounded previews with a full count and avoid sending overflow as later duplicate digests. Existing preferences, eligibility and cooldown rules remain in force. Raw ingress and low-code verification provide building blocks for an inbound-mail application; provider delivery configuration and cutover remain separate operational steps. See [email preferences and unread digests](/operate/chat#email-preferences-and-unread-digests).
+
+
+## Related guides
+
+- [Applications and access](/operate/endpoint-applications)
+- [Request and response formats](/operate/endpoint-bodies)
+- [Signed webhook examples](/operate/signed-webhooks)
+- [Endpoint configuration](/operate/endpoint-configuration)
+- [CLI Application synchronization](/developers/cli-projects#synchronize-applications-and-endpoints)
+- [Widget content readers](/widgets/content-readers)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.9.1](/changelog/1.9.1)

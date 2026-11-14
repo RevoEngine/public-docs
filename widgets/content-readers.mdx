@@ -14,6 +14,7 @@ Use a reader to display a message, document or compact summary without turning e
 | `card` | TEXT | `value`; optional `label` | Markdown content with a titled card surface. |
 | `plain` | TEXT | `value` | Preserves line breaks without Markdown interpretation. |
 | `metric` | TEXT | `value`, optional `label` and `description` | Themed metric card with a visible label, prominent value and supporting description. |
+| `badge` | TEXT | `value` label; optional cell `icon` and presentation `tone` | Compact status label using the shared theme. |
 | `html` | TEXT | `value` HTML string | Sanitized, isolated, read-only document. |
 | `image` | TEXT | `value` HTTPS image URL or supported image data URL | Image with optional `label` and `description`. |
 | `code` | TEXT | `value` string | Read-only code editor with a declared language. |
@@ -34,7 +35,7 @@ Omitting `presentation.kind` preserves the ordinary TEXT renderer. A presentatio
 | `copy` | boolean | Opt-in copy for explicit Markdown/card, HTML and plain readers. |
 | `fullscreen` | boolean | Independent fullscreen for explicit Markdown/card, HTML, plain and image readers. |
 | `scroll` | boolean | TEXT scrolls automatically with a fixed height or `maxHeight`; can be overridden. |
-| `scrollControls` | boolean | Adds overlay up/down controls on hover or keyboard focus without reserving a row; touch controls remain visible. |
+| `scrollControls` | boolean | Enabled unless `false`; up/down controls appear only when content overflows, on hover or keyboard focus. Touch controls remain visible. |
 | `minHeight`, `maxHeight`, `maxWidth` | pixels | Optional 1–10000; constrain the cell. |
 | `language` | string | Code only; defaults to `plaintext`. |
 | `allowImages` | boolean | HTML only; loads permitted remote images automatically when true. |
@@ -42,6 +43,8 @@ Omitting `presentation.kind` preserves the ordinary TEXT renderer. A presentatio
 | `draggable` | boolean | List only; enables reorder controls and `on.change`. |
 
 Copy and fullscreen are separate options. Ordinary TEXT retains its existing renderer defaults; explicit readers enable only the controls configured for their kind. A cell's `height` remains a cell field, outside `presentation`.
+
+Scroll controls sit at the lower edge of the reader body, leaving the title and its actions available above. They move within the loaded content, including an HTML message; they do not refresh the source or load more data.
 
 ```js
 return [[{
@@ -66,9 +69,42 @@ return [[{
 
 Use `presentation.frame: 'card'` for a bordered message reader with its title and copy/fullscreen actions aligned in the header. HTML is sanitized and displayed in a sandboxed document. Scripts, inline event handlers, forms, buttons, embedded frames, navigation and content-supplied CSS are removed. The reader applies its own light/dark presentation. It is not a browser page and has no action bridge to the host. Put real controls outside the HTML and use [declared actions](/widgets/actions).
 
+With `fullscreen: true`, the HTML reader fills the available modal body beneath its header and scrolls through the complete message. Its authored cell `height` still controls the embedded reader on the dashboard. Escape or a click outside dismisses the fullscreen view.
+
 With `allowImages: true`, permitted remote HTML images load automatically, including after changing the selected message. There is no separate image-loading button. With the option omitted or false, unrelated remote images remain blocked. For `cid:` images, the authorized source supplies normalized lowercase content IDs in `cidImages` with fresh signed Storage URLs; those authorized images render immediately. Do not copy customer-provided URLs into that map.
 
 The separate `image` reader displays its permitted source directly. Use it for deliberate images or screenshots, not unsolicited tracking images taken from email HTML. It accepts HTTPS URLs and base64 PNG/JPEG/GIF/WebP data URLs. `fullscreen: true` uses the image zoom surface.
+
+## Section header actions
+
+Use the cell's `buttons` for actions beside a section title. A framed HTML, plain-text or image reader places these actions in the same header as copy and fullscreen. The header remains outside the scrolling body. The same pattern is available for titled cards and [conversation lists](/widgets/tables#conversation-message-list).
+
+```js
+return [[{
+  id: 'triage', type: 'TEXT', label: 'Internal review', height: 420,
+  presentation: {kind: 'plain', frame: 'card', copy: true, fullscreen: true},
+  buttons: [{
+    id: 'refreshTriage', label: 'Refresh', icon: 'fa-regular fa-arrow-rotate-right',
+    on: {click: {type: 'REFRESH', target: 'triage'}}
+  }],
+  value: 'Review the selected record before preparing a reply.'
+}]];
+```
+
+Buttons use the section cell as their action source and follow the normal registered target, permission and busy-state rules. Configure business actions through [EXECUTE](/widgets/execute); rendering a header button does not grant execution permission.
+
+## Compact status labels
+
+Use `presentation.kind: 'badge'` for a standalone status. Supply its written label in `value`, an optional icon on the cell, and its semantic color through `presentation.tone`:
+
+```js
+return [[{
+  id: 'status', type: 'TEXT', value: 'Awaiting review',
+  icon: 'fa-regular fa-clock', presentation: {kind: 'badge', tone: 'warning'}
+}]];
+```
+
+Supported tones are `neutral`, `info`, `success`, `warning` and `danger`; the default is neutral. Status remains written text, so color and the optional decorative icon are not its only meaning. For status columns inside a grid, use the [badge column renderer](/widgets/tables#hierarchical-rows-and-badges), which accepts structured badge values in the table's data records.
 
 ## Read-only code and structured summaries
 

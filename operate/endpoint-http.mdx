@@ -9,6 +9,8 @@ streaming text or tool lifecycle events, choose [SSE](/operate/endpoint-sse).
 Both modes use the same [Endpoint configuration](/operate/endpoint-configuration),
 request input, authorization and guards.
 
+HTTP can explicitly serialize JSON, text, XML or binary while retaining your chosen result selection. See [request and response formats](/operate/endpoint-bodies) for wire types, binary envelopes, multipart input and limits. Leaving those options unset preserves existing response behavior.
+
 ## Select the response contract
 
 For a read like `GET /orders/:orderId`, choose one visible result when the client needs a simple JSON object. Use a result map when it needs several named outputs. The same Component can supply either shape.

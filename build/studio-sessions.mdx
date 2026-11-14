@@ -10,7 +10,7 @@ import { ReadingFlow } from "/snippets/reading-flow.jsx";
   Studio coding sessions are enabled separately through **Settings → Agents → Runtime → Studio sessions**, currently marked Preview. The instance must also satisfy the execution prerequisites. Existing Studio editing remains available on other instances.
 </Note>
 
-A Studio session is a durable workspace for changes spanning several Components, tests and supporting files. Humans, Assistants and authorized Agents can work in the same session. Saving a session preserves a draft; it does not deploy Components or activate their runtime.
+A Studio session is a durable workspace for changes spanning several Components, tests and supporting files. Humans, Assistants and authorized Agents can work in the same session. Saving a session preserves a draft; it does not deploy Components or activate their runtime. Ordinary Save in the default Component workspace remains available with sessions enabled or disabled. It uses the normal version, permission and approval checks; only an explicitly selected session saves a collaborative draft.
 
 <ReadingFlow
   label="Separate draft, evidence and deployment"

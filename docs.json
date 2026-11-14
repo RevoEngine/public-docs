@@ -145,6 +145,9 @@
                 "icon": "route",
                 "pages": [
                   "operate/endpoints",
+                  "operate/endpoint-applications",
+                  "operate/endpoint-bodies",
+                  "operate/signed-webhooks",
                   "operate/endpoint-http",
                   "operate/endpoint-configuration",
                   "operate/endpoint-sse"
@@ -632,6 +635,7 @@
                     "group": "Execution context",
                     "pages": [
                       "low-code/reference/api/currentUser",
+                      "low-code/reference/api/invocationContext",
                       "low-code/reference/api/isDebug",
                       "low-code/reference/api/getContext",
                       "low-code/reference/api/getErrors",
@@ -872,7 +876,8 @@
                       "low-code/reference/util/randomBytes",
                       "low-code/reference/util/randomInt",
                       "low-code/reference/util/randomString",
-                      "low-code/reference/util/validate"
+                      "low-code/reference/util/validate",
+                      "low-code/reference/util/ecdsaVerify"
                     ]
                   },
                   {
@@ -955,6 +960,7 @@
               {
                 "group": "1.9.x",
                 "pages": [
+                  "changelog/1.9.2",
                   "changelog/1.9.1",
                   "changelog/1.9.0"
                 ]

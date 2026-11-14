@@ -8,7 +8,7 @@ import { ReadingFlow } from "/snippets/reading-flow.jsx";
 
 import { FlowDemo, PlaygroundStyle, useDemoPlayback, flowCatalog } from "/snippets/revo-playground.jsx";
 
-Expose a business operation at a method and path, such as `POST /orders/:orderId/confirm`. An active Endpoint can run a Component or return a configured static response.
+Expose a business operation at a method and path, such as `POST /orders/:orderId/confirm`. An active Endpoint can run a Component or return a configured static response. [Applications](/operate/endpoint-applications) provide independent route namespaces and browser-origin policies; existing routes belong to Default.
 
 <span id="runtime-behavior" aria-hidden="true"></span>
 <span id="routing" aria-hidden="true"></span>
@@ -42,7 +42,7 @@ The guard receives `body`, `query`, `parameters` and sanitized `headers`. A vali
 ## Publish a route
 
 1. In **Endpoints**, create an inactive definition. Set the method and path, then choose the Component and its version binding.
-2. In **Options**, choose the guard, timeout and response contract. For a new JSON Endpoint, select the visible result element by name.
+2. Select the Application, then choose the guard, timeout and response contract. For a new JSON Endpoint, select the visible result element by name. Configure [explicit body formats](/operate/endpoint-bodies) when the integration requires text, XML, binary or multipart.
 3. Activate and call the route using the [Endpoint runtime URL](/developers/endpoint-runtime). Test a valid request and one that fails the guard.
 
 The [configuration reference](/operate/endpoint-configuration) covers route rules, access identity, version binding, validation errors, and a complete order command definition. For a first working route, use the [quickstart](/quickstart).
@@ -75,4 +75,4 @@ For background work, follow [Start a Job from an Endpoint](/examples/endpoint-jo
 - Use a caller with [Endpoint invocation access](/developers/authentication). The [execution policy](/operate/endpoint-configuration#execution-policy) separately governs resource access inside the Component.
 - Review the generated [runtime OpenAPI contract](/developers/endpoint-runtime) after changing the request or response. Check latest versus pinned bindings before activating a Component update.
 - Follow the [Operation ID](/operate/traces#start-with-the-right-identifier) to diagnose a request. Endpoint invocations have no automatic retry. Use a [business idempotency key](/patterns/idempotency) for retryable writes.
-- An inactive Endpoint still reserves its method and path. Deletion releases them. Restoring the original by ID returns `409 Conflict` if another Endpoint now owns that route.
+- An inactive Endpoint still reserves its method and path within its Application. Deletion releases them. Restoring the original by ID returns `409 Conflict` if another Endpoint now owns that route there.

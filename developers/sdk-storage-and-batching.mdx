@@ -209,3 +209,7 @@ For structured CSV or Excel generation, upload sessions accept rows and workshee
 Callback-based transaction compatibility APIs are intentionally not part of the public SDK. If several remote operations require atomicity, implement that boundary in one RevoEngine component or library where the database transaction context exists.
 
 See [Storage operations](/operate/storage), [Storage upload sessions](/operate/storage-uploads), [HTTP integrations](/low-code/http), and the generated [Storage method reference](/low-code/reference/storage).
+
+## Native Endpoint upload and download
+
+For an HTTP Endpoint backed by a Component, use its separate `requestBody.mode: "storage"` or `responseBody.mode: "storage"` contract. The selected result is a session or file reference, never a Node.js stream or Base64 file. This is distinct from `api.httpCall` source/target transfer. Both directions are bounded at 32 MiB; see [the complete workflow and identity boundaries](/operate/endpoint-bodies#stream-files-through-the-endpoint-runtime).

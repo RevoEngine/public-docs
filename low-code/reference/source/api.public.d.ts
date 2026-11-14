@@ -607,34 +607,23 @@ declare class api {
     ): Promise<{ success: number; elapsed: number; data?: any }>;
 
   /**
-     * Executes raw SELECT/WITH SQL when the structured helpers are not enough.
-     * Do not use this for writes; use insert/upsert/update/delete helpers or
-     * transactionDatabase for write flows.
-     * Requires current INSTANCE_ADMIN membership on the effective execution account.
-     * Saved endpoint/Job policies select that account; direct Sandbox/MCP execution
-     * uses the authenticated caller. api.currentUser() follows the configured identity mode
-     * and does not grant execution permissions.
-     * Always runs exactly one SELECT/WITH
-     * in a READ ONLY database transaction. Mutating CTEs and multiple statements are rejected.
-     * Use parameters for values. Typed data and ORM helpers retain their own resource permissions.
-     *
-     * Example:
-     * const rows = await api.queryDatabase('SELECT NOW() AS now');
+     * Raw SQL: exactly one SELECT/WITH in a READ ONLY transaction; no mutating CTEs
+     * or multiple statements. Parameterize values. Requires current INSTANCE_ADMIN
+     * on the effective executor: saved Endpoint/Job policy, or authenticated caller
+     * for direct Sandbox/MCP. currentUser grants no permissions. Typed/ORM helpers
+     * retain resource ACLs. For writes use insert/upsert/update/delete or transactionDatabase.
      */
   static queryDatabase(query: string, params?: any[]): Promise<any>;
 
   /**
-     * Returns the business current user synchronously. Saved Endpoints default to
-     * the invoking user, including end users without platform access. The instance
-     * or Endpoint currentUser policy can select EXECUTION_ACCOUNT instead.
-     * Jobs return their captured execution account. Permission checks follow the
-     * saved execution policy independently of this presentation setting.
-     * `avatar` is the Storage entry ID, not a signed download URL.
-     *
-     * Example:
-     * const user = api.currentUser();
+     * Business identity, not authority. Endpoint default: caller, including non-platform
+     * users; instance/Endpoint policy may select EXECUTION_ACCOUNT. Jobs: captured executor.
+     * Anonymous: null. avatar: Storage entry ID, not signed URL.
      */
-  static currentUser(): LoggedUser;
+  static currentUser(): LoggedUser | null;
+
+  /** Separate caller/executor; anonymous caller/currentUser: null. */
+  static invocationContext(): { isAnonymous: boolean; authenticated: boolean; caller: LoggedUser | null; currentUser: LoggedUser | null; executor: { userId: string; serviceAccount: boolean } | null };
 
   /**
      * Returns true when this execution restricts platform writes (readOnly: true).
@@ -2865,24 +2854,17 @@ declare class util {
 
   /**
      * Validates UUID shape.
-     *
-     * Example:
-     * const ok = util.isUUID(value);
      */
   static isUUID(input: any): boolean;
 
   /**
      * Generates a random UUIDv7.
-     *
-     * Example:
-     * const id = util.randomUUID();
      */
   static randomUUID(): string;
 
   /**
-     * Returns a random UUIDv7 with no arguments, or a deterministic UUIDv5 only when
-     * both value and namespace are supplied. Do not generate IDs for server-created
-     * platform resources; use this only for caller-owned data values.
+     * No arguments: random UUIDv7. Value plus namespace: deterministic UUIDv5.
+     * Only caller-owned data IDs; never server-created resource IDs.
      *
      * Example:
      * const id = util.getUUID('customer-1', 'customers');
@@ -2891,9 +2873,6 @@ declare class util {
 
   /**
      * Creates a stable hash from an object.
-     *
-     * Example:
-     * const hash = util.hashObject({ customerId: 'c-1' });
      */
   static hashObject(object: any): string;
 
@@ -2901,9 +2880,6 @@ declare class util {
      * Synchronous SHA-1 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = util.sha1('payload');
      */
   static sha1(payload: string): string;
 
@@ -2911,9 +2887,6 @@ declare class util {
      * Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = util.sha256('payload');
      */
   static sha256(payload: string): string;
 
@@ -2921,9 +2894,6 @@ declare class util {
      * Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const digest = util.md5('payload');
      */
   static md5(payload: string): string;
 
@@ -2931,9 +2901,6 @@ declare class util {
      * Synchronous timing-safe comparison. Each input: at most 65536 bytes (UTF-8 for strings).
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const match = util.timingSafeEqual(a, b);
      */
   static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
 
@@ -2970,17 +2937,11 @@ declare class util {
 
   /**
      * Encodes base64url.
-     *
-     * Example:
-     * const encoded = util.base64UrlEncode('payload');
      */
   static base64UrlEncode(input: Uint8Array | string): string;
 
   /**
      * Decodes base64url.
-     *
-     * Example:
-     * const decoded = util.base64UrlDecode(tokenPart);
      */
   static base64UrlDecode(input: string): Uint8Array;
 
@@ -2988,9 +2949,6 @@ declare class util {
      * Synchronously generates random bytes as a string. Size: integer 0..65536 bytes before encoding.
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const bytes = util.randomBytes(16, 'hex');
      */
   static randomBytes(size?: number, encoding?: 'hex' | 'base64'): string;
 
@@ -2999,9 +2957,6 @@ declare class util {
      * Bounds and max + 1 must be safe integers; range size must be smaller than 2^48.
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
-     *
-     * Example:
-     * const n = util.randomInt(1000, 9999);
      */
   static randomInt(min?: number, max?: number): number;
 
@@ -3009,9 +2964,6 @@ declare class util {
      * Generates a random string.
      *
      * Length: integer 0..65536. Alphabet: 1..65536 UTF-16 code units.
-     *
-     * Example:
-     * const token = util.randomString(24);
      */
   static randomString(length?: number, alphabet?: string): string;
 
@@ -3019,9 +2971,6 @@ declare class util {
      * Generates a numeric one-time code.
      *
      * Length: integer 0..65536.
-     *
-     * Example:
-     * const code = util.otp(6);
      */
   static otp(length?: number): string;
 
@@ -3213,4 +3162,7 @@ declare class util {
       payload: string,
       signature: string,
     ): Promise<boolean>;
+
+  /** Async P-256/SHA-256 verification of exact bytes. Key: PEM or canonical Base64 DER SPKI; signature: Base64 DER. */
+  static ecdsaVerify(publicKey: string, payload: Buffer | string, signature: string): Promise<boolean>;
 }

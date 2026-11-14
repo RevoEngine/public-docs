@@ -8,20 +8,24 @@ This reference describes the public Endpoint definition managed through the UI o
 
 ## Definition fields
 
-`method` and normalized `path` identify a route. For example, `GET /customers/current` takes precedence over a less-specific `GET /customers/:customerId`. A dynamic segment is decoded into `api.input().parameters`. Keep the active route and its public response compatible with existing callers.
+Application, `method` and normalized `path` identify a route. For example, `GET /customers/current` takes precedence over a less-specific `GET /customers/:customerId` within that Application. A dynamic segment is decoded into `api.input().parameters`. Keep the active route and its public response compatible with existing callers.
 
 | Field | Required | Behavior |
 | --- | --- | --- |
 | `name` | yes | Operator-facing name. Keep it stable enough for search and audit. |
 | `active` | no | Defaults to active. Use `false` for validate-before-activate delivery. |
-| `path` | yes | Starts with `/`; static segments use letters, numbers, `.`, `_`, `-`; dynamic segments use `:name`; `@` is also supported as a segment token. Repeated and trailing slashes are normalized. Maximum 1024 characters. |
+| `path` | yes | Starts with `/`; static segments use letters, numbers, `.`, `_`, `$`, `-`; dynamic segments use `:name`; `@` is also supported as a segment token. Repeated and trailing slashes are normalized. Maximum 1024 characters. |
 | `method` | yes | `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`. Path uniqueness is per method. |
+| `serviceId` | no | Application ID. Omit for Default on creation; an unchanged update preserves the current assignment. See [Applications and CORS](/operate/endpoint-applications). |
 | `componentId` | no | Target Component. Omit it for a static response Endpoint. |
 | `componentDigest` | no | Omit to follow the latest active low-code revision, or select a verified content digest for an exact portable pin. Preserve an existing binding unless its migration is intentional. `CUSTOM_NODEJS` targets use their selected ready runtime revision and must omit the digest. |
 | `timeout` | no | Seconds. The minimum is platform-defined and the effective maximum is constrained by the current instance quota. Align it to the caller deadline. |
 | `category`, `desc`, `metadata` | no | Organization and context. Metadata is JSON limited to 16 KiB / 64 top-level keys; `__*` keys are reserved. |
 | `executionPolicy` | no | Saved permission identity and independent `api.currentUser()` behavior. Omit it or use `INHERIT` to follow instance defaults. |
+| `allowUnauthenticated` | no | Defaults to `false`. Requires Application anonymous access and an explicit limited Service Account execution policy. Present invalid credentials still fail authentication. See [anonymous admission](/operate/endpoint-applications#allow-unauthenticated-requests-deliberately). |
 | `options` | no | Execution, validation, libraries, response shaping, and controlled template input. |
+
+Inactive routes also reserve their METHOD/PATH within the selected Application. Static routes may coexist with parameter routes; equivalent parameter patterns conflict in named Applications. The editor rechecks after an Application change and blocks Save while the check is pending or unavailable. Application selection uses its runtime hostname; `/services/...` is an ordinary path, not an Application prefix.
 
 ## Execution policy
 
@@ -53,6 +57,8 @@ For an application that needs broad instance access while keeping existing per-u
 | Job, Event, or Webhook trigger | The execution account needs automation execution permission. A triggered Job then uses its own resolved, persisted execution policy. |
 
 These settings do not change direct Platform API, MCP, or ad-hoc Sandbox authority. Those operations use the authenticated caller. When such a caller explicitly starts a saved Job, that Job's execution policy still determines its executor.
+
+For deliberately admitted anonymous requests, `api.currentUser()` and caller are always `null`; `api.invocationContext()` identifies the separate executor and anonymous status. The authenticated identity choices below do not impersonate an anonymous visitor.
 
 Choose the business identity independently with `currentUser`. `CALLER` is the instance default and keeps `api.currentUser()` compatible with code that filters data or records business actions for the invoking person. `EXECUTION_ACCOUNT` returns the selected execution account instead. Endpoint `INHERIT` follows the instance choice. This setting does not grant permissions or replace the initiating caller in the audit trail.
 
@@ -92,6 +98,8 @@ A configured guard validates the structured request before target execution. Use
 | `legacyResults` | Enables legacy HTTP response envelopes. Not supported in SSE mode. Do not use for new contracts. |
 | `memory` | Execution memory budget in MiB, up to 1024. |
 | `responseMode` | `http` (default) or `sse`. Both retain the same route, input, guards and execution policy. |
+| `requestBody` | Explicit JSON, form, text, XML, binary, multipart or inline raw bytes; `storage` selects native upload through a Component-returned session reference. Omit to preserve existing JSON/form parsing. See [request formats](/operate/endpoint-bodies#choose-the-request-body). |
+| `responseBody` | Explicit HTTP JSON, text, XML or binary serialization; `storage` streams an authorized Component-selected file and cannot use a static body. Omit to preserve the current serializer. Incompatible with SSE and legacy envelopes. See [response formats](/operate/endpoint-bodies#choose-the-http-response-format). |
 | `sse.disconnect` | `cancel` (default), `continue` or `continue-and-notify`. Continuation uses the original deadline. |
 | `sse.resultEvent` | Automatic final result event name; default `result`. Set to `null` to disable it. |
 | `sse.errorEvent` | Automatic failure event name; default `error`. Set to `null` to disable it. |

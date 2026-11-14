@@ -184,6 +184,90 @@ For an ordinary executor, use `serviceAccount: { "kind": "service-account", "sta
 
 Instance execution defaults are target-local settings under **Settings → Endpoints** and are not copied by resource migration. Existing Job `executionPrincipal` manifests remain supported; use either that legacy reference or `executionPolicy`, not both. Writing an explicit policy clears the legacy executor alias. Configured `SERVICE_ACCOUNT` execution with administrator permissions requires approved Component and library code; see [Endpoint configuration](/operate/endpoint-configuration#execution-policy).
 
+## Synchronize Applications and Endpoints
+
+Applications require Platform **1.9.2 or later** and CLI **2.2.0 or later**. Keep their definitions with the Endpoints that use them:
+
+```bash
+revo project update ./app --resources application,endpoint,component
+revo pull --resources application,endpoint --yes
+revo applications plan --all
+revo endpoints plan --all
+```
+
+An Application manifest uses its immutable URL key as portable identity. For example, `Applications/portal/application.json` can contain:
+
+```json
+{
+  "kind": "application",
+  "key": "portal",
+  "name": "Customer portal",
+  "description": "Customer-facing HTTP integration",
+  "cors": {
+    "mode": "allowlist",
+    "allowedOrigins": ["https://portal.example.com"]
+  }
+}
+```
+
+In a pulled Endpoint manifest, select that Application without carrying an instance-specific UUID:
+
+```json
+{
+  "application": { "key": "portal" },
+  "route": { "method": "POST", "path": "/orders" }
+}
+```
+
+This Endpoint fragment supplements the existing manifest; retain its Stable Key, Component binding, options and execution policy. The CLI resolves `portal` to the target instance's Application. Omitting `application` preserves the existing Default behavior; an explicit Default reference is `{ "system": "@default" }`.
+
+Review and apply the whole dependency graph when introducing a new Application and Endpoint together:
+
+```bash
+revo plan --out reviewed-plan.json
+revo deploy --yes --reviewed-plan reviewed-plan.json
+```
+
+Applications are synchronized before dependent Endpoints. Route collisions are checked within an Application. The system Default identity cannot be renamed or deleted; its CORS, invocation and anonymous policies remain editable. Application deletion is also blocked by retained Endpoint assignments, including deleted Endpoints with history. Keep source and target CORS requirements explicit, and use `--omit=application:cors` in a mixed-family command when the destination owns that policy.
+
+### Synchronize typed caller policies
+
+The Platform API uses target-local account IDs. CLI manifests distinguish human users from Service Accounts and resolve Service Accounts by Stable Key:
+
+```json
+{
+  "invocationPolicy": {
+    "mode": "allowlist",
+    "users": [{ "instanceId": "11111111-1111-4111-8111-111111111111", "userId": "22222222-2222-4222-8222-222222222222" }],
+    "serviceAccounts": [{ "kind": "service-account", "stableKey": "accounts/integration" }],
+    "groups": [{ "type": "group", "stableKey": "groups/portal-callers" }]
+  },
+  "anonymousAccess": { "enabled": false, "requestsPerMinute": 30, "maxConcurrent": 2 }
+}
+```
+
+Choose `all`, `allowlist` or `denylist`; `all` requires empty lists. A direct member or verified Group membership matches an allowlist; either match blocks a denylist. Groups resolve by Stable Key to live target Group identities, with source/target revision fences. Omitted `groups` preserves the target list when updating a policy; explicit `groups: []` clears it. Existing invocation roles still apply. Same-instance users require a current typed account readback. Crossing instances requires an explicit environment mapping in local `.revoengine/revo.json`; users are never matched by email:
+
+```json
+{
+  "applicationUserMappings": {
+    "production": [{
+      "sourceInstanceId": "11111111-1111-4111-8111-111111111111",
+      "sourceUserId": "22222222-2222-4222-8222-222222222222",
+      "targetUserId": "33333333-3333-4333-8333-333333333333"
+    }]
+  }
+}
+```
+
+Missing or ambiguous mappings block the plan. Saved plans fence these mappings, target policies and account identities/revisions. Omitting `invocationPolicy` or `anonymousAccess` preserves the target; explicit `null` resets the policy. Use `--omit=application:invocationPolicy` or `--omit=application:anonymousAccess` to preserve each complete target policy. Retained caller and Group references block unsafe Service Account or Group pruning.
+
+An Endpoint opts in separately with top-level `allowUnauthenticated: true` and an explicit dedicated Service Account execution policy. Both Application and Endpoint gates must permit anonymous execution. Published named Application calls use the configured hostname and keep the path unchanged; `/services/...` has no special routing meaning. Local preview rejects unsupported caller policies, anonymous admission and explicit wire formats; use the actual Endpoint runtime for those checks.
+
+Native file modes use `options.requestBody: {"mode":"storage"}` or `options.responseBody: {"mode":"storage"}`. The Component selects an exact upload-session or file directive; no folder is configured inside `requestBody`. CLI 2.2.0 checks a fresh `endpointStorageTransports: true` capability for every managed native plan (including unchanged and omitted-retained options) and before native configuration writes. Missing capability blocks these modes without changing old inline formats. Local preview rejects native modes. Published preview rejects known native catalog routes before reading bytes; Default callers denied catalog access retain legacy 2 MiB request forwarding with an unknown-format warning. Use the real Endpoint runtime for streaming checks.
+
+See [Applications and CORS](/operate/endpoint-applications) for runtime addresses and [request and response formats](/operate/endpoint-bodies) for wire contracts.
+
 ## Debug local source
 
 ```bash

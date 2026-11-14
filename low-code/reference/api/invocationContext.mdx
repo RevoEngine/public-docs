@@ -1,0 +1,20 @@
+---
+title: api.invocationContext()
+sidebarTitle: invocationContext()
+description: Public low-code contract, signatures and examples for api.invocationContext.
+icon: code
+---
+
+<span id="api-invocationContext" aria-hidden="true"></span>
+
+## `api.invocationContext()`
+
+Separate caller/executor; anonymous caller/currentUser: null.
+
+### Signature
+
+```ts
+static invocationContext(): { isAnonymous: boolean; authenticated: boolean; caller: LoggedUser | null; currentUser: LoggedUser | null; executor: { userId: string; serviceAccount: boolean } | null };
+```
+
+See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

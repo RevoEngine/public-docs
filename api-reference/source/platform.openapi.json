@@ -2865,7 +2865,17 @@
       "get": {
         "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_getRuntimeOpenApi",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "serviceId",
+            "required": false,
+            "in": "query",
+            "description": "Application UUID. Omit for the backwards-compatible Default document.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK."
@@ -3212,6 +3222,37 @@
         "x-revo-safety-tier": "read"
       }
     },
+    "/api/v1/endpoints/route-conflicts": {
+      "post": {
+        "operationId": "EndpointController_routeConflicts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndpointRouteConflictDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Check METHOD and PATH conflicts within an Application, including inactive endpoints.",
+        "tags": [
+          "Endpoints"
+        ],
+        "x-revo-safety-tier": "read"
+      }
+    },
     "/api/v1/endpoints/validate": {
       "post": {
         "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
@@ -3251,6 +3292,158 @@
           "Endpoints"
         ],
         "x-revo-safety-tier": "read"
+      }
+    },
+    "/api/v1/services": {
+      "get": {
+        "operationId": "EndpointServiceRegistryController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List instance applications including the system Default application.",
+        "tags": [
+          "Applications"
+        ]
+      },
+      "post": {
+        "operationId": "EndpointServiceRegistryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEndpointServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an application for instance endpoints.",
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/api/v1/services/{serviceId}/endpoints": {
+      "get": {
+        "operationId": "EndpointServiceRegistryController_endpoints",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List endpoints assigned to an instance application.",
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/api/v1/services/{serviceId}": {
+      "put": {
+        "operationId": "EndpointServiceRegistryController_update",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEndpointServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an application or the Default CORS policy using its current version.",
+        "tags": [
+          "Applications"
+        ]
+      },
+      "delete": {
+        "operationId": "EndpointServiceRegistryController_delete",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an unused application using its current version.",
+        "tags": [
+          "Applications"
+        ],
+        "x-revo-safety-tier": "destructive"
       }
     },
     "/api/v1/component": {
@@ -3440,7 +3633,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3450,7 +3643,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3489,7 +3682,7 @@
             "description": "Forbidden."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3900,7 +4093,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3910,7 +4103,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -3952,7 +4145,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3995,7 +4188,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4005,7 +4198,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4034,7 +4227,7 @@
             "description": "Forbidden."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4080,7 +4273,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4090,7 +4283,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4135,7 +4328,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4184,7 +4377,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4194,7 +4387,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4236,7 +4429,7 @@
             "description": "Component or element not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4284,7 +4477,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4294,7 +4487,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4324,7 +4517,7 @@
         },
         "responses": {
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4377,7 +4570,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4387,7 +4580,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4417,7 +4610,7 @@
         },
         "responses": {
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4462,7 +4655,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4472,7 +4665,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4501,7 +4694,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4546,7 +4739,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4556,7 +4749,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4585,7 +4778,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4631,7 +4824,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4641,7 +4834,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4670,7 +4863,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4886,7 +5079,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4896,7 +5089,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4926,7 +5119,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4966,7 +5159,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -4976,7 +5169,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -5016,7 +5209,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5056,7 +5249,7 @@
           {
             "name": "x-revo-operation-id",
             "in": "header",
-            "description": "Select a Studio write when Studio Preview is enabled. Reuse this identity for an identical request. A different payload is rejected.",
+            "description": "Operation identity; this header alone keeps the existing classic write flow and does not select Studio. Bound Studio retries reuse it only for identical input. An operation previously staged by the legacy implicit Studio flow must be retried with its explicit session binding.",
             "required": false,
             "schema": {
               "type": "string",
@@ -5066,7 +5259,7 @@
           {
             "name": "x-revo-studio-session-id",
             "in": "header",
-            "description": "Select an existing editable Studio workspace. With only a Studio operation ID, Studio Preview creates a short session. A bound write requires Studio Preview.",
+            "description": "Explicitly select an existing editable Studio workspace. This session header alone selects Studio staging when Studio Preview is enabled. A bound write fails closed when Preview is disabled; omitting this header keeps the classic write flow.",
             "required": false,
             "schema": {
               "type": "string",
@@ -5106,7 +5299,7 @@
             }
           },
           "409": {
-            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for a Studio write. Classic requests use their existing write flow while the instance serves classic runtime source. A pinned Studio runtime requires its own release lifecycle.",
+            "description": "STUDIO_REVIEW_REQUIRED returns the staged session and proposal for an explicitly bound Studio write. STUDIO_LEGACY_OPERATION_BOUND refuses an unbound retry of previously staged implicit Studio work; retry with its session binding. An operation ID alone does not stage a new request or add classic-write deduplication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -31442,7 +31635,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -34069,6 +34262,72 @@
           "mode"
         ]
       },
+      "EndpointRequestBodyDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "json",
+              "form",
+              "text",
+              "xml",
+              "binary",
+              "multipart",
+              "raw",
+              "storage"
+            ],
+            "description": "Explicit HTTP input. JSON/form decode to values; text/XML remain UTF-8 strings; binary becomes a base64 envelope; multipart becomes fields plus base64 file envelopes. raw returns original bytes as a binary envelope. storage runs the Component before consuming bytes; its selected result must provide storageSessionEntryId for an active empty direct Storage session. Native streaming returns a confirmed JSON receipt. Omit requestBody for existing JSON/form behavior."
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 33554432,
+            "description": "Maximum wire bytes including multipart framing. Defaults: JSON 20 MiB, form 10 MiB, text/XML/binary/raw inline 1 MiB, multipart 8 MiB, storage 32 MiB. Inline text/XML/binary/raw/multipart are capped at 8 MiB; JSON/form/storage at 32 MiB. Explicit modes reject compressed input."
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "EndpointResponseBodyDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "json",
+              "text",
+              "xml",
+              "binary",
+              "storage"
+            ],
+            "description": "Explicit HTTP serialization for the selected component result or static response. XML is validated UTF-8 text, never converted from objects. Binary requires an isolate-safe { encoding: \"base64\", data, size?, contentType? } envelope. Storage sends the native file selected by the exact result { storageEntryId, downloadName? }; it does not copy file bytes into low-code. Incompatible with SSE and legacyResults."
+          },
+          "contentType": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Response media type. Defaults to application/json, text/plain, application/xml or application/octet-stream for the selected mode. Text and XML use UTF-8. Storage mode uses authorized file metadata and does not accept this override."
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Static response headers, at most 32 entries / 8 KiB. Framing, hop-by-hop, authentication, cookies, Content-Type, Vary and CORS headers are reserved."
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 33554432,
+            "default": 8388608,
+            "description": "Maximum serialized response bytes. Binary is bounded before Base64 decoding. Storage defaults to 32 MiB and bounds the complete selected file before headers, including HEAD and Range requests; no range bypass. Other modes default to 8 MiB. HEAD, 204 and 304 always omit the body."
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
       "EndpointSseDto": {
         "type": "object",
         "properties": {
@@ -34335,6 +34594,24 @@
             "description": "Memory budget in megabytes reserved for the execution.",
             "example": 512
           },
+          "requestBody": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EndpointRequestBodyDto"
+              }
+            ]
+          },
+          "responseBody": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EndpointResponseBodyDto"
+              }
+            ]
+          },
           "responseMode": {
             "type": "string",
             "enum": [
@@ -34450,6 +34727,16 @@
       "EndpointRequestDto": {
         "type": "object",
         "properties": {
+          "allowUnauthenticated": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicit anonymous opt-in. Also requires the Application gate and an explicit available non-administrator service execution account."
+          },
+          "serviceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Endpoint service in the current instance. Omit to use the system @default service. Explicit assignment requires Sites to be enabled for the instance."
+          },
           "executionPolicy": {
             "nullable": true,
             "example": {
@@ -34543,6 +34830,16 @@
       "UpdateEndpointRequestDto": {
         "type": "object",
         "properties": {
+          "allowUnauthenticated": {
+            "type": "boolean",
+            "default": false,
+            "description": "Explicit anonymous opt-in. Also requires the Application gate and an explicit available non-administrator service execution account."
+          },
+          "serviceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Endpoint service in the current instance. Omit to preserve its assignment. Explicit assignment requires Sites to be enabled for the instance."
+          },
           "executionPolicy": {
             "nullable": true,
             "example": {
@@ -34687,9 +34984,52 @@
           "granularity"
         ]
       },
+      "EndpointRouteConflictDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Authoring path, normalized exactly as Endpoint creation/update.",
+            "example": "/_/orders/:orderId",
+            "maxLength": 1024
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "HEAD",
+              "OPTIONS"
+            ]
+          },
+          "serviceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Application UUID. Omit for Default."
+          },
+          "endpointId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Exclude the endpoint currently being edited. Inactive endpoints still reserve their route."
+          }
+        },
+        "required": [
+          "path",
+          "method"
+        ]
+      },
       "EndpointValidateDto": {
         "type": "object",
         "properties": {
+          "serviceId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "00000000-0000-4000-8000-000000000001",
+            "description": "Application scope. Omit for the existing Default application; URL path prefixes do not select an application."
+          },
           "path": {
             "type": "string",
             "description": "HTTP path template to validate.",
@@ -34704,13 +35044,205 @@
               "POST",
               "PUT",
               "PATCH",
-              "DELETE"
+              "DELETE",
+              "HEAD",
+              "OPTIONS"
             ]
           }
         },
         "required": [
           "path",
           "method"
+        ]
+      },
+      "ApplicationInvocationPolicyDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "all",
+              "allowlist",
+              "denylist"
+            ],
+            "description": "Additional caller restriction; ENDPOINT_INVOKE remains required. all requires empty lists."
+          },
+          "users": {
+            "maxItems": 500,
+            "description": "Active local human-user UUIDs; never execution accounts or external email identities.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "serviceAccounts": {
+            "maxItems": 500,
+            "description": "Active local service-account UUIDs. Management access to each account is required.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "maxItems": 500,
+            "description": "Live local Group UUIDs. Omission preserves existing groups on update; explicit [] clears them.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "users",
+          "serviceAccounts"
+        ]
+      },
+      "ApplicationAnonymousAccessDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Application gate only; each Endpoint must also explicitly opt in."
+          },
+          "requestsPerMinute": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Distributed sliding-minute limit per Application."
+          },
+          "maxConcurrent": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Distributed active invocation limit per Application."
+          }
+        },
+        "required": [
+          "enabled",
+          "requestsPerMinute",
+          "maxConcurrent"
+        ]
+      },
+      "EndpointApplicationCorsDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "public",
+              "allowlist",
+              "disabled"
+            ]
+          },
+          "allowedOrigins": {
+            "maxItems": 100,
+            "example": [
+              "https://portal.example.com"
+            ],
+            "description": "Exact canonical HTTP(S) origins. Must be empty outside allowlist mode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "allowedOrigins"
+        ]
+      },
+      "CreateEndpointServiceDto": {
+        "type": "object",
+        "properties": {
+          "invocationPolicy": {
+            "nullable": true,
+            "description": "Additional caller ACL. Omit to preserve; null restores legacy instance-wide invocation.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationInvocationPolicyDto"
+              }
+            ]
+          },
+          "anonymousAccess": {
+            "nullable": true,
+            "description": "Anonymous gate and distributed limits. Omit to preserve; null disables anonymous admission.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationAnonymousAccessDto"
+              }
+            ]
+          },
+          "key": {
+            "type": "string",
+            "example": "support-desk",
+            "pattern": "^(?=.{1,63}$)[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?![\\s\\S])",
+            "maxLength": 63,
+            "description": "Immutable instance-local key for the Run URL. System keys are reserved."
+          },
+          "name": {
+            "type": "string",
+            "example": "Support Desk",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "cors": {
+            "$ref": "#/components/schemas/EndpointApplicationCorsDto"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ]
+      },
+      "UpdateEndpointServiceDto": {
+        "type": "object",
+        "properties": {
+          "invocationPolicy": {
+            "nullable": true,
+            "description": "Additional caller ACL. Omit to preserve; null restores legacy instance-wide invocation.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationInvocationPolicyDto"
+              }
+            ]
+          },
+          "anonymousAccess": {
+            "nullable": true,
+            "description": "Anonymous gate and distributed limits. Omit to preserve; null disables anonymous admission.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationAnonymousAccessDto"
+              }
+            ]
+          },
+          "version": {
+            "type": "number",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "cors": {
+            "$ref": "#/components/schemas/EndpointApplicationCorsDto"
+          }
+        },
+        "required": [
+          "version"
         ]
       },
       "ComponentTestConfigDto": {

@@ -85,7 +85,7 @@ Filtering and sorting a Custom Widget TABLE operates on returned browser data. I
 
 Use `page: {offset: 0, pageSize: 50, total: 238}` on TABLE for a server-fetched page, or `hasMore` when the total is unknown. `on.pageChange` receives `offset` and `pageSize`; retained page state is available in `$widget.pagination[tableId]`. The source must apply that page to its query. Filtering and sorting of returned rows remains local.
 
-The standard refresh icon invokes `on.refresh`; when absent it refreshes that TABLE element. `on.download` overrides the standard download; without it the native XLSX download exports the currently loaded browser rows. Set grid.exportFormat to csv for CSV output. Label a whole-result export explicitly and implement it in an authorized source action.
+Pagination, refresh and download share the grid's native footer. The standard refresh icon invokes `on.refresh`; when absent it refreshes that TABLE element. `on.download` overrides the standard download; without it the native XLSX download exports the currently loaded browser rows. Set `grid.exportFormat: 'csv'` for CSV output. Label a whole-result export explicitly and implement it in an authorized source action.
 
 Columns support bounded `width`, `minWidth`, `wrapText`, `filter` and `renderer: 'text' | 'badge' | 'datetime' | 'relative'`. No executable cell-renderer callbacks are accepted.
 
@@ -128,17 +128,31 @@ Initially the page contains orders 1–25. Next requests offset 25 and displays 
 
 Use `presentation: {kind: 'message-list'}` on a TABLE with a stable `rowKey`. Records can provide `title`, `preview`, `meta` and `kindLabel` for the compact virtualized list. Bind `on.rowClick` to select a message and load its reader. `options: {selectedKey: messageId}` marks the active row. Full bodies should be read on selection rather than embedded into every summary. This presentation replaces the grid; it is not a second pagination footer.
 
+The cell's `label`, optional `icon` and `buttons` form the conversation header. Put message-order or refresh actions in `buttons` to keep them beside the title while the list scrolls independently. Up/down scroll controls appear when the list overflows; set `presentation.scrollControls: false` to hide them. These controls scroll the loaded list and do not fetch another server page.
+
 For attachment cards and authorized file opening, see [content readers](/widgets/content-readers). For editing a reply, see [message composer](/widgets/message-composer).
 
 
 ## Compact tables and native downloads
 
-Use `grid: { chrome: 'compact', exportFormat: 'xlsx', fileName: 'orders', preferenceKey: 'orders-table' }` to keep refresh, paging and download in a slim toolbar without the footer status panel. XLSX download requires no trigger or write target. It exports loaded rows after local filtering and sorting, not all server pages. An explicit `on.download` takes precedence. `exportFormat: 'none'` hides native export. `chrome: 'none'` removes table controls and cannot be combined with server pagination.
+Use `grid` to configure the native table controls and personal column layout. Both `chrome: 'full'` (the default) and `chrome: 'compact'` keep pagination, refresh and download in the grid footer. They do not add a separate action row above the table.
 
-Optional `rowHeight` (24–120), `headerHeight` (24–120) and `borders: false` adjust density and separators. A stable `preferenceKey` remembers column widths, order, visibility, pinning, sort and filter locally per user and instance. **Reset my table layout** restores the authored column setup; row selection and server pagination remain controlled by the widget.
+| `grid` field | Values | Default or behavior |
+| --- | --- | --- |
+| `chrome` | `full`, `compact`, `none` | `full`; `none` hides the native footer and cannot be combined with server pagination. |
+| `exportFormat` | `xlsx`, `csv`, `none` | `xlsx`; `none` hides native export, but an explicit `on.download` remains available. |
+| `fileName` | string | `dashboard`; optional base name for the native download. |
+| `rowHeight` | 24–120 pixels | Omit to retain the grid's default row height. |
+| `headerHeight` | 24–120 pixels | Omit to retain the grid's default header height. |
+| `borders` | boolean | Omit or `true` retains separators; `false` removes them. |
+| `preferenceKey` | string | Optional stable key for personal column state. |
+
+For example, `grid: {chrome: 'compact', rowHeight: 36, exportFormat: 'xlsx', fileName: 'orders', preferenceKey: 'orders-table'}` gives a dense table with native downloads. XLSX download requires no trigger or write target. It exports loaded rows after local filtering and sorting, not all server pages. An explicit `on.download` takes precedence.
+
+A stable `preferenceKey` remembers column widths, order, visibility, pinning, sort and filter locally in the browser, scoped to the user and instance. **Reset my table layout** restores the authored column setup; row selection and server pagination remain controlled by the widget. Small up/down controls scroll an overflowing grid without taking space in its header or footer.
 
 ### Hierarchical rows and badges
 
 `tree: {pathField: 'path', header: 'Hierarchy', expanded: 0}` displays complete hierarchical data. Each keyed row needs a unique nonempty string-array path, for example `['Platform', 'API']`. Tree mode cannot be combined with server pagination; missing ancestors appear as grouping rows and do not run record actions.
 
-A column with `renderer: 'badge'` accepts plain labels or `{label: 'In progress', icon: 'fa-regular fa-clock', tone: 'info'}`. Tone is neutral, info, success, warning or danger. Download exports the badge label.
+A column with `renderer: 'badge'` accepts plain labels or `{label: 'In progress', icon: 'fa-regular fa-clock', tone: 'info'}`. Tone is neutral, info, success, warning or danger. Badges stay within the configured row height; long labels truncate instead of expanding over adjacent rows. Download exports the badge label.

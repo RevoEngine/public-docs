@@ -9,9 +9,8 @@ icon: code
 
 ## `util.getUUID()`
 
-Returns a random UUIDv7 with no arguments, or a deterministic UUIDv5 only when
-both value and namespace are supplied. Do not generate IDs for server-created
-platform resources; use this only for caller-owned data values.
+No arguments: random UUIDv7. Value plus namespace: deterministic UUIDv5.
+Only caller-owned data IDs; never server-created resource IDs.
 
 ### Signature
 

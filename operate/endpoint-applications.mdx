@@ -1,0 +1,135 @@
+---
+title: Applications and access
+description: Keep endpoint paths stable while selecting Applications by hostname, controlling callers and configuring browser access.
+icon: grid-2
+---
+
+An **Application** groups Endpoints under one runtime hostname. Its route namespace, authenticated-caller policy, anonymous admission and CORS settings are independent controls. Existing Endpoints stay in **Default** unless you explicitly move them.
+
+## Create and address an Application
+
+<Steps>
+  <Step title="Create the Application">
+    Open **Settings → Applications → New Application**. In **Details**, enter a name and immutable key such as `portal`. Keys use lowercase letters, digits and single hyphens, start with a letter and have at most 63 characters. `default` is reserved.
+  </Step>
+  <Step title="Configure access">
+    Review **Invocation access**, **Anonymous access** and **CORS** separately. New Applications require authentication, preserve existing invocation roles, and start with an empty browser-origin allowlist.
+  </Step>
+  <Step title="Assign an Endpoint">
+    Select the Application in Endpoint **Details**. METHOD and PATH are checked together within that Application, including inactive Endpoints. Moving an existing Endpoint changes its runtime address; update consumers deliberately.
+  </Step>
+  <Step title="Copy the runtime address">
+    Settings derives the hostname from the configured Endpoint runtime base and your current instance slug or ID. Append the Endpoint's existing path unchanged. Wildcard DNS, TLS, load-balancer routing and runtime host admission must be configured by your platform operator.
+  </Step>
+</Steps>
+
+Given a configured base of `https://run.example.com`:
+
+| Address | Application | Endpoint path |
+| --- | --- | --- |
+| `https://run.example.com/orders` with the existing instance-selection contract | Default | `/orders` |
+| `https://customer-1.run.example.com/orders` | Default | `/orders` |
+| `https://default--customer-1.run.example.com/orders` | Default | `/orders` |
+| `https://portal--customer-1.run.example.com/orders` | `portal` | `/orders` |
+
+Use a verified instance slug or UUID. The complete label before the configured suffix must fit 63 characters. Slugs containing `--` use the explicit `default--instance` form or their UUID. For local development, a configured `http://localhost:3002` base produces `http://portal--customer-1.localhost:3002/`; the local RUN must admit that suffix.
+
+<Warning>
+`/services/<application>` has no special routing meaning. `/services/portal/orders` remains an ordinary Default path on a legacy base address. Named Applications are selected by the hostname; the runtime never adds or strips a path prefix to select them.
+</Warning>
+
+Default's displayed key is protected *default*; its internal API/CLI key remains `@default`. Its identity cannot be changed or deleted. CORS and invocation policies can be edited. Applications with retained Endpoint references cannot be deleted, including deleted Endpoint history. Two Applications may use the same METHOD/PATH independently.
+
+## Upgrade existing Default routes
+
+Existing Endpoint identities, paths and settings remain in Default. Old writes that omit the Application still select Default. Standard route uniqueness is converted to Application-scoped uniqueness in the upgrade transaction.
+
+If a customized database has an additional global route uniqueness rule or an unexpected replacement for the standard index, the migration stops before changing its schema. Review the named rule explicitly; the upgrade does not remove unknown custom constraints automatically. Make the Application-aware runtime available and verify Default integrations before enabling named routes. Once named routes exist, retain a compatible runtime during rollback.
+
+## Restrict authenticated callers
+
+**Invocation access → Who can invoke** supports:
+
+| Mode | Result |
+| --- | --- |
+| All authorized callers / omitted policy | Preserve existing access for users and Service Accounts. |
+| Allow listed callers only | Require a directly listed caller or membership in a listed Group. |
+| Deny listed callers | Reject a directly listed caller or membership in a listed Group. |
+
+Use **Members** to add users or Service Accounts and **Groups** to select caller groups. Members retain typed instance-local identities. Group membership is checked for the actual caller, independently of the executor; display names and email addresses do not grant access. API policy example:
+
+```json
+{
+  "invocationPolicy": {
+    "mode": "allowlist",
+    "users": [],
+    "serviceAccounts": ["00000000-0000-4000-8000-000000000010"],
+    "groups": ["00000000-0000-4000-8000-000000000030"]
+  }
+}
+```
+
+Each list allows up to 500 unique IDs. Omitted `groups` preserves the target’s existing Group list on update; explicit `groups: []` clears it. Choosing `all` requires empty member and Group lists. Missing Group IDs do not match group display names.
+
+This is an additional ceiling after existing `ENDPOINT_INVOKE` or administrator admission. An allowlist never grants a missing role, permission to use an executor, or data access. Explicit Application restrictions also apply to administrator callers. The selected execution Service Account is not substituted for the caller when evaluating this policy.
+
+Changes use the Application version and runtime cache invalidation. Newly admitted requests use propagated policy; editing an ACL does not automatically cancel work already admitted. This invocation policy does not isolate databases or separately authorized Platform APIs.
+
+## Allow unauthenticated requests deliberately
+
+Both gates must be enabled:
+
+1. In the Application, turn on **Allow unauthenticated** and set **Requests per minute** and **Concurrent anonymous executions**.
+2. On the specific Endpoint, turn on **Allow unauthenticated** and save an explicit limited Service Account as its execution policy.
+
+Defaults are off for existing and new resources. Enabling the Application does not publish all its Endpoints. Inherited, caller, System or administrator execution authority is not accepted for an anonymous Endpoint. Existing Service Account management and resource permission checks still apply.
+
+```json
+{
+  "anonymousAccess": {
+    "enabled": true,
+    "requestsPerMinute": 60,
+    "maxConcurrent": 4
+  }
+}
+```
+
+The Endpoint's separate root field is `allowUnauthenticated: true`; it is not a body-format option. Application limits allow 1–1000 requests per minute and 1–10 concurrent anonymous invocations across runtime replicas. Capacity returns `429`; unavailable admission infrastructure returns `503`, with no process-local capacity fallback. Anonymous execution is capped at 60 seconds or the lower Endpoint timeout. Application and matched Endpoint gates are checked before body reads or Storage writes.
+
+Present credentials always select normal authentication. Empty, invalid, expired or revoked credentials return `401`, without anonymous fallback. A valid authenticated caller still needs its own roles and Application access. Missing credentials on a private route return `401`; an authenticated caller rejected by role or policy gets `403`.
+
+```js title="Inspect invocation identity in low-code"
+const invocation = api.invocationContext();
+if (invocation.isAnonymous) {
+  // caller and currentUser are null; executor is the separately authorized SA.
+  return { anonymous: true, executor: invocation.executor.userId };
+}
+return { anonymous: false, user: api.currentUser()?.userId ?? null };
+```
+
+Native Storage upload also requires the saved Service Account's `STORAGE_ADMIN` domain permission and a local JavaScript/TypeScript Component. Only new direct Explorer sessions created in that same invocation receive its narrow grant; anonymous Custom Node.js upload does not inherit it. See [native file transfer](/operate/endpoint-bodies#stream-files-through-the-endpoint-runtime).
+
+Personal Vault, personal/conversation Storage and native account administration do not borrow the executor's personal identity. Perimeter controls and [provider-signature checks](/operate/signed-webhooks) remain separate requirements for a public webhook.
+
+## Configure browser origins
+
+In **CORS**, choose **Allowed origins only**, **All origins** or **No cross-origin access**. All origins does not make the Endpoint anonymous.
+
+```json
+{
+  "cors": {
+    "mode": "allowlist",
+    "allowedOrigins": ["https://portal.example.com"]
+  }
+}
+```
+
+Origins are exact canonical HTTP(S) origins, including a port when needed, with no path, trailing slash or wildcard. An empty allowlist grants no cross-origin browser access. Existing Default initially preserves its previous public CORS behavior; review consumers before restricting it.
+
+Wildcard preflight resolves the instance/Application without executing a Component. A base-address preflight cannot see an instance-header value; the actual request still performs its policy and authorization checks. CORS is a browser control, not authentication or server-to-server signature verification.
+
+## Synchronize and operate
+
+Use [CLI Application synchronization](/developers/cli-projects#synchronize-applications-and-endpoints) to review changes before dependent Endpoint writes. Applications use immutable keys; Service Accounts use portable Stable Keys. User policies need explicit target identity mapping when crossing instances; never match users automatically by email.
+
+A missing Application returns `404 Cannot <METHOD> <PATH> (application: <key>)`; a missing Endpoint returns `404 Cannot <METHOD> <PATH>`. Authentication or CORS may reject earlier. Neither case invokes a Component or tries another Application. Keep request IDs for operational correlation; do not log credentials or full confidential bodies.

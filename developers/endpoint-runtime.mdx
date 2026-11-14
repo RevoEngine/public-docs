@@ -20,6 +20,8 @@ The Endpoint runtime is the execution front door for HTTP routes configured in R
 
 Read the Endpoint runtime origin from your instance configuration. Do not derive it from the Platform API hostname.
 
+[Applications](/operate/endpoint-applications) select the route namespace and CORS policy. Existing routes remain in Default. A configured wildcard address selects its instance and Application from the host, while existing base addresses retain their instance-selection contract.
+
 ## Invoke an endpoint
 
 Given an active `POST /orders/:orderId/confirm` definition:
@@ -47,6 +49,8 @@ flowchart LR
 ```
 
 Component code can read request body, query, path values, sanitized headers, and endpoint template inputs through its execution input/context. Authorization and platform-internal headers are not exposed to customer code.
+
+Explicit [body formats](/operate/endpoint-bodies) decode JSON/form, retain text/XML strings, provide bounded binary/multipart envelopes or persist an original multipart body in Storage. Guards validate the resulting Component input. Omitting the format configuration preserves existing JSON/form behavior.
 
 ### Read named path parameters
 

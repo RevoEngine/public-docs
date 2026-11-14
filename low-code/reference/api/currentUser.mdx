@@ -9,23 +9,14 @@ icon: code
 
 ## `api.currentUser()`
 
-Returns the business current user synchronously. Saved Endpoints default to
-the invoking user, including end users without platform access. The instance
-or Endpoint currentUser policy can select EXECUTION_ACCOUNT instead.
-Jobs return their captured execution account. Permission checks follow the
-saved execution policy independently of this presentation setting.
-`avatar` is the Storage entry ID, not a signed download URL.
+Business identity, not authority. Endpoint default: caller, including non-platform
+users; instance/Endpoint policy may select EXECUTION_ACCOUNT. Jobs: captured executor.
+Anonymous: null. avatar: Storage entry ID, not signed URL.
 
 ### Signature
 
 ```ts
-static currentUser(): LoggedUser;
+static currentUser(): LoggedUser | null;
 ```
-### Example
-
-```ts
-const user = api.currentUser();
-```
-
 
 See [all api methods](/low-code/reference/api) or [runtime basics](/low-code/overview).

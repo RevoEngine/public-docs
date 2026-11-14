@@ -1,0 +1,101 @@
+---
+title: Verify signed webhooks in low-code
+description: Verify exact bytes with provider-specific application code before storing data or publishing work.
+icon: signature
+---
+
+Endpoint configuration defines transport and admission. **Your low-code component defines the provider's signature protocol.** HMAC secrets, asymmetric public keys, signed timestamp formats, rotation and retry rules differ by provider; there is no universal provider-key field on an Endpoint.
+
+## Prepare the endpoint
+
+Use a published Component endpoint with `POST`, HTTP response mode, modern results and a visible result element. Set the following body options; this is a fragment, not a complete Endpoint definition:
+
+```json
+{
+  "requestBody": { "mode": "raw", "maxBytes": 1048576 },
+  "responseBody": { "mode": "json" }
+}
+```
+
+Use inline **Raw bytes** to verify before any Storage write. The component receives exact bytes in a Base64 envelope, including original multipart boundaries. Do not parse/rebuild multipart or parse/stringify JSON before verification.
+
+Store the provider's verification material in an authorized **instance Vault** secret. The saved execution account needs access to that secret and only the business resources it requires. For deliveries without Revo credentials, configure both [anonymous admission gates](/operate/endpoint-applications#allow-unauthenticated-requests-deliberately), a limited explicit Service Account, and perimeter controls that admit this route. CORS does not verify a server webhook.
+
+These examples return a verification receipt only. They do not write business data, acknowledge durable queue acceptance or implement deduplication. Apply a provider event/message ID to a durable idempotency ledger before downstream side effects. Keep keys, signatures and confidential bodies out of logs.
+
+## Example: timestamped HMAC
+
+This Component result element illustrates Stripe's timestamp-dot-body HMAC construction. Create an instance Vault secret named `WEBHOOK_SIGNING_SECRET` with the endpoint's signing secret. The example accepts multiple `v1` header signatures and uses a five-minute timestamp tolerance. Secret rotation and operational retry policy remain your application responsibility.
+
+```js title="Component result element · timestamped HMAC"
+const endpoint = api.input().triggers?.find(item => item.triggerType === 'ENDPOINT');
+const raw = endpoint?.input;
+if (!raw || raw.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const header = String(endpoint.headers['stripe-signature'] ?? '');
+if (!header || header.length > 8192) api.throw(401, { error: 'Invalid signature' });
+const parts = header.split(',').map(part => part.split('='));
+const timestamps = parts.filter(([name]) => name === 't').map(([, value]) => value);
+const signatures = parts.filter(([name]) => name === 'v1').map(([, value]) => value);
+if (timestamps.length !== 1 || !/^\d{1,12}$/.test(timestamps[0] ?? '') || signatures.length > 32) {
+  api.throw(401, { error: 'Invalid signature' });
+}
+const timestamp = Number(timestamps[0]);
+if (Math.abs(Date.now() / 1000 - timestamp) > 300) {
+  api.throw(401, { error: 'Expired signature' });
+}
+const secret = (await vault.get('WEBHOOK_SIGNING_SECRET')).revision.value;
+const bytes = Buffer.from(raw.data, 'base64');
+const signedBytes = Buffer.concat([Buffer.from(`${timestamps[0]}.`), bytes]);
+const valid = signatures.some(signature =>
+  /^[a-f0-9]{64}$/i.test(signature ?? '') &&
+  util.verifyHmacSignature(signedBytes, signature, secret, 'sha256', 'hex')
+);
+if (!valid) api.throw(401, { error: 'Invalid signature' });
+return { verified: true, size: bytes.length };
+```
+
+Expected result for a fresh, correctly signed request: `{ "verified": true, "size": ... }`. Changing one body byte, supplying a bad signature or using an expired timestamp returns401 before application writes. The runtime's omitted-format JSON parser must not replace raw mode for this example.
+
+Follow the provider's current [signature and delivery guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors). HMAC verification is bounded; this example's1MiB request limit stays below its5MiB crypto payload limit.
+
+## Example: asymmetric P-256 signature
+
+For a provider using P-256/SHA-256, such as a signed SendGrid Inbound Parse delivery, application code concatenates the exact timestamp bytes and raw body without the HMAC example's dot separator. Store the provider's public key in instance Vault as `WEBHOOK_VERIFICATION_PUBLIC_KEY` (PEM or Base64 DER SPKI).
+
+The following **example application policy** permits a five-minute timestamp window. Select the tolerance and retry handling for your provider's contract; do not assume all providers regenerate timestamps or use identical delivery windows.
+
+```js title="Component result element · P-256 verification"
+const endpoint = api.input().triggers?.find(item => item.triggerType === 'ENDPOINT');
+const raw = endpoint?.input;
+if (!raw || raw.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const timestamp = String(endpoint.headers['x-twilio-email-event-webhook-timestamp'] ?? '');
+const signature = String(endpoint.headers['x-twilio-email-event-webhook-signature'] ?? '');
+if (!/^\d{1,12}$/.test(timestamp) || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300 || !signature || signature.length > 1024) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const publicKey = (await vault.get('WEBHOOK_VERIFICATION_PUBLIC_KEY')).revision.value;
+const bytes = Buffer.from(raw.data, 'base64');
+const signedBytes = Buffer.concat([Buffer.from(timestamp), bytes]);
+let valid;
+try {
+  valid = await util.ecdsaVerify(publicKey, signedBytes, signature);
+} catch {
+  api.throw(503, { error: 'Signature verification unavailable' });
+}
+if (!valid) api.throw(401, { error: 'Invalid signature' });
+return { verified: true, size: bytes.length };
+```
+
+`util.ecdsaVerify` is a general P-256/SHA-256 primitive, not a provider integration. It accepts exact bytes and a Base64 DER signature; it does not parse headers, choose trusted keys, enforce timestamp freshness or record processed message IDs. Payloads are bounded at8MiB, public keys at64KiB and signature strings at1024characters. Malformed key configuration throws; a mismatched signature returnsfalse.
+
+Check the provider's [Inbound Parse security documentation](https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/securing-your-parse-webhooks) when defining its security policy, key rotation and accepted retries. A signature proves authenticity of the signed bytes; parsing email, attachment handling, durable work admission and delivery recovery are later application steps.
+
+## Persist after verification
+
+After verification, parse and validate the business payload, claim its durable idempotency key, and explicitly store files or publish work using the executor's permissions. Return success only after the level of acceptance your integration promises. Repeated valid deliveries must not duplicate side effects.
+
+Native Storage upload is a different mode: its Component selects an authorized upload session before body consumption, and the runtime then streams into that session. It does not expose the stream bytes to low-code signature verification. Use bounded inline raw verification when the provider requires a signature over the body, or design an explicit verified ingestion workflow. A successful file receipt is not a signature or business-completion claim.

@@ -21,9 +21,9 @@ Use RevoEngine when a team needs to deliver and operate business applications or
 
 ### Publish a business operation
 
-An Endpoint backed by a validated Component for bounded synchronous work. For long work, accept a command and follow a durable Job result.
+An Application Endpoint backed by a validated Component, with an explicit request/response contract where needed. For long work, accept a command and follow a durable Job result.
 
-**Check before implementing:** Input validation, identity, expected duration, duplicate requests, and the caller's completion contract.
+**Check before implementing:** Route namespace, browser-origin policy, input validation, identity, expected duration, duplicate requests, and the caller's completion contract.
 
 [Read the guide](/operate/endpoints)
 
@@ -72,7 +72,7 @@ Use deterministic Components and Jobs for known business rules. Use an Interacti
 | Capability | Responsibility | Guide |
 | --- | --- | --- |
 | Application logic | Implement reusable business behavior in Components and libraries; validate it in Sandbox before selecting a production version. | [Application logic](/build/components) |
-| Endpoints | Expose a bounded HTTP contract over application logic when the caller needs a synchronous result. | [Endpoints](/operate/endpoints) |
+| Applications and Endpoints | Group HTTP routes in Applications with browser-origin policies. Expose bounded JSON, form, text, XML, binary or multipart contracts over application logic, with HTTP results or SSE events. | [Applications and Endpoints](/operate/endpoints) |
 | Data | Model application-owned structured data, query it through Tables and Views, and track changes with the appropriate access and audit policy. | [Data](/operate/databases) |
 | Storage | Keep files, generated outputs, and evidence addressable by stable entry identity. Distinguish an entry from bytes, an upload session, and a derived index; consumers require a finalized file. | [Storage](/operate/storage) |
 | Automation | Run durable background work. Job templates define work and Jobs record executions; schedules and events are triggers that can target a Job template or an Agent where enabled. | [Automation](/operate/automation) |

@@ -18,8 +18,8 @@
       "docs": "/build/components"
     },
     {
-      "name": "Endpoints",
-      "purpose": "Expose a bounded HTTP contract over application logic when the caller needs a synchronous result.",
+      "name": "Applications and Endpoints",
+      "purpose": "Group HTTP routes in Applications with browser-origin policies. Expose bounded JSON, form, text, XML, binary or multipart contracts over application logic, with HTTP results or SSE events.",
       "docs": "/operate/endpoints"
     },
     {
@@ -56,8 +56,8 @@
   "decisions": [
     {
       "goal": "Publish a business operation",
-      "choose": "An Endpoint backed by a validated Component for bounded synchronous work. For long work, accept a command and follow a durable Job result.",
-      "verify": "Input validation, identity, expected duration, duplicate requests, and the caller's completion contract.",
+      "choose": "An Application Endpoint backed by a validated Component, with an explicit request/response contract where needed. For long work, accept a command and follow a durable Job result.",
+      "verify": "Route namespace, browser-origin policy, input validation, identity, expected duration, duplicate requests, and the caller's completion contract.",
       "docs": "/operate/endpoints"
     },
     {

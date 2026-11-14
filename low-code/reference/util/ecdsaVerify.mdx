@@ -1,0 +1,20 @@
+---
+title: util.ecdsaVerify()
+sidebarTitle: ecdsaVerify()
+description: Public low-code contract, signatures and examples for util.ecdsaVerify.
+icon: code
+---
+
+<span id="util-ecdsaVerify" aria-hidden="true"></span>
+
+## `util.ecdsaVerify()`
+
+Async P-256/SHA-256 verification of exact bytes. Key: PEM or canonical Base64 DER SPKI; signature: Base64 DER.
+
+### Signature
+
+```ts
+static ecdsaVerify(publicKey: string, payload: Buffer | string, signature: string): Promise<boolean>;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

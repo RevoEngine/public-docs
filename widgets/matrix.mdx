@@ -74,6 +74,8 @@ Use cell `layout` when a row must adapt to a narrow panel. This is separate from
 | `layout.minWidth` | 80–1920 pixels | Minimum useful width; the row wraps instead of squeezing controls together. |
 | `layout.width` | `content`, `fill` | Keep an action at its content width or allow the cell to fill available space. |
 | `layout.align` | `start`, `center`, `end` | Align a cell vertically within its row. |
+| `layout.resizable` | boolean | Opt into resize handles; requires a stable cell ID. Adjacent cells support width resizing, and an explicitly sized non-INPUT cell also enables row-height resizing. |
+| `layout.preferenceKey` | string | Optional stable key for the saved adjacent-column ratio. |
 
 ```js
 return [[
@@ -112,3 +114,20 @@ Elements support explicit `on.hover` and `on.focus`; Kanban additionally emits `
 ### Resize adjacent columns
 
 Set `layout.resizable: true` on a cell with a following sibling and a stable ID. A visible separator resizes the pair with the pointer or arrow keys, respecting each cell's minimum width. Home/End move to the limits; Delete or a double click resets it. `layout.preferenceKey` remembers the ratio locally per user and instance. Container wrapping remains responsive.
+
+### Resize row height
+
+The same `layout.resizable: true` enables a horizontal height handle when a visible non-INPUT cell has an explicit `height`. It works for a single-cell row as well as a row with adjacent columns:
+
+```js
+return [[{
+  id: 'notes', type: 'TEXT', label: 'Review notes', height: 420,
+  layout: {resizable: true},
+  presentation: {kind: 'plain', frame: 'card', minHeight: 240, maxHeight: 800},
+  value: 'Keep the source message and your review visible while working.'
+}]];
+```
+
+Drag the handle beneath the row, or use Up/Down while it is focused. Home/End move to the height limits; Delete or a double click restores the authored height. Rows resize between 160 and 2000 pixels by default; `presentation.minHeight` and `presentation.maxHeight` on the row's visible cells constrain the shared height. Cells with an explicit height follow that shared height, while automatically sized cells remain automatic.
+
+The chosen height is remembered locally in the browser for the user and instance. Keep the source Component and ordered cell IDs stable to retain that preference. `layout.preferenceKey` controls the adjacent-column ratio, not the row-height preference. Personal resizing does not rewrite the shared source or save changes to business data.

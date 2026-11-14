@@ -14,7 +14,7 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 583
+      "operations": 589
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
@@ -75,6 +75,7 @@
         "low-code/reference/api/deleteDatabaseDataRequest.mdx",
         "low-code/reference/api/queryDatabase.mdx",
         "low-code/reference/api/currentUser.mdx",
+        "low-code/reference/api/invocationContext.mdx",
         "low-code/reference/api/isDebug.mdx",
         "low-code/reference/api/getCache.mdx",
         "low-code/reference/api/setCache.mdx",
@@ -245,7 +246,8 @@
         "low-code/reference/util/rsaEncrypt.mdx",
         "low-code/reference/util/rsaGeneratePair.mdx",
         "low-code/reference/util/rsaSign.mdx",
-        "low-code/reference/util/rsaVerify.mdx"
+        "low-code/reference/util/rsaVerify.mdx",
+        "low-code/reference/util/ecdsaVerify.mdx"
       ]
     }
   }

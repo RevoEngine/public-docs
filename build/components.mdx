@@ -36,6 +36,10 @@ Do not begin by choosing a runtime. Begin by deciding what must be true when the
 
 The **Components** workspace is list-first: its grid shows name, category, description, activation, type, metadata, actor timestamps, and version. Selecting a row opens a side panel with the definition. The panel exposes component identity and metadata first, then the ordered Elements editor; **Studio** opens the full authoring environment.
 
+In the default workspace, **Save** and **Ctrl+S** / **Command+S** use the ordinary Component save without creating a session. **Deploy** opens the existing changes review. To preserve a collaborative draft, explicitly create a session or choose **Save working diff as session**. Inside a selected session, Save keeps its draft and deployment remains a separate review and activation flow. Disabling session Preview does not disable ordinary saves or discard admitted runtime releases.
+
+An ordinary low-code save updates only its authorized runtime change. Unrelated committed but inactive session changes stay inactive; a conflicting change outside the submitted fields requires reconciliation. An explicitly pinned library digest continues selecting its saved runtime source while authoring advances. On instances using immutable runtime releases, hosted `CUSTOM_NODEJS` changes still require a prepared artifact and the explicit Studio activation flow; an ordinary write rejects that change rather than reporting a misleading live save.
+
 ## Component types
 
 | Type | Best for | Runtime |

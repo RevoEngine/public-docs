@@ -1,0 +1,185 @@
+---
+title: Request and response formats
+description: Choose bounded inline formats or Component-selected native Storage streaming without changing existing Endpoint contracts.
+icon: file-code
+---
+
+Use an explicit format when an integration sends something other than your existing JSON contract. Configure the wire format independently from the visible Component result selected by `popResult`.
+
+Leave `options.requestBody` and `options.responseBody` unset to keep an existing Endpoint's parsing and response behavior. Changing a live Endpoint's format is a client contract change: validate an inactive definition or a new path first.
+
+## Choose the request body
+
+`options.requestBody.mode` selects how `api.input().body` is constructed. Explicit request formats require a Component and `POST`, `PUT`, `PATCH` or `DELETE`. Raw input is inline; native Storage transfer is a separate mode.
+
+| Mode | Wire Content-Type | Component body | Default / maximum |
+| --- | --- | --- | --- |
+| `json` | `application/json` or an application `+json` type | Parsed JSON | 20 / 32 MiB |
+| `form` | `application/x-www-form-urlencoded` | Parsed form object, including nested fields | 10 / 32 MiB |
+| `text` | `text/*`, such as `text/plain` or `text/csv` | UTF-8 string | 1 / 8 MiB |
+| `xml` | `application/xml`, `text/xml` or a corresponding `+xml` type | Validated XML string | 1 / 8 MiB |
+| `binary` | The file's media type | Base64 envelope | 1 / 8 MiB |
+| `multipart` | `multipart/form-data` with a boundary | Fields and file envelopes | 8 / 8 MiB |
+| `raw` | Any valid Content-Type; unchanged bytes | Base64 envelope | 1 / 8 MiB |
+| `storage` | Original bytes matching the selected session media type | No file bytes; Component selects a session before transfer | 32 / 32 MiB |
+
+Set `maxBytes` to a positive byte count within the mode's maximum. Multipart limits include framing. Hosting and caller limits can be lower. Inline formats reject compressed input, mismatched media types, unsupported text encodings and incomplete bodies before Component execution. Native Storage checks request metadata before execution and consumes the body only after the Component selects an authorized session. Their request content is hidden from execution-history request logging; application code must still avoid logging confidential values.
+
+XML remains text: the runtime does not infer an object model or business schema. XML must be well formed, use UTF-8 and contain no DTD or custom entity declarations. Apply an appropriate guard and domain validation separately.
+
+Explicit `json` accepts any valid JSON value. Omitting `requestBody` keeps the existing JSON parser's object/array behavior as well as its form parsing.
+
+For example, this fragment accepts XML and returns the selected visible result as XML:
+
+```json
+{
+  "options": {
+    "requestBody": { "mode": "xml", "maxBytes": 1048576 },
+    "responseBody": { "mode": "xml" },
+    "popResult": "Response"
+  }
+}
+```
+
+```js title="Component · Response"
+return api.input().body;
+```
+
+## Work with binary and multipart
+
+Binary bytes cross the Component boundary in an explicit envelope. `data` is canonical Base64; `size` counts decoded bytes and `contentType` describes the file.
+
+```json
+{
+  "encoding": "base64",
+  "data": "AAEC/w==",
+  "size": 4,
+  "contentType": "application/octet-stream"
+}
+```
+
+For `multipart`, the Component receives:
+
+```json
+{
+  "fields": { "reference": "order-123", "tag": ["priority", "review"] },
+  "files": [
+    {
+      "fieldName": "attachment",
+      "fileName": "sample.bin",
+      "contentType": "application/octet-stream",
+      "encoding": "base64",
+      "data": "AAEC/w==",
+      "size": 4
+    }
+  ]
+}
+```
+
+Repeated fields preserve their order as arrays; files preserve their input order. A request permits at most 64 fields, 16 files and 80 parts. Each field is limited to 64 KiB and field names to 128 bytes. Treat supplied filenames and media types as untrusted metadata. This bounded inline representation is intended for small integrations, rather than unrestricted file streaming.
+
+## Keep exact bytes for verification
+
+Choose `requestBody: {"mode":"raw"}` when application code needs exact original bytes, including multipart framing and provider signatures. It uses the same Base64 envelope as binary input, defaults to 1 MiB and is capped at 8 MiB. It buffers the complete bounded input; decoding a low-code Buffer does not make it streaming.
+
+There is no nested `requestBody.storage` destination or provider-specific verification setting. Verify signatures over original bytes with authorized keys, enforce timestamp/replay rules, then explicitly persist or publish work. A Storage receipt is not signature proof. See [signed webhook examples](/operate/signed-webhooks).
+
+## Stream files through the Endpoint runtime
+
+Native Storage modes carry references across the Component boundary, not file buffers or Base64. They require an HTTP Component endpoint and modern results; they do not support SSE, `legacyResults`, static responses or `noResult`. Do not combine upload and download on one Endpoint.
+
+### Upload to a Component-selected session
+
+Set `options.requestBody` to `{ "mode": "storage", "maxBytes": 33554432 }`. The default and maximum are 32 MiB of original wire bytes. Use POST, PUT, PATCH or DELETE. The Component runs before the body is consumed; `api.input().body` is not the uploaded file. Select an exact result `{ storageSessionEntryId }` referring to an existing active, empty, uncompressed direct upload session. `storageSessionEntryId` contains that session's `storageUploadSessionId`, never a file ID or an upload URL.
+
+For a visible element named `Data`, set `options.popResult: "Data"` and return:
+
+```js title="Component · Data · native upload"
+const { session } = await storage.createUploadSession({
+  name: 'upload.bin',
+  parentStorageEntryId: api.input('folderId'),
+  contentTypeHint: 'application/octet-stream',
+  uploadMode: 'direct',
+  computeStats: 'none'
+});
+return { storageSessionEntryId: session.storageUploadSessionId };
+```
+
+`folderId` is an authorized existing folder configured by the application; do not trust an arbitrary caller-selected folder. The request Content-Type must match the session's media type. A root result that already is the exact directive needs no `popResult`. Unexpected control fields or a malformed selected reference fail with `502`; an inaccessible session returns `403`. An authored `api.throw(400, { error: 'Rejected' })` before returning the directive stays an ordinary HTTP 400 and consumes no upload body.
+
+After authorization, the runtime streams bytes to the selected session and confirms size, checksum and finalization. Success is a fixed JSON receipt:
+
+```json
+{
+  "storageUploadSessionId": "00000000-0000-4000-8000-000000000020",
+  "storageEntryId": "00000000-0000-4000-8000-000000000021",
+  "size": 4,
+  "checksumMd5": "base64-md5-of-confirmed-bytes",
+  "contentType": "application/octet-stream",
+  "name": "upload.bin"
+}
+```
+
+Do not configure `responseBody` or statuses 204/205 for upload. A receipt confirms file persistence, not provider authenticity, durable Job admission or completion of later business work. Deadline or cancellation can leave an uncertain provider outcome; inspect the session and use application idempotency before retrying.
+
+### Download a Component-selected file
+
+Set `options.responseBody` to `{ "mode": "storage", "maxBytes": 33554432 }`. Return exactly `{ storageEntryId }` with optional `downloadName`; for a selected visible `Data` result:
+
+```js title="Component · Data · native download"
+return {
+  storageEntryId: api.input('fileId'),
+  downloadName: 'report.bin'
+};
+```
+
+`fileId` is an application-selected existing file reference. The runtime checks execution authority, file and ancestor access, retention, content generation and the **complete file size before headers**, then streams native bytes. The default and maximum complete-file limit are 32 MiB, including HEAD and Range requests; a small range cannot bypass the file cap. Only this native file mode falls back from HEAD to its matching GET definition. Other legacy HEAD behavior is unchanged.
+
+The file supplies Content-Type; optional `downloadName` must be a safe basename of at most 255 UTF-8 bytes. Responses use HTTP 200, or 206 for an accepted byte range; invalid ranges return 416. `contentType`, `Content-Disposition`, static responses, `noResult` and other configured success statuses are unavailable. Safe ordinary static headers remain supported. Malformed directives fail with `502`, and unavailable file access returns `403`. Authored `api.throw` responses remain ordinary JSON HTTP responses.
+
+### Keep identity and transport boundaries
+
+Authenticated invocations retain normal Storage permissions and ownership. Anonymous upload requires both anonymous gates, the saved limited Service Account with the Storage domain permission `STORAGE_ADMIN`, and a managed JavaScript or TypeScript Component. Its narrow grant covers only new direct Explorer sessions created in that same invocation. It does not borrow a user's personal identity or permit another invocation's session. Anonymous Custom Node.js upload does not inherit this grant. SDK/RPC calls carry references, never live HTTP streams.
+
+CLI 2.2.0 requires a fresh `endpointStorageTransports: true` server capability when planning or writing these modes, including unchanged managed definitions. API version alone does not establish matching execution support. Use a real Endpoint runtime URL for streaming validation; the CLI emulator buffers ordinary HTTP and cannot prove native streaming. Its known native routes fail before body reads; Default callers denied catalog access retain legacy bounded preview with an explicit unknown-format warning.
+
+For larger files, use [Storage upload sessions](/operate/storage-uploads) directly. These native Endpoint modes do not establish a 10 GB upload contract.
+
+## Choose the HTTP response format
+
+`options.responseBody` serializes the selected result or static `response`. It does not choose which element is public: continue using `popResult`, the full result map or `noResult` as described in [HTTP responses](/operate/endpoint-http).
+
+| Mode | Expected result | Default Content-Type |
+| --- | --- | --- |
+| `json` | JSON-serializable value | `application/json` |
+| `text` | String | `text/plain` |
+| `xml` | Validated UTF-8 XML string | `application/xml` |
+| `binary` | Canonical Base64 envelope | `application/octet-stream` |
+| `storage` | Exact `{ storageEntryId, downloadName? }` directive | Authorized file metadata |
+
+Inline response `maxBytes` defaults to 8 MiB and cannot exceed 32 MiB; native Storage defaults to 32 MiB and bounds the complete selected file. Text formats use UTF-8. Set `contentType` for a compatible application-specific type. For binary output, the envelope's `contentType` is used when the response configuration does not override it.
+
+```json
+{
+  "mode": "binary",
+  "contentType": "application/octet-stream",
+  "headers": { "Content-Disposition": "attachment; filename=sample.bin" },
+  "maxBytes": 1048576
+}
+```
+
+This is the value of `options.responseBody`. Custom static headers are limited to 32 entries and 8 KiB. Transport framing, authentication, cookies, CORS, `Vary`, `Content-Type` and platform-owned headers are reserved; use the format's `contentType` field for its media type.
+
+Configured success statuses and deliberate `api.throw(status, body)` responses retain their existing role. `HEAD`, `204`, `304` and `noResult` return no body. An invalid explicit output fails before response bytes are sent. Ordinary runtime errors retain their error contract.
+
+Explicit response serialization is unavailable with `legacyResults` or [SSE](/operate/endpoint-sse). SSE retains its event framing and terminal lifecycle. Native Storage streams only the selected authorized file/session; it does not expose arbitrary stream objects or map XML to objects.
+
+## Validate the complete contract
+
+Check the generated runtime OpenAPI document, then send both a valid request and a rejected media type or size. Verify the selected result, Content-Type, status and exact binary bytes. Retryable writes still need an application idempotency key; Endpoint invocations have no automatic retry.
+
+Continue with [Applications and CORS](/operate/endpoint-applications), [Endpoint configuration](/operate/endpoint-configuration) or [SSE streams](/operate/endpoint-sse).
+
+## Configure response headers with native controls
+
+The Endpoint editor uses the same structured configurator as Metadata: add a header, enter its name and text value, or use the JSON editor. Header values are text only. The runtime permits up to32headers and8KiB total; names are case-insensitively unique. Content-Type, CORS, cookies, authentication, connection/framing and `x-revo-*` headers remain managed or reserved. Invalid headers block saving and are rejected again by the backend.
