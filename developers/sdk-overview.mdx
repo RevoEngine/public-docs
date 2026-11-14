@@ -22,7 +22,7 @@ import { ReadingFlow } from "/snippets/reading-flow.jsx";
 npm install @revoengine/sdk
 ```
 
-Choose an SDK release supported by your target instance. Endpoint Storage directives require the SDK 4.2 release line and RevoEngine 1.9.2.
+Choose an SDK release supported by your target instance. Endpoint Storage directives require the SDK 4.2 release line and RevoEngine 1.9.2. For the 1.9.2 DEV/TEST prerelease, install `@revoengine/sdk@4.2.0-rc.3`; the default installation continues to use the stable release.
 
 ## Choose a runtime mode
 
@@ -87,7 +87,7 @@ Pass either a `RevoClient` or the runtime injected into hosted `init(runtime)`.
 
 The execution mode is immutable. Pass `readOnly` in sandbox/execute requests; `api.enableDebug()` and `api.disableDebug()` are removed. External HTTP remains real in read-only mode. Native service-account mutations use current IAM, management ACL, target rank and delegation checks. Key create/rotate return the usable credential once; metadata reads never recover it. See [Service accounts](/operate/service-accounts).
 
-Platform 1.9.2 DEV/TEST targets an SDK **4.2.0 prerelease**; Platform 1.9.0 uses SDK **4.1.0**; platform 1.8.0 uses SDK **4.0.0** for new hosted Components; platform 1.7.1 uses SDK **3.0.0**. SDK and platform versions are independent; do not infer compatibility by matching their version numbers. Newly created hosted Components use the pinned SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
+Platform 1.9.2 DEV/TEST targets SDK **4.2.0-rc.3**; Platform 1.9.0 uses SDK **4.1.0**; platform 1.8.0 uses SDK **4.0.0** for new hosted Components; platform 1.7.1 uses SDK **3.0.0**. SDK and platform versions are independent; do not infer compatibility by matching their version numbers. Newly created hosted Components use the pinned SDK version; existing deployed revisions retain their recorded version until redeployed with an updated configuration.
 
 Use explicit HTTP `requestType: 'storage'` / `responseType: 'storage'` with flat `source` / `target` references, and named `{ scheduleFor }` options for Automation scheduling. Live byte/SSE iterators stay inside V8 execution and cannot be returned through SDK calls.
 
