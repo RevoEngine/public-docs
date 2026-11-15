@@ -366,7 +366,7 @@ declare class api {
      *   the enclosing execution's remaining timeout budget.
      * - Long transactions reserve a database connection and may retain locks;
      *   keep waits and remote side effects outside the callback when possible.
-     * - SERIALIZABLE is the default isolation level; choose isolationLevel explicitly
+     * - READ COMMITTED is the default isolation level; choose isolationLevel explicitly
      *   for the workflow. Atomic commit/rollback is supported at every level.
      * - Use READ COMMITTED for known-key batches protected by row locks/constraints;
      *   use SERIALIZABLE for decisions across a read set or absence checks.
@@ -374,7 +374,9 @@ declare class api {
      * - DATABASE_TRANSACTION_CONFLICT has statusCode 409, retryable:true and
      *   cause.code 40001 (serialization) or 40P01 (deadlock). Roll back and retry
      *   the complete transaction, including reads/decisions, with a bounded budget.
-     * - No callback is retried automatically. External effects and JavaScript state
+     * - Callback replay requires { retry: true, attempts: 3 } (3 total by default).
+     *   Only 40001/40P01 after confirmed rollback qualify; uncertain COMMIT is never replayed.
+     *   All attempts share one deadline. External effects and JavaScript state
      *   are not rolled back; retryable does not authorize replaying a whole Job.
      * - Parallel tx.* operations are rejected; await each tx.* call sequentially.
      *
@@ -390,7 +392,7 @@ declare class api {
      *       { contractId: api.input('contractId') },
      *     ]);
      *   }
-     * });
+     * }, { isolationLevel: 'SERIALIZABLE' });
      */
   static transactionDatabase<T>(
       callback: (tx: DatabaseTransactionApi) => Promise<T> | T,
@@ -450,6 +452,8 @@ declare class api {
      * all rows in the isolate. Specify query.take or options.fullScan:true.
      * Every non-final batch has exactly batchSize rows when available (default 10,000).
      * The callback may await writes; do not accumulate batches in an array.
+     * Auto plans once, without COUNT. Replaced cursors retain one read-only snapshot;
+     * callback writes use separate connections. Simple keysets remain live.
      *
      * Example:
      * await api.walkDatabaseData('customers', { take: 100000, sort: ['customerId'] },

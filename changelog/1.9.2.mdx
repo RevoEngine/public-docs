@@ -5,8 +5,6 @@ icon: "tag"
 description: "13 November 2026"
 ---
 
-These capabilities require RevoEngine 1.9.2; check the version deployed in your environment before using them.
-
 Organize published endpoints into Applications without changing their paths. Choose HTTP formats, authenticated caller policies and deliberately enabled anonymous flows, while keeping established Default integrations and the existing mailing and widget work together.
 
 ## Highlights
@@ -70,6 +68,14 @@ Dashboard authoring retains the established 20-column grid. Previously saved fin
 ## Keep mailing changes together
 
 Unread-chat summaries claim the complete eligible message set for one digest, show bounded previews with a full count and avoid sending overflow as later duplicate digests. Existing preferences, eligibility and cooldown rules remain in force. Raw ingress and low-code verification provide building blocks for an inbound-mail application; provider delivery configuration and cutover remain separate operational steps. See [email preferences and unread digests](/operate/chat#email-preferences-and-unread-digests).
+
+## Choose transaction isolation and retry
+
+Database transactions now default to `READ COMMITTED`. Preserve set-wide or absence-based decisions with explicit `SERIALIZABLE` isolation. Opt in to whole-callback retry with `{ retry: true, attempts: 3 }`: replay follows confirmed rollback of a serialization conflict or deadlock, shares one deadline and never retries an uncertain commit. Keep external effects outside the callback. See [Database transactions](/low-code/database#choose-isolation-separately-from-atomicity).
+
+## Upgrade with stable SDK 4.3.0
+
+SDK 4.3.0 provides the stable Node.js contract for RevoEngine 1.9.2, including Endpoint Storage transfer types and current database declarations. Upgrade the target instance and SDK together; existing published contracts remain supported. See [SDK compatibility](/developers/sdk-overview).
 
 
 ## Related guides
