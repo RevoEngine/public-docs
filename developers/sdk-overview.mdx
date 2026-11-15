@@ -22,7 +22,7 @@ import { ReadingFlow } from "/snippets/reading-flow.jsx";
 npm install @revoengine/sdk
 ```
 
-Choose an SDK release supported by your target instance. Endpoint Storage directives require RevoEngine 1.9.2 and the stable SDK 4.3 release line. Install `@revoengine/sdk@4.3.0`; upgrade the target instance and SDK together.
+Choose an SDK release supported by your target instance and pin it independently from the platform release. Point your runtime client at TEST or PROD to choose the environment; changing that endpoint does not update the installed package. Endpoint Storage directives require a target running RevoEngine 1.9.2 or newer and SDK 4.3 or newer. A newer package cannot add operations that the selected backend does not support.
 
 ## Choose a runtime mode
 

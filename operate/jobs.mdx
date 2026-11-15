@@ -308,6 +308,16 @@ notification scheduling uses a short wait, so an unavailable queue does not keep
 a completed Job holding its execution capacity. Fresh matching heartbeats protect
 an active Job during recovery, including a heartbeat arriving while it is read.
 
+Code preparation runs before customer code starts. Its separate compiler limit is
+30 seconds; successful preparation taking at least ten seconds produces a warning.
+A confirmed preparation timeout safely defers the same Job for 30 seconds without
+consuming a business retry or changing its saved inputs. After three failed
+preparations, the Job becomes `ERROR` with `EXECUTION_COMPILER_TIMEOUT` for review.
+The existing **Concurrency capacity** waiting state includes this preparation wait.
+This recovery applies only before customer code starts; it does not replay an
+execution whose effects are uncertain. A saved specific version or active release
+pin remains authoritative; otherwise the next preparation resolves current source.
+
 A lost worker with an unknown effect is reported as requiring recovery; inspect the
 original target before explicitly retrying a write. Automatic retry settings remain
 separate from infrastructure delivery and do not guarantee exactly-once external effects.

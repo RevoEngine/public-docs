@@ -12,6 +12,7 @@ Organize published endpoints into Applications without changing their paths. Cho
 - Select Applications by runtime subdomain, preserve existing Default URLs and configure CORS independently from invocation access.
 - Accept inline JSON, forms, text, XML, binary, multipart or raw bytes; stream bounded native Storage files through Component-selected references and verify signatures in low-code.
 - Control authenticated and anonymous invocation, synchronize Applications with CLI 2.2.0, and build operational widgets using native authoring controls.
+- Prepare Job code in the background, safely defer confirmed preparation timeouts and retain clear compiler diagnostics.
 
 ## In detail
 
@@ -73,9 +74,13 @@ Unread-chat summaries claim the complete eligible message set for one digest, sh
 
 Database transactions now default to `READ COMMITTED`. Preserve set-wide or absence-based decisions with explicit `SERIALIZABLE` isolation. Opt in to whole-callback retry with `{ retry: true, attempts: 3 }`: replay follows confirmed rollback of a serialization conflict or deadlock, shares one deadline and never retries an uncertain commit. Keep external effects outside the callback. See [Database transactions](/low-code/database#choose-isolation-separately-from-atomicity).
 
+## Prepare Job code without losing execution state
+
+Background code preparation now completes correctly after source saves and keeps newer versions protected when an older build finishes. Compilation has a separate 30-second limit and reports slow preparation as a warning. If that limit expires before any customer code starts, the same Job is safely deferred for 30 seconds while retaining its inputs and business attempt. Three failed preparations produce the specific compiler error for review. Unknown execution effects still require review before retry. See [Job delivery and recovery](/operate/jobs).
+
 ## Upgrade with stable SDK 4.3.0
 
-SDK 4.3.0 provides the stable Node.js contract for RevoEngine 1.9.2, including Endpoint Storage transfer types and current database declarations. Upgrade the target instance and SDK together; existing published contracts remain supported. See [SDK compatibility](/developers/sdk-overview).
+SDK 4.3.0 provides the stable Node.js contract for RevoEngine 1.9.2, including Endpoint Storage transfer types and current database declarations. Select a compatible package and the intended TEST or PROD endpoint independently; existing published contracts remain supported. See [SDK compatibility](/developers/sdk-overview).
 
 
 ## Related guides
