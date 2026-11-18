@@ -2801,9 +2801,28 @@
       "get": {
         "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_endpointStats",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "First UTC date (YYYY-MM-DD), inclusive.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Last UTC date (YYYY-MM-DD), inclusive.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": "OK."
           },
           "403": {
@@ -2818,7 +2837,7 @@
             "bearer": []
           }
         ],
-        "summary": "Get endpoint stats (cached in 1 min intervals).",
+        "summary": "Aggregate endpoint statistics for one inclusive UTC period of up to 366 days. Defaults to Today.",
         "tags": [
           "Endpoints"
         ]
@@ -2841,6 +2860,19 @@
             "required": true,
             "in": "query",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Group by UTC day (default) or aggregate one period of up to 366 days.",
+            "schema": {
+              "enum": [
+                "day",
+                "period"
+              ],
               "type": "string"
             }
           }
@@ -19937,6 +19969,19 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Group by UTC day (default) or aggregate one period of up to 366 days.",
+            "schema": {
+              "enum": [
+                "day",
+                "period"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22024,6 +22069,55 @@
           }
         ],
         "summary": "Create webhook.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/webhook/performance": {
+      "get": {
+        "description": "Delivery counts by creation time and latest recorded status, with elapsed measurements from retained attempt evidence.",
+        "operationId": "AutomationController_getWebhookPerformance",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Inclusive start of an ordered range of up to 366 days.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Exclusive end of the range.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookPerformanceResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read webhook performance for one period.",
         "tags": [
           "Automation"
         ]
@@ -31635,7 +31729,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.9.2",
+    "version": "1.9.3",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -39586,8 +39680,16 @@
           "externalTransferBytes": {
             "type": "number"
           },
+          "endpointCount": {
+            "type": "number",
+            "description": "Endpoint requests recorded in the current UTC month through the capture time."
+          },
           "endpointProcessingMs": {
             "type": "number"
+          },
+          "jobCount": {
+            "type": "number",
+            "description": "Job executions created in the current UTC month through the capture time."
           },
           "jobProcessingMs": {
             "type": "number"
@@ -39598,7 +39700,9 @@
           "to",
           "thresholds",
           "externalTransferBytes",
+          "endpointCount",
           "endpointProcessingMs",
+          "jobCount",
           "jobProcessingMs"
         ]
       },
@@ -40028,6 +40132,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           }
         },
         "required": [
@@ -40066,6 +40180,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           },
           "model": {
             "type": "string",
@@ -40138,6 +40262,16 @@
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
           },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
+          },
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -40190,6 +40324,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           },
           "period": {
             "type": "string",
@@ -45271,6 +45415,217 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "WebhookPerformanceMetricsDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs"
+        ]
+      },
+      "WebhookPerformancePointDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC start of the bucket."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs",
+          "time"
+        ]
+      },
+      "WebhookPerformanceStatusDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "status": {
+            "type": "string",
+            "description": "Latest metered delivery status."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs",
+          "status"
+        ]
+      },
+      "WebhookPerformanceCoverageDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Beginning of established metering coverage."
+          },
+          "through": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Watermark of the last finished Webhook import."
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "Whether the requested time range is covered for delivery counts. Timing coverage is reported separately by durationSamples."
+          }
+        },
+        "required": [
+          "from",
+          "through",
+          "complete"
+        ]
+      },
+      "WebhookPerformanceLimitsDto": {
+        "type": "object",
+        "properties": {
+          "maxRetries": {
+            "type": "number",
+            "nullable": true,
+            "description": "Configured retries per delivery. Null means unlimited."
+          },
+          "maxAttempts": {
+            "type": "number",
+            "nullable": true,
+            "description": "Initial attempt plus the retry cap. Null means unlimited."
+          }
+        },
+        "required": [
+          "maxRetries",
+          "maxAttempts"
+        ]
+      },
+      "WebhookPerformanceResponseDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "bucketSeconds": {
+            "type": "number",
+            "enum": [
+              60,
+              900,
+              3600,
+              86400
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/WebhookPerformanceMetricsDto"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookPerformancePointDto"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookPerformanceStatusDto"
+            }
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/WebhookPerformanceCoverageDto"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/WebhookPerformanceLimitsDto"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "bucketSeconds",
+          "summary",
+          "series",
+          "statuses",
+          "coverage",
+          "limits"
         ]
       },
       "CreateWebhookRequestDto": {
@@ -51634,11 +51989,11 @@
             "type": "string",
             "description": "Optional model override for the successor run.",
             "enum": [
-              "gpt-6.1-sol",
+              "gpt-6.2-sol",
               "gpt-6.1-terra",
               "gpt-6-luna"
             ],
-            "example": "gpt-6.1-sol"
+            "example": "gpt-6.2-sol"
           },
           "reasoningEffort": {
             "type": "string",

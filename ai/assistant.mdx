@@ -128,19 +128,20 @@ Attach registry plugins when the task needs tenant-specific or external capabili
 
 ## Models and reasoning
 
-The models available to the Assistant are controlled by the current RevoEngine release and instance configuration. Public reasoning levels are **Low**, **Medium**, **High**, and **Extra high**.
+The models available to the Assistant are controlled by the current RevoEngine release and instance configuration. Public reasoning levels are **Low**, **Medium**, **High**, and **Extra high**. **None** is also available for GPT-6.1 Terra and GPT-6 Luna.
 
 ### Current model support
 
 | Model | Interactive Assistant | Autonomous Agents | Fast Mode |
 | --- | --- | --- | --- |
-| **GPT-6.1 Sol** | Supported | Supported | Not supported |
+| **GPT-6.2 Sol** | Supported | Supported | Standard only |
+| **GPT-6.2 Astra** | Supported | Supported | Standard only |
 | **GPT-6.1 Terra** | Supported | Supported | Not supported |
 | **GPT-6 Luna** | Supported | Supported | Optional for interactive Assistant work |
 
-Select Fast Mode for GPT-6 Luna when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected; GPT-6.1 Sol, GPT-6.1 Terra and autonomous Agent runs use Standard processing. An explicit Fast Mode request with an unsupported model is rejected. Existing active GPT-5.6 Sol and GPT-6 Sol choices resolve to GPT-6.1 Sol; GPT-5.6 Terra and Luna choices resolve to GPT-6 Luna. Historical messages and usage keep their actual model identity.
+Select Fast Mode for GPT-6 Luna when lower response latency matters for the current conversation. Standard remains the normal path when Fast Mode is not selected; GPT-6.2 Sol, GPT-6.2 Astra, GPT-6.1 Terra and autonomous Agent runs use Standard processing. An explicit Fast Mode request with an unsupported model is rejected. Saved GPT-6.1 Sol, GPT-6 Sol and GPT-5.6 Sol choices use GPT-6.2 Sol on the next turn. Saved GPT-5.6 Terra and Luna choices resolve to GPT-6 Luna. Usage statistics retain the original model identity and classify GPT-6.1 Sol as Legacy.
 
-The SDK and Platform API also accept `reasoningEffort: 'none'`. GPT-6.1 Sol uses Low reasoning for that setting; GPT-6.1 Terra and GPT-6 Luna retain None. Model and reasoning settings follow the same validation in synchronous and streaming requests.
+The SDK and Platform API also accept `reasoningEffort: 'none'`. Revo uses Low reasoning for that setting on GPT-6.2 Sol and Astra. GPT-6.1 Terra and GPT-6 Luna retain None. Model and reasoning settings follow the same validation in synchronous and streaming requests.
 
 Use lower effort for direct questions, small edits, and well-scoped reads. Use higher effort for cross-object changes, ambiguous architecture decisions, incident analysis, and review-required plans. Availability and defaults can vary by instance configuration.
 

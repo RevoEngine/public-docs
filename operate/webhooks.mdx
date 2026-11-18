@@ -93,6 +93,14 @@ A timeout can occur after the receiver accepts the request. The history shows th
 
 Cancellation stops eligible future processing; it cannot recall a request already accepted by the remote server. Delete and restore change platform visibility, not remote state.
 
+## Webhook performance
+
+In **Security Admin → Observability → Webhooks**, choose a **Period** to see deliveries, failed deliveries, measured elapsed time and the instance retry limit. The period groups Webhooks by creation time. The status breakdown uses their latest recorded status, so a result can change if a delivery completes after the selected period.
+
+Elapsed time takes at most one sample per Webhook, from its latest completed attempt if that attempt has a retained duration or start and response times. The total and average use only those samples. Compare **Measured** with **Deliveries** before interpreting an average. Delivery-count coverage and timing coverage are separate. Open the Webhook's **Delivery attempts** for queue delays, retry waits and the timings of earlier attempts.
+
+For the same summary through the Platform API, call `GET /api/v1/automation/webhook/performance` with an inclusive `from` and exclusive `to` as full timestamps with a time zone. A request can span up to 366 days.
+
 ## Roles
 
 | Action | Required role |

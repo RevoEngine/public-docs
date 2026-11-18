@@ -4,7 +4,7 @@ description: Keep endpoint paths stable while selecting Applications by hostname
 icon: grid-2
 ---
 
-An **Application** groups Endpoints under one runtime hostname. Its route namespace, authenticated-caller policy, anonymous admission and CORS settings are independent controls. Existing Endpoints stay in **Default** unless you explicitly move them.
+An **Application** groups Endpoints into a route namespace selected by hostname. Its authenticated-caller policy, anonymous admission and CORS settings are independent controls. Existing Endpoints stay in **Default** unless you explicitly move them.
 
 ## Create and address an Application
 
@@ -19,7 +19,7 @@ An **Application** groups Endpoints under one runtime hostname. Its route namesp
     Select the Application in Endpoint **Details**. METHOD and PATH are checked together within that Application, including inactive Endpoints. Moving an existing Endpoint changes its runtime address; update consumers deliberately.
   </Step>
   <Step title="Copy the runtime address">
-    Settings derives the hostname from the configured Endpoint runtime base and your current instance slug or ID. Append the Endpoint's existing path unchanged. Wildcard DNS, TLS, load-balancer routing and runtime host admission must be configured by your platform operator.
+    **Settings → Applications** lists the public runtime address based on the instance ID and, when available, the address based on the current instance slug. Both select the same Application. Append the Endpoint's path to either address. Use the ID address for integrations that must survive an instance slug change.
   </Step>
 </Steps>
 
@@ -28,11 +28,12 @@ Given a configured base of `https://run.example.com`:
 | Address | Application | Endpoint path |
 | --- | --- | --- |
 | `https://run.example.com/orders` with the existing instance-selection contract | Default | `/orders` |
-| `https://customer-1.run.example.com/orders` | Default | `/orders` |
-| `https://default--customer-1.run.example.com/orders` | Default | `/orders` |
-| `https://portal--customer-1.run.example.com/orders` | `portal` | `/orders` |
+| `https://demo.run.example.com/orders` | Default | `/orders` |
+| `https://00000000-0000-4000-8000-000000000001.run.example.com/orders` | Default | `/orders` |
+| `https://portal--demo.run.example.com/orders` | `portal` | `/orders` |
+| `https://portal--00000000-0000-4000-8000-000000000001.run.example.com/orders` | `portal` | `/orders` |
 
-Use a verified instance slug or UUID. The complete label before the configured suffix must fit 63 characters. Slugs containing `--` use the explicit `default--instance` form or their UUID. For local development, a configured `http://localhost:3002` base produces `http://portal--customer-1.localhost:3002/`; the local RUN must admit that suffix.
+The complete hostname label before the configured runtime suffix must fit 63 characters. Settings displays each address that fits. For Default, a slug containing `--` uses an explicit `default--` prefix. Renaming the instance slug breaks URLs that contain the old slug.
 
 <Warning>
 `/services/<application>` has no special routing meaning. `/services/portal/orders` remains an ordinary Default path on a legacy base address. Named Applications are selected by the hostname; the runtime never adds or strips a path prefix to select them.
