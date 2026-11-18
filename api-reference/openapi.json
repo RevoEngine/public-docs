@@ -33488,6 +33488,289 @@
           "meta"
         ]
       },
+      "ObservabilityLogDetailsDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "nullable": true
+          },
+          "outcome": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "method",
+          "category",
+          "kind",
+          "outcome"
+        ]
+      },
+      "ObservabilityDatabaseOperationDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true
+          },
+          "logicalCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "errors": {
+            "type": "number",
+            "nullable": true
+          },
+          "totalMs": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "method",
+          "operation",
+          "logicalCalls",
+          "errors",
+          "totalMs"
+        ]
+      },
+      "ObservabilityDatabaseSummaryDto": {
+        "type": "object",
+        "properties": {
+          "logicalCalls": {
+            "type": "number"
+          },
+          "errors": {
+            "type": "number",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of database call durations. Calls can overlap."
+          },
+          "readCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "writeCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "omittedGroups": {
+            "type": "number"
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityDatabaseOperationDto"
+            }
+          }
+        },
+        "required": [
+          "logicalCalls",
+          "errors",
+          "durationMs",
+          "readCalls",
+          "writeCalls",
+          "omittedGroups",
+          "queries"
+        ]
+      },
+      "ObservabilityLogTelemetryDto": {
+        "type": "object",
+        "properties": {
+          "totalMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "outcome": {
+            "type": "string",
+            "nullable": true
+          },
+          "phase": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "database": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityDatabaseSummaryDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalMs",
+          "outcome",
+          "phase",
+          "startedAt",
+          "endedAt"
+        ]
+      },
+      "ObservabilityLogDto": {
+        "type": "object",
+        "properties": {
+          "aiInitiated": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
+          },
+          "aiMode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "interactive",
+              "autonomous"
+            ]
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "logId": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rootExecutionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentExecutionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "operationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "event": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Measured event duration, including nonterminal dependency calls. Missing timing remains null."
+          },
+          "operationTime": {
+            "type": "number",
+            "nullable": true,
+            "description": "Recorded monotonic offset within this operation; only compare within one operation and service."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestSize": {
+            "type": "number",
+            "nullable": true
+          },
+          "responseSize": {
+            "type": "number",
+            "nullable": true
+          },
+          "details": {
+            "nullable": true,
+            "description": "Compact event classification only; full retained Details is loaded through the payload locator.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityLogDetailsDto"
+              }
+            ]
+          },
+          "telemetry": {
+            "nullable": true,
+            "description": "Compact timing and outcome only; CPU, memory, phases and other telemetry remain in the selected payload.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityLogTelemetryDto"
+              }
+            ]
+          },
+          "locator": {
+            "type": "string",
+            "description": "Opaque scoped locator for GET logs/:logId?locator=…"
+          }
+        },
+        "required": [
+          "aiInitiated",
+          "aiMode",
+          "assistantThreadId",
+          "executionUserId",
+          "logId",
+          "time",
+          "nodeId",
+          "executionId",
+          "rootExecutionId",
+          "parentExecutionId",
+          "operationId",
+          "event",
+          "severity",
+          "message",
+          "service",
+          "statusCode",
+          "durationMs",
+          "operationTime",
+          "error",
+          "requestSize",
+          "responseSize",
+          "details",
+          "telemetry",
+          "locator"
+        ]
+      },
       "ObservabilityReferenceDto": {
         "type": "object",
         "properties": {
@@ -33528,6 +33811,15 @@
       "ObservabilityNodeDto": {
         "type": "object",
         "properties": {
+          "initialLogs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityLogDto"
+            }
+          },
+          "initialLogsTruncated": {
+            "type": "boolean"
+          },
           "aiInitiated": {
             "type": "boolean",
             "nullable": true,
@@ -33921,6 +34213,10 @@
             "type": "string",
             "description": "Opaque investigation budget identifier returned by this API."
           },
+          "includeRunComponentLogs": {
+            "type": "boolean",
+            "description": "Include bounded event metadata for direct RUN components in the selected root."
+          },
           "rootExecutionId": {
             "type": "string"
           },
@@ -33945,205 +34241,6 @@
             "description": "Recorded parent execution ID of the selected node. ANCESTORS may use this lookup hint with rootExecutionId when the selected node is in another retained page. It does not create a causal edge."
           }
         }
-      },
-      "ObservabilityLogDetailsDto": {
-        "type": "object",
-        "properties": {
-          "method": {
-            "type": "string",
-            "nullable": true
-          },
-          "category": {
-            "type": "string",
-            "nullable": true
-          },
-          "kind": {
-            "type": "string",
-            "nullable": true
-          },
-          "outcome": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "method",
-          "category",
-          "kind",
-          "outcome"
-        ]
-      },
-      "ObservabilityLogTelemetryDto": {
-        "type": "object",
-        "properties": {
-          "totalMs": {
-            "type": "number",
-            "nullable": true
-          },
-          "outcome": {
-            "type": "string",
-            "nullable": true
-          },
-          "phase": {
-            "type": "string",
-            "nullable": true
-          },
-          "startedAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "endedAt": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "totalMs",
-          "outcome",
-          "phase",
-          "startedAt",
-          "endedAt"
-        ]
-      },
-      "ObservabilityLogDto": {
-        "type": "object",
-        "properties": {
-          "aiInitiated": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
-          },
-          "aiMode": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "interactive",
-              "autonomous"
-            ]
-          },
-          "assistantThreadId": {
-            "type": "string",
-            "nullable": true
-          },
-          "executionUserId": {
-            "type": "string",
-            "nullable": true
-          },
-          "logId": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string"
-          },
-          "nodeId": {
-            "type": "string",
-            "nullable": true
-          },
-          "executionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "rootExecutionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "parentExecutionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "operationId": {
-            "type": "string",
-            "nullable": true
-          },
-          "event": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "service": {
-            "type": "string"
-          },
-          "statusCode": {
-            "type": "number",
-            "nullable": true
-          },
-          "durationMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Measured event duration, including nonterminal dependency calls. Missing timing remains null."
-          },
-          "operationTime": {
-            "type": "number",
-            "nullable": true,
-            "description": "Recorded monotonic offset within this operation; only compare within one operation and service."
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "requestSize": {
-            "type": "number",
-            "nullable": true
-          },
-          "responseSize": {
-            "type": "number",
-            "nullable": true
-          },
-          "details": {
-            "nullable": true,
-            "description": "Compact event classification only; full retained Details is loaded through the payload locator.",
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ObservabilityLogDetailsDto"
-              }
-            ]
-          },
-          "telemetry": {
-            "nullable": true,
-            "description": "Compact timing and outcome only; CPU, memory, phases and other telemetry remain in the selected payload.",
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ObservabilityLogTelemetryDto"
-              }
-            ]
-          },
-          "locator": {
-            "type": "string",
-            "description": "Opaque scoped locator for GET logs/:logId?locator=…"
-          }
-        },
-        "required": [
-          "aiInitiated",
-          "aiMode",
-          "assistantThreadId",
-          "executionUserId",
-          "logId",
-          "time",
-          "nodeId",
-          "executionId",
-          "rootExecutionId",
-          "parentExecutionId",
-          "operationId",
-          "event",
-          "severity",
-          "message",
-          "service",
-          "statusCode",
-          "durationMs",
-          "operationTime",
-          "error",
-          "requestSize",
-          "responseSize",
-          "details",
-          "telemetry",
-          "locator"
-        ]
       },
       "ObservabilityLogsPageDto": {
         "type": "object",
@@ -46361,6 +46458,16 @@
             "type": "number",
             "nullable": true,
             "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
           }
         },
         "required": [
@@ -46368,7 +46475,55 @@
           "failed",
           "durationSamples",
           "elapsedMs",
-          "averageMs"
+          "averageMs",
+          "minimumMs",
+          "maximumMs"
+        ]
+      },
+      "WebhookPayloadTransferDto": {
+        "type": "object",
+        "properties": {
+          "bytesIn": {
+            "type": "number",
+            "description": "Measured response body bytes received during the period."
+          },
+          "bytesOut": {
+            "type": "number",
+            "description": "Measured request body bytes sent during the period."
+          }
+        },
+        "required": [
+          "bytesIn",
+          "bytesOut"
+        ]
+      },
+      "WebhookPerformanceTransferDto": {
+        "type": "object",
+        "properties": {
+          "direct": {
+            "nullable": true,
+            "description": "Measured bytes across direct attempts. Null if no sample is available.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPayloadTransferDto"
+              }
+            ]
+          },
+          "proxyHop": {
+            "nullable": true,
+            "description": "Measured internal proxy hop bytes. Null if no sample is available.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPayloadTransferDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "direct",
+          "proxyHop"
         ]
       },
       "WebhookPerformancePointDto": {
@@ -46396,6 +46551,16 @@
             "nullable": true,
             "description": "Mean elapsed time in milliseconds among measured attempts."
           },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
+          },
           "time": {
             "type": "string",
             "format": "date-time",
@@ -46408,7 +46573,26 @@
           "durationSamples",
           "elapsedMs",
           "averageMs",
+          "minimumMs",
+          "maximumMs",
           "time"
+        ]
+      },
+      "WebhookQueueDepthPointDto": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "depth": {
+            "type": "number",
+            "description": "Deliveries eligible to run and still waiting at measurement time."
+          }
+        },
+        "required": [
+          "time",
+          "depth"
         ]
       },
       "WebhookPerformanceStatusDto": {
@@ -46436,6 +46620,16 @@
             "nullable": true,
             "description": "Mean elapsed time in milliseconds among measured attempts."
           },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
+          },
           "status": {
             "type": "string",
             "description": "Latest metered delivery status."
@@ -46447,6 +46641,8 @@
           "durationSamples",
           "elapsedMs",
           "averageMs",
+          "minimumMs",
+          "maximumMs",
           "status"
         ]
       },
@@ -46518,10 +46714,25 @@
           "summary": {
             "$ref": "#/components/schemas/WebhookPerformanceMetricsDto"
           },
+          "transfer": {
+            "description": "Measured attempt payload transfer by transfer time within the requested range.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPerformanceTransferDto"
+              }
+            ]
+          },
           "series": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WebhookPerformancePointDto"
+            }
+          },
+          "queueDepth": {
+            "description": "Measured queue depth. For longer periods, the last sample in each time bucket.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookQueueDepthPointDto"
             }
           },
           "statuses": {
@@ -46542,7 +46753,9 @@
           "to",
           "bucketSeconds",
           "summary",
+          "transfer",
           "series",
+          "queueDepth",
           "statuses",
           "coverage",
           "limits"

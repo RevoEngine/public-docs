@@ -76,6 +76,7 @@ See [Chart Job runs](/widgets/examples/job-chart) for a complete read-only data 
 | `componentVersion` | integer or null | Optional version; do not combine with a digest. |
 | `inputs` | JSON object string or null | Configured arguments; mapped action arguments override matching keys. |
 | `readOnly` | boolean | Views/probes are read-only; an executor must explicitly set `false` to request writes. |
+| `linkParams` | Map of names to `id` or `text` | Optional. Declare one to eight string inputs for a [shareable record tab](/widgets/navigation#share-a-record-tab). Requires `readOnly: true` on the destination. Keep secrets and sensitive values out of URL inputs. |
 | `timeout` | integer | Optional; set 5–600 seconds for a deliberate target budget. |
 | `memory` | integer | Optional; set 32–1024 MiB for a deliberate target budget. |
 | `widgetTargets` | Named source map | Optional; up to 32 destinations. |

@@ -177,7 +177,13 @@ The nearest mounted workspace opens the tab. Opening the same target and key aga
 
 A workspace can retain twelve record tabs in addition to its fixed sections. At the limit, close a tab before opening another; existing drafts are never evicted. Closing a changed view asks before discarding its inputs. Pending actions and open detail panels block closing. Closing the active record selects the previous tab. Hidden views pause scheduled reads; refresh the list without replacing other tabs.
 
-Both tab bindings must resolve to nonblank strings: key up to 256 characters, title up to 120. Do not combine tab navigation with `returnTo` or a parent `refresh`. Dynamic tabs and their drafts belong to the current mounted workspace. Reloading or leaving the dashboard discards them; an unknown or closed URL selection falls back to the default fixed section. Tab URLs are navigation state, not durable record links.
+Both tab bindings must resolve to nonblank strings: key up to 256 characters, title up to 120. Do not combine tab navigation with `returnTo` or a parent `refresh`. Dynamic tabs and their drafts belong to the current mounted workspace. Leaving the page discards unsaved input. An unknown tab selection opens the default fixed section.
+
+### Share a record tab
+
+Add `linkParams` to the registered destination and set `readOnly: true`. For example, a `Case` destination opened by the action above can declare `linkParams: { caseId: 'id' }`. Match the declared names to the inputs passed by the action. The URL stores those string values, so use public record identifiers or safe labels only.
+
+Use **Copy link to active tab** on the saved dashboard. When someone opens the link, the view is resolved from the saved widget destinations and runs under the recipient's existing permissions. Shared record views load in read-only mode with component actions disabled. Invalid or ambiguous destinations fall back to the widget's saved view.
 
 ### Arrange and protect record tabs
 
