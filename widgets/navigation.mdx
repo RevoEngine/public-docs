@@ -156,7 +156,7 @@ const widgetConfig = {
 };
 ```
 
-The root workspace keeps its selected tab in `wtab.orders`. Back and Forward restore the selection and preserve other URL parameters. Unknown tab values use the configured default. Tabs visited during the current page session remain mounted, preserving unsaved inputs and pausing reads while hidden. Reloading restores the selected tab, not an unsaved draft. Nested, panel, modal and popover workspaces keep their selection local to that surface.
+On a saved dashboard, the root workspace URL uses `widget` for the saved widget key and `wview` for the selected tab. Existing `wtab.<workspaceId>` links still resolve. Back and Forward restore the selection and preserve unrelated URL parameters. Unknown tab values use the configured default. Tabs visited in the current page session preserve unsaved inputs and pause reads while hidden. Reloading opens the selected view with fresh inputs. Nested, panel, modal and popover workspaces keep their selection local to that surface.
 
 ### Open each record in its own tab
 
@@ -181,7 +181,7 @@ Both tab bindings must resolve to nonblank strings: key up to 256 characters, ti
 
 ### Share a record tab
 
-Add `linkParams` to the registered destination and set `readOnly: true`. For example, a `Case` destination opened by the action above can declare `linkParams: { caseId: 'id' }`. Match the declared names to the inputs passed by the action. The URL stores those string values, so use public record identifiers or safe labels only.
+Add `linkParams` to the registered destination and set `readOnly: true`. For example, a `Case` destination opened by the action above can declare `linkParams: { caseId: 'id' }`. Match the declared names to the inputs passed by the action. Declared values use the `wp.` prefix in the query string, for example `?widget=orders&wview=Case&wp.caseId=order-101`. Use public record identifiers or safe labels only.
 
 Use **Copy link to active tab** on the saved dashboard. When someone opens the link, the view is resolved from the saved widget destinations and runs under the recipient's existing permissions. Shared record views load in read-only mode with component actions disabled. Invalid or ambiguous destinations fall back to the widget's saved view.
 
