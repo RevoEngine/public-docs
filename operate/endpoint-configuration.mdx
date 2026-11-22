@@ -96,7 +96,7 @@ A configured guard validates the structured request before target execution. Use
 | `popResult` | Preferred response mode for a new Component-backed Endpoint with a body. Returns the exact named visible Component element result; the first character is normalized to uppercase. Do not infer a key such as `Main` or `Data`. |
 | `hideRequest`, `hideResponse` | Limit request/response persistence in execution history; they do not prevent application code from logging the same value. |
 | `legacyResults` | Enables legacy HTTP response envelopes. Not supported in SSE mode. Do not use for new contracts. |
-| `memory` | Execution memory budget in MiB, up to 1024. |
+| `memory` | Isolate memory budget per request, up to **1,024 MiB**. Workspaces with the expanded 1.9.4 presets offer **32**, **64**, **128**, **256**, **512**, and **1,024 MiB**, with **64 MiB** as the default. |
 | `responseMode` | `http` (default) or `sse`. Both retain the same route, input, guards and execution policy. |
 | `requestBody` | Explicit JSON, form, text, XML, binary, multipart or inline raw bytes; `storage` selects native upload through a Component-returned session reference. Omit to preserve existing JSON/form parsing. See [request formats](/operate/endpoint-bodies#choose-the-request-body). |
 | `responseBody` | Explicit HTTP JSON, text, XML or binary serialization; `storage` streams an authorized Component-selected file and cannot use a static body. Omit to preserve the current serializer. Incompatible with SSE and legacy envelopes. See [response formats](/operate/endpoint-bodies#choose-the-http-response-format). |
