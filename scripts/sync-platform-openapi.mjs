@@ -14,8 +14,14 @@ const PUBLIC_PATH_PREFIX = '/api/v1/';
 const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
   '/api/v1/storage/provider-configs',
 ]);
+const APPLICATION_PATH_PREFIX = '/api/v1/services/';
+const PUBLIC_APPLICATION_PATHS = new Set([
+  '/api/v1/services/{serviceId}',
+  '/api/v1/services/{serviceId}/endpoints',
+]);
 const isPublicPath = (path) => path.startsWith(PUBLIC_PATH_PREFIX)
   && !NON_PUBLIC_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+  && (!path.startsWith(APPLICATION_PATH_PREFIX) || PUBLIC_APPLICATION_PATHS.has(path))
   && !isPrivateDiagnosticApiPath(path);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;

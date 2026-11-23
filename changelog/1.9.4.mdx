@@ -1,0 +1,67 @@
+---
+title: "1.9.4 — Organization administration, workspace settings, and runtime limits"
+sidebarTitle: "1.9.4"
+icon: "tag"
+description: "21 November 2026"
+---
+
+Manage organizations, workspace invitations, identity providers, and custom domains from **Admin**. The workspace Settings panel brings together personal preferences, instance configuration, Usage, and Limits. This release also adds clearer controls for Job and Endpoint memory and makes it easier to find recent executions.
+
+## What's inside
+
+- Manage organization members, instance invitations, sign-in providers, and custom domains in Admin.
+- Review usage by period and effective quotas in separate Settings views. Instance administrators can opt into a monthly summary, a threshold alert, or both.
+- Choose an available memory preset for a Job template or Endpoint.
+- Browse the latest 15 minutes of executions first and load older windows on demand.
+- Transfer binary data through `api.httpCall` with a buffer or an authorized Storage reference.
+- Verify signed webhooks, compute CRC-32 asynchronously, and parse inbound email in low-code.
+
+## In detail
+
+## Admin, invitations, and Authentication
+
+Use **Admin** to manage the organizations and instances you are authorized to administer. Assign configured sign-in providers to an instance, invite members, and manage custom-domain publication. Application authentication and CORS rules continue to apply when a route is published on a custom domain.
+
+Resending an instance invitation issues a fresh link. Send the latest email to the invitee and use **Settings → General → Authentication** to define initial groups, permission groups, and approved claim mappings for newly provisioned users. Existing users keep their instance identity and memberships. See [Manage an organization](/operate/organizations) and [Application addresses and custom domains](/operate/endpoint-applications).
+
+## Usage, limits, and administrator emails
+
+Open **Profile &amp; settings → Usage** and select a period for measured activity. Open **Limits** for configured quotas, including the active runtime traffic groups and concurrency limits. Monthly comparisons still use the UTC calendar month. The **Logs** section under Storage shows the available snapshot range and retained application-log volume so you can interpret partial coverage.
+
+Instance administrators can configure a percentage threshold for a usage alert and independently subscribe to a summary of the previous UTC month. Preferences apply per administrator and instance. Both emails link back to Limits. See [Limits and quotas](/platform/limits-and-quotas#usage-and-soft-thresholds).
+
+## Memory and queued database work
+
+Job templates default to **256 MiB** and offer **128, 256, 512, 1,024, and 2,048 MiB**. Workspaces with an enabled high-memory profile also offer **3,072 MiB**. Endpoints offer **32, 64, 128, 256, 512, and 1,024 MiB** and default to **64 MiB**. Review legacy values in version-controlled Endpoint definitions and use the preset shown in the workspace after upgrade. A confirmed Job memory-limit failure appears in Job History and skips automatic retries.
+
+Queued Database Operations wait for available capacity. See [Jobs](/operate/jobs#the-limit-model), [Endpoint configuration](/operate/endpoint-configuration#options-fields), and [Databases](/operate/databases#clone-export-and-lifecycle).
+
+## Recent executions and performance comparisons
+
+Executions opens with a 15-minute window. Use **Load older** to continue browsing and open a result to inspect its full journey. For Endpoint and Job performance, compare two date ranges side by side and swap the start and end dates when needed. Today’s Endpoint charts start at hourly resolution. Historical traffic and outcomes remain visible when there are too few measurements to compute latency percentiles. See [Observability](/operate/observability).
+
+## Assistant browser controls
+
+Live Preview, taking control, and handing control back are available to service-account API keys for threads and workspaces that the account can access. When a browser action resumes an Assistant turn, reconnect to the original message to follow the same progress. See [Assistant browser](/ai/browser).
+
+## Update binary HTTP calls
+
+Replace `base64buffer` with `buffer` for direct binary HTTP calls. A buffered request and response each have a **16 MiB** limit. For larger transfers, use an authorized Storage source or destination, or use streaming on a supported direct connection. Storage destinations complete only after a successful transfer. See [HTTP calls](/low-code/http) and [Low-code API reference](/low-code/reference/api).
+
+## Signed webhooks and inbound email
+
+Use a raw Endpoint body to verify signed deliveries against the original bytes. For signatures that include the URL, read the encoded request target through `api.input().requestTarget`. After verifying a SendGrid delivery, use `util.parseMime` to read the original email and its attachments. Explicit request body limits support up to **32 MiB**.
+
+Use `util.crc32Async()` for checksums that yield between chunks. For batches of signature checks or checksums, await earlier calls before starting more if you reach a concurrency limit. See [Webhooks](/operate/webhooks) and [Endpoint HTTP behavior](/operate/endpoint-http).
+
+
+## Related guides
+
+- [Manage an organization and invite members](/operate/organizations)
+- [Publish an Application on a custom domain](/operate/custom-domains)
+- [Inspect instance usage and quotas](/platform/limits-and-quotas)
+- [Browse and compare execution evidence](/operate/observability)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.9.3](/changelog/1.9.3)

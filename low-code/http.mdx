@@ -54,10 +54,16 @@ Request and response formats are independent:
 
 | Direction | Supported formats | Result |
 | --- | --- | --- |
-| Request | `json`, `text`, `buffer`, `base64buffer`, `form-data`, `storage` | Encodes `data`, `formData`, or a Storage `source` |
-| Response | `json`, `text`, `buffer`, `base64buffer`, `document`, `storage`, `stream` | Returns provider data, a finalized Storage entry, or a local async iterator |
+| Request | `json`, `text`, `buffer`, `form-data`, `storage` | Encodes `data`, `formData`, or a Storage `source` |
+| Response | `json`, `text`, `buffer`, `document`, `storage`, `stream` | Returns provider data, a finalized Storage entry, or a local async iterator |
 
 JSON is the default. Set formats explicitly when they are part of the integration contract. `requestType: 'json'` is valid for every supported method, including bodyless requests; non-JSON request types require a method that accepts a body.
+
+## Send or receive binary data
+
+Use `requestType: 'buffer'` to send bytes in `data` or `responseType: 'buffer'` to receive bytes in `response.data`. Update earlier integrations that used `base64buffer` to use `buffer`. Each direction has a 16 MiB buffer limit, measured after decompression for responses.
+
+For larger payloads, send an authorized Storage entry with `requestType: 'storage'` and `source`, or save the response using `responseType: 'storage'` and `target`. See [stream HTTP to and from Storage](/low-code/http-storage).
 
 ## Query and multipart values
 
@@ -78,11 +84,11 @@ HTTP data, multipart text and webhook JSON bodies do not consume the DTO control
 - `api.httpCall()` sends real external requests in either execution mode. `readOnly: true` rejects a Storage response target and protected Platform API writes before transport; it does not simulate third-party side effects.
 - One deadline covers request preparation, response headers, and the body. Receiving data does not reset it.
 - A Component cancellation or timeout does not recall a request already accepted by the remote service.
-- Proxy mode supports JSON/text requests, text/binary responses and both Storage transfer directions. Use `requestType: 'storage'` with `source` to send a file, and `responseType: 'storage'` with `target` to save a response. They may be combined for conversion.
+- Proxy mode supports JSON, text and buffer formats and both Storage transfer directions. Use `requestType: 'storage'` with `source` to send a file, and `responseType: 'storage'` with `target` to save a response. They may be combined for conversion.
 - With `proxy: true`, Storage transfers use the configured outbound network path and stream file bytes without loading the whole file into low-code memory. A completed upload is verified and finalized before it is returned.
 - Only complete 2xx responses are saved. Other statuses abort the unused target session and return bounded diagnostic text. Interrupted source reads and uploads fail without replaying the provider request. A lost upload acknowledgement may be reconciled from a complete receipt, without repeating the provider call.
 - Proxy mode does not expose live byte/SSE iterators, multipart uploads, document responses or current-caller credentials.
-- Explicit text responses retain the provider's text even when its content type is JSON. Buffer/base64 responses preserve binary data. `Set-Cookie` retains every value as an array.
+- Explicit text responses retain the provider's text even when its content type is JSON. Buffer responses preserve binary data. `Set-Cookie` retains every value as an array.
 - Destination parameters and credentials stay within the destination request. HTTP errors return a status to inspect; proxy transport and incomplete-response failures throw.
 - Do not log signed URLs, authorization headers, Secret values, unrestricted request bodies, or provider error payloads.
 

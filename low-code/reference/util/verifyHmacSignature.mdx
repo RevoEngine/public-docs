@@ -9,7 +9,7 @@ icon: code
 
 ## `util.verifyHmacSignature()`
 
-Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
+Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 bytes each. Strings use UTF-8.
 
 Invalid types/options throw TypeError; size/range throws RangeError.
 
@@ -19,7 +19,7 @@ Invalid types/options throw TypeError; size/range throws RangeError.
 static verifyHmacSignature(
       payload: Uint8Array | string,
       signature: string,
-      secret: string,
+      secret: Uint8Array | string,
       algorithm?: 'sha1' | 'sha256' | 'sha512',
       encoding?: 'hex' | 'base64',
     ): boolean;

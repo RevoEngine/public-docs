@@ -1,0 +1,20 @@
+---
+title: util.hmacAsync()
+sidebarTitle: hmacAsync()
+description: Public low-code contract, signatures and examples for util.hmacAsync.
+icon: code
+---
+
+<span id="util-hmacAsync" aria-hidden="true"></span>
+
+## `util.hmacAsync()`
+
+Asynchronous HMAC of up to 32 MiB. Defaults to SHA-256/hex. Optional UTF-8 prefix and suffix are limited to 4096 bytes each.
+
+### Signature
+
+```ts
+static hmacAsync(payload: Uint8Array | string, secret: Uint8Array | string, algorithm?: 'sha1' | 'sha256' | 'sha512', encoding?: 'hex' | 'base64' | 'base64url', prefix?: string, suffix?: string): Promise<string>;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

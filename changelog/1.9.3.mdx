@@ -1,0 +1,67 @@
+---
+title: "1.9.3 — Observability by period and clearer instance usage"
+sidebarTitle: "1.9.3"
+icon: "tag"
+description: "18 November 2026"
+---
+
+Compare endpoint requests, job runs and webhook deliveries across UTC periods. Follow a resource from the overview into its performance history, and see how measured AI usage, transfer and capacity relate to the work your instance is doing.
+
+## What's inside
+
+- Review Endpoints, Jobs and Webhooks in dedicated Observability tabs with a shared UTC period selector and optional comparisons for Endpoint and Job performance.
+- Compare traffic, success and elapsed time using saved daily Endpoint and Job summaries that remain available after execution history is cleaned up.
+- Separate all measured AI tokens from billable tokens, and see current-month compute, transfer directions and capacity thresholds alongside activity.
+- Share a dashboard widget or a selected tab using a link that opens the saved view with the recipient’s existing access.
+- Select GPT-6.2 Sol for complex Assistant and Agent work alongside GPT-6.1 Terra and GPT-6 Luna.
+
+## In detail
+
+## Explore activity from one workspace
+
+Start in **Observability → Overview**. The activity chart and performance table show endpoint requests and job runs for the selected scope. Choose a resource in the table to open its performance view. The table's full-screen view retains its sort, filters and summary.
+
+The UTC period defaults to **Today**. Choose **Yesterday**, a month preset or explicit dates. Open **Endpoints**, **Jobs** or **Webhooks** to focus on that workflow. Use the shared search and filters to refine an investigation, and open **Executions** or **Logs** when you need individual evidence. See [Observability](/operate/observability).
+
+## Compare Endpoint and Job performance
+
+Dashboard performance cards and the **Endpoints** and **Jobs** tabs start with one selected period. Enable a comparison and choose a separate reference period when you need to see the change in request volumes, success rates or execution time.
+
+Daily summaries keep recorded endpoint and job statistics available after detailed records are cleaned up. A period can include whole closed days and current activity. Missing and partial history can limit comparisons. Endpoint performance separates HTTP client responses, HTTP server responses, execution failures and interruptions. An HTTP 5xx response alone does not identify the cause. See [Endpoint and Job performance](/operate/observability#compare-performance-across-resources).
+
+## Inspect Webhook delivery performance
+
+Open **Webhooks** in Observability to review recorded deliveries, failures, the configured retry limit and activity by time or status. Elapsed time reflects the latest completed attempt for each delivery when that attempt has a timing measurement. Counts can include deliveries with unavailable timing.
+
+Open the Webhook management view to review a particular delivery, verify the destination response and decide whether a retry is appropriate. See [Webhook attempts and recovery](/operate/webhooks).
+
+## Read measured usage and current capacity
+
+Overview separates selected-period activity from calendar-month usage. Endpoint requests and job runs show current-month totals and compute time when available. Compute time measures recorded elapsed execution time. Network transfer breaks measured traffic down by direction, and Storage and Database show the latest captured capacity and authorized soft thresholds.
+
+The **All tokens** card combines measured Input and Output. Input includes cached tokens and Output includes reasoning. **Billable** shows the separate billing-weighted amount. Hover or focus the card to see exact values. See [Instance Usage](/operate/observability#instance-usage).
+
+## Share a dashboard view
+
+Use **Copy link to widget** or **Copy link to active tab** to send someone directly to the relevant part of a saved dashboard. Authors can enable shareable record tabs for read-only views with declared string inputs. See [Share a dashboard view](/operate/dashboards#share-a-dashboard-view).
+
+## Choose a model for Assistant and Agent work
+
+GPT-6.2 Sol is available for complex coding and multi-step work. GPT-6.1 Terra and GPT-6 Luna remain available for their respective workflows. Saved selections for earlier Sol versions resolve to GPT-6.2 Sol, while historical Usage keeps the original model attribution. See [Assistant](/ai/assistant) and [Agents](/ai/agents).
+
+## Also in this release
+
+- Switch between Users, Service Accounts, Groups and Role Groups through tabs in the access-management workspace.
+- Copy the Application address based on its stable instance identity or its configured slug when available. See [Applications and access](/operate/endpoint-applications).
+
+
+## Related guides
+
+- [Investigate execution journeys](/operate/traces)
+- [Operate Jobs and inspect their history](/operate/jobs)
+- [Inspect Webhook delivery attempts](/operate/webhooks#attempt-lifecycle)
+- [Build dashboards](/operate/dashboards)
+
+## Continue through the releases
+
+[Newer: 1.9.4](/changelog/1.9.4) · [All releases](/releases/changelog) · [Earlier: 1.9.2](/changelog/1.9.2)

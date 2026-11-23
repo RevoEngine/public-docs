@@ -1,0 +1,20 @@
+---
+title: util.ed25519Verify()
+sidebarTitle: ed25519Verify()
+description: Public low-code contract, signatures and examples for util.ed25519Verify.
+icon: code
+---
+
+<span id="util-ed25519Verify" aria-hidden="true"></span>
+
+## `util.ed25519Verify()`
+
+Verifies Ed25519 over exact bytes. Use PEM, Base64 DER SPKI or a raw 32-byte key. Signature: Base64 or 64 raw bytes.
+
+### Signature
+
+```ts
+static ed25519Verify(publicKey: Uint8Array | string, payload: Uint8Array | string, signature: Uint8Array | string, prefix?: string): Promise<boolean>;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

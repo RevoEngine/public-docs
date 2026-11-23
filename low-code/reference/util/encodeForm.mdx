@@ -1,0 +1,22 @@
+---
+title: util.encodeForm()
+sidebarTitle: encodeForm()
+description: Public low-code contract, signatures and examples for util.encodeForm.
+icon: code
+---
+
+<span id="util-encodeForm" aria-hidden="true"></span>
+
+## `util.encodeForm()`
+
+Encodes up to 1,024 ordered string pairs as application/x-www-form-urlencoded.
+Names and values may contain up to 65,536 UTF-16 code units in total.
+@localOnly
+
+### Signature
+
+```ts
+static encodeForm(pairs: readonly (readonly [name: string, value: string])[]): string;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

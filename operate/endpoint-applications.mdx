@@ -40,6 +40,10 @@ Use a verified instance slug or UUID. The complete label before the configured s
 
 Default's displayed key is protected *default*; its internal API/CLI key remains `@default`. Its identity cannot be changed or deleted. CORS and invocation policies can be edited. Applications with retained Endpoint references cannot be deleted, including deleted Endpoint history. Two Applications may use the same METHOD/PATH independently.
 
+## Publish on a custom domain
+
+Use **Admin → Domains** to verify ownership and point a hostname at an Application. The Application's authentication and browser-origin settings continue to govern requests on that hostname. Follow [the custom domain setup guide](/operate/custom-domains) for the DNS, certificate, and routing steps.
+
 ## Upgrade existing Default routes
 
 Existing Endpoint identities, paths and settings remain in Default. Old writes that omit the Application still select Default. Standard route uniqueness is converted to Application-scoped uniqueness in the upgrade transaction.

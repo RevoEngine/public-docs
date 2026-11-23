@@ -9,14 +9,14 @@ icon: code
 
 ## `util.sha256()`
 
-Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+Synchronous SHA-256 hash of exact bytes or UTF-8 text. Payload: at most 5242880 bytes (5 MiB).
 
 Invalid types/options throw TypeError; size/range throws RangeError.
 
 ### Signature
 
 ```ts
-static sha256(payload: string): string;
+static sha256(payload: Uint8Array | string): string;
 ```
 
 See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

@@ -56,9 +56,9 @@ if (!valid) api.throw(401, { error: 'Invalid signature' });
 return { verified: true, size: bytes.length };
 ```
 
-Expected result for a fresh, correctly signed request: `{ "verified": true, "size": ... }`. Changing one body byte, supplying a bad signature or using an expired timestamp returns401 before application writes. The runtime's omitted-format JSON parser must not replace raw mode for this example.
+Expected result for a fresh, correctly signed request: `{ "verified": true, "size": ... }`. Changing one body byte, supplying a bad signature or using an expired timestamp returns 401 before application writes. The runtime's omitted-format JSON parser must not replace raw mode for this example.
 
-Follow the provider's current [signature and delivery guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors). HMAC verification is bounded; this example's1MiB request limit stays below its5MiB crypto payload limit.
+Follow the provider's current [signature and delivery guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors). This example bounds the request body to 1 MiB.
 
 ## Example: asymmetric P-256 signature
 
@@ -90,9 +90,15 @@ if (!valid) api.throw(401, { error: 'Invalid signature' });
 return { verified: true, size: bytes.length };
 ```
 
-`util.ecdsaVerify` is a general P-256/SHA-256 primitive, not a provider integration. It accepts exact bytes and a Base64 DER signature; it does not parse headers, choose trusted keys, enforce timestamp freshness or record processed message IDs. Payloads are bounded at8MiB, public keys at64KiB and signature strings at1024characters. Malformed key configuration throws; a mismatched signature returnsfalse.
+`util.ecdsaVerify` is a general P-256/SHA-256 primitive, not a provider integration. It accepts exact bytes and a Base64 DER signature; it does not parse headers, choose trusted keys, enforce timestamp freshness or record processed message IDs. Payloads are limited to 32 MiB, public keys to 64 KiB, and signature strings to 1,024 characters. Malformed key configuration throws. A mismatched signature returns `false`.
 
 Check the provider's [Inbound Parse security documentation](https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/securing-your-parse-webhooks) when defining its security policy, key rotation and accepted retries. A signature proves authenticity of the signed bytes; parsing email, attachment handling, durable work admission and delivery recovery are later application steps.
+
+## Parse an inbound email
+
+After verifying a signed Inbound Parse delivery, pass its original bytes to [`util.parseMime()`](/low-code/reference/util/parseMime). For a multipart delivery, also pass the original Content-Type and the name of the field containing the raw MIME message. Treat returned headers, HTML and attachment contents as untrusted input. Use [`util.crc32Async()`](/low-code/reference/util/crc32Async) when the workflow needs a CRC-32 checksum for a file or message.
+
+If the provider includes the URL in the signature, use `api.input().requestTarget` for the original encoded path and query. Follow the provider's rules for assembling the other parts of the signed value.
 
 ## Persist after verification
 

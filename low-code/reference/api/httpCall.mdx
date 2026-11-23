@@ -15,7 +15,8 @@ Notes:
 - External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
 - Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
 - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
-- Proxy mode supports JSON/text requests, Storage sources/targets, and json/text/buffer/base64buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
+- Proxy mode supports JSON/text/buffer requests, Storage sources/targets, and json/text/buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
+- The `buffer` format is limited to 16 MiB in each direction in both direct and proxy mode. Responses are limited after decompression. Use Storage for larger transfers or a direct HTTP stream for larger responses.
 - Use `source: &#123; storageEntryId &#125;` when streaming an Explorer Storage file into an HTTP request.
 - Use `target: &#123; name, ... &#125;` or `target: &#123; storageEntryId, replace: true &#125;` when streaming an HTTP response into Explorer Storage.
 - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
@@ -25,8 +26,11 @@ Notes:
 - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
 - `target: &#123; storageUploadSessionId &#125;` fills and finalizes an existing active empty direct session, preserving its stored settings.
 - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
-- Revo responses expose `revo.sameInstance`. The `x-revo-oid` header is returned only when `revo.sameInstance` is true. Cross-instance or
-  unconfirmed Revo headers are removed from the public response.
+- Recognized Revo responses expose `revo.sameInstance`. Published custom
+  domain paths are eligible when both the route and response confirm the
+  target instance. `x-revo-oid` is returned only when `revo.sameInstance`
+  is true. Cross-instance and unconfirmed Revo headers are removed.
+  Recognition leaves request authentication to the caller.
 - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
 - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
 - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and, without proxy, may be combined with any supported response type because it does not declare a request body.

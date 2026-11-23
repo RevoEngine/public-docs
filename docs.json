@@ -146,6 +146,7 @@
                 "pages": [
                   "operate/endpoints",
                   "operate/endpoint-applications",
+                  "operate/custom-domains",
                   "operate/endpoint-bodies",
                   "operate/signed-webhooks",
                   "operate/endpoint-http",
@@ -370,6 +371,7 @@
                   "operate/identity-and-access",
                   "operate/sso-and-oidc",
                   "operate/users",
+                  "operate/organizations",
                   "operate/service-accounts",
                   "operate/groups",
                   "operate/permissions",
@@ -869,6 +871,9 @@
                   {
                     "group": "Validation and utilities",
                     "pages": [
+                      "low-code/reference/util/parseUrl",
+                      "low-code/reference/util/parseForm",
+                      "low-code/reference/util/encodeForm",
                       "low-code/reference/util/sleep",
                       "low-code/reference/util/isUUID",
                       "low-code/reference/util/randomUUID",
@@ -877,7 +882,11 @@
                       "low-code/reference/util/randomInt",
                       "low-code/reference/util/randomString",
                       "low-code/reference/util/validate",
-                      "low-code/reference/util/ecdsaVerify"
+                      "low-code/reference/util/ecdsaVerify",
+                      "low-code/reference/util/ed25519Verify",
+                      "low-code/reference/util/crc32",
+                      "low-code/reference/util/crc32Async",
+                      "low-code/reference/util/parseMime"
                     ]
                   },
                   {
@@ -896,7 +905,9 @@
                       "low-code/reference/util/rsaEncrypt",
                       "low-code/reference/util/rsaGeneratePair",
                       "low-code/reference/util/rsaSign",
-                      "low-code/reference/util/rsaVerify"
+                      "low-code/reference/util/rsaVerify",
+                      "low-code/reference/util/rsaPkcs1Verify",
+                      "low-code/reference/util/hmacAsync"
                     ]
                   },
                   {
@@ -907,7 +918,8 @@
                       "low-code/reference/util/hashObject",
                       "low-code/reference/util/sha1",
                       "low-code/reference/util/sha256",
-                      "low-code/reference/util/md5"
+                      "low-code/reference/util/md5",
+                      "low-code/reference/util/sha256Async"
                     ]
                   },
                   {
@@ -960,6 +972,8 @@
               {
                 "group": "1.9.x",
                 "pages": [
+                  "changelog/1.9.4",
+                  "changelog/1.9.3",
                   "changelog/1.9.2",
                   "changelog/1.9.1",
                   "changelog/1.9.0"

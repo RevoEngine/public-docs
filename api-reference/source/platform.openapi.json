@@ -640,7 +640,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ObservabilityQueryDto"
+                "$ref": "#/components/schemas/ObservabilityExecutionsQueryDto"
               }
             }
           }
@@ -2009,6 +2009,35 @@
         "x-revo-safety-tier": "destructive"
       }
     },
+    "/api/v1/accounts/{userId}/platform-invitation": {
+      "post": {
+        "operationId": "UsersController_resendPlatformInvitation",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resend a pending platform invitation without granting instance access.",
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
     "/api/v1/accounts/{userId}/enablePlatformAccess": {
       "post": {
         "description": "**Roles:** `USER_WRITE`, `USER_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
@@ -2801,9 +2830,28 @@
       "get": {
         "description": "**Roles:** `ENDPOINT_READ`, `ENDPOINT_WRITE`, `ENDPOINT_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "EndpointController_endpointStats",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "First UTC date (YYYY-MM-DD), inclusive.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Last UTC date (YYYY-MM-DD), inclusive.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": "OK."
           },
           "403": {
@@ -2818,7 +2866,7 @@
             "bearer": []
           }
         ],
-        "summary": "Get endpoint stats (cached in 1 min intervals).",
+        "summary": "Aggregate endpoint statistics for one inclusive UTC period of up to 366 days. Defaults to Today.",
         "tags": [
           "Endpoints"
         ]
@@ -2841,6 +2889,19 @@
             "required": true,
             "in": "query",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Group by UTC day (default) or aggregate one period of up to 366 days.",
+            "schema": {
+              "enum": [
+                "day",
+                "period"
+              ],
               "type": "string"
             }
           }
@@ -11005,6 +11066,9 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "auth.providers.mapping": {
+                    "$ref": "#/components/schemas/InstanceConfigKindAuthProviderMappingValueDto"
+                  },
                   "ai.feature.flags": {
                     "$ref": "#/components/schemas/InstanceConfigKindAiFeatureFlagsValueDto"
                   },
@@ -11067,6 +11131,21 @@
                   },
                   "ai.feature.flags": {
                     "enabled": []
+                  },
+                  "auth.providers.mapping": {
+                    "version": -1,
+                    "providers": [
+                      {
+                        "key": "saml.company.example",
+                        "groupIds": [],
+                        "metadata": [
+                          {
+                            "field": "department",
+                            "claim": "department"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "ai.memory.policy": {
                     "enabled": true,
@@ -11752,6 +11831,74 @@
           }
         ],
         "summary": "Set current administrator job failure notification opt-in for this instance.",
+        "tags": [
+          "Preferences"
+        ]
+      }
+    },
+    "/api/v1/preferences/quota-notifications": {
+      "get": {
+        "operationId": "PreferencesController_getQuotaNotifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotaNotificationPreferenceDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get monthly usage notification preferences for the current instance administrator.",
+        "tags": [
+          "Preferences"
+        ]
+      },
+      "put": {
+        "operationId": "PreferencesController_setQuotaNotifications",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotaNotificationPreferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotaNotificationPreferenceDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save independent monthly usage threshold and summary email opt-ins for the current instance administrator.",
         "tags": [
           "Preferences"
         ]
@@ -19937,6 +20084,19 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "description": "Group by UTC day (default) or aggregate one period of up to 366 days.",
+            "schema": {
+              "enum": [
+                "day",
+                "period"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22024,6 +22184,55 @@
           }
         ],
         "summary": "Create webhook.",
+        "tags": [
+          "Automation"
+        ]
+      }
+    },
+    "/api/v1/automation/webhook/performance": {
+      "get": {
+        "description": "Delivery counts by creation time and latest recorded status, with elapsed measurements from retained attempt evidence.",
+        "operationId": "AutomationController_getWebhookPerformance",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Inclusive start of an ordered range of up to 366 days.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "Exclusive end of the range.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookPerformanceResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read webhook performance for one period.",
         "tags": [
           "Automation"
         ]
@@ -24920,7 +25129,19 @@
         },
         "responses": {
           "200": {
-            "description": "Secure browser input outcome handled; continuation accepted durably in the background. Subscribe to message replay for progress."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantThreadResponseDto"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Continues the assistant turn. Request text/event-stream for live progress or receive the completed turn as JSON."
           },
           "400": {
             "description": "The input request is invalid, expired, or already submitted."
@@ -24990,7 +25211,19 @@
         },
         "responses": {
           "200": {
-            "description": "Human completion verified; assistant continuation accepted durably."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantThreadResponseDto"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Continues the assistant turn after verified human completion. Request text/event-stream for live progress or receive the completed turn as JSON."
           }
         },
         "security": [
@@ -26164,6 +26397,7 @@
     },
     "/api/v1/agents/terminals/{agentTerminalId}/browser-sessions": {
       "get": {
+        "description": "Requires a personal session or a service account API key. Only contexts owned by the caller in the specified thread and an authorized terminal workspace are returned.",
         "operationId": "TerminalGrantController_browserSessions[0]",
         "parameters": [
           {
@@ -26218,6 +26452,7 @@
     },
     "/api/v1/vault/terminals/{agentTerminalId}/browser-sessions": {
       "get": {
+        "description": "Requires a personal session or a service account API key. Only contexts owned by the caller in the specified thread and an authorized terminal workspace are returned.",
         "operationId": "TerminalGrantController_browserSessions[1]",
         "parameters": [
           {
@@ -31635,7 +31870,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.9.2",
+    "version": "1.9.4",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -32476,6 +32711,319 @@
           "meta"
         ]
       },
+      "ObservabilityExecutionsQueryDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "UTC inclusive lower bound. Defaults to the preceding 24 hours."
+          },
+          "to": {
+            "type": "string",
+            "description": "UTC exclusive upper bound. Defaults to now. A single query may cover at most 7 days."
+          },
+          "filter": {
+            "$ref": "#/components/schemas/ObservabilityFilterDto"
+          },
+          "pageSize": {
+            "type": "number",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 2000
+          },
+          "investigationId": {
+            "type": "string",
+            "description": "Opaque investigation budget identifier returned by this API."
+          },
+          "browseOlder": {
+            "type": "boolean",
+            "description": "Continue a window of up to 15 minutes into older 15-minute execution windows using the returned cursor."
+          }
+        }
+      },
+      "ObservabilityLogDetailsDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "nullable": true
+          },
+          "outcome": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "method",
+          "category",
+          "kind",
+          "outcome"
+        ]
+      },
+      "ObservabilityDatabaseOperationDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "nullable": true
+          },
+          "operation": {
+            "type": "string",
+            "nullable": true
+          },
+          "logicalCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "errors": {
+            "type": "number",
+            "nullable": true
+          },
+          "totalMs": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "method",
+          "operation",
+          "logicalCalls",
+          "errors",
+          "totalMs"
+        ]
+      },
+      "ObservabilityDatabaseSummaryDto": {
+        "type": "object",
+        "properties": {
+          "logicalCalls": {
+            "type": "number"
+          },
+          "errors": {
+            "type": "number",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of database call durations. Calls can overlap."
+          },
+          "readCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "writeCalls": {
+            "type": "number",
+            "nullable": true
+          },
+          "omittedGroups": {
+            "type": "number"
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityDatabaseOperationDto"
+            }
+          }
+        },
+        "required": [
+          "logicalCalls",
+          "errors",
+          "durationMs",
+          "readCalls",
+          "writeCalls",
+          "omittedGroups",
+          "queries"
+        ]
+      },
+      "ObservabilityLogTelemetryDto": {
+        "type": "object",
+        "properties": {
+          "totalMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "outcome": {
+            "type": "string",
+            "nullable": true
+          },
+          "phase": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "database": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityDatabaseSummaryDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalMs",
+          "outcome",
+          "phase",
+          "startedAt",
+          "endedAt"
+        ]
+      },
+      "ObservabilityLogDto": {
+        "type": "object",
+        "properties": {
+          "aiInitiated": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
+          },
+          "aiMode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "interactive",
+              "autonomous"
+            ]
+          },
+          "assistantThreadId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "logId": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "executionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rootExecutionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentExecutionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "operationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "event": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Measured event duration, including nonterminal dependency calls. Missing timing remains null."
+          },
+          "operationTime": {
+            "type": "number",
+            "nullable": true,
+            "description": "Recorded monotonic offset within this operation; only compare within one operation and service."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestSize": {
+            "type": "number",
+            "nullable": true
+          },
+          "responseSize": {
+            "type": "number",
+            "nullable": true
+          },
+          "details": {
+            "nullable": true,
+            "description": "Compact event classification only; full retained Details is loaded through the payload locator.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityLogDetailsDto"
+              }
+            ]
+          },
+          "telemetry": {
+            "nullable": true,
+            "description": "Compact timing and outcome only; CPU, memory, phases and other telemetry remain in the selected payload.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ObservabilityLogTelemetryDto"
+              }
+            ]
+          },
+          "locator": {
+            "type": "string",
+            "description": "Opaque scoped locator for GET logs/:logId?locator=…"
+          }
+        },
+        "required": [
+          "aiInitiated",
+          "aiMode",
+          "assistantThreadId",
+          "executionUserId",
+          "logId",
+          "time",
+          "nodeId",
+          "executionId",
+          "rootExecutionId",
+          "parentExecutionId",
+          "operationId",
+          "event",
+          "severity",
+          "message",
+          "service",
+          "statusCode",
+          "durationMs",
+          "operationTime",
+          "error",
+          "requestSize",
+          "responseSize",
+          "details",
+          "telemetry",
+          "locator"
+        ]
+      },
       "ObservabilityReferenceDto": {
         "type": "object",
         "properties": {
@@ -32516,6 +33064,15 @@
       "ObservabilityNodeDto": {
         "type": "object",
         "properties": {
+          "initialLogs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityLogDto"
+            }
+          },
+          "initialLogsTruncated": {
+            "type": "boolean"
+          },
           "aiInitiated": {
             "type": "boolean",
             "nullable": true,
@@ -32909,6 +33466,10 @@
             "type": "string",
             "description": "Opaque investigation budget identifier returned by this API."
           },
+          "includeRunComponentLogs": {
+            "type": "boolean",
+            "description": "Include bounded event metadata for direct RUN components in the selected root."
+          },
           "rootExecutionId": {
             "type": "string"
           },
@@ -32933,205 +33494,6 @@
             "description": "Recorded parent execution ID of the selected node. ANCESTORS may use this lookup hint with rootExecutionId when the selected node is in another retained page. It does not create a causal edge."
           }
         }
-      },
-      "ObservabilityLogDetailsDto": {
-        "type": "object",
-        "properties": {
-          "method": {
-            "type": "string",
-            "nullable": true
-          },
-          "category": {
-            "type": "string",
-            "nullable": true
-          },
-          "kind": {
-            "type": "string",
-            "nullable": true
-          },
-          "outcome": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "method",
-          "category",
-          "kind",
-          "outcome"
-        ]
-      },
-      "ObservabilityLogTelemetryDto": {
-        "type": "object",
-        "properties": {
-          "totalMs": {
-            "type": "number",
-            "nullable": true
-          },
-          "outcome": {
-            "type": "string",
-            "nullable": true
-          },
-          "phase": {
-            "type": "string",
-            "nullable": true
-          },
-          "startedAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "endedAt": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "totalMs",
-          "outcome",
-          "phase",
-          "startedAt",
-          "endedAt"
-        ]
-      },
-      "ObservabilityLogDto": {
-        "type": "object",
-        "properties": {
-          "aiInitiated": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "True for verified Revo AI ancestry. Null means no retained proof, not human activity."
-          },
-          "aiMode": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "interactive",
-              "autonomous"
-            ]
-          },
-          "assistantThreadId": {
-            "type": "string",
-            "nullable": true
-          },
-          "executionUserId": {
-            "type": "string",
-            "nullable": true
-          },
-          "logId": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string"
-          },
-          "nodeId": {
-            "type": "string",
-            "nullable": true
-          },
-          "executionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "rootExecutionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "parentExecutionId": {
-            "type": "string",
-            "nullable": true
-          },
-          "operationId": {
-            "type": "string",
-            "nullable": true
-          },
-          "event": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "service": {
-            "type": "string"
-          },
-          "statusCode": {
-            "type": "number",
-            "nullable": true
-          },
-          "durationMs": {
-            "type": "number",
-            "nullable": true,
-            "description": "Measured event duration, including nonterminal dependency calls. Missing timing remains null."
-          },
-          "operationTime": {
-            "type": "number",
-            "nullable": true,
-            "description": "Recorded monotonic offset within this operation; only compare within one operation and service."
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "requestSize": {
-            "type": "number",
-            "nullable": true
-          },
-          "responseSize": {
-            "type": "number",
-            "nullable": true
-          },
-          "details": {
-            "nullable": true,
-            "description": "Compact event classification only; full retained Details is loaded through the payload locator.",
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ObservabilityLogDetailsDto"
-              }
-            ]
-          },
-          "telemetry": {
-            "nullable": true,
-            "description": "Compact timing and outcome only; CPU, memory, phases and other telemetry remain in the selected payload.",
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ObservabilityLogTelemetryDto"
-              }
-            ]
-          },
-          "locator": {
-            "type": "string",
-            "description": "Opaque scoped locator for GET logs/:logId?locator=…"
-          }
-        },
-        "required": [
-          "aiInitiated",
-          "aiMode",
-          "assistantThreadId",
-          "executionUserId",
-          "logId",
-          "time",
-          "nodeId",
-          "executionId",
-          "rootExecutionId",
-          "parentExecutionId",
-          "operationId",
-          "event",
-          "severity",
-          "message",
-          "service",
-          "statusCode",
-          "durationMs",
-          "operationTime",
-          "error",
-          "requestSize",
-          "responseSize",
-          "details",
-          "telemetry",
-          "locator"
-        ]
       },
       "ObservabilityLogsPageDto": {
         "type": "object",
@@ -34283,7 +34645,7 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 33554432,
-            "description": "Maximum wire bytes including multipart framing. Defaults: JSON 20 MiB, form 10 MiB, text/XML/binary/raw inline 1 MiB, multipart 8 MiB, storage 32 MiB. Inline text/XML/binary/raw/multipart are capped at 8 MiB; JSON/form/storage at 32 MiB. Explicit modes reject compressed input."
+            "description": "Maximum wire bytes including multipart framing. Defaults: JSON 20 MiB, form 10 MiB, text/XML/binary/raw inline 1 MiB, multipart 8 MiB, storage 32 MiB. All explicit request body modes are capped at 32 MiB. Explicit modes reject compressed input."
           }
         },
         "required": [
@@ -34590,9 +34952,18 @@
             "example": false
           },
           "memory": {
-            "type": "number",
-            "description": "Memory budget in megabytes reserved for the execution.",
-            "example": 512
+            "type": "integer",
+            "description": "Endpoint isolate memory preset in MiB.",
+            "example": 64,
+            "default": 64,
+            "enum": [
+              32,
+              64,
+              128,
+              256,
+              512,
+              1024
+            ]
           },
           "requestBody": {
             "nullable": true,
@@ -34812,7 +35183,7 @@
               "hideRequest": false,
               "hideResponse": false,
               "legacyResults": false,
-              "memory": 32
+              "memory": 64
             },
             "allOf": [
               {
@@ -34908,7 +35279,7 @@
               "hideRequest": false,
               "hideResponse": false,
               "legacyResults": false,
-              "memory": 32
+              "memory": 64
             },
             "allOf": [
               {
@@ -38961,6 +39332,138 @@
           "message"
         ]
       },
+      "InstanceProviderMembershipRuleDto": {
+        "type": "object",
+        "properties": {
+          "groupIds": {
+            "description": "Active tenant group IDs.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "roleGroupIds": {
+            "description": "Active tenant role group IDs.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "claim": {
+            "type": "string",
+            "example": "claims.department",
+            "description": "Dot-separated path in the verified token."
+          },
+          "equals": {
+            "type": "string",
+            "example": "Operations",
+            "description": "Exact string match, either a scalar or an item in a string array."
+          }
+        },
+        "required": [
+          "claim",
+          "equals"
+        ]
+      },
+      "InstanceProviderClaimMappingDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "example": "department",
+            "description": "Profile field or tenant metadata key, depending on the target."
+          },
+          "claim": {
+            "type": "string",
+            "example": "claims.department",
+            "description": "Dot-separated path in the verified token."
+          }
+        },
+        "required": [
+          "field",
+          "claim"
+        ]
+      },
+      "InstanceProviderMappingDto": {
+        "type": "object",
+        "properties": {
+          "groupIds": {
+            "description": "Active tenant group IDs.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "roleGroupIds": {
+            "description": "Active tenant role group IDs.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "key": {
+            "type": "string",
+            "example": "saml.company.example",
+            "description": "Key of a provider already assigned to this instance."
+          },
+          "rules": {
+            "description": "Additional memberships on exact claim match.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceProviderMembershipRuleDto"
+            }
+          },
+          "profile": {
+            "description": "Token claims for name, surname or phone on tenant-only accounts.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceProviderClaimMappingDto"
+            }
+          },
+          "metadata": {
+            "description": "Selected token claims copied to metadata.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceProviderClaimMappingDto"
+            }
+          },
+          "metadataAdvanced": {
+            "description": "Selected token claims copied to advanced metadata.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceProviderClaimMappingDto"
+            }
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "InstanceConfigKindAuthProviderMappingValueDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "example": -1,
+            "description": "Revision from GET /config/instance. Use -1 before the first save."
+          },
+          "providers": {
+            "description": "Tenant overrides applied to new accounts provisioned through assigned providers.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstanceProviderMappingDto"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "providers"
+        ]
+      },
       "InstanceConfigKindAiFeatureFlagsValueDto": {
         "type": "object",
         "properties": {
@@ -39586,8 +40089,16 @@
           "externalTransferBytes": {
             "type": "number"
           },
+          "endpointCount": {
+            "type": "number",
+            "description": "Endpoint requests recorded in the current UTC month through the capture time."
+          },
           "endpointProcessingMs": {
             "type": "number"
+          },
+          "jobCount": {
+            "type": "number",
+            "description": "Job executions created in the current UTC month through the capture time."
           },
           "jobProcessingMs": {
             "type": "number"
@@ -39598,7 +40109,9 @@
           "to",
           "thresholds",
           "externalTransferBytes",
+          "endpointCount",
           "endpointProcessingMs",
+          "jobCount",
           "jobProcessingMs"
         ]
       },
@@ -39715,6 +40228,47 @@
           "namespaceBytes",
           "error",
           "series"
+        ]
+      },
+      "PlatformUsageLogStorageDto": {
+        "type": "object",
+        "properties": {
+          "logCount": {
+            "type": "number",
+            "description": "Number of recorded application log entries across the captured UTC days within raw-log retention."
+          },
+          "logicalBytes": {
+            "type": "number",
+            "description": "Logical bytes of serialized log payloads across the captured UTC days."
+          },
+          "capturedFrom": {
+            "type": "string",
+            "format": "date",
+            "description": "First closed UTC day covered by the retained snapshot totals.",
+            "example": "2026-11-10"
+          },
+          "capturedThrough": {
+            "type": "string",
+            "format": "date",
+            "description": "Latest captured UTC date (inclusive).",
+            "example": "2026-11-18"
+          },
+          "capturedDays": {
+            "type": "number",
+            "description": "Number of days with a completed snapshot."
+          },
+          "expectedDays": {
+            "type": "number",
+            "description": "Number of eligible closed UTC days within the instance log retention window."
+          }
+        },
+        "required": [
+          "logCount",
+          "logicalBytes",
+          "capturedFrom",
+          "capturedThrough",
+          "capturedDays",
+          "expectedDays"
         ]
       },
       "PlatformUsageDatabasePointDto": {
@@ -39928,6 +40482,19 @@
           "storage": {
             "$ref": "#/components/schemas/PlatformUsageStorageDto"
           },
+          "logRetentionDays": {
+            "type": "number",
+            "nullable": true,
+            "description": "Instance log cleanup period in days. Null means automatic instance log cleanup is disabled."
+          },
+          "logStorage": {
+            "description": "Current retained log usage from daily snapshots. Independent of the selected analytics period.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlatformUsageLogStorageDto"
+              }
+            ]
+          },
           "database": {
             "$ref": "#/components/schemas/PlatformUsageDatabaseDto"
           },
@@ -39955,6 +40522,7 @@
           "billingPeriod",
           "transfer",
           "storage",
+          "logRetentionDays",
           "database",
           "jobs",
           "endpoints",
@@ -40028,6 +40596,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           }
         },
         "required": [
@@ -40066,6 +40644,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           },
           "model": {
             "type": "string",
@@ -40138,6 +40726,16 @@
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
           },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
+          },
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -40190,6 +40788,16 @@
             "type": "number",
             "description": "Billable token total: uncached input + 10% of cached input + output.",
             "example": 125500
+          },
+          "allInputTokens": {
+            "type": "number",
+            "description": "Total metered input tokens across all calls in this period, including cached input.",
+            "example": 130000
+          },
+          "allOutputTokens": {
+            "type": "number",
+            "description": "Total metered output tokens across all calls in this period, including reasoning.",
+            "example": 34000
           },
           "period": {
             "type": "string",
@@ -40283,6 +40891,14 @@
           },
           "databases": {
             "$ref": "#/components/schemas/InstanceUsageCountDto"
+          },
+          "databaseResources": {
+            "description": "Active database tables and views that share the instance resource quota.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InstanceUsageCountDto"
+              }
+            ]
           },
           "databaseSize": {
             "type": "number",
@@ -40663,6 +41279,32 @@
           "inAppEnabled",
           "emailEnabled",
           "attemptMode"
+        ]
+      },
+      "QuotaNotificationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "thresholdEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Email when observed usage reaches the selected percentage of a monthly usage limit."
+          },
+          "thresholdPercent": {
+            "type": "number",
+            "default": 80,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "monthlySummaryEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Email a summary of the previous UTC billing month."
+          }
+        },
+        "required": [
+          "thresholdEnabled",
+          "thresholdPercent",
+          "monthlySummaryEnabled"
         ]
       },
       "CreatePreferenceDto": {
@@ -44514,10 +45156,18 @@
             "example": false
           },
           "memory": {
-            "type": "number",
-            "description": "Memory budget in megabytes reserved for the execution.",
+            "type": "integer",
+            "description": "Job isolate memory preset in MiB. 3072 MiB requires an enabled high-memory Processor.",
             "example": 512,
-            "maximum": 2048
+            "default": 256,
+            "enum": [
+              128,
+              256,
+              512,
+              1024,
+              2048,
+              3072
+            ]
           },
           "concurrency": {
             "description": "Optional execution concurrency policy.",
@@ -44555,6 +45205,9 @@
         "properties": {
           "delivery": {
             "nullable": true,
+            "example": {
+              "mode": "SINGLE"
+            },
             "description": "Template-wide admission mode. Null or omitted means SINGLE. BATCH/DEBOUNCE collect all Event, Schedule, manual and low-code/API sources sharing execution authority and inputs.",
             "type": "object",
             "allOf": [
@@ -45271,6 +45924,346 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "WebhookPerformanceMetricsDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs",
+          "minimumMs",
+          "maximumMs"
+        ]
+      },
+      "WebhookPayloadTransferDto": {
+        "type": "object",
+        "properties": {
+          "bytesIn": {
+            "type": "number",
+            "description": "Measured response body bytes received during the period."
+          },
+          "bytesOut": {
+            "type": "number",
+            "description": "Measured request body bytes sent during the period."
+          }
+        },
+        "required": [
+          "bytesIn",
+          "bytesOut"
+        ]
+      },
+      "WebhookPerformanceTransferDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "nullable": true,
+            "description": "Measured payload bytes across direct and forwarded attempts. Null if neither has a sample.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPayloadTransferDto"
+              }
+            ]
+          },
+          "direct": {
+            "nullable": true,
+            "deprecated": true,
+            "description": "Direct-attempt breakdown. Use total for measured transfer.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPayloadTransferDto"
+              }
+            ]
+          },
+          "proxyHop": {
+            "nullable": true,
+            "deprecated": true,
+            "description": "Forwarded-attempt breakdown. Use total for measured transfer.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPayloadTransferDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "total",
+          "direct",
+          "proxyHop"
+        ]
+      },
+      "WebhookPerformancePointDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC start of the bucket."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs",
+          "minimumMs",
+          "maximumMs",
+          "time"
+        ]
+      },
+      "WebhookQueueDepthPointDto": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "depth": {
+            "type": "number",
+            "description": "Deliveries eligible to run and still waiting at measurement time."
+          }
+        },
+        "required": [
+          "time",
+          "depth"
+        ]
+      },
+      "WebhookPerformanceStatusDto": {
+        "type": "object",
+        "properties": {
+          "deliveries": {
+            "type": "number",
+            "description": "Metered deliveries created within this range or bucket."
+          },
+          "failed": {
+            "type": "number",
+            "description": "Deliveries whose latest recorded status is ERROR or FAILED."
+          },
+          "durationSamples": {
+            "type": "number",
+            "description": "Deliveries with measured elapsed time for their latest completed attempt."
+          },
+          "elapsedMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of measured attempt times in milliseconds, when available."
+          },
+          "averageMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Mean elapsed time in milliseconds among measured attempts."
+          },
+          "minimumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Shortest measured attempt in milliseconds."
+          },
+          "maximumMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longest measured attempt in milliseconds."
+          },
+          "status": {
+            "type": "string",
+            "description": "Latest metered delivery status."
+          }
+        },
+        "required": [
+          "deliveries",
+          "failed",
+          "durationSamples",
+          "elapsedMs",
+          "averageMs",
+          "minimumMs",
+          "maximumMs",
+          "status"
+        ]
+      },
+      "WebhookPerformanceCoverageDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Beginning of established metering coverage."
+          },
+          "through": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Watermark of the last finished Webhook import."
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "Whether the requested time range is covered for delivery counts. Timing coverage is reported separately by durationSamples."
+          }
+        },
+        "required": [
+          "from",
+          "through",
+          "complete"
+        ]
+      },
+      "WebhookPerformanceLimitsDto": {
+        "type": "object",
+        "properties": {
+          "maxRetries": {
+            "type": "number",
+            "nullable": true,
+            "description": "Configured retries per delivery. Null means unlimited."
+          },
+          "maxAttempts": {
+            "type": "number",
+            "nullable": true,
+            "description": "Initial attempt plus the retry cap. Null means unlimited."
+          }
+        },
+        "required": [
+          "maxRetries",
+          "maxAttempts"
+        ]
+      },
+      "WebhookPerformanceResponseDto": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "bucketSeconds": {
+            "type": "number",
+            "enum": [
+              60,
+              900,
+              3600,
+              86400
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/WebhookPerformanceMetricsDto"
+          },
+          "transfer": {
+            "description": "Measured attempt payload transfer by transfer time within the requested range.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookPerformanceTransferDto"
+              }
+            ]
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookPerformancePointDto"
+            }
+          },
+          "queueDepth": {
+            "description": "Measured queue depth. For longer periods, the last sample in each time bucket.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookQueueDepthPointDto"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookPerformanceStatusDto"
+            }
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/WebhookPerformanceCoverageDto"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/WebhookPerformanceLimitsDto"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "bucketSeconds",
+          "summary",
+          "transfer",
+          "series",
+          "queueDepth",
+          "statuses",
+          "coverage",
+          "limits"
         ]
       },
       "CreateWebhookRequestDto": {
@@ -51634,11 +52627,11 @@
             "type": "string",
             "description": "Optional model override for the successor run.",
             "enum": [
-              "gpt-6.1-sol",
+              "gpt-6.2-sol",
               "gpt-6.1-terra",
               "gpt-6-luna"
             ],
-            "example": "gpt-6.1-sol"
+            "example": "gpt-6.2-sol"
           },
           "reasoningEffort": {
             "type": "string",

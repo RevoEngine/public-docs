@@ -9,12 +9,13 @@ icon: code
 
 ## `util.ecdsaVerify()`
 
-Async P-256/SHA-256 verification of exact bytes. Key: PEM or canonical Base64 DER SPKI; signature: Base64 DER.
+Async P-256/SHA-256 verification. Key: PEM or Base64 DER SPKI; signature: Base64 DER.
+Accepts up to 32 MiB of payload and an optional UTF-8 prefix of up to 4096 bytes, prepended without a separator.
 
 ### Signature
 
 ```ts
-static ecdsaVerify(publicKey: string, payload: Buffer | string, signature: string): Promise<boolean>;
+static ecdsaVerify(publicKey: string, payload: Uint8Array | string, signature: string, prefix?: string): Promise<boolean>;
 ```
 
 See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

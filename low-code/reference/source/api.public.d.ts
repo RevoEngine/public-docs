@@ -725,6 +725,10 @@ declare class api {
      * Notes:
      * - Endpoint Components receive an ENDPOINT trigger with method, path,
      *   parameters, query, headers and the request body as input.
+     * - Endpoint Components can use the top-level requestTarget for URL-bound signatures.
+     *   It preserves the encoded path and the exact query. The absolute URL is present
+     *   when RUN can resolve an admitted origin. Sensitive query keys suppress both
+     *   the exact query and the absolute URL.
      * - Jobs receive EVENT, SCHEDULE, REQUEST or EXECUTION trigger entries.
      *   Single Event Jobs retain deprecated top-level type and message for
      *   existing components. Small Job snapshots contain full
@@ -1309,7 +1313,8 @@ declare class api {
      * - External HTTP calls execute in both modes; non-GET requests to Revo hosts require `readOnly: false`.
      * - Saving an HTTP response to a Storage target requires `readOnly: false` and fails before transport in restricted mode.
      * - Supports proxy mode, form-data, Storage streaming, and optional current credentials.
-     * - Proxy mode supports JSON/text requests, Storage sources/targets, and json/text/buffer/base64buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
+     * - Proxy mode supports JSON/text/buffer requests, Storage sources/targets, and json/text/buffer/storage responses. Public stream/SSE, document responses, multipart and currentCredentials remain unsupported through proxy. Check response.status explicitly; upstream HTTP error statuses do not throw, while proxy transport failures do.
+     * - The `buffer` format is limited to 16 MiB in each direction in both direct and proxy mode. Responses are limited after decompression. Use Storage for larger transfers or a direct HTTP stream for larger responses.
      * - Use `source: { storageEntryId }` when streaming an Explorer Storage file into an HTTP request.
      * - Use `target: { name, ... }` or `target: { storageEntryId, replace: true }` when streaming an HTTP response into Explorer Storage.
      * - `source` and `target` may be used together to stream a Storage entry through an external conversion API and save its response into Storage.
@@ -1319,8 +1324,11 @@ declare class api {
      * - Use `requestType: 'storage'` for a Storage source and `responseType: 'storage'` for a Storage target. These formats are independent.
      * - `target: { storageUploadSessionId }` fills and finalizes an existing active empty direct session, preserving its stored settings.
      * - Only 2xx responses are saved; other statuses return at most 64 KiB of diagnostic text. Legacy Files and nested Storage references are rejected.
-     * - Revo responses expose `revo.sameInstance`. The `x-revo-oid` header is returned only when `revo.sameInstance` is true. Cross-instance or
-     *   unconfirmed Revo headers are removed from the public response.
+     * - Recognized Revo responses expose `revo.sameInstance`. Published custom
+     *   domain paths are eligible when both the route and response confirm the
+     *   target instance. `x-revo-oid` is returned only when `revo.sameInstance`
+     *   is true. Cross-instance and unconfirmed Revo headers are removed.
+     *   Recognition leaves request authentication to the caller.
      * - `response.data` is `undefined` when the response is stored; use `response.storage.entry` after successful finalization.
      * - For text files, prefer `computeStats: 'sync'` on the storage target so line stats are immediately available after finalize.
      * - JSON is the default request and response format. Explicit `requestType: 'json'` is valid for every supported HTTP method and, without proxy, may be combined with any supported response type because it does not declare a request body.
@@ -2779,6 +2787,27 @@ declare class sse {
 
 declare class util {
   /**
+     * Resolves a WHATWG URL and returns its fields as plain data, or null for invalid input.
+     * Input and base may contain up to 65,536 UTF-16 code units in total.
+     * @localOnly
+     */
+  static parseUrl(input: string, base?: string): RevoParsedUrl | null;
+
+  /**
+     * Parses URL-encoded form data while preserving order and duplicate names.
+     * Input may contain up to 65,536 UTF-16 code units.
+     * @localOnly
+     */
+  static parseForm(input: string): [name: string, value: string][];
+
+  /**
+     * Encodes up to 1,024 ordered string pairs as application/x-www-form-urlencoded.
+     * Names and values may contain up to 65,536 UTF-16 code units in total.
+     * @localOnly
+     */
+  static encodeForm(pairs: readonly (readonly [name: string, value: string])[]): string;
+
+  /**
      * Waits asynchronously, capped at 60 seconds per call.
      *
      * Example:
@@ -2888,11 +2917,11 @@ declare class util {
   static sha1(payload: string): string;
 
   /**
-     * Synchronous SHA-256 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
+     * Synchronous SHA-256 hash of exact bytes or UTF-8 text. Payload: at most 5242880 bytes (5 MiB).
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
      */
-  static sha256(payload: string): string;
+  static sha256(payload: Uint8Array | string): string;
 
   /**
      * Synchronous MD5 hash. Payload: at most 5242880 UTF-8 bytes (5 MiB).
@@ -2906,10 +2935,10 @@ declare class util {
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
      */
-  static timingSafeEqual(a: string | Buffer, b: string | Buffer): boolean;
+  static timingSafeEqual(a: Uint8Array | string, b: Uint8Array | string): boolean;
 
   /**
-     * Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 UTF-8 bytes.
+     * Synchronous HMAC signature. Payload: at most 5242880 bytes; secret: at most 65536 bytes. Strings use UTF-8.
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
      *
@@ -2918,13 +2947,13 @@ declare class util {
      */
   static hmac(
       payload: Uint8Array | string,
-      secret: string,
+      secret: Uint8Array | string,
       algorithm?: 'sha1' | 'sha256' | 'sha512',
       encoding?: 'hex' | 'base64',
     ): string;
 
   /**
-     * Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 UTF-8 bytes each.
+     * Synchronous HMAC verification. Payload: at most 5242880 bytes; secret and signature: at most 65536 bytes each. Strings use UTF-8.
      *
      * Invalid types/options throw TypeError; size/range throws RangeError.
      *
@@ -2934,7 +2963,7 @@ declare class util {
   static verifyHmacSignature(
       payload: Uint8Array | string,
       signature: string,
-      secret: string,
+      secret: Uint8Array | string,
       algorithm?: 'sha1' | 'sha256' | 'sha512',
       encoding?: 'hex' | 'base64',
     ): boolean;
@@ -3167,6 +3196,44 @@ declare class util {
       signature: string,
     ): Promise<boolean>;
 
-  /** Async P-256/SHA-256 verification of exact bytes. Key: PEM or canonical Base64 DER SPKI; signature: Base64 DER. */
-  static ecdsaVerify(publicKey: string, payload: Buffer | string, signature: string): Promise<boolean>;
+  /**
+     * Async P-256/SHA-256 verification. Key: PEM or Base64 DER SPKI; signature: Base64 DER.
+     * Accepts up to 32 MiB of payload and an optional UTF-8 prefix of up to 4096 bytes, prepended without a separator.
+     */
+  static ecdsaVerify(publicKey: string, payload: Uint8Array | string, signature: string, prefix?: string): Promise<boolean>;
+
+  /** Verifies Ed25519 over exact bytes. Use PEM, Base64 DER SPKI or a raw 32-byte key. Signature: Base64 or 64 raw bytes. */
+  static ed25519Verify(publicKey: Uint8Array | string, payload: Uint8Array | string, signature: Uint8Array | string, prefix?: string): Promise<boolean>;
+
+  /** Verifies RSA PKCS#1 v1.5. Key: PEM public key/certificate or Base64 DER SPKI. Signature: Base64 or raw bytes. Defaults to SHA-256. */
+  static rsaPkcs1Verify(publicKey: string, payload: Uint8Array | string, signature: Uint8Array | string, algorithm?: 'sha1' | 'sha256'): Promise<boolean>;
+
+  /** Asynchronous SHA-256 hex digest of up to 32 MiB. Optional UTF-8 prefix and suffix are limited to 4096 bytes each. */
+  static sha256Async(payload: Uint8Array | string, prefix?: string, suffix?: string): Promise<string>;
+
+  /** Asynchronous HMAC of up to 32 MiB. Defaults to SHA-256/hex. Optional UTF-8 prefix and suffix are limited to 4096 bytes each. */
+  static hmacAsync(payload: Uint8Array | string, secret: Uint8Array | string, algorithm?: 'sha1' | 'sha256' | 'sha512', encoding?: 'hex' | 'base64' | 'base64url', prefix?: string, suffix?: string): Promise<string>;
+
+  /** Unsigned CRC-32 (IEEE) checksum of up to 32 MiB of exact bytes or UTF-8 text. */
+  static crc32(payload: Uint8Array | string): number;
+
+  /** Asynchronous unsigned IEEE CRC-32 for up to 32 MiB of exact bytes or UTF-8 text. */
+  static crc32Async(payload: Uint8Array | string): Promise<number>;
+
+  /**
+     * Parses up to 32 MiB of RFC 5322/MIME bytes, or a single named MIME field in a multipart/form-data request.
+     * Verify the original request before calling this method. The result contains untrusted headers, text,
+     * HTML and up to 32 decoded attachments with byte content. Combined text and HTML are limited to 4 MiB.
+     * @localOnly Available in native low-code. Attachments are returned as Uint8Array views.
+     */
+  static parseMime(payload: Uint8Array, multipartContentType?: string, fieldName?: string): Promise<{
+      headers: { key: string; value: string }[];
+      subject?: string;
+      messageId?: string;
+      inReplyTo?: string;
+      references?: string;
+      text?: string;
+      html?: string;
+      attachments: { filename: string | null; mimeType: string; disposition: string | null; contentId?: string; size: number; content: Uint8Array }[];
+    }>;
 }

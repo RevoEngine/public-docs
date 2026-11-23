@@ -16,11 +16,11 @@ Leave `options.requestBody` and `options.responseBody` unset to keep an existing
 | --- | --- | --- | --- |
 | `json` | `application/json` or an application `+json` type | Parsed JSON | 20 / 32 MiB |
 | `form` | `application/x-www-form-urlencoded` | Parsed form object, including nested fields | 10 / 32 MiB |
-| `text` | `text/*`, such as `text/plain` or `text/csv` | UTF-8 string | 1 / 8 MiB |
-| `xml` | `application/xml`, `text/xml` or a corresponding `+xml` type | Validated XML string | 1 / 8 MiB |
-| `binary` | The file's media type | Base64 envelope | 1 / 8 MiB |
-| `multipart` | `multipart/form-data` with a boundary | Fields and file envelopes | 8 / 8 MiB |
-| `raw` | Any valid Content-Type; unchanged bytes | Base64 envelope | 1 / 8 MiB |
+| `text` | `text/*`, such as `text/plain` or `text/csv` | UTF-8 string | 1 / 32 MiB |
+| `xml` | `application/xml`, `text/xml` or a corresponding `+xml` type | Validated XML string | 1 / 32 MiB |
+| `binary` | The file's media type | Base64 envelope | 1 / 32 MiB |
+| `multipart` | `multipart/form-data` with a boundary | Fields and file envelopes | 8 / 32 MiB |
+| `raw` | Any valid Content-Type; unchanged bytes | Base64 envelope | 1 / 32 MiB |
 | `storage` | Original bytes matching the selected session media type | No file bytes; Component selects a session before transfer | 32 / 32 MiB |
 
 Set `maxBytes` to a positive byte count within the mode's maximum. Multipart limits include framing. Hosting and caller limits can be lower. Inline formats reject compressed input, mismatched media types, unsupported text encodings and incomplete bodies before Component execution. Native Storage checks request metadata before execution and consumes the body only after the Component selects an authorized session. Their request content is hidden from execution-history request logging; application code must still avoid logging confidential values.

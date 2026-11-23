@@ -14,6 +14,10 @@ Returns the current execution payload.
 Notes:
 - Endpoint Components receive an ENDPOINT trigger with method, path,
   parameters, query, headers and the request body as input.
+- Endpoint Components can use the top-level requestTarget for URL-bound signatures.
+  It preserves the encoded path and the exact query. The absolute URL is present
+  when RUN can resolve an admitted origin. Sensitive query keys suppress both
+  the exact query and the absolute URL.
 - Jobs receive EVENT, SCHEDULE, REQUEST or EXECUTION trigger entries.
   existing components. Small Job snapshots contain full
   entries with deferred: false. Larger snapshots use deferred: true.

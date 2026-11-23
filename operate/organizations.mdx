@@ -1,0 +1,29 @@
+---
+title: Manage an organization
+description: Review your organization's workspaces, invite members, and manage sign-in and domain settings.
+icon: building
+---
+
+Open **Admin** from the project selector or go to [Organization administration](https://app.revoengine.com/admin). Choose an organization from the selector. Admin opens with the organizations your account can access.
+
+## Review access and invite a member
+
+1. Open **Overview** to check your role and **Instances** to find a workspace by name or ID.
+2. Open **Members** to review current access. Organization roles control administration. Instance grants control which workspaces a member can open. Workspace roles and permissions control what the member can do there.
+3. If you can manage invitations, select **Invite member**, choose the appropriate role and instances, and enter the recipient's email address. The organization needs an active instance before you can invite members.
+4. If you resend an invitation, ask the recipient to use the latest email.
+5. For an existing member, open **Details**, review access under **Instances**, and save any changes.
+
+For workspace roles, Groups, and user profiles, see [Users](/operate/users).
+
+## Configure sign-in providers
+
+An organization owner can manage providers in **Admin → Providers**. Before you change provider enforcement, confirm that the intended provider is assigned to the instance and that an administrator can use it to sign in.
+
+Select the instance in **Admin → Instances** and open its authentication configuration to choose allowed sign-in providers. Use **Settings → General → Authentication** in the workspace to configure the groups and approved claims for newly provisioned users. Existing users keep their assigned memberships.
+
+## Manage contacts and domains
+
+Use **Contacts** to choose where organization and domain notices go. Contact addresses receive notices. Workspace access is assigned in **Members**.
+
+Use **Domains** to verify ownership and publish a hostname for an Application. See [Publish on a custom domain](/operate/custom-domains).

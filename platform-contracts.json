@@ -14,7 +14,7 @@
     "platformOpenApi": {
       "snapshot": "api-reference/source/platform.openapi.json",
       "published": "api-reference/openapi.json",
-      "operations": 589
+      "operations": 593
     },
     "lowCodeRuntime": {
       "snapshot": "low-code/reference/source/api.public.d.ts",
@@ -214,6 +214,9 @@
         "low-code/reference/sse/comment.mdx",
         "low-code/reference/sse/remainingTime.mdx",
         "low-code/reference/util.mdx",
+        "low-code/reference/util/parseUrl.mdx",
+        "low-code/reference/util/parseForm.mdx",
+        "low-code/reference/util/encodeForm.mdx",
         "low-code/reference/util/sleep.mdx",
         "low-code/reference/util/aesDecrypt.mdx",
         "low-code/reference/util/aesEncrypt.mdx",
@@ -247,7 +250,14 @@
         "low-code/reference/util/rsaGeneratePair.mdx",
         "low-code/reference/util/rsaSign.mdx",
         "low-code/reference/util/rsaVerify.mdx",
-        "low-code/reference/util/ecdsaVerify.mdx"
+        "low-code/reference/util/ecdsaVerify.mdx",
+        "low-code/reference/util/ed25519Verify.mdx",
+        "low-code/reference/util/rsaPkcs1Verify.mdx",
+        "low-code/reference/util/sha256Async.mdx",
+        "low-code/reference/util/hmacAsync.mdx",
+        "low-code/reference/util/crc32.mdx",
+        "low-code/reference/util/crc32Async.mdx",
+        "low-code/reference/util/parseMime.mdx"
       ]
     }
   }

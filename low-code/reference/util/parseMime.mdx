@@ -1,0 +1,32 @@
+---
+title: util.parseMime()
+sidebarTitle: parseMime()
+description: Public low-code contract, signatures and examples for util.parseMime.
+icon: code
+---
+
+<span id="util-parseMime" aria-hidden="true"></span>
+
+## `util.parseMime()`
+
+Parses up to 32 MiB of RFC 5322/MIME bytes, or a single named MIME field in a multipart/form-data request.
+Verify the original request before calling this method. The result contains untrusted headers, text,
+HTML and up to 32 decoded attachments with byte content. Combined text and HTML are limited to 4 MiB.
+@localOnly Available in native low-code. Attachments are returned as Uint8Array views.
+
+### Signature
+
+```ts
+static parseMime(payload: Uint8Array, multipartContentType?: string, fieldName?: string): Promise<{
+      headers: { key: string; value: string }[];
+      subject?: string;
+      messageId?: string;
+      inReplyTo?: string;
+      references?: string;
+      text?: string;
+      html?: string;
+      attachments: { filename: string | null; mimeType: string; disposition: string | null; contentId?: string; size: number; content: Uint8Array }[];
+    }>;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).

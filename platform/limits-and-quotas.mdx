@@ -90,6 +90,8 @@ Timeout and infrastructure failure are ambiguous around remote systems. Before r
 
 Open **Settings → Usage** for AI, Transfer, Storage, Database, Jobs, Endpoints, and Webhooks. Use **Quick**, **Custom**, or **Range** to inspect up to 366 days. A selected analysis range is independent of the fixed UTC calendar month used for monthly usage comparisons. API ranges include `from` and exclude `to`.
 
+Open **Settings → Limits** to see the quotas that apply to your instance. Instance administrators can independently subscribe to a summary of the previous UTC month and an alert at a chosen usage threshold. Preferences apply to the current administrator and instance.
+
 Storage, Database, monthly external transfer, Job processing hours, and Endpoint processing hours use soft thresholds. Exceeding one does not prevent a Database write or execution. Timeout, memory, structural validation, and other enforced quotas continue to apply.
 
 Native Storage reports physical bytes across namespaces, including retained versions, archives, temporary upload objects, and soft-deleted objects until they are physically destroyed. A reference to the same stored object is not an additional object. Storage does not have a separate legacy Files capacity quota. The technical per-upload ceiling is 100 GiB.

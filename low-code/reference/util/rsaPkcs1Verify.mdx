@@ -1,0 +1,20 @@
+---
+title: util.rsaPkcs1Verify()
+sidebarTitle: rsaPkcs1Verify()
+description: Public low-code contract, signatures and examples for util.rsaPkcs1Verify.
+icon: code
+---
+
+<span id="util-rsaPkcs1Verify" aria-hidden="true"></span>
+
+## `util.rsaPkcs1Verify()`
+
+Verifies RSA PKCS#1 v1.5. Key: PEM public key/certificate or Base64 DER SPKI. Signature: Base64 or raw bytes. Defaults to SHA-256.
+
+### Signature
+
+```ts
+static rsaPkcs1Verify(publicKey: string, payload: Uint8Array | string, signature: Uint8Array | string, algorithm?: 'sha1' | 'sha256'): Promise<boolean>;
+```
+
+See [all util methods](/low-code/reference/util) or [runtime basics](/low-code/overview).
