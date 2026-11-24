@@ -1,27 +1,40 @@
 ---
-title: Publish an Application on a custom domain
-description: Verify your domain in Admin, publish a hostname, and route HTTPS requests to an Application.
+title: Custom domains
+description: Verify a domain, publish a hostname, and route requests to Endpoint applications.
 icon: globe
 ---
 
-You need access to manage domains for an organization with an active instance, access to the DNS zone, and permission to publish the target Application. Use the hostname and DNS instructions shown in Admin for your publication.
+Use a custom hostname when callers should reach your Endpoints at an address such as `api.example.com`. Domain ownership belongs to the organization. Each published hostname has its own DNS, certificate, and routes.
 
-## Verify domain ownership
+You need access to manage domains for an organization with an active instance, access to the DNS zone, and permission to publish the target Application.
 
-1. Open **Admin → Domains → Ownership** and select **Add domain**. Enter the registered domain, such as `example.com`. Verifying it covers eligible subdomains, such as `api.example.com`.
-2. Open **Verification**. Create a TXT record in your DNS provider. If the provider automatically appends the zone, copy the relative **TXT host** into its Host or Subdomain field. Use the full name only when the provider asks for it. For the `example.com` zone, the relative host is `_revo-challenge` and the full name is `_revo-challenge.example.com`.
-3. Copy the complete **TXT record value** from RevoEngine. After DNS publishes the record, use **Verify** and wait for **Verified**. If you're waiting for propagation, the next manual check is available after 15 minutes.
-4. Keep the TXT record in DNS. RevoEngine checks it periodically. If you receive a warning about a missing record, restore the same value by the deadline shown in the notice.
+## Verify the domain
+
+1. In **Admin → Domains → Ownership**, select **+ Add** and enter the registered domain, such as `example.com` or `example.co.uk`.
+2. Copy the TXT record from the dialog into the DNS zone. Use `@` (or a blank name, depending on your DNS provider) and the entire `revoengine-verification=…` value shown. If your provider allows it, you can use 600 seconds for TTL.
+3. Wait for **Verified** or select **Verify** once the record is visible in public DNS. Automatic checks start immediately, run every five minutes for the first hour and then hourly for up to three days. You can request a manual check every five minutes.
+
+Keep the TXT record while using the domain in RevoEngine. RevoEngine periodically confirms ownership again. Other TXT records at the same name can stay in place.
 
 ## Publish a hostname
 
-1. Open **Custom domains** and choose **Publish hostname**. Enter the hostname you want to use.
-2. Follow **DNS records** for the hostname. Copy the displayed names and targets. If Admin reports a CAA restriction, ask your DNS administrator to allow `pki.goog` using the record shown in Admin. Keep existing issuer records that other services need.
-3. Configure **Routes** with the public path, instance, and target Application. Use the root path `/` to forward requests without stripping a path prefix, and leave the target prefix empty to preserve the incoming path.
-4. Wait for the hostname to become ready, then test it over HTTPS with a representative route and the expected credentials. Keep the required DNS records in place while the hostname is published.
+In **Admin → Domains → Custom domains**, select **+ Add**. Choose a verified domain and enter the prefix, such as `api`, `api.price` or `*.partners`. Open **DNS** in the hostname panel and copy the records for that hostname.
 
-If publication stays pending, check the TXT host, hostname DNS records, and certificate issuer policy in **DNS records**. You can verify ownership independently of hostname publication.
+| What you are publishing | Records to add after ownership verification |
+| --- | --- |
+| A new exact hostname, such as `api.example.com` | The traffic CNAME shown in **DNS**. RevoEngine provisions and renews the managed certificate once the hostname points to RevoEngine. |
+| A wildcard, such as `*.partners.example.com` | The wildcard traffic CNAME and the certificate authorization CNAME shown in **DNS**. A wildcard covers one label, such as `west.partners.example.com`. |
 
-When retiring a hostname, remove its publication in **Custom domains** and then remove the DNS records dedicated to that publication. Review the organization's remaining hostnames before revoking ownership.
+If a DNS warning reports that your CAA policy blocks certificate issuance, review the record shown in **DNS** and authorize the indicated issuer. Keep existing issuer records that other services need. If no restrictive policy applies, you can proceed with the records already listed. A CAA warning concerns the certificate while the ownership TXT has its own status.
 
-See [Manage an organization](/operate/organizations) and [Endpoint configuration](/operate/endpoint-configuration).
+For a hostname already serving traffic, plan the cutover before replacing the current DNS record. A new exact hostname using traffic-based certificate authorization needs the traffic CNAME in place before the certificate becomes ready. Coordinate pre-provisioned TLS with RevoEngine support if you need to preserve HTTPS through the switch. For an existing publication, keep each certificate record still listed in its **DNS** section.
+
+## Route requests
+
+In the hostname panel, open **Routes** and select **Add route**. Choose the instance and application, then set the public path prefix. For example, `/` to `@default` sends all paths to the instance's default application. Leave the target prefix empty to preserve the request path. Set a target prefix when the application expects a different base path.
+
+Save the routes, wait for the hostname to become active, and make an HTTPS request to an existing Endpoint using the custom hostname. Check the returned status and response before directing callers to it.
+
+To retire a hostname, remove its publication in **Custom domains**, then remove the DNS records dedicated to that publication. Review the organization's remaining hostnames before revoking ownership.
+
+See [Manage an organization](/operate/organizations) for administration access and [Endpoint configuration](/operate/endpoint-configuration) to define the methods and paths that receive those requests.
