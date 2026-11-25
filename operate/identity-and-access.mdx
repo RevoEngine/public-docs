@@ -44,7 +44,6 @@ Passing one layer does not bypass the others. For example, `RESOURCE_WRITE` perm
 | --- | --- |
 | User | Interactive work in the RevoEngine application and user-attributed API calls. |
 | Service account | Endpoints, jobs, Agents, CI, servers, and other unattended integrations. |
-| Support access | Explicit, time-limited RevoEngine support access under the dedicated support security mode. |
 
 Use separate service accounts for systems with different blast radius or ownership. Do not run production automation under a developer's personal identity.
 
@@ -143,14 +142,6 @@ Organization workspaces require multi-factor authentication and a registered bro
 The browser session is short-lived and bound to the account, selected instance, trusted device, and current security revision. The application refreshes it while the device and account remain eligible.
 
 Users can inspect and revoke trusted browsers. Revoking a device prevents future session refresh for that registration. Resetting multi-factor authentication invalidates prior device trust.
-
-## Support access
-
-Authorized Revo Support operators can access an assigned instance with your permission to investigate or resolve a reported issue.
-
-To control access, sign in as an instance administrator and open **Settings → General → Authentication**. **Allow Revo Support access** is enabled by default. Turn it off to block new Support logins and further requests made with existing Support sessions for that instance. Changes to the setting are recorded in the settings audit history.
-
-Support operators sign in with Company SSO and complete MFA in the **Support** panel. For one hour after verification, operators can open assigned instances and perform permitted Support actions without entering another code. After the session expires, the operator locks Support, or the operator signs out, they must verify again. Each instance still requires a separate access assignment.
 
 ## High-level backend mechanism
 
