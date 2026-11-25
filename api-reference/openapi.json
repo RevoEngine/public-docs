@@ -11251,7 +11251,7 @@
     },
     "/api/v1/config/instance/slug": {
       "put": {
-        "description": "Atomically reserves the requested slug, checks for collisions and updates\n    the global instance configuration using optimistic version control.\n    Real changes are limited to one every 30 days and append an immutable audit\n    event in the same transaction.\n    Only activeUrl returned by this operation is the canonical working frontend\n    link. Earlier slugs remain reserved for this instance but are not aliases.\n\n**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
+        "description": "Atomically reserves the requested slug, checks for collisions and updates\n    the global instance configuration using optimistic version control.\n    Real changes are limited to one every 30 days and append an immutable audit\n    event in the same transaction. A current authenticator code is required\n    for a slug change.\n    Only activeUrl returned by this operation is the canonical working frontend\n    link. Earlier slugs remain reserved for this instance but are not aliases.\n\n**Roles:** `INSTANCE_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** No.",
         "operationId": "ConfigController_updateInstanceSlug",
         "parameters": [],
         "requestBody": {
@@ -11274,6 +11274,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "A current authenticator code is required to change the slug."
           },
           "409": {
             "description": "The slug is reserved by another instance, the supplied version is stale or the 30-day cooldown is active."
@@ -40627,6 +40630,12 @@
       "UpdateInstanceSlugDto": {
         "type": "object",
         "properties": {
+          "code": {
+            "type": "string",
+            "description": "Current authenticator code required to change the workspace slug.",
+            "pattern": "^\\d{6}$",
+            "writeOnly": true
+          },
           "slug": {
             "type": "string",
             "description": "New globally unique frontend path identifier. The returned activeUrl is the only canonical link after the update. Previously used slugs remain reserved for this instance but are not active aliases. After activation, another change is blocked for 30 days.",
