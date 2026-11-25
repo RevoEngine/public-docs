@@ -31,7 +31,7 @@ For a hostname already serving traffic, plan the cutover before replacing the cu
 
 ## Route requests
 
-In the hostname panel, open **Routes** and select **Add route**. Choose the instance and application, then set the public path prefix. For example, `/` to `@default` sends all paths to the instance's default application. Leave the target prefix empty to preserve the request path. Set a target prefix when the application expects a different base path.
+In the hostname panel, open **Routes** and select **Add**. Choose the instance and application, then set the public path prefix. For example, `/` to `@default` sends all paths to the instance's default application. Leave the target prefix empty to preserve the request path. Set a target prefix when the application expects a different base path.
 
 Save the routes, wait for the hostname to become active, and make an HTTPS request to an existing Endpoint using the custom hostname. Check the returned status and response before directing callers to it.
 

@@ -45,6 +45,8 @@ Identity, data, and automation capacity controls are grouped under the separate 
 
 **General → Identity** shows organization, instance name, plan, expiry, SLA and instance UUID. Confirm them before making a change. **General → Endpoints** shows the effective service addresses. **General → Authentication** shows accepted identity providers; use [SSO and OIDC](/operate/sso-and-oidc) for provisioning and trust boundaries.
 
+Instance administrators can also use **General → Authentication** to switch off [Revo Support access](/operate/identity-and-access#support-access) for the current instance.
+
 A workspace slug is the readable address identifier. It accepts 6–30 lowercase letters, digits and hyphens, starts with a letter and ends with a letter or digit. Changing it requires an explicit URL-change acknowledgment and the current configuration version. A successful change starts a 30-day cooldown.
 
 Old slug links stop working; they are reserved rather than kept as aliases. UUID-based links remain valid. Share the new active address and update bookmarks/integrations after the change. If the version changed while you were editing, reload the current configuration before submitting again.

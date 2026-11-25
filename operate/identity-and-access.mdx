@@ -146,9 +146,11 @@ Users can inspect and revoke trusted browsers. Revoking a device prevents future
 
 ## Support access
 
-Support is a distinct security mode, not a role that a normal session can self-select. It requires an eligible internal support identity, explicit assignment to the instance, multi-factor verification, and a time-limited grant.
+Authorized Revo Support operators can access an assigned instance with your permission to investigate or resolve a reported issue.
 
-Support access never turns an API key or normal user session into a support session. Instance-bound HTTP and Realtime services validate that the session mode and request mode match.
+To control access, sign in as an instance administrator and open **Settings → General → Authentication**. **Allow Revo Support access** is enabled by default. Turn it off to block new Support logins and further requests made with existing Support sessions for that instance. Changes to the setting are recorded in the settings audit history.
+
+Support operators sign in with Company SSO and complete MFA in the **Support** panel. For one hour after verification, operators can open assigned instances and perform permitted Support actions without entering another code. After the session expires, the operator locks Support, or the operator signs out, they must verify again. Each instance still requires a separate access assignment.
 
 ## High-level backend mechanism
 
