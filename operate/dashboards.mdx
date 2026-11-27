@@ -53,7 +53,7 @@ Authors can enable links for read-only record tabs that declare shareable string
 
 ## Embed an external frontend
 
-Add an **Iframe** widget to a named dashboard. In **Configure → Iframe**, enter the external app's HTTPS URL, choose an isolation profile and select **Apply**. Select the dashboard **Save** button to keep the URL and profile. To clear the source, leave the URL empty and apply the change.
+Add an **Iframe** widget to a named dashboard. In **Configure → Iframe**, set **Source** to **URL**, enter the external app's HTTPS URL, choose an isolation profile and select **Apply**. Select the dashboard **Save** button to keep the URL and profile. To clear the source, leave the URL empty and apply the change.
 
 | Profile | Browser behavior |
 | --- | --- |
@@ -62,6 +62,23 @@ Add an **Iframe** widget to a named dashboard. In **Configure → Iframe**, ente
 | **Application origin** | Runs scripts and forms with the external app's own origin. Use it for a trusted frontend whose APIs authorize that origin. |
 
 The external site must allow the RevoEngine app to frame it. For cross-origin requests to the Endpoint runtime or another API, configure that API's CORS policy for the frontend origin and use the app's own authentication. Dashboard viewers still need permission for the actions they perform. Keep credentials out of the saved URL. All profiles sandbox the frame and block top-level navigation and pop-ups.
+
+## Display inline HTML
+
+Add an **Iframe** widget, open **Configure → Iframe** and set **Source** to **Inline HTML**. Enter an HTML fragment in **HTML** and put any custom styles in the optional **CSS** field. Select **Apply** to preview the tile, then select dashboard **Save** to keep the configuration.
+
+For example, enter this fragment in **HTML**:
+
+```html
+<section class="order-summary">
+  <strong>12 orders ready</strong>
+  <p>Last updated at 14:30.</p>
+</section>
+```
+
+In **CSS**, you can use RevoEngine theme variables such as `--chat-surface-soft` and `--chat-ink` to match the dashboard.
+
+Inline HTML is sanitized and runs in an isolated frame with scripts and forms disabled. Use CSS for passive styling and native HTML elements such as `details` and `summary` for disclosure. The HTML limit is 100,000 characters and the CSS limit is 4,000 characters. Clear the **HTML** field and save to remove the content. To generate HTML from live data, use a [Custom Widget](/widgets/source-configuration#choose-the-source).
 
 ## Combine business operations with AI
 
