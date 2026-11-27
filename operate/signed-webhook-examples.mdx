@@ -1,0 +1,1522 @@
+---
+title: Signed webhook examples
+description: Verify signed deliveries from 30 webhook integrations in native low-code.
+icon: signature
+---
+
+Use these Endpoint Component examples to verify signed deliveries before processing
+their contents. Pick the example that matches your provider and delivery type.
+
+## Configure your endpoint
+
+1. Create a POST [Endpoint](/operate/endpoints) with modern results, a visible Component result element, and an HTTP JSON response. Select [Raw bytes](/operate/endpoint-bodies) and set the maximum for the entire delivery. The runtime ceiling for an explicit request body is 32 MiB. Your Endpoint and ingress can impose lower limits.
+2. Store the integration’s signing secret in instance Vault as `WEBHOOK_SIGNING_SECRET`, unless the example specifies a public key instead. Give the saved executor access to the required secret. For a provider that sends no Revo credentials, configure both [anonymous admission gates](/operate/endpoint-applications#allow-unauthenticated-requests-deliberately) and a dedicated Service Account.
+3. Copy one example into the result element. The code reads the Base64 envelope as bytes, validates the provider’s signed input and compares digests in constant time. A valid signature returns a JSON receipt. An invalid, missing or expired signature returns `401`. Complete any provider-required subscription challenge separately and use the provider’s expected acknowledgment in your integration.
+
+Verify the original bytes before parsing JSON or multipart, storing attachments,
+or publishing work. Respect the provider’s timestamp semantics and retry window.
+Where there is no signed timestamp, signature verification alone cannot prevent
+replay. Use a durable deduplication key before downstream effects. During key
+rotation, accept only the explicitly configured active and retiring keys.
+
+## Reuse a verifier across Endpoints
+
+Put each provider's verification rules in an active [Library](/build/libraries).
+Call the verifier from the receiving Endpoint Component before parsing the event,
+calling a business Component, writing to Storage, or starting a Job. The
+Library runs inside the receiving Component after Endpoint admission and
+request validation.
+
+Create a JavaScript Library named `WebhookVerification` and add this named
+export to its `@default` element. The method reads the current request through
+`api.input()` and obtains the key from Vault under the Endpoint's execution
+permissions. It returns the raw bytes after verifying the signature.
+
+```js title="WebhookVerification · @default"
+export async function requireGitHubSignature() {
+  const { body, headers } = api.input();
+  if (body?.encoding !== 'base64') {
+    api.throw(400, { error: 'Expected raw request bytes' });
+  }
+
+  const signature = headers?.['x-hub-signature-256'];
+  if (
+    typeof signature !== 'string' ||
+    !/^sha256=[0-9a-f]{64}$/.test(signature)
+  ) {
+    api.throw(401, { error: 'Invalid signature' });
+  }
+
+  const bytes = Buffer.from(body.data, 'base64');
+  const key = (
+    await vault.get('WEBHOOK_SIGNING_SECRET')
+  ).revision.value;
+  const digest = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+  if (!util.timingSafeEqual('sha256=' + digest, signature)) {
+    api.throw(401, { error: 'Invalid signature' });
+  }
+
+  return bytes;
+}
+```
+
+Configure GitHub to send JSON. Start the Endpoint result element with the
+Library call, then parse the verified bytes.
+
+```js title="Endpoint result element · verify, then parse"
+const bytes = await lib.WebhookVerification.requireGitHubSignature();
+const event = JSON.parse(bytes.toString('utf8'));
+
+return { verified: true, action: event.action ?? null };
+```
+
+A bad signature returns `401` before the event is parsed. Add business logic
+after the Library call. If the logic lives in a separate Component, call it
+after verification with [`api.executeComponent()`](/low-code/reference/api/executeComponent).
+
+## URL-bound deliveries
+
+Use the Application address shown in Revo for new subscriptions. When the
+provider signs the arriving URL, `api.input().requestTarget.url` preserves the
+encoded path, parameter order and repeated query keys. If ingress rewrites
+the URL, use trusted integration configuration to reconstruct the provider-facing
+address. The runtime omits the full URL and exact query when it recognizes
+sensitive query keys. Keep credentials outside signed URL queries.
+
+The examples below cover signed deliveries. Follow each provider’s setup,
+challenge and retry rules. For the shared verification flow, MIME limits and
+the [Standard Webhooks v1 and v2a examples](/operate/signed-webhooks#example-standard-webhooks),
+see [Verify signed webhooks in low-code](/operate/signed-webhooks).
+
+## HMAC over the body
+
+<AccordionGroup>
+  <Accordion title="Adyen · header-signed webhooks">
+
+This example covers Adyen webhook types that send the signature in `hmacsignature`. Store the hexadecimal HMAC key. For Standard payments webhooks, use Adyen’s separate field-based signing recipe. [Provider documentation](https://docs.adyen.com/development-resources/webhooks/secure-webhooks/verify-hmac-signatures/)
+
+```js title="Adyen · header-signed webhooks"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['hmacsignature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (headers?.protocol !== 'HmacSHA256') {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+if (!/^[0-9a-f]{64}$/i.test(key)) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const expected = await util.hmacAsync(
+  bytes,
+  Buffer.from(key, 'hex'),
+  'sha256',
+  'base64',
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Bitbucket Cloud">
+
+Set a webhook secret. Compare the complete `X-Hub-Signature` value including its `sha256=` prefix. [Provider documentation](https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/)
+
+```js title="Bitbucket Cloud"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-hub-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="DocuSign Connect">
+
+Enable HMAC on the Connect configuration. DocuSign sends a numbered signature header for each enabled key. This sample verifies one trusted key against the received signatures. [Provider documentation](https://developers.docusign.com/platform/webhooks/connect/hmac)
+
+```js title="DocuSign Connect"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const candidates = Object.entries(headers ?? {})
+  .filter(
+    ([name, value]) =>
+      /^x-docusign-signature-[1-9]\d*$/.test(name) &&
+      typeof value === 'string' &&
+      /^[A-Za-z0-9+/]{43}=$/.test(value),
+  )
+  .map(([, value]) => value);
+if (!candidates.length || candidates.length > 100) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+);
+if (
+  !candidates.some((candidate) =>
+    util.timingSafeEqual(expected, candidate),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Dropbox">
+
+Use the app secret for signed POST notifications. Configure Dropbox’s separate GET challenge on the callback URL during subscription setup. [Provider documentation](https://docs.dropboxapi.com/dropbox-api/docs/webhooks)
+
+```js title="Dropbox"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-dropbox-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="GitHub">
+
+Use the webhook’s configured secret. The example verifies the SHA-256 signature of the original delivery. [Provider documentation](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries)
+
+```js title="GitHub"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-hub-signature-256'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Jira Cloud · webhook secret">
+
+Use this example when the webhook registration provides a `secret` and Jira delivers `X-Hub-Signature`. Select SHA-256 for this integration. [Provider documentation](https://developer.atlassian.com/cloud/jira/platform/webhooks/)
+
+```js title="Jira Cloud · webhook secret"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-hub-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Lemon Squeezy">
+
+Use the signing secret configured for the webhook. The `X-Signature` value is a hexadecimal HMAC. [Provider documentation](https://docs.lemonsqueezy.com/help/webhooks/signing-requests)
+
+```js title="Lemon Squeezy"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Linear">
+
+Use the signing secret of the webhook. After verifying the body, check its signed `webhookTimestamp` in milliseconds. [Provider documentation](https://linear.app/developers/webhooks)
+
+```js title="Linear"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['linear-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const { webhookTimestamp } = JSON.parse(bytes.toString('utf8'));
+if (
+  !Number.isSafeInteger(webhookTimestamp) ||
+  Math.abs(Date.now() - webhookTimestamp) > 60_000
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Meta Graph API">
+
+Use the Meta app secret for event deliveries. Configure the subscription’s GET challenge separately with the verify token. [Provider documentation](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/)
+
+```js title="Meta Graph API"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-hub-signature-256'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Notion">
+
+Complete endpoint verification in Notion and store the resulting `verification_token` in Vault. Use that token as the HMAC key for subsequent events. [Provider documentation](https://developers.notion.com/reference/webhooks)
+
+```js title="Notion"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-notion-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="QuickBooks Online">
+
+Use the verifier token from the QuickBooks app’s webhook configuration. Keep sandbox and production tokens separate. [Provider documentation](https://developer.intuit.com/app/developer/qbo/docs/develop/webhooks/configure-webhooks)
+
+```js title="QuickBooks Online"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['intuit-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Razorpay">
+
+Use the webhook secret. Plan to keep the previous key available during rotation if outstanding retries were signed with it. [Provider documentation](https://razorpay.com/docs/webhooks/validate-test/)
+
+```js title="Razorpay"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-razorpay-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Shopify">
+
+Use the app client secret. The header contains the Base64 HMAC of the original request body. [Provider documentation](https://shopify.dev/docs/apps/build/webhooks/verify-deliveries)
+
+```js title="Shopify"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-shopify-hmac-sha256'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Sumsub · SHA-512">
+
+Configure `HMAC_SHA512_HEX` on the Sumsub webhook and store its secret. The example requires that configured algorithm on every delivery. [Provider documentation](https://docs.sumsub.com/docs/webhook-manager)
+
+```js title="Sumsub · SHA-512"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-payload-digest'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (headers?.['x-payload-digest-alg'] !== 'HMAC_SHA512_HEX') {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha512', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Typeform">
+
+Use the webhook secret. The digest is Base64 with a literal `sha256=` prefix. [Provider documentation](https://www.typeform.com/developers/webhooks/secure-your-webhooks/)
+
+```js title="Typeform"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['typeform-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+);
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Vercel · integration webhook">
+
+Use your Vercel integration secret. This integration header uses HMAC-SHA1 with hexadecimal output. [Provider documentation](https://vercel.com/docs/webhooks/webhooks-api)
+
+```js title="Vercel · integration webhook"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-vercel-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(bytes, key, 'sha1', 'hex');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Xero">
+
+Use the webhook signing key from the Xero app. Configure the required responses for Xero’s activation checks, including `401` for an invalid signature. [Provider documentation](https://developer.xero.com/documentation/guides/webhooks/overview)
+
+```js title="Xero"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-xero-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+</AccordionGroup>
+
+## HMAC with a timestamp or delivery ID
+
+<AccordionGroup>
+  <Accordion title="Calendly">
+
+Use the subscription’s signing key. Verify the `v1` signature of the timestamp, a dot and the original body. [Provider documentation](https://developer.calendly.com/api-docs/overview/webhooks/webhook-signatures)
+
+```js title="Calendly"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['calendly-webhook-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const parts = signature.split(',').map((part) => part.trim());
+const timestamps = parts
+  .filter((part) => part.startsWith('t='))
+  .map((part) => part.slice(2));
+const candidates = parts
+  .filter((part) => part.startsWith('v1='))
+  .map((part) => part.slice(3));
+if (
+  timestamps.length !== 1 ||
+  !candidates.length ||
+  candidates.length > 16
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const [timestamp] = timestamps;
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'hex',
+  timestamp + '.',
+);
+if (
+  !candidates.some((candidate) =>
+    util.timingSafeEqual(expected, candidate),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Clerk · Svix">
+
+Use the signing secret for the Clerk webhook endpoint, including the `whsec_` prefix. The signed message includes its Svix delivery ID and timestamp. [Provider documentation](https://clerk.com/docs/guides/development/webhooks/overview)
+
+```js title="Clerk · Svix"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const id = headers?.['svix-id'];
+if (typeof id !== 'string' || !id || id.length > 8192) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestamp = headers?.['svix-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['svix-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (!/^[a-zA-Z0-9_-]{1,256}$/.test(id)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const secret = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+if (!/^whsec_[A-Za-z0-9+/]+={0,2}$/.test(secret)) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const encoded = secret.slice(6);
+const key = Buffer.from(encoded, 'base64');
+if (
+  key.length < 24 ||
+  key.length > 64 ||
+  key.toString('base64').replace(/=+$/, '') !==
+    encoded.replace(/=+$/, '')
+) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  `${id}.${timestamp}.`,
+);
+const candidates = signature
+  .split(/\s+/)
+  .filter((value) => value.startsWith('v1,'));
+if (
+  !candidates.length ||
+  candidates.length > 16 ||
+  !candidates.some((value) =>
+    util.timingSafeEqual(expected, value.slice(3)),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true, messageId: id };
+```
+
+  </Accordion>
+  <Accordion title="GitLab · Standard Webhooks">
+
+Configure a signing token and store it with the `whsec_` prefix. The Standard Webhooks v1 headers carry the delivery ID, timestamp and signature list. [Provider documentation](https://docs.gitlab.com/user/project/integrations/webhooks/#verify-the-signature)
+
+```js title="GitLab · Standard Webhooks"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const id = headers?.['webhook-id'];
+if (typeof id !== 'string' || !id || id.length > 8192) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestamp = headers?.['webhook-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['webhook-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (!/^[a-zA-Z0-9_-]{1,256}$/.test(id)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const secret = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+if (!/^whsec_[A-Za-z0-9+/]+={0,2}$/.test(secret)) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const encoded = secret.slice(6);
+const key = Buffer.from(encoded, 'base64');
+if (
+  key.length < 24 ||
+  key.length > 64 ||
+  key.toString('base64').replace(/=+$/, '') !==
+    encoded.replace(/=+$/, '')
+) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  `${id}.${timestamp}.`,
+);
+const candidates = signature
+  .split(/\s+/)
+  .filter((value) => value.startsWith('v1,'));
+if (
+  !candidates.length ||
+  candidates.length > 16 ||
+  !candidates.some((value) =>
+    util.timingSafeEqual(expected, value.slice(3)),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true, messageId: id };
+```
+
+  </Accordion>
+  <Accordion title="Paddle Billing">
+
+Use the notification destination’s secret. This example uses the five-second tolerance documented for Paddle’s SDKs. Keep the runtime clock synchronized and set the tolerance for the delivery path. [Provider documentation](https://developer.paddle.com/webhooks/about/signature-verification/)
+
+```js title="Paddle Billing"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['paddle-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const parts = signature.split(';').map((part) => part.trim());
+const timestamps = parts
+  .filter((part) => part.startsWith('ts='))
+  .map((part) => part.slice(3));
+const candidates = parts
+  .filter((part) => part.startsWith('h1='))
+  .map((part) => part.slice(3));
+if (
+  timestamps.length !== 1 ||
+  !candidates.length ||
+  candidates.length > 16
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const [timestamp] = timestamps;
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 5
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'hex',
+  timestamp + ':',
+);
+if (
+  !candidates.some((candidate) =>
+    util.timingSafeEqual(expected, candidate),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Resend · Svix">
+
+Use the signing secret shown for this Resend webhook. Verify each delivery using the Svix headers and the original body. [Provider documentation](https://resend.com/changelog/managing-webhooks-via-api)
+
+```js title="Resend · Svix"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const id = headers?.['svix-id'];
+if (typeof id !== 'string' || !id || id.length > 8192) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestamp = headers?.['svix-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['svix-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (!/^[a-zA-Z0-9_-]{1,256}$/.test(id)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const secret = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+if (!/^whsec_[A-Za-z0-9+/]+={0,2}$/.test(secret)) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const encoded = secret.slice(6);
+const key = Buffer.from(encoded, 'base64');
+if (
+  key.length < 24 ||
+  key.length > 64 ||
+  key.toString('base64').replace(/=+$/, '') !==
+    encoded.replace(/=+$/, '')
+) {
+  api.throw(500, { error: 'Invalid signing key configuration' });
+}
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  `${id}.${timestamp}.`,
+);
+const candidates = signature
+  .split(/\s+/)
+  .filter((value) => value.startsWith('v1,'));
+if (
+  !candidates.length ||
+  candidates.length > 16 ||
+  !candidates.some((value) =>
+    util.timingSafeEqual(expected, value.slice(3)),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true, messageId: id };
+```
+
+  </Accordion>
+  <Accordion title="Slack">
+
+Use the Slack app’s signing secret. Verify `v0:timestamp:` followed by the original body, including when Slack delivers form data. [Provider documentation](https://docs.slack.dev/authentication/verifying-requests-from-slack)
+
+```js title="Slack"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-slack-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestamp = headers?.['x-slack-request-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'hex',
+  `v0:${timestamp}:`,
+);
+if (!util.timingSafeEqual('v0=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Stripe">
+
+Use the endpoint’s signing secret as issued, including `whsec_`. Check all supported `v1` values and apply a five-minute signing timestamp window. [Provider documentation](https://docs.stripe.com/webhooks#verify-webhook-signatures)
+
+```js title="Stripe"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['stripe-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const parts = signature.split(',').map((part) => part.trim());
+const timestamps = parts
+  .filter((part) => part.startsWith('t='))
+  .map((part) => part.slice(2));
+const candidates = parts
+  .filter((part) => part.startsWith('v1='))
+  .map((part) => part.slice(3));
+if (
+  timestamps.length !== 1 ||
+  !candidates.length ||
+  candidates.length > 16
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const [timestamp] = timestamps;
+if (
+  !/^\d{1,12}$/.test(timestamp) ||
+  Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'hex',
+  timestamp + '.',
+);
+if (
+  !candidates.some((candidate) =>
+    util.timingSafeEqual(expected, candidate),
+  )
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Twitch EventSub">
+
+Use the secret supplied when creating the subscription. The signature covers the ID, the original RFC 3339 timestamp string and the body. After verification, respond to subscription challenges as Twitch requires. [Provider documentation](https://dev.twitch.tv/docs/eventsub/handling-webhook-events)
+
+```js title="Twitch EventSub"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const messageId = headers?.['twitch-eventsub-message-id'];
+if (
+  typeof messageId !== 'string' ||
+  !messageId ||
+  messageId.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestamp = headers?.['twitch-eventsub-message-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['twitch-eventsub-message-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestampMs = Date.parse(timestamp);
+if (
+  messageId.length > 256 ||
+  timestamp.length > 64 ||
+  !Number.isFinite(timestampMs) ||
+  Math.abs(Date.now() - timestampMs) > 600_000
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'hex',
+  messageId + timestamp,
+);
+if (!util.timingSafeEqual('sha256=' + expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true, messageId };
+```
+
+  </Accordion>
+  <Accordion title="Zendesk">
+
+Use the secret from the Zendesk webhook. Concatenate the original timestamp header and the body directly, with no separator. [Provider documentation](https://developer.zendesk.com/documentation/webhooks/verifying/)
+
+```js title="Zendesk"
+const { headers, body } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const timestamp =
+  headers?.['x-zendesk-webhook-signature-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['x-zendesk-webhook-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const timestampMs = Date.parse(timestamp);
+if (
+  timestamp.length > 64 ||
+  !Number.isFinite(timestampMs) ||
+  Math.abs(Date.now() - timestampMs) > 300_000
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  timestamp,
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+</AccordionGroup>
+
+## Signatures that include the URL
+
+<AccordionGroup>
+  <Accordion title="HubSpot · v3">
+
+Use the app client secret. The signature covers the method, the selectively decoded URI, the original body and the timestamp. Preserve the query string and decode only HubSpot’s listed escapes. [Provider documentation](https://developers.hubspot.com/changelog/introducing-version-3-of-webhook-signatures)
+
+```js title="HubSpot · v3"
+const { headers, body, method, requestTarget } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const timestamp = headers?.['x-hubspot-request-timestamp'];
+if (
+  typeof timestamp !== 'string' ||
+  !timestamp ||
+  timestamp.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const signature = headers?.['x-hubspot-signature-v3'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const url = requestTarget?.url;
+if (
+  !method ||
+  !url ||
+  Buffer.byteLength(method + url, 'utf8') > 4096 ||
+  !/^\d{13}$/.test(timestamp) ||
+  Math.abs(Date.now() - Number(timestamp)) > 300_000
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const uri = url.replace(
+  /%(?:3A|2F|3F|40|21|24|27|28|29|2A|2C|3B)/gi,
+  (escape) => decodeURIComponent(escape),
+);
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  method + uri,
+  timestamp,
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Square">
+
+Use the subscription’s signature key. Set the Endpoint template input `options.input.notificationUrl` to the exact URL registered with Square. Square signs this URL followed by the request body. [Provider documentation](https://developer.squareup.com/docs/webhooks/step3validate)
+
+```js title="Square"
+const { headers, body, templateInputs } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-square-hmacsha256-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const url = templateInputs?.notificationUrl;
+if (
+  typeof url !== 'string' ||
+  !url ||
+  Buffer.byteLength(url, 'utf8') > 4096
+) {
+  api.throw(500, {
+    error: 'Invalid notification URL configuration',
+  });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(
+  bytes,
+  key,
+  'sha256',
+  'base64',
+  url,
+);
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+  <Accordion title="Twilio · JSON deliveries">
+
+Use the Twilio Auth Token. Verify the `bodySHA256` query value against the original bytes and then verify the HMAC of the untouched URL. Twilio form deliveries also sign sorted POST fields and use a different recipe. [Provider documentation](https://www.twilio.com/docs/usage/security#validating-requests-are-coming-from-twilio)
+
+```js title="Twilio · JSON deliveries"
+const { headers, body, query, requestTarget } = api.input();
+if (body?.encoding !== 'base64') {
+  api.throw(400, { error: 'Expected raw request bytes' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+
+const signature = headers?.['x-twilio-signature'];
+if (
+  typeof signature !== 'string' ||
+  !signature ||
+  signature.length > 8192
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const url = requestTarget?.url;
+const claimedHash = query?.bodySHA256;
+if (
+  !url ||
+  typeof claimedHash !== 'string' ||
+  !/^[a-f0-9]{64}$/.test(claimedHash)
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+if (
+  !util.timingSafeEqual(await util.sha256Async(bytes), claimedHash)
+) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+const key = (
+  await vault.get('WEBHOOK_SIGNING_SECRET')
+).revision.value;
+const expected = await util.hmacAsync(url, key, 'sha1', 'base64');
+if (!util.timingSafeEqual(expected, signature)) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+
+return { verified: true };
+```
+
+  </Accordion>
+</AccordionGroup>
+
+## Asymmetric signatures and MIME
+
+<AccordionGroup>
+  <Accordion title="SendGrid · signed Inbound Parse">
+
+Enable signature verification and raw MIME delivery in SendGrid Inbound Parse.
+Store the public key in Vault as `WEBHOOK_VERIFICATION_PUBLIC_KEY` (PEM or Base64
+DER SPKI). [Provider documentation](https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/securing-your-parse-webhooks)
+
+Add this method to the `@default` element of the `WebhookVerification` Library.
+It reads the current request, checks the timestamp and verifies the entire
+multipart body.
+
+```js title="WebhookVerification · @default"
+export async function requireSendGridSignature() {
+  const { body, headers } = api.input();
+  if (body?.encoding !== 'base64') {
+    api.throw(400, { error: 'Expected raw request bytes' });
+  }
+
+  const signature =
+    headers?.['x-twilio-email-event-webhook-signature'];
+  const timestamp =
+    headers?.['x-twilio-email-event-webhook-timestamp'];
+  if (
+    typeof signature !== 'string' ||
+    !signature ||
+    signature.length > 8192 ||
+    typeof timestamp !== 'string' ||
+    !/^\d{1,12}$/.test(timestamp) ||
+    Math.abs(Date.now() / 1000 - Number(timestamp)) > 300
+  ) {
+    api.throw(401, { error: 'Invalid or expired signature' });
+  }
+
+  const bytes = Buffer.from(body.data, 'base64');
+  const publicKey = (
+    await vault.get('WEBHOOK_VERIFICATION_PUBLIC_KEY')
+  ).revision.value;
+  const valid = await util.ecdsaVerify(
+    publicKey, bytes, signature, timestamp,
+  );
+  if (!valid) {
+    api.throw(401, { error: 'Invalid signature' });
+  }
+
+  return { bytes, contentType: body.contentType };
+}
+```
+
+In the Endpoint result element, call the method with no arguments and parse
+the verified `email` field.
+
+```js title="Endpoint result element · verify, then parse MIME"
+const { bytes, contentType } =
+  await lib.WebhookVerification.requireSendGridSignature();
+const mail = await util.parseMime(bytes, contentType, 'email');
+
+return { verified: true, attachmentCount: mail.attachments.length };
+```
+
+  </Accordion>
+</AccordionGroup>

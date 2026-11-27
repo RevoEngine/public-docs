@@ -80,7 +80,7 @@ Repeated fields preserve their order as arrays; files preserve their input order
 
 ## Keep exact bytes for verification
 
-Choose `requestBody: {"mode":"raw"}` when application code needs exact original bytes, including multipart framing and provider signatures. It uses the same Base64 envelope as binary input, defaults to 1 MiB and is capped at 8 MiB. It buffers the complete bounded input; decoding a low-code Buffer does not make it streaming.
+Choose `requestBody: {"mode":"raw"}` when application code needs exact original bytes, including multipart framing and provider signatures. It uses the same Base64 envelope as binary input, defaults to 1 MiB and is capped at 32 MiB. It buffers the complete bounded input; decoding a low-code Buffer does not make it streaming.
 
 There is no nested `requestBody.storage` destination or provider-specific verification setting. Verify signatures over original bytes with authorized keys, enforce timestamp/replay rules, then explicitly persist or publish work. A Storage receipt is not signature proof. See [signed webhook examples](/operate/signed-webhooks).
 

@@ -149,6 +149,7 @@
                   "operate/custom-domains",
                   "operate/endpoint-bodies",
                   "operate/signed-webhooks",
+                  "operate/signed-webhook-examples",
                   "operate/endpoint-http",
                   "operate/endpoint-configuration",
                   "operate/endpoint-sse"
@@ -972,6 +973,7 @@
               {
                 "group": "1.9.x",
                 "pages": [
+                  "changelog/1.9.5",
                   "changelog/1.9.4",
                   "changelog/1.9.3",
                   "changelog/1.9.2",

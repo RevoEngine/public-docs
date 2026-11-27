@@ -6,6 +6,8 @@ icon: signature
 
 Endpoint configuration defines transport and admission. **Your low-code component defines the provider's signature protocol.** HMAC secrets, asymmetric public keys, signed timestamp formats, rotation and retry rules differ by provider; there is no universal provider-key field on an Endpoint.
 
+Find a ready-to-paste verifier for your provider in [Signed webhook examples](/operate/signed-webhook-examples).
+
 ## Prepare the endpoint
 
 Use a published Component endpoint with `POST`, HTTP response mode, modern results and a visible result element. Set the following body options; this is a fragment, not a complete Endpoint definition:
@@ -47,10 +49,10 @@ if (Math.abs(Date.now() / 1000 - timestamp) > 300) {
 }
 const secret = (await vault.get('WEBHOOK_SIGNING_SECRET')).revision.value;
 const bytes = Buffer.from(raw.data, 'base64');
-const signedBytes = Buffer.concat([Buffer.from(`${timestamps[0]}.`), bytes]);
+const expected = await util.hmacAsync(bytes, secret, 'sha256', 'hex', `${timestamps[0]}.`);
 const valid = signatures.some(signature =>
   /^[a-f0-9]{64}$/i.test(signature ?? '') &&
-  util.verifyHmacSignature(signedBytes, signature, secret, 'sha256', 'hex')
+  util.timingSafeEqual(expected, signature.toLowerCase())
 );
 if (!valid) api.throw(401, { error: 'Invalid signature' });
 return { verified: true, size: bytes.length };
@@ -58,11 +60,42 @@ return { verified: true, size: bytes.length };
 
 Expected result for a fresh, correctly signed request: `{ "verified": true, "size": ... }`. Changing one body byte, supplying a bad signature or using an expired timestamp returns 401 before application writes. The runtime's omitted-format JSON parser must not replace raw mode for this example.
 
-Follow the provider's current [signature and delivery guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors). This example bounds the request body to 1 MiB.
+Follow the provider's current [signature and delivery guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors). This example uses an explicit 1 MiB request limit. Asynchronous HMAC accepts payloads up to 32 MiB.
+
+## Verify a signature that includes the URL
+
+Use `api.input().requestTarget.url` when the provider signs the URL that reaches
+the Endpoint. It preserves the encoded path and the original order and encoding of query
+parameters. Use the Application address shown in Revo when registering new
+subscriptions. If ingress rewrites the URL, use the provider-facing URL from your
+trusted integration settings. Apply any provider-specific URL decoding in the
+Component. The Endpoint runtime omits the signed URL and the exact query when it recognizes a
+sensitive query key, including Revo's `authorization` and `token` parameters.
+
+Square signs the notification URL followed by the raw body. With the raw request
+mode configured above, store the subscription key in instance Vault as
+`WEBHOOK_SIGNING_SECRET`.
+
+```js title="Component result element · URL and raw body"
+const { requestTarget, headers, body } = api.input();
+const url = requestTarget?.url;
+const signature = headers?.['x-square-hmacsha256-signature'];
+if (!url || typeof signature !== 'string' || body?.encoding !== 'base64') {
+  api.throw(401, { error: 'Invalid signature' });
+}
+const secret = (await vault.get('WEBHOOK_SIGNING_SECRET')).revision.value;
+const bytes = Buffer.from(body.data, 'base64');
+const expected = await util.hmacAsync(bytes, secret, 'sha256', 'base64', url);
+if (!util.timingSafeEqual(expected, signature)) api.throw(401, { error: 'Invalid signature' });
+return { verified: true };
+```
+
+Use the exact URL registered in Square as the prefix when the registered address
+differs from the address received by the Endpoint. [Square signature documentation](https://developer.squareup.com/docs/webhooks/step3validate)
 
 ## Example: asymmetric P-256 signature
 
-For a provider using P-256/SHA-256, such as a signed SendGrid Inbound Parse delivery, application code concatenates the exact timestamp bytes and raw body without the HMAC example's dot separator. Store the provider's public key in instance Vault as `WEBHOOK_VERIFICATION_PUBLIC_KEY` (PEM or Base64 DER SPKI).
+For a provider using P-256/SHA-256, such as a signed SendGrid Inbound Parse delivery, pass the timestamp as the prefix. The helper prepends its UTF-8 bytes directly to the original body. Store the provider's public key in instance Vault as `WEBHOOK_VERIFICATION_PUBLIC_KEY` (PEM or Base64 DER SPKI).
 
 The following **example application policy** permits a five-minute timestamp window. Select the tolerance and retry handling for your provider's contract; do not assume all providers regenerate timestamps or use identical delivery windows.
 
@@ -79,28 +112,110 @@ if (!/^\d{1,12}$/.test(timestamp) || Math.abs(Date.now() / 1000 - Number(timesta
 }
 const publicKey = (await vault.get('WEBHOOK_VERIFICATION_PUBLIC_KEY')).revision.value;
 const bytes = Buffer.from(raw.data, 'base64');
-const signedBytes = Buffer.concat([Buffer.from(timestamp), bytes]);
-let valid;
-try {
-  valid = await util.ecdsaVerify(publicKey, signedBytes, signature);
-} catch {
-  api.throw(503, { error: 'Signature verification unavailable' });
-}
+const valid = await util.ecdsaVerify(publicKey, bytes, signature, timestamp);
 if (!valid) api.throw(401, { error: 'Invalid signature' });
 return { verified: true, size: bytes.length };
 ```
 
-`util.ecdsaVerify` is a general P-256/SHA-256 primitive, not a provider integration. It accepts exact bytes and a Base64 DER signature; it does not parse headers, choose trusted keys, enforce timestamp freshness or record processed message IDs. Payloads are limited to 32 MiB, public keys to 64 KiB, and signature strings to 1,024 characters. Malformed key configuration throws. A mismatched signature returns `false`.
+`util.ecdsaVerify` accepts up to 32 MiB of original body, a UTF-8 prefix of up to 4,096 bytes, a public key of up to 64 KiB and a Base64 DER signature of up to 1,024 characters. Invalid key configuration raises an error. A mismatched signature returns `false`. Your application supplies the trusted key, handles timestamps and records processed message IDs. For large multipart deliveries, set `requestBody.maxBytes` to the required wire size and allocate enough Component memory for the Base64 envelope and decoded bytes. Ingress can impose a lower limit.
 
 Check the provider's [Inbound Parse security documentation](https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/securing-your-parse-webhooks) when defining its security policy, key rotation and accepted retries. A signature proves authenticity of the signed bytes; parsing email, attachment handling, durable work admission and delivery recovery are later application steps.
 
-## Parse an inbound email
+## Parse a signed email and its attachments
 
-After verifying a signed Inbound Parse delivery, pass its original bytes to [`util.parseMime()`](/low-code/reference/util/parseMime). For a multipart delivery, also pass the original Content-Type and the name of the field containing the raw MIME message. Treat returned headers, HTML and attachment contents as untrusted input. Use [`util.crc32Async()`](/low-code/reference/util/crc32Async) when the workflow needs a CRC-32 checksum for a file or message.
+The [SendGrid Library example](/operate/signed-webhook-examples#asymmetric-signatures-and-mime) shows the same flow with a reusable signature check.
 
-If the provider includes the URL in the signature, use `api.input().requestTarget` for the original encoded path and query. Follow the provider's rules for assembling the other parts of the signed value.
+After successful signature verification, replace the receipt in the SendGrid
+example with the following code. Configure Inbound Parse to send the raw
+message and configure the Revo endpoint for raw request bytes.
+
+```js title="Decode the verified SendGrid email field"
+const mail = await util.parseMime(bytes, raw.contentType, 'email');
+return {
+  messageId: mail.messageId,
+  subject: mail.subject,
+  attachments: mail.attachments.map(part => ({
+    filename: part.filename,
+    size: part.size,
+  })),
+};
+```
+
+Each attachment includes a `Uint8Array` in `content`, its media type, and a
+Content-ID when present. You can also parse an existing RFC 5322 message
+directly with `await util.parseMime(bytes)`. The native parser accepts at most
+32 MiB, 128 MIME parts, 16 levels of nesting, 32 attachments and 4 MiB of combined
+decoded text and HTML. Treat filenames, addresses, media types and HTML as
+untrusted values. A verified webhook authenticates the HTTP delivery from the
+provider. Authenticate the original email sender according to your application
+policy.
+
+## Example: Standard Webhooks
+
+This HMAC variant signs the delivery ID, timestamp and original body. Store the provider's `whsec_` signing secret in Vault and configure the endpoint for raw bytes. This example accepts multiple `v1` signatures and applies a five-minute window in both directions.
+
+```js title="Component result element · Standard Webhooks"
+const { headers, body } = api.input();
+const id = headers['webhook-id'];
+const timestamp = headers['webhook-timestamp'];
+const signatures = headers['webhook-signature'];
+if (body?.encoding !== 'base64') api.throw(400, { error: 'Expected raw request bytes' });
+if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,256}$/.test(id) || typeof timestamp !== 'string' ||
+    !/^\d{1,12}$/.test(timestamp) || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300 ||
+    typeof signatures !== 'string' || signatures.length > 8192) {
+  api.throw(401, { error: 'Invalid or expired signature' });
+}
+const secret = (await vault.get('WEBHOOK_SIGNING_SECRET')).revision.value;
+if (!secret.startsWith('whsec_') || !/^[A-Za-z0-9+/]+={0,2}$/.test(secret.slice(6))) {
+  api.throw(500, { error: 'Signing key is misconfigured' });
+}
+const encoded = secret.slice(6);
+const key = Buffer.from(encoded, 'base64');
+const canonical = key.toString('base64');
+if (key.length < 24 || key.length > 64 ||
+    (encoded !== canonical && encoded !== canonical.replace(/=+$/, ''))) {
+  api.throw(500, { error: 'Signing key is misconfigured' });
+}
+const bytes = Buffer.from(body.data, 'base64');
+const expected = await util.hmacAsync(bytes, key, 'sha256', 'base64', `${id}.${timestamp}.`);
+if (!signatures.split(/\s+/).some(value =>
+    value.startsWith('v1,') && util.timingSafeEqual(expected, value.slice(3)))) {
+  api.throw(401, { error: 'Invalid signature' });
+}
+return { verified: true, messageId: id };
+```
+
+For the asymmetric Standard Webhooks variant, pin the producer-provided
+endpoint ID and Ed25519 public key with the endpoint configuration. Reuse the
+validated `id`, `timestamp`, `signatures` and `bytes` from the earlier example.
+The identifier is `v2a` and the signature covers the 32 raw SHA-256 bytes.
+
+```js title="Verify Standard Webhooks v2a"
+const endpointId = api.input().templateInputs.senderEndpointId;
+const encodedKey = (await vault.get('WEBHOOK_VERIFICATION_PUBLIC_KEY')).revision.value;
+if (typeof endpointId !== 'string' || !/^[a-zA-Z0-9_-]{1,256}$/.test(endpointId) ||
+    !encodedKey.startsWith('whpk_')) api.throw(500, { error: 'Invalid endpoint verification configuration' });
+const key = Buffer.from(encodedKey.slice(5), 'base64');
+if (key.length !== 32) api.throw(500, { error: 'Invalid public key' });
+const digest = await util.sha256Async(bytes, `${endpointId}.${id}.${timestamp}.`);
+const candidates = signatures.split(/\s+/).filter(value => value.startsWith('v2a,'));
+if (candidates.length > 16) api.throw(401, { error: 'Too many signatures' });
+let valid = false;
+for (const candidate of candidates) {
+  if (await util.ed25519Verify(key, Buffer.from(digest, 'hex'), candidate.slice(4))) {
+    valid = true;
+    break;
+  }
+}
+if (!valid) api.throw(401, { error: 'Invalid signature' });
+return { verified: true, messageId: id };
+```
+
+Other signing schemes can use `util.ed25519Verify` for Ed25519 and `util.rsaPkcs1Verify` for RSA PKCS#1 v1.5. Use a public key from trusted configuration or a certificate already validated for the provider. `util.sha256Async` returns a hex digest of the exact bytes. Use [`util.crc32Async()`](/low-code/reference/util/crc32Async) for protocols that include an unsigned CRC-32 in signed metadata.
 
 ## Persist after verification
+
+Share provider verification in a Library and use it as a gate before processing the event. See the [reusable verifier example](/operate/signed-webhook-examples#reuse-a-verifier-across-endpoints).
 
 After verification, parse and validate the business payload, claim its durable idempotency key, and explicitly store files or publish work using the executor's permissions. Return success only after the level of acceptance your integration promises. Repeated valid deliveries must not duplicate side effects.
 

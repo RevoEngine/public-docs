@@ -1,0 +1,65 @@
+---
+title: "1.9.5 — Assistant conversations, parallel delegation, and inline Jobs"
+sidebarTitle: "1.9.5"
+icon: "tag"
+description: "27 November 2026"
+---
+
+Explore a question alongside its original conversation, follow several delegated investigations at once, or schedule work for later. Automation can now run inline JavaScript or TypeScript on the Job runtime, with saved source and outcomes available in Job History.
+
+## Highlights
+
+- Open a side chat from a message or selected excerpt and return to it from Summary.
+- Choose Ultra for a single Assistant turn and follow delegated work in the Subagents dialog.
+- Schedule, edit, or run a one-time reminder from its conversation.
+- Author JavaScript or TypeScript directly in a Job template and inspect its saved source in Job History.
+- Run longer low-code tasks as background Jobs from Assistant and MCP. Follow the status of existing authorized Jobs from Summary.
+
+## In detail
+
+## Keep related conversations together
+
+Choose **Ask in side chat** on a message or select a passage to start with that excerpt quoted in an editable draft. You can also start from the latest saved message using **New side chat** or `/side`. While the main thread is working, a new side chat can branch from the latest saved request after the conversation has two saved user requests. The original conversation remains on the left on wide screens. The branch opens in a closable tab on the right, and the divider lets you resize the two panes.
+
+Ask the Assistant to open an independent conversation, side chat, or ordinary fork and send its first message. Side chats appear in the parent’s **Summary**. Independent conversations and forks appear in **Sources** with links to their own threads.
+
+Open **Conversation details** or use `/summary` to return to side chats, resources, Studio sessions, saved reminders, or subagents. **Changes** opens recorded version comparisons. **Background activity** shows the latest reported status of Jobs and commands on connected terminals, with links to execution details. Sources shows every loaded reference. On wide screens, Summary shares the scroll region beside the messages above the Composer. In compact layouts it opens over the conversation.
+
+Use **Pin** to keep a conversation at the top of your Threads list. Choose **Archive** to set it aside while keeping it available to reopen. See [Assistant conversations](/ai/assistant).
+
+## Delegate parallel work with Ultra
+
+The Composer shows the selected model and reasoning level together. Open the reasoning selector to compare available models and choose an effort level. The Fast Mode control shows its availability for the selected model.
+
+For an interactive turn with Standard planning, select **Ultra** when independent work or a second check would help. The main Assistant can delegate up to five subagents in that turn and collect their replies before answering. Ultra applies to a single message, and the Composer returns to the previous reasoning level afterward. Each subagent has its own conversation, model, reasoning level, and tools selected for the assignment.
+
+Open a subagent from its activity entry or Conversation details to see progress, tool activity, and the finished reply. Named activity entries help identify which agent started. Distinct conversations preserve the results for follow-up, and stopping the parent turn cancels its active subagents. See [Assistant](/ai/assistant).
+
+## Schedule work inside a conversation
+
+Use `/remind` or the Composer menu to schedule a one-time task. Set a date or choose a relative time, then enter text or structured JSON. At the scheduled time the Assistant receives the task in the target conversation and continues with that conversation's settings.
+
+Open a reminder from Summary or from the activity that scheduled it. Use **Show more** in Summary to open the full list, or open it from the clock in the conversation toolbar. The list lets you search saved entries and inspect their status. Use **Edit**, **Cancel**, or **Run now** for a scheduled reminder. If the conversation is working, a reminder made due by **Run now** runs after the current turn finishes. An Assistant action can also schedule work in another conversation you own. See [Assistant reminders](/ai/assistant).
+
+## Write and inspect inline Jobs
+
+In a Job template, choose **Inline** beside the Component picker and edit JavaScript or TypeScript in Monaco. Inline templates use the normal Job input, scheduling, concurrency, and retry controls. Each admitted execution keeps the source revision it started with, so retrying after a template edit still uses the saved source for that attempt.
+
+In Job History, look for **Inline code** or **AI Inline Code**. The initiating account can open a read-only preview of the saved source, including separate code elements when present. Standalone inline runs expose their outcome in Job History and details. See [Jobs](/operate/jobs).
+
+## Run low-code tasks in the background
+
+Assistant and MCP can submit an inline execution as an asynchronous Job. Admission returns a durable Job ID. The Job uses the instance's configured runtime limit and can use one of the supported inline memory presets. Existing read-only controls and approval policies apply. Follow an execution in Job History or ask the Assistant to wait for up to ten known Jobs under a shared deadline. An existing Job can appear in Background activity after the Assistant observes its status. Reopen the saved Job reference from Conversation details in a later turn.
+
+Synchronous Sandbox execution has its own Usage view. Use it alongside the Job activity views to review where your execution time was spent. See [Jobs](/operate/jobs) and [Observability](/operate/observability).
+
+
+## Related guides
+
+- [Work in the Assistant](/ai/assistant)
+- [Create and monitor Jobs](/operate/jobs)
+- [Review execution activity](/operate/observability)
+
+## Continue through the releases
+
+[All releases](/releases/changelog) · [Earlier: 1.9.4](/changelog/1.9.4)

@@ -51,6 +51,20 @@ It is especially effective for:
 
 Its differentiation is **grounded context plus governed action**: it can inspect and, when admitted, change the actual application model rather than merely suggest text or code in isolation. Read [Agent Harness](/ai/agent-harness) for the runtime contract around the model.
 
+## Delegate with Ultra
+
+With Standard planning, open the Composer’s model and reasoning menu and move the reasoning slider past **Extra High** to **Ultra**. Ultra applies to one turn. The Composer restores your usual reasoning for the next message. For substantial work the Assistant can delegate an isolated task or run independent checks in parallel. An Ultra turn can start up to five subagents.
+
+Each subagent uses Medium reasoning by default and can use up to High. The Assistant can choose its own model tier or a lower one. Open **Subagents** in the Composer or **Summary**, or select a named subagent in the activity timeline. Switch tabs to see each assignment, model, reasoning level, live progress and result. The Assistant waits for the required results before writing its answer.
+
+## Schedule a follow-up
+
+Type `/remind` or choose **Schedule reminder** from the composer’s plus menu. Enter when the Assistant should resume and the message it should receive. The clock in the conversation toolbar opens the next scheduled reminder. The reminder opens next to the searchable list for that conversation. Choose **Edit** to change the time or message, or **Run now** to make it due immediately. If the conversation is busy, the reminder waits for the active turn to finish. You can also cancel a scheduled reminder. Select **Scheduled reminder** in the Assistant’s tool activity to open the reminder it created. When a reminder runs, its message appears on the user side of the conversation with a **Sent by User** or **Sent by Agent** header.
+
+The date picker offers **In 5 minutes**, **In 15 minutes**, and **In an hour**. Choose a future time and enter plain text or valid JSON for the message.
+
+You can also ask the Assistant to schedule work in another interactive thread you own. For ongoing monitoring, give the Assistant the threads to check and ask it to schedule its own follow-up with those references. Each reminder runs once. The Assistant can schedule another check when the saved task calls for it.
+
 ## Capability and access boundary
 
 The Interactive Agent can have broad access to your *authorized* platform surface, but it never receives blanket administrator access because it is AI-driven. Every turn is constrained by the current identity, thread configuration, instance policy, enabled capabilities, target ACLs, and approval policy.
@@ -94,7 +108,7 @@ For terminal work, follow [Connect a terminal](/ai/terminals). For broader codin
 
 A thread preserves the visible conversation and the runtime state needed to continue safely. You can:
 
-- rename, search, delete, and restore threads;
+- rename, search, pin, archive, delete, and restore threads;
 - organize threads in personal, instance-scoped groups, move them between groups, and collapse groups while browsing the history;
 - continue a completed thread with follow-up messages;
 - refine the requested outcome through follow-up messages and reviewable execution plans;
@@ -104,9 +118,25 @@ A thread preserves the visible conversation and the runtime state needed to cont
 
 Thread history and artifacts remain available according to access and retention policy, allowing authorized users to resume work without turning a conversation into an ungoverned file store. Groups are a personal navigation preference; moving a thread between them does not change the thread's access or ownership. Older threads load in additional pages.
 
+Choose **Pin** from a thread’s menu to move it to **Pinned**. Use **Archive** to keep a thread available without showing it in the ordinary list. Enable **Show Archived** to view or unarchive those conversations.
+
+Use **Fork thread** on a message to start a separate conversation that appears in **Threads**. The `/fork` command forks from the latest message. To branch into a tab next to the main conversation, use **Ask in side chat** on a message or type `/side`. You can also select a passage to start with an editable quote.
+
+When the main conversation is active, **New side chat** can branch from the latest saved user request after at least two user requests have been saved. With focus in the main Composer, use **Ctrl+T** or **Command+T** where your browser passes the shortcut through to the app.
+
+You can also ask the Assistant to open a new independent thread, a side chat, or a regular fork and send the first message there. A new thread starts with the message chosen for it. A fork uses the source conversation up to the settled message where it branches. When the Assistant opens a side chat from the main conversation you are viewing, its tab opens as soon as the request is admitted. Links to independent threads and ordinary forks appear in **Summary → Sources**.
+
+Side chats appear in the parent conversation’s tabs and at the top of **Summary**. Close a side chat tab to put it away, then use **Summary → Side chats** to reopen it. Type `/summary` or choose **Summary** from the Composer’s plus menu. On wide screens, Summary sits beside the messages in their scrollable area above the Composer and stays open while you work. On smaller screens, click outside the overlay to dismiss it. Reminders show up to five entries initially. Select a reminder to open its details or choose **Show more** to open the full reminder list. **Reminders** appears when the conversation has saved reminders.
+
+**Sources** shows resources, Jobs, and independent or forked conversations at the bottom of the panel. Every loaded source is visible in the list. Each row uses the resource name and an icon for its type. The card scrolls when its content exceeds the space above the Composer. Open a recorded change under **Changes** to compare the exact saved versions. Select **Custom** in the workspace header to view the conversation's instructions, response format, and tools.
+
 ## Progress and files
 
 **Show progress** controls intermediate activity in the conversation and defaults to enabled when no preference has been saved. It does not change reasoning effort or approval policy. Revised plans use your feedback without requiring the same wording; review-required plans still wait for approval.
+
+Expand a grouped activity to see the individual executions behind it. Named subagent launches open the corresponding transcript, and a displayed reason explains what the Assistant is doing. Expand the activity in a completed turn to review it later.
+
+Each synchronous or background code execution includes a short explanation of its purpose. A background Job retains it so you can find the run later. **Summary → Background activity** shows the latest reported status of Jobs the Assistant starts or waits for, along with background commands started on connected Revo terminals. When the Assistant waits for an existing authorized Job, Summary records the observed execution too. Each Job has one entry with its last confirmed status. Select the entry to open the execution and see its current details.
 
 New files created by the interactive Assistant default to **Private**. Updating a selected existing file follows its current access rules. Autonomous Agents keep their own workspace default. The Assistant can read and attach files from other workspaces when its execution identity has access; a workspace name alone does not grant permission.
 
@@ -128,7 +158,7 @@ Attach registry plugins when the task needs tenant-specific or external capabili
 
 ## Models and reasoning
 
-The models available to the Assistant are controlled by the current RevoEngine release and instance configuration. Public reasoning levels are **Low**, **Medium**, **High**, and **Extra high**.
+The models available to the Assistant depend on the current RevoEngine release and instance configuration. The Composer shows the chosen model and reasoning level together. Open **Select model** for a short description of each model. The lightning control shows whether the model supports Fast Mode.
 
 ### Current model support
 

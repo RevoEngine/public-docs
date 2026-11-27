@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   auditPlatformOpenApi,
+  auditPublicSanitization,
   enrichPlatformOpenApi,
   operationEntries,
   publicOperationKeys,
@@ -382,4 +383,42 @@ test('public access descriptions stay readable without changing roles or account
   assert.match(noRoles, /Not listed\. Resource authorization still applies/);
   assert.match(noRoles, /\*\*User access:\*\* No/);
   assert.match(noRoles, /\*\*Service account access:\*\* Yes/);
+});
+
+test('public projection keeps the instance example independent of a tenant and exposes only the public report status', () => {
+  const source = fixture();
+  const sourceTenantExample = '00000000-0000-4000-8000-000000000002';
+  source.components.schemas.UpdateInstanceSlugResponseDto = {
+    type: 'object',
+    properties: {
+      instanceId: { type: 'string', example: sourceTenantExample },
+    },
+  };
+  source.components.schemas.AssistantThreadReportResponseDto = {
+    type: 'object',
+    properties: {
+      status: { type: 'string', enum: ['pending', 'exported'] },
+    },
+  };
+  for (const [path, schema] of [
+    ['/api/v1/config/example-slug', 'UpdateInstanceSlugResponseDto'],
+    ['/api/v1/assistant/threads/{id}/report', 'AssistantThreadReportResponseDto'],
+  ]) {
+    source.paths[path] = { post: {
+      operationId: schema === 'AssistantThreadReportResponseDto' ? 'AssistantController_reportThread' : 'ConfigController_updateInstanceSlug',
+      responses: { 200: {
+        description: 'Success',
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/' + schema } } },
+      } },
+    } };
+  }
+
+  const projected = sanitizePlatformOpenApiSource(source);
+  const schemas = projected.components.schemas;
+  assert.equal(schemas.UpdateInstanceSlugResponseDto.properties.instanceId.example, '00000000-0000-4000-8000-000000000001');
+  assert.deepEqual(schemas.AssistantThreadReportResponseDto.properties.status.enum, ['pending']);
+  assert.doesNotMatch(JSON.stringify(projected), new RegExp(sourceTenantExample));
+  assert.deepEqual(auditPublicSanitization(projected), []);
+  assert.ok(auditPublicSanitization(source).includes('UpdateInstanceSlugResponseDto must use the synthetic instance example.'));
+  assert.ok(auditPublicSanitization(source).includes('The public conversation report receipt exposes a non-public status.'));
 });

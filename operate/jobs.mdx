@@ -21,7 +21,7 @@ A Job is a durable execution record for a Component. Use one when a task must ou
 | Process an uploaded file | [Event](/operate/events) targeting a Job template | Event History and Job result |
 | Synchronize with an ERP overnight | [Schedule](/operate/schedules) targeting a Job template | Schedule History and Job result |
 
-A template defines the Component, inputs and execution policy. Job History records the run, including who initiated it, the executor and any retry attempts.
+A template defines its execution source, inputs and execution policy. Job History records the run, including who initiated it, the executor and any retry attempts.
 
 ## Find Jobs by trigger and requester
 
@@ -59,7 +59,7 @@ The 59-minute limit is intentionally not a substitute for an unbounded worker. S
 
 The **Jobs** workspace shows template identity, Component, metadata, actor timestamps, and version. Select a template to open its Details panel: the panel separates **Runtime input**, **Concurrency**, **Retry**, and metadata, and offers **Run** for a deliberate operator invocation. This separation is useful: it makes the settings that change capacity and duplicate-side-effect risk visible before a run is created.
 
-1. Create and activate the Component. In **Jobs**, create a Job template and select the Component and version binding.
+1. In **Jobs**, create a Job template. Select an active **Component** and its version binding, or select **Inline** beside **Component** to enter JavaScript or TypeScript in the editor.
 2. Choose the execution account and set Runtime input, timeout, memory, concurrency, retry and history visibility.
 3. Save the template. Test with [a matching Event](/examples/event-job) and follow the exact Job to its result, or select **Run** on the template for a direct invocation with its required inputs.
 
@@ -91,6 +91,12 @@ The **Jobs** workspace shows template identity, Component, metadata, actor times
 ```
 
 A new Job Template follows the latest active Component revision when no digest is selected. For a controlled release, select a verified Component content digest from revision history and set `componentDigest` in the template. The digest stays meaningful across instances with different local version numbers. When repairing the Component, preserve the Template's current binding unless the operator explicitly approves a migration.
+
+Inline code runs with the same inputs, execution authority, concurrency and retry settings. Each Job keeps the inline source it was admitted with. A retry uses that saved source even if the template was subsequently edited. Saving inline code requires permission to write Components as well as permission to administer Job templates.
+
+New inline Job runs expose the return value directly in `output.results`.
+A run with no return value produces `null`. Component-backed Jobs retain their
+element names in the result map. Existing Job receipts retain their recorded shape.
 
 ## Runtime input and trigger provenance
 
@@ -245,7 +251,11 @@ Do not increase timeout, memory, or retry count merely to hide a failing workflo
 
 Use **Jobs → Job History** to inspect an exact Job ID, its status, current/selected version, logs, timing, and retry root. “Accepted” means the request created or scheduled durable work; it is not a success result. Confirm `FINISHED` or a finalized artifact before notifying users or triggering a dependent business process.
 
-The **Trigger** reference identifies the Event or Schedule definition that started the Job; the history reference identifies its particular occurrence. For Event Jobs, the definition is resolved from the receipt for that exact Job execution, so two Events targeting the same template remain distinguishable. The list exposes this reference as `triggerId` and its display name as `triggerName`. A missing retained definition is shown as unavailable rather than inferred from the template.
+Long-running Assistant low-code appears as an **AI Inline Code** Job. Its details show the saved code, attempt status and bounded result. **Executed by** identifies the account when it both initiated and ran the Job. Distinct accounts appear separately. To stop an inline execution, use **Cancel** in its details and wait for the terminal status.
+
+For request and execution origins, choose **Execution** in the **Observability** row below **Attempt status**. To inspect the Job itself, use the **Execution** action in **Logs**. If the log source is unavailable, use **Retry** in the Logs warning to query the source again.
+
+For Jobs started by an Event or Schedule, the **Trigger** reference identifies the definition that started the Job; the history reference identifies its particular occurrence. For Event Jobs, the definition is resolved from the receipt for that exact Job execution, so two Events targeting the same template remain distinguishable. The list exposes this reference as `triggerId` and its display name as `triggerName`. A missing retained definition is shown as unavailable rather than inferred from the template.
 
 For a bulk action, review the selected or filtered scope and eligible count before confirmation. After acceptance, **View progress** opens the background operation. Review processed, skipped and failed counts: a finished operation can include individual failures. Closing its progress view does not cancel accepted work.
 

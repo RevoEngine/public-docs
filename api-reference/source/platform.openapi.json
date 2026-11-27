@@ -28,6 +28,28 @@
             }
           },
           {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "description": "Include archived owned threads. Independent of deleted visibility.",
+            "schema": {
+              "default": false,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeAgentThreads",
+            "required": false,
+            "in": "query",
+            "description": "Include owned delegated Assistant threads.",
+            "schema": {
+              "default": false,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
             "name": "type",
             "required": true,
             "in": "query",
@@ -11308,7 +11330,8 @@
               "enum": [
                 "job",
                 "endpoint",
-                "webhook"
+                "webhook",
+                "sandbox"
               ]
             }
           },
@@ -19294,8 +19317,47 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "OK."
+          "200": {
+            "description": "Job details. The initiator of an inline code Job can inspect its saved source.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "inlineCode": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "key",
+                          "source",
+                          "language"
+                        ],
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "language": {
+                            "type": "string",
+                            "enum": [
+                              "javascript",
+                              "typescript"
+                            ]
+                          },
+                          "library": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden."
@@ -19730,7 +19792,7 @@
     },
     "/api/v1/automation/job/cancel": {
       "post": {
-        "description": "Records durable cancellation intent. A PROCESSING job remains PROCESSING until its worker acknowledges cancellation or lease reconciliation confirms that the worker lease expired.\n\n**Roles:** `AUTOMATION_RUNNER`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
+        "description": "Records durable cancellation intent. A PROCESSING job remains PROCESSING until its worker acknowledges cancellation or lease reconciliation closes the attempt. AUTOMATION_READ can cancel only inline code jobs initiated by the authenticated caller.\n\n**Roles:** `AUTOMATION_READ`, `AUTOMATION_ADMIN`\n\n**User access:** Yes.\n\n**Service account access:** Yes.",
         "operationId": "AutomationController_cancelJobs",
         "parameters": [],
         "requestBody": {
@@ -19757,7 +19819,7 @@
             "description": "Not found."
           },
           "409": {
-            "description": "Platform operations cannot be cancelled."
+            "description": "Database platform operations use their own cancellation routes."
           }
         },
         "security": [
@@ -23076,7 +23138,7 @@
     },
     "/api/v1/assistant/threads": {
       "get": {
-        "description": "Get all threads.",
+        "description": "List owned threads. Side chats appear only when sideChatsOf identifies the source conversation. An owned conversation includes nextReminder with its earliest scheduled reminder, or null when none is scheduled.",
         "operationId": "AssistantController_getAllThreads",
         "parameters": [
           {
@@ -23256,6 +23318,50 @@
               "example": false,
               "type": "boolean"
             }
+          },
+          {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "description": "Include archived owned threads. Independent of deleted visibility.",
+            "schema": {
+              "default": false,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeAgentThreads",
+            "required": false,
+            "in": "query",
+            "description": "Include owned delegated Assistant threads.",
+            "schema": {
+              "default": false,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "parentThreadId",
+            "required": false,
+            "in": "query",
+            "description": "List only delegated threads of the specified owned parent.",
+            "schema": {
+              "format": "uuid",
+              "example": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sideChatsOf",
+            "required": false,
+            "in": "query",
+            "description": "List only side chats created from the specified owned source. Side chats are omitted from the ordinary thread list.",
+            "schema": {
+              "format": "uuid",
+              "example": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -23311,7 +23417,7 @@
     },
     "/api/v1/assistant/threads/{id}": {
       "get": {
-        "description": "Get a thread by ID. The response includes share state when a share row exists, so clients do not need a follow-up share lookup.",
+        "description": "Get a thread by ID. The response includes share state when a share row exists. An owned conversation includes nextReminder with its earliest scheduled reminder, or null when none is scheduled.",
         "operationId": "AssistantController_thread",
         "parameters": [
           {
@@ -23374,6 +23480,311 @@
           }
         ],
         "summary": "Delete thread.",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/threads/{id}/reminders": {
+      "get": {
+        "operationId": "AssistantController_listReminders",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssistantReminderDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List reminders scheduled in an owned Assistant conversation.",
+        "tags": [
+          "Assistant"
+        ]
+      },
+      "post": {
+        "operationId": "AssistantController_createReminder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAssistantReminderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReminderDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Schedule a reminder in an owned Assistant conversation.",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/threads/draft": {
+      "post": {
+        "operationId": "AssistantController_createDraftThread",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadPreflightDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a draft Assistant conversation without running a model turn.",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/threads/{id}/reminders/{reminderId}": {
+      "get": {
+        "operationId": "AssistantController_getReminder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reminderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReminderDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the saved task for a reminder in an owned Assistant conversation.",
+        "tags": [
+          "Assistant"
+        ]
+      },
+      "patch": {
+        "operationId": "AssistantController_updateReminder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reminderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAssistantReminderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReminderDetailDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The reminder is no longer scheduled."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace the saved task and time of a scheduled reminder.",
+        "tags": [
+          "Assistant"
+        ]
+      },
+      "delete": {
+        "operationId": "AssistantController_cancelReminder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reminderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReminderDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The reminder has already finished."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a scheduled or running reminder in an owned Assistant conversation.",
+        "tags": [
+          "Assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/threads/{id}/reminders/{reminderId}/run": {
+      "post": {
+        "description": "Makes the existing reminder due now. It keeps the saved payload and waits for an active turn in the conversation to finish.",
+        "operationId": "AssistantController_runReminder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reminderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantReminderDetailDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The reminder is no longer scheduled."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run a scheduled reminder as soon as the conversation is available.",
         "tags": [
           "Assistant"
         ]
@@ -24051,7 +24462,7 @@
     },
     "/api/v1/assistant/shared/{shareId}/messages/{messageId}/fork": {
       "post": {
-        "description": "Create a new owned thread branched from a selected visible message in a shared thread.",
+        "description": "Create a standalone owned thread branched from a selected visible message in a shared thread.",
         "operationId": "AssistantController_forkSharedThreadMessage",
         "parameters": [
           {
@@ -24772,7 +25183,7 @@
     },
     "/api/v1/assistant/threads/{id}/messages/{messageId}/fork": {
       "post": {
-        "description": "Create a new thread branched from the selected visible message without sending a new message.",
+        "description": "Create a standalone thread or an explicit side chat branched from the selected visible message without sending a new message.",
         "operationId": "AssistantController_forkThreadMessage",
         "parameters": [
           {
@@ -31873,7 +32284,7 @@
   "info": {
     "title": "RevoEngine Platform API",
     "description": "Official RevoEngine Platform API documentation.",
-    "version": "1.9.4",
+    "version": "1.9.5",
     "contact": {
       "name": "Support",
       "email": "support@revoengine.com"
@@ -31921,7 +32332,8 @@
             "type": "string",
             "enum": [
               "conversation",
-              "response"
+              "response",
+              "subagent"
             ],
             "description": "Server-owned thread classification, independent of the matched message kind."
           },
@@ -39751,8 +40163,8 @@
         "properties": {
           "instanceId": {
             "type": "string",
-            "description": "Internal instance UUID. API authorization and backend state continue to use this identifier.",
-            "example": "159836b3-a831-4c8c-bb7d-c9b91b455a7c"
+            "description": "Stable instance identifier used for API authorization after the slug changes.",
+            "example": "00000000-0000-4000-8000-000000000001"
           },
           "slug": {
             "type": "string",
@@ -39970,6 +40382,9 @@
           "endpoints": {
             "$ref": "#/components/schemas/PlatformUsagePreviousExecutionDto"
           },
+          "sandbox": {
+            "$ref": "#/components/schemas/PlatformUsagePreviousExecutionDto"
+          },
           "webhooks": {
             "$ref": "#/components/schemas/PlatformUsagePreviousWebhookDto"
           }
@@ -39980,6 +40395,7 @@
           "transfer",
           "jobs",
           "endpoints",
+          "sandbox",
           "webhooks"
         ]
       },
@@ -40111,6 +40527,9 @@
           },
           "jobProcessingMs": {
             "type": "number"
+          },
+          "sandboxProcessingMs": {
+            "type": "number"
           }
         },
         "required": [
@@ -40121,7 +40540,8 @@
           "endpointCount",
           "endpointProcessingMs",
           "jobCount",
-          "jobProcessingMs"
+          "jobProcessingMs",
+          "sandboxProcessingMs"
         ]
       },
       "PlatformUsageTransferRowDto": {
@@ -40513,6 +40933,9 @@
           "endpoints": {
             "$ref": "#/components/schemas/PlatformUsageEndpointsDto"
           },
+          "sandbox": {
+            "$ref": "#/components/schemas/PlatformUsageEndpointsDto"
+          },
           "webhooks": {
             "$ref": "#/components/schemas/PlatformUsageWebhooksDto"
           },
@@ -40535,6 +40958,7 @@
           "database",
           "jobs",
           "endpoints",
+          "sandbox",
           "webhooks",
           "monthlyPeriods"
         ]
@@ -41070,7 +41494,8 @@
             "enum": [
               "job",
               "endpoint",
-              "webhook"
+              "webhook",
+              "sandbox"
             ]
           },
           "view": {
@@ -45051,6 +45476,31 @@
           "mode"
         ]
       },
+      "InlineJobTemplateCodeDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CODE_JS",
+              "CODE_TS"
+            ],
+            "description": "Language of the inline Job source.",
+            "example": "CODE_JS"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "\\S",
+            "maxLength": 65536,
+            "description": "Non-blank source for the inline Job.",
+            "example": "return api.input(\"templateInputs\");"
+          }
+        },
+        "required": [
+          "type",
+          "source"
+        ]
+      },
       "ConcurrencyJobDto": {
         "type": "object",
         "properties": {
@@ -45264,11 +45714,28 @@
           },
           "componentId": {
             "type": "string",
-            "description": "Component identifier executed by this job template.",
+            "nullable": true,
+            "format": "uuid",
+            "description": "Component identifier executed by this Job template. Provide exactly one of componentId and inlineCode.",
             "example": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+          },
+          "inlineCode": {
+            "nullable": true,
+            "example": {
+              "type": "CODE_JS",
+              "source": "return 42;"
+            },
+            "description": "Inline source executed by this Job template. Provide exactly one of componentId and inlineCode. Requires component write permission.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InlineJobTemplateCodeDto"
+              }
+            ]
           },
           "componentDigest": {
             "type": "string",
+            "nullable": true,
             "description": "Portable exact component revision identity. Omit it to follow the latest active revision.",
             "example": "v1:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
           },
@@ -45317,8 +45784,7 @@
           }
         },
         "required": [
-          "name",
-          "componentId"
+          "name"
         ]
       },
       "RunJobDto": {
@@ -45391,6 +45857,16 @@
       "UpdateJobTemplate": {
         "type": "object",
         "properties": {
+          "inlineCode": {
+            "nullable": true,
+            "description": "Replace the execution source with inline code. Omit to preserve the current source, or select a componentId to switch to a component. Requires component write permission.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InlineJobTemplateCodeDto"
+              }
+            ]
+          },
           "delivery": {
             "nullable": true,
             "description": "Template-wide admission mode. Null or omitted means SINGLE. BATCH/DEBOUNCE collect all Event, Schedule, manual and low-code/API sources sharing execution authority and inputs.",
@@ -45433,10 +45909,13 @@
           },
           "componentId": {
             "type": "string",
-            "description": "Component identifier."
+            "nullable": true,
+            "format": "uuid",
+            "description": "Select a component to replace the source, or omit to preserve it. Inline source cannot include a component revision."
           },
           "componentDigest": {
             "type": "string",
+            "nullable": true,
             "description": "Portable exact component revision identity. Set null to follow latest."
           },
           "timeout": {
@@ -46619,6 +47098,179 @@
           "type"
         ]
       },
+      "CreateThreadPreflightDto": {
+        "type": "object",
+        "properties": {
+          "instructions": {
+            "type": "string",
+            "maxLength": 16000,
+            "description": "Instructions persisted on this thread across follow-up messages, Resume, same-owner forks and compaction. Maximum 16 KiB UTF-8 and 16 KiB after safe instruction rendering. Supplements mandatory runtime and instance-global instructions; never grants tool permissions. Immutable after creation."
+          },
+          "contextMode": {
+            "type": "string",
+            "enum": [
+              "platform",
+              "minimal"
+            ],
+            "description": "Persisted context profile. platform preserves the normal Revo Assistant. minimal keeps instance-global and account standing instructions and safety, omits automatic memory and plugin discovery/preload, and admits only explicitly selected tools/plugins. Defaults to platform. Immutable after creation."
+          },
+          "responseFormat": {
+            "description": "Persisted final-answer format, also enforced on browser follow-ups and Resume. Defaults to text. Immutable after creation.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AssistantResponseFormatDto"
+              }
+            ]
+          },
+          "permissions": {
+            "type": "string",
+            "description": "Per-turn approval policy. default requires approval for side-effecting tool calls, auto_review uses conditional safe auto-review, and full skips normal approval gates.",
+            "enum": [
+              "default",
+              "auto_review",
+              "full"
+            ],
+            "default": "default"
+          },
+          "toolPermissions": {
+            "type": "object",
+            "description": "Optional approval policy overrides for individual capabilities.",
+            "additionalProperties": {
+              "enum": [
+                "default",
+                "auto_review",
+                "full"
+              ]
+            }
+          },
+          "toolNames": {
+            "type": "array",
+            "description": "Optional list of capabilities available to the draft conversation. Omit to use defaults or pass an empty array to allow direct responses only.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ref_search",
+                "ref_describe",
+                "ref_apply",
+                "snapshot_get",
+                "snapshot_history",
+                "snapshot_diff",
+                "storage",
+                "skill_search",
+                "skill_load",
+                "memory_search",
+                "memory_load",
+                "memory_save",
+                "plan_update",
+                "code_search",
+                "code_read",
+                "code_exec",
+                "ops_investigate",
+                "platform_api_find_operation",
+                "dependency_graph",
+                "web_search",
+                "web_load",
+                "web_rich_lookup",
+                "wait",
+                "reminder",
+                "thread",
+                "conversation_search",
+                "conversation_load",
+                "attachment_load",
+                "send_message",
+                "agent_handoff",
+                "agent_delegate",
+                "plugin_search",
+                "plugin_load",
+                "plugin_call",
+                "request_clarification",
+                "code_describe",
+                "generate_widget",
+                "terminal_exec",
+                "terminal",
+                "studio",
+                "tool_exec",
+                "tool_wait",
+                "tool_status",
+                "tool_cancel"
+              ]
+            }
+          },
+          "pluginIds": {
+            "description": "Optional registry plugin ids attached to this assistant turn.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "studioSessionId": {
+            "type": "string",
+            "description": "Optional Studio session to work on in this conversation. Requires an enabled Studio feature and live editing membership. The binding persists across follow-up turns and does not share private conversation history.",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "description": "Optional Assistant API version. Use v2 for a draft conversation.",
+            "enum": [
+              "v1",
+              "v2"
+            ],
+            "default": "v2"
+          },
+          "model": {
+            "type": "string",
+            "description": "Optional execution model identifier enabled for this instance."
+          },
+          "fastMode": {
+            "type": "boolean",
+            "description": "Optional GPT-6 Luna Fast mode for the draft thread.",
+            "default": false
+          },
+          "reasoningEffort": {
+            "type": "string",
+            "description": "Optional assistant reasoning effort for the draft thread: none, low, medium, high, or xhigh. Defaults to medium.",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ]
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Alias for reasoningEffort used by assistant preferences. Prefer reasoningEffort for new clients.",
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ]
+          },
+          "executionMode": {
+            "type": "string",
+            "description": "Execution mode to persist on the draft thread.",
+            "enum": [
+              "interactive",
+              "execute",
+              "background",
+              "automation"
+            ],
+            "default": "interactive"
+          },
+          "planningPolicy": {
+            "type": "string",
+            "description": "Planning policy to persist on the draft thread.",
+            "enum": [
+              "standard",
+              "review_required"
+            ],
+            "default": "standard"
+          }
+        }
+      },
       "AssistantToolPermissionInfoDto": {
         "type": "object",
         "properties": {
@@ -46673,6 +47325,8 @@
               "web_load",
               "web_rich_lookup",
               "wait",
+              "reminder",
+              "thread",
               "conversation_search",
               "conversation_load",
               "attachment_load",
@@ -46736,6 +47390,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -46966,6 +47622,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -47040,6 +47698,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -47090,6 +47750,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -47192,6 +47854,137 @@
           "model"
         ]
       },
+      "AssistantReminderDto": {
+        "type": "object",
+        "properties": {
+          "reminderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "PROCESSING",
+              "FINISHED",
+              "ERROR",
+              "CANCELLED"
+            ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "AGENT",
+              "USER"
+            ]
+          }
+        },
+        "required": [
+          "reminderId",
+          "scheduledFor",
+          "reason",
+          "status"
+        ]
+      },
+      "AssistantReminderMessageDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "description": "Task text or serialized JSON.",
+            "maxLength": 16384
+          }
+        },
+        "required": [
+          "type",
+          "content"
+        ]
+      },
+      "SaveAssistantReminderDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "scheduleFor": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "message": {
+            "$ref": "#/components/schemas/AssistantReminderMessageDto"
+          }
+        },
+        "required": [
+          "reason",
+          "scheduleFor",
+          "message"
+        ]
+      },
+      "AssistantReminderDetailDto": {
+        "type": "object",
+        "properties": {
+          "reminderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "PROCESSING",
+              "FINISHED",
+              "ERROR",
+              "CANCELLED"
+            ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "AGENT",
+              "USER"
+            ]
+          },
+          "message": {
+            "$ref": "#/components/schemas/AssistantReminderMessageDto"
+          }
+        },
+        "required": [
+          "reminderId",
+          "scheduledFor",
+          "reason",
+          "status",
+          "message"
+        ]
+      },
       "UpdateThreadGoalDto": {
         "type": "object",
         "properties": {
@@ -47282,8 +48075,7 @@
           "status": {
             "type": "string",
             "enum": [
-              "pending",
-              "exported"
+              "pending"
             ]
           },
           "createdAt": {
@@ -47315,6 +48107,11 @@
             "description": "Optional explicit title for the forked thread. When omitted, orchestration will generate the new thread title.",
             "maxLength": 120,
             "minLength": 1
+          },
+          "sideChat": {
+            "type": "boolean",
+            "default": false,
+            "description": "Create a side chat under the owned source thread. Available only for ordinary owned conversations. Omit for a standalone fork."
           },
           "studioSessionId": {
             "type": "string",
@@ -47397,6 +48194,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -47681,6 +48480,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -47854,9 +48655,10 @@
                 "type": "string",
                 "enum": [
                   "conversation",
-                  "response"
+                  "response",
+                  "subagent"
                 ],
-                "description": "Technical responses are retained separately from ordinary conversation history."
+                "description": "Technical responses and delegated Assistant threads are retained separately from default conversation history."
               },
               "status": {
                 "type": "string"
@@ -47998,6 +48800,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",
@@ -48132,6 +48936,11 @@
             "description": "Set true to pin the thread. Set false or null to unpin it.",
             "example": true,
             "nullable": true
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Set true to archive the thread or false to return it to the ordinary thread list. Archiving retains the thread and its messages.",
+            "example": true
           }
         }
       },
@@ -48139,7 +48948,7 @@
         "type": "object",
         "properties": {
           "metadata": {
-            "description": "Thread metadata patch. V1 supports read/unread and pinned state; timestamps and actor fields are owned by the backend.",
+            "description": "Thread metadata patch. Supports read/unread, pinned state and archive state; timestamps and actor fields are owned by the backend.",
             "example": {
               "readAt": true,
               "pinned": true
@@ -48289,6 +49098,8 @@
                 "web_load",
                 "web_rich_lookup",
                 "wait",
+                "reminder",
+                "thread",
                 "conversation_search",
                 "conversation_load",
                 "attachment_load",

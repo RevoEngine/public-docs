@@ -25,6 +25,7 @@ const isPublicPath = (path) => path.startsWith(PUBLIC_PATH_PREFIX)
   && !isPrivateDiagnosticApiPath(path);
 const PUBLIC_JOB_TIMEOUT_MAX_SECONDS = 3540;
 const PUBLIC_JOB_MEMORY_MAX_MIB = 2048;
+const INSTANCE_ID_EXAMPLE = '00000000-0000-4000-8000-000000000001';
 const PUBLIC_EXTENSION_KEYS = new Set(['x-revo-safety-tier', 'x-max-tokens']);
 const PUBLIC_STANDALONE_SCHEMA_NAMES = new Set([
   'JobTemplateRequestDto',
@@ -512,8 +513,15 @@ export function sanitizePlatformOpenApiSource(source) {
   }
   const reportMessage = schemaProperties(output, 'AssistantThreadReportDto')?.assistantMessageId;
   if (reportMessage) reportMessage.description = 'Optional message where the reported issue occurred. Must belong to the conversation.';
-  const reportIdentifier = schemaProperties(output, 'AssistantThreadReportResponseDto')?.reportId;
-  if (reportIdentifier) reportIdentifier.description = 'Unique conversation report identifier.';
+  const reportResponse = schemaProperties(output, 'AssistantThreadReportResponseDto');
+  if (reportResponse?.reportId) reportResponse.reportId.description = 'Unique conversation report identifier.';
+  if (reportResponse?.status) reportResponse.status.enum = ['pending'];
+
+  const slugInstanceId = schemaProperties(output, 'UpdateInstanceSlugResponseDto')?.instanceId;
+  if (slugInstanceId) {
+    slugInstanceId.example = INSTANCE_ID_EXAMPLE;
+    slugInstanceId.description = 'Stable instance identifier used for API authorization after the slug changes.';
+  }
 
   const uploadDetail = operationById(output, 'AssistantController_uploadThreadAttachment')
     ?.requestBody?.content?.['multipart/form-data']?.schema?.properties?.detail;
@@ -551,6 +559,10 @@ export function sanitizePlatformOpenApiSource(source) {
       properties.planningPolicy.description = 'Planning policy for the turn. standard can create and show progress; review_required creates a user-reviewed plan before execution.';
     }
   }
+  const threadDraftTools = schemaProperties(output, 'CreateThreadPreflightDto')?.toolNames;
+  if (threadDraftTools) threadDraftTools.description = 'Optional list of capabilities available to the draft conversation. Omit to use defaults or pass an empty array to allow direct responses only.';
+  const threadDraftPermissions = schemaProperties(output, 'CreateThreadPreflightDto')?.toolPermissions;
+  if (threadDraftPermissions) threadDraftPermissions.description = 'Optional approval policy overrides for individual capabilities.';
   const assistantStreamBackground = schemaProperties(output, 'AssistantStreamOptionsDto')?.backgroundProcessing;
   if (assistantStreamBackground) assistantStreamBackground.description = backgroundProcessingDescription;
 
@@ -654,6 +666,15 @@ export function auditPublicSanitization(document) {
       issues.add(`${schemaName} contains fields outside its public projection.`);
     }
   }
+  const slugInstanceId = schemaProperties(document, 'UpdateInstanceSlugResponseDto')?.instanceId;
+  if (slugInstanceId && slugInstanceId.example !== INSTANCE_ID_EXAMPLE) {
+    issues.add('UpdateInstanceSlugResponseDto must use the synthetic instance example.');
+  }
+  const reportStatus = schemaProperties(document, 'AssistantThreadReportResponseDto')?.status;
+  if (reportStatus && (reportStatus.enum?.length !== 1 || reportStatus.enum[0] !== 'pending')) {
+    issues.add('The public conversation report receipt exposes a non-public status.');
+  }
+
   const reachable = reachableSchemaNames(document);
   if (Object.keys(document.components?.schemas ?? {}).some(
     (schemaName) => !reachable.has(schemaName) && !PUBLIC_STANDALONE_SCHEMA_NAMES.has(schemaName),
