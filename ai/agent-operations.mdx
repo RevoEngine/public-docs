@@ -99,6 +99,18 @@ Pending work is not necessarily unhealthy. It can be waiting for its availabilit
   Do not retry repeatedly without reading the error and trace. Authentication, policy, invalid configuration, non-idempotent external effects, and missing workspace inputs require correction rather than more attempts.
 </Warning>
 
+### Report an Agent run
+
+Open the run's conversation and use **Report conversation** to send feedback to
+the RevoEngine team. Fill in the required **Description** field with what
+happened and what you expected.
+
+Send the description as `reason` in the JSON body of
+`POST /api/v1/agents/runs/{agentRunId}/report`. The same [report body](/ai/assistant#report-a-conversation)
+applies, including the 1,000-character limit and optional message reference.
+An omitted or blank description returns `400 Bad Request`. A successful
+submission returns a receipt for the run's conversation.
+
 ### Consume the final response
 
 A completed run exposes the full final response in `result.output`. Use `result.output.text` for the exact text and `result.output.json` for the parsed JSON object when the conversation uses JSON output. The saved schema is validated before the run publishes this output.

@@ -502,7 +502,7 @@ export function sanitizePlatformOpenApiSource(source) {
   for (const operationId of ['AssistantController_reportThread', 'AgentController_reportRunConversation']) {
     const report = operationById(output, operationId);
     if (!report) continue;
-    report.description = 'Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.';
+    report.description = 'Submit conversation feedback to the RevoEngine team. Send the required Description as reason. Older clients may send the deprecated summary field in its place. A missing or blank description returns 400. You can also include a message reference. Returns an acceptance receipt.';
     const publicResponseCodes = new Set(['200', '400', '403', '404']);
     report.responses = Object.fromEntries(
       Object.entries(report.responses ?? {}).filter(([status]) => publicResponseCodes.has(status)),

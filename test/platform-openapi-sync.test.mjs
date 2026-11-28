@@ -218,14 +218,26 @@ test('publishes canonical Rotate DTOs without introducing scheduling or response
 });
 
 
-test('publishes conversation feedback receipts and message anchors without private diagnostic APIs', () => {
+test('publishes required conversation descriptions and feedback receipts without private diagnostic APIs', () => {
   const source = fixture();
-  const reportRequest = { content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantThreadReportDto' } } } };
+  const reportRequest = {
+    required: true,
+    content: {
+      'application/json': {
+        schema: {
+          allOf: [
+            { $ref: '#/components/schemas/AssistantThreadReportDto' },
+            { anyOf: [{ required: ['reason'] }, { required: ['summary'] }] },
+          ],
+        },
+      },
+    },
+  };
   const receiptResponse = { description: 'Diagnostic metadata stored in Firestore without Storage export.', content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantThreadReportResponseDto' } } } };
   for (const [path, operationId, tags] of [
     ['/api/v1/assistant/threads/{id}/report', 'AssistantController_reportThread', ['Assistant']],
     ['/api/v1/agents/runs/{agentRunId}/report', 'AgentController_reportRunConversation', ['Agents']],
-  ]) source.paths[path] = { post: { operationId, tags, summary: 'Report a conversation.', security: [{ bearer: [] }], description: 'Writes Firestore metadata with private support diagnostics.', requestBody: reportRequest, responses: { 200: receiptResponse, 403: { description: 'Forbidden.' }, 404: { description: 'Not found.' } } } };
+  ]) source.paths[path] = { post: { operationId, tags, summary: 'Report a conversation.', security: [{ bearer: [] }], description: 'Writes Firestore metadata with private support diagnostics.', requestBody: reportRequest, responses: { 200: receiptResponse, 400: { description: 'A non-blank report description is required.' }, 403: { description: 'Forbidden.' }, 404: { description: 'Not found.' } } } };
   source.paths['/api/v1/assistant/threads/{id}'] = { get: { operationId: 'AssistantController_getThread', tags: ['Assistant'], summary: 'Get a conversation.', description: 'Get an authorized conversation.', security: [{ bearer: [] }], responses: { 200: { description: 'Conversation.', content: { 'application/json': { schema: { $ref: '#/components/schemas/CustomerThreadDto' } } } } } } };
   const privatePaths = [
     '/api/v1/assistant/reports/{reportId}/evidence',
@@ -243,7 +255,15 @@ test('publishes conversation feedback receipts and message anchors without priva
     source.paths[path] = { get: { operationId: `PrivateSupportEvidence_${index}`, tags: ['Assistant'], responses: { 200: { description: 'Private support payload.', content: { 'application/json': { schema: { $ref: '#/components/schemas/AssistantEvidenceResponseDto' } } } } } } };
   });
   Object.assign(source.components.schemas, {
-    AssistantThreadReportDto: { type: 'object', properties: { reason: { type: 'string' }, summary: { type: 'string' }, assistantMessageId: { type: 'string', format: 'uuid' }, includeLocalModelCallSnapshots: { type: 'boolean' } } },
+    AssistantThreadReportDto: {
+      type: 'object',
+      properties: {
+        reason: { type: 'string', minLength: 1, maxLength: 1000, pattern: '\\S' },
+        summary: { type: 'string', minLength: 1, maxLength: 1000, pattern: '\\S', deprecated: true },
+        assistantMessageId: { type: 'string', format: 'uuid' },
+        includeLocalModelCallSnapshots: { type: 'boolean' },
+      },
+    },
     AssistantThreadReportResponseDto: { type: 'object', required: ['reportId', 'assistantThreadId', 'status', 'createdAt'], properties: { reportId: { type: 'string', format: 'uuid' }, assistantThreadId: { type: 'string', format: 'uuid' }, status: { type: 'string', enum: ['pending'] }, createdAt: { type: 'string', format: 'date-time' } } },
     CustomerThreadDto: { type: 'object', properties: { title: { type: 'string' } } },
     AssistantEvidenceResponseDto: { type: 'object', properties: { items: { type: 'array', items: { $ref: '#/components/schemas/AssistantEvidenceItemDto' } } } },
@@ -258,10 +278,15 @@ test('publishes conversation feedback receipts and message anchors without priva
   for (const name of ['AssistantEvidenceResponseDto', 'AssistantEvidenceItemDto', 'AssistantEvidenceChunkDto']) assert.equal(output.components.schemas[name], undefined);
   assert(output.paths['/api/v1/assistant/threads/{id}']);
   assert(output.components.schemas.CustomerThreadDto);
+  assert.deepEqual(output.components.schemas.AssistantThreadReportDto.properties.reason, source.components.schemas.AssistantThreadReportDto.properties.reason);
+  assert.equal(output.components.schemas.AssistantThreadReportDto.properties.summary.deprecated, true);
   assert.deepEqual(output.components.schemas.AssistantThreadReportDto.properties.assistantMessageId.format, 'uuid');
   assert.equal(output.components.schemas.AssistantThreadReportDto.properties.includeLocalModelCallSnapshots, undefined);
   for (const path of ['/api/v1/assistant/threads/{id}/report', '/api/v1/agents/runs/{agentRunId}/report']) {
     const operation = output.paths[path].post;
+    assert.deepEqual(operation.requestBody, reportRequest);
+    assert.match(operation.description, /required Description as reason/);
+    assert.match(operation.responses[400].description, /description is required/);
     assert.equal(operation.responses[200].content['application/json'].schema.$ref, '#/components/schemas/AssistantThreadReportResponseDto');
     assert.doesNotMatch(JSON.stringify(operation), /Firestore|Storage|private support/i);
   }

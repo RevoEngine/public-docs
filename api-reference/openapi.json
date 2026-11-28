@@ -23651,6 +23651,122 @@
         ]
       }
     },
+    "/api/v1/assistant/threads/{id}/background-tasks": {
+      "get": {
+        "operationId": "AssistantController_backgroundTasks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read independent Assistant deliveries and linked autonomous runs for the owned conversation.",
+        "tags": [
+          "Assistant"
+        ],
+        "description": "Read independent Assistant deliveries and linked autonomous runs for the owned conversation. The request is scoped to Assistant threads and content accessible to the authenticated caller."
+      }
+    },
+    "/api/v1/assistant/threads/{id}/background-tasks/agents/{agentId}/run": {
+      "post": {
+        "operationId": "AssistantController_startBackgroundRun",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAgentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Start an autonomous agent run from the owned Assistant conversation and track it automatically.",
+        "tags": [
+          "Assistant"
+        ],
+        "description": "Start an autonomous agent run from the owned Assistant conversation and track it automatically. The request is scoped to Assistant threads and content accessible to the authenticated caller."
+      }
+    },
+    "/api/v1/assistant/threads/{id}/background-tasks/{runId}": {
+      "put": {
+        "operationId": "AssistantController_trackBackgroundRun",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Track an authorized independent agent run in this conversation.",
+        "tags": [
+          "Assistant"
+        ],
+        "description": "Track an authorized independent agent run in this conversation. The request is scoped to Assistant threads and content accessible to the authenticated caller."
+      }
+    },
     "/api/v1/assistant/threads/{id}/reminders": {
       "get": {
         "operationId": "AssistantController_listReminders",
@@ -24153,7 +24269,7 @@
     },
     "/api/v1/assistant/threads/{id}/report": {
       "post": {
-        "description": "Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.",
+        "description": "Submit conversation feedback to the RevoEngine team. Send the required Description as reason. Older clients may send the deprecated summary field in its place. A missing or blank description returns 400. You can also include a message reference. Returns an acceptance receipt.",
         "operationId": "AssistantController_reportThread",
         "parameters": [
           {
@@ -24166,11 +24282,29 @@
           }
         ],
         "requestBody": {
-          "required": false,
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AssistantThreadReportDto"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AssistantThreadReportDto"
+                  },
+                  {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "reason"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "summary"
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -24185,6 +24319,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "A non-blank report description is required."
           },
           "403": {
             "description": "Forbidden."
@@ -25217,7 +25354,7 @@
     },
     "/api/v1/assistant/threads/{id}/steer": {
       "post": {
-        "description": "Interrupt the active assistant turn for an existing thread, append a new user message in the same thread context, and continue the interrupted task with that message as a correction or refinement.",
+        "description": "Append a user update to the active turn so its next model round receives it after tool results. Start a normal message turn when the thread is ready and idle.",
         "operationId": "AssistantController_steerThread",
         "parameters": [
           {
@@ -25563,7 +25700,7 @@
     },
     "/api/v1/assistant/threads/{id}/steer/stream": {
       "post": {
-        "description": "Interrupt the active assistant turn for an existing thread, append a new user message in the same thread context, and stream continuation output that applies the steering message as a correction or refinement.",
+        "description": "Receive a message receipt while the active turn and its stream continue. Stream the new normal turn when the thread is ready and idle.",
         "operationId": "AssistantController_streamSteerThread",
         "parameters": [
           {
@@ -30214,7 +30351,7 @@
     },
     "/api/v1/agents/runs/{agentRunId}/report": {
       "post": {
-        "description": "Submit conversation feedback, with an optional reason and message reference, to the team improving the RevoEngine Agentic System. Returns an acceptance receipt.",
+        "description": "Submit conversation feedback to the RevoEngine team. Send the required Description as reason. Older clients may send the deprecated summary field in its place. A missing or blank description returns 400. You can also include a message reference. Returns an acceptance receipt.",
         "operationId": "AgentController_reportRunConversation",
         "parameters": [
           {
@@ -30227,11 +30364,29 @@
           }
         ],
         "requestBody": {
-          "required": false,
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AssistantThreadReportDto"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AssistantThreadReportDto"
+                  },
+                  {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "reason"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "summary"
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -30246,6 +30401,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "A non-blank report description is required."
           },
           "404": {
             "description": "Run or linked conversation not found."
@@ -48770,6 +48928,80 @@
           "model"
         ]
       },
+      "RunAgentDto": {
+        "type": "object",
+        "properties": {
+          "instruction": {
+            "type": "string",
+            "description": "Instruction or mission passed to the root agent run.",
+            "example": "Review the failed deployment and prepare a rollback recommendation.",
+            "minLength": 1
+          },
+          "storageEntryIds": {
+            "description": "Readable Agent-workspace storage entries attached to the first conversation message.",
+            "maxItems": 8,
+            "example": [
+              "66666666-6666-4666-8666-666666666666"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "triggerType": {
+            "type": "string",
+            "description": "Optional trigger type such as REQUEST, EVENT, or SCHEDULE.",
+            "example": "SCHEDULE"
+          },
+          "triggerRefType": {
+            "type": "string",
+            "description": "Optional external reference type for correlation.",
+            "example": "scheduleId"
+          },
+          "triggerRefId": {
+            "type": "string",
+            "description": "Optional external reference id for correlation.",
+            "example": "44444444-4444-4444-8444-444444444444"
+          },
+          "scheduleFor": {
+            "description": "Optional first-dispatch deadline, from acceptance through 30 days ahead. The run is recorded immediately.",
+            "example": "2026-06-13T10:30:00.000Z",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "integer",
+                "description": "Unix timestamp in milliseconds"
+              }
+            ]
+          },
+          "state": {
+            "type": "object",
+            "description": "Optional run-scoped state merged into the initial supervisor state.",
+            "example": {
+              "incidentId": "INC-421",
+              "severity": "high"
+            }
+          },
+          "pluginIds": {
+            "description": "Optional registry plugin ids attached for this run.",
+            "example": [
+              "55555555-5555-4555-8555-555555555555"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "instruction"
+        ]
+      },
       "AssistantReminderDto": {
         "type": "object",
         "properties": {
@@ -48957,15 +49189,19 @@
         "properties": {
           "reason": {
             "type": "string",
-            "description": "User-provided reason describing what went wrong, such as wrong assumptions, model errors, or unexpected behavior.",
+            "description": "Required description of what went wrong. Use reason in new clients. Older clients may send summary instead.",
+            "minLength": 1,
             "maxLength": 1000,
+            "pattern": "\\S",
             "example": "The assistant assumed the wrong tenant and edited the wrong configuration."
           },
           "summary": {
             "type": "string",
             "description": "Deprecated compatibility alias for reason. New clients must send reason.",
             "deprecated": true,
+            "minLength": 1,
             "maxLength": 1000,
+            "pattern": "\\S",
             "example": "The assistant assumed the wrong tenant and edited the wrong configuration."
           },
           "assistantMessageId": {
@@ -49183,7 +49419,8 @@
           },
           "interruptActive": {
             "type": "boolean",
-            "description": "Optional flag for send-message endpoints. When true, an active streamed assistant turn for the thread is interrupted before appending this message.",
+            "deprecated": true,
+            "description": "Deprecated compatibility field. Steer appends to the active turn regardless of this value. Use the explicit cancel endpoint to stop a turn.",
             "default": false
           },
           "goal": {
@@ -49467,7 +49704,8 @@
           },
           "interruptActive": {
             "type": "boolean",
-            "description": "Optional flag for send-message endpoints. When true, an active streamed assistant turn for the thread is interrupted before appending this message.",
+            "deprecated": true,
+            "description": "Deprecated compatibility field. Steer appends to the active turn regardless of this value. Use the explicit cancel endpoint to stop a turn.",
             "default": false
           },
           "goal": {
@@ -49785,7 +50023,8 @@
           },
           "interruptActive": {
             "type": "boolean",
-            "description": "Optional flag for send-message endpoints. When true, an active streamed assistant turn for the thread is interrupted before appending this message.",
+            "deprecated": true,
+            "description": "Deprecated compatibility field. Steer appends to the active turn regardless of this value. Use the explicit cancel endpoint to stop a turn.",
             "default": false
           },
           "goal": {
@@ -54723,80 +54962,6 @@
           "data",
           "results",
           "next"
-        ]
-      },
-      "RunAgentDto": {
-        "type": "object",
-        "properties": {
-          "instruction": {
-            "type": "string",
-            "description": "Instruction or mission passed to the root agent run.",
-            "example": "Review the failed deployment and prepare a rollback recommendation.",
-            "minLength": 1
-          },
-          "storageEntryIds": {
-            "description": "Readable Agent-workspace storage entries attached to the first conversation message.",
-            "maxItems": 8,
-            "example": [
-              "66666666-6666-4666-8666-666666666666"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "triggerType": {
-            "type": "string",
-            "description": "Optional trigger type such as REQUEST, EVENT, or SCHEDULE.",
-            "example": "SCHEDULE"
-          },
-          "triggerRefType": {
-            "type": "string",
-            "description": "Optional external reference type for correlation.",
-            "example": "scheduleId"
-          },
-          "triggerRefId": {
-            "type": "string",
-            "description": "Optional external reference id for correlation.",
-            "example": "44444444-4444-4444-8444-444444444444"
-          },
-          "scheduleFor": {
-            "description": "Optional first-dispatch deadline, from acceptance through 30 days ahead. The run is recorded immediately.",
-            "example": "2026-06-13T10:30:00.000Z",
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "integer",
-                "description": "Unix timestamp in milliseconds"
-              }
-            ]
-          },
-          "state": {
-            "type": "object",
-            "description": "Optional run-scoped state merged into the initial supervisor state.",
-            "example": {
-              "incidentId": "INC-421",
-              "severity": "high"
-            }
-          },
-          "pluginIds": {
-            "description": "Optional registry plugin ids attached for this run.",
-            "example": [
-              "55555555-5555-4555-8555-555555555555"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        },
-        "required": [
-          "instruction"
         ]
       },
       "CreateAgentPluginApprovalPolicyDto": {
