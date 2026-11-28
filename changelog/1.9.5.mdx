@@ -14,6 +14,8 @@ Explore a question alongside its original conversation, follow several delegated
 - Schedule, edit, or run a one-time reminder from its conversation.
 - Author JavaScript or TypeScript directly in a Job template and inspect its saved source in Job History.
 - Run longer low-code tasks as background Jobs from Assistant and MCP. Follow the status of existing authorized Jobs from Summary.
+- Follow independent Agent runs and conversations in Background tasks, with links to their results.
+- Open Assistant Markdown tables in a filterable grid and add inline HTML to dashboard Iframes.
 
 ## In detail
 
@@ -23,7 +25,7 @@ Choose **Ask in side chat** on a message or select a passage to start with that 
 
 Ask the Assistant to open an independent conversation, side chat, or ordinary fork and send its first message. Side chats appear in the parent’s **Summary**. Independent conversations and forks appear in **Sources** with links to their own threads.
 
-Open **Conversation details** or use `/summary` to return to side chats, resources, Studio sessions, saved reminders, or subagents. **Changes** opens recorded version comparisons. **Background activity** shows the latest reported status of Jobs and commands on connected terminals, with links to execution details. Sources shows every loaded reference. On wide screens, Summary shares the scroll region beside the messages above the Composer. In compact layouts it opens over the conversation.
+Open **Conversation details** or use `/summary` to return to side chats, resources, Studio sessions, saved reminders, or subagents. **Changes** opens recorded version comparisons. **Background tasks** shows the latest reported status of Jobs, commands on connected terminals, independent Agent runs, and tracked conversations, with links to their results. Runs started from this conversation appear automatically. Choose an existing Agent run from the list to follow it here. Delegated subagents have their own section. On wide screens, Summary sits beside the messages above the Composer. In compact layouts it opens over the conversation.
 
 Use **Pin** to keep a conversation at the top of your Threads list. Choose **Archive** to set it aside while keeping it available to reopen. See [Assistant conversations](/ai/assistant).
 
@@ -39,7 +41,7 @@ Open a subagent from its activity entry or Conversation details to see progress,
 
 Use `/remind` or the Composer menu to schedule a one-time task. Set a date or choose a relative time, then enter text or structured JSON. At the scheduled time the Assistant receives the task in the target conversation and continues with that conversation's settings.
 
-Open a reminder from Summary or from the activity that scheduled it. Use **Show more** in Summary to open the full list, or open it from the clock in the conversation toolbar. The list lets you search saved entries and inspect their status. Use **Edit**, **Cancel**, or **Run now** for a scheduled reminder. If the conversation is working, a reminder made due by **Run now** runs after the current turn finishes. An Assistant action can also schedule work in another conversation you own. See [Assistant reminders](/ai/assistant).
+Open a reminder from Summary or from the activity that scheduled it. Use **Show all** in Summary to open the full list, or open it from the clock in the conversation toolbar. The list lets you search saved entries and inspect their status. Use **Edit**, **Cancel**, or **Run now** for a scheduled reminder. If the conversation is working, a reminder made due by **Run now** runs after the current turn finishes. An Assistant action can also schedule work in another conversation you own. See [Assistant reminders](/ai/assistant).
 
 ## Write and inspect inline Jobs
 
@@ -52,6 +54,12 @@ In Job History, look for **Inline code** or **AI Inline Code**. The initiating a
 Assistant and MCP can submit an inline execution as an asynchronous Job. Admission returns a durable Job ID. The Job uses the instance's configured runtime limit and can use one of the supported inline memory presets. Existing read-only controls and approval policies apply. Follow an execution in Job History or ask the Assistant to wait for up to ten known Jobs under a shared deadline. An existing Job can appear in Background activity after the Assistant observes its status. Reopen the saved Job reference from Conversation details in a later turn.
 
 Synchronous Sandbox execution has its own Usage view. Use it alongside the Job activity views to review where your execution time was spent. See [Jobs](/operate/jobs) and [Observability](/operate/observability).
+
+## Work with compact tables and dashboard content
+
+Assistant replies render Markdown tables inline. Use the table actions to copy the table or open a full-width grid for sorting and filtering. Copy from the grid to include the visible rows in their current order.
+
+Dashboard Iframes support a URL or Inline HTML. Inline HTML and HTML returned by a code Widget can use CSS and native controls such as expandable details. Scripts are disabled in inline HTML.
 
 
 ## Related guides
